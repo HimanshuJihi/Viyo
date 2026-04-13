@@ -1410,8 +1410,10 @@
             lastVisibleBlog = null;
             updateFeedToggleUI();
             await loadAdSettings(); // Ensure ad config is loaded before showing feed
+            loadTrending(); // Load trending section after auth resolves
             loadFlicks(); // Reload flicks alongside feed
             loadBlogs(false); // Start loading from the beginning
+            setupInfiniteScroll(); // Setup scroll observer after auth resolves
         }
 
         // Add event listeners for feed toggle
@@ -1609,6 +1611,8 @@
                 rootMargin: '0px 0px 200px 0px', // Start loading 200px before it's in view
                 threshold: 0
             };
+            
+            if (observer) observer.disconnect(); // Prevent multiple observers
 
             observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -2137,9 +2141,6 @@
                 }
             }
         }
-        loadTrending();
-        loadFlicks();
-        setupInfiniteScroll();
 
         let backToTopButton = document.getElementById("back-to-top");
 
