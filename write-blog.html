@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write a Blog - Cricket News</title>
+    <link rel="icon" href="game-logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #292628, #030708, #000000);
+            background: #121212;
+            color: #fff;
+            transition: background-color .3s ease, color .3s ease;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            transition: background-color .3s ease, border-color .3s ease;
+        }
+        h1 { text-align: center; color: #fff; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            border: 1px solid #444; background: #333; color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        textarea { height: 200px; resize: vertical; }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: #0d6efd;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .btn-transparent {
+            position: relative;
+            background: transparent !important;
+            color: #fff !important;
+            border: none !important;
+            z-index: 1;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-transparent::before, .theme-btn::before {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            border-radius: 5px;
+            padding: 1.5px;
+            background: linear-gradient(45deg, #0d6efd, #ffc107);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .btn-transparent:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+
+        .theme-btn {
+            position: relative;
+            z-index: 1;
+            border: none !important;
+            background: transparent !important;
+            color: #fff !important;
+            font-size: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .theme-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+
+        @media (max-width: 600px) {
+            .container { margin: 20px 10px; padding: 15px; }
+            .btn { width: 100%; margin: 5px 0; display: block; }
+        }
+
+        /* Light Mode */
+        body.light-mode { background: #f4f7f6; color: #333; }
+        body.light-mode .container { background: #fff; border-color: #ddd; }
+        body.light-mode h1 { color: #333; }
+        body.light-mode label { color: #333; }
+        body.light-mode input, body.light-mode textarea { background: #f0f0f0; color: #333; border: 1px solid #ccc; }
+        body.light-mode .theme-btn { color: #333 !important; }
+        body.light-mode .btn-transparent { color: #333 !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>अपना क्रिकेट ब्लॉग लिखें</h1>
+        <form id="blogForm">
+            <div class="form-group">
+                <label for="title">शीर्षक (Title)</label>
+                <input type="text" id="title" required placeholder="Ex: भारत की शानदार जीत...">
+            </div>
+            <div class="form-group">
+                <label for="author">लेखक (Author Name)</label>
+                <input type="text" id="author" required placeholder="आपका नाम">
+            </div>
+            <div class="form-group">
+                <label for="content">सामग्री (Content)</label>
+                <textarea id="content" required placeholder="यहाँ अपने विचार लिखें..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="image">तस्वीरें (Images - Max 5, Auto-compressed)</label>
+                <input type="file" id="image" accept="image/*" multiple>
+            </div>
+            <div class="form-group">
+                <label for="youtube-url">YouTube वीडियो URL (वैकल्पिक)</label>
+                <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+            <div class="form-group">
+                <label for="video-upload">वीडियो अपलोड करें (Video - Max 800KB)</label>
+                <input type="file" id="video-upload" accept="video/mp4,video/webm,video/ogg">
+            </div>
+            <div class="form-group" style="background: rgba(255,0,80,0.1); padding: 15px; border-radius: 8px; border: 1px solid #ff0050;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="is-flicks" style="width: 20px; height: 20px; margin: 0;"> 
+                    <span style="color: #ff0050; font-size: 1.1rem;"><i class="fa-solid fa-bolt"></i> Upload as Flicks (Short Video)</span>
+                </label>
+                <p style="margin: 5px 0 0 30px; font-size: 0.85rem; color: #aaa;">Flicks appear in a special Shorts-like section on the news feed. Must include a video!</p>
+            </div>
+            <div class="form-group">
+                <button type="button" id="add-poll-btn" class="btn btn-transparent"><i class="fa-solid fa-chart-simple"></i> Add Poll</button>
+                <div id="poll-creator" style="display: none; margin-top: 15px; padding: 15px; border: 1px dashed #555; border-radius: 5px;">
+                    <label for="poll-question">Poll Question</label>
+                    <input type="text" id="poll-question" placeholder="e.g., Who will win today?">
+                    <label for="poll-options" style="margin-top:10px;">Poll Options (min 2)</label>
+                    <input type="text" class="poll-option" placeholder="Option 1" style="margin-bottom: 5px;">
+                    <input type="text" class="poll-option" placeholder="Option 2" style="margin-bottom: 5px;">
+                    <input type="text" class="poll-option" placeholder="Option 3 (optional)" style="margin-bottom: 5px;">
+                    <input type="text" class="poll-option" placeholder="Option 4 (optional)">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-transparent"><img src="publish-icon.png" alt="Publish" style="width: 20px; height: 20px; margin-right: 5px;"> Publish Blog</button>
+                <button type="button" id="save-draft-btn" class="btn btn-transparent"><i class="fa-solid fa-save"></i> Save Draft</button>
+                <a href="index.html" class="btn btn-transparent"><i class="fa-solid fa-times"></i> Cancel</a>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button type="button" id="theme-toggle" class="btn theme-btn" style="padding: 8px 12px; width: auto;">☀️</button>
+            </div>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let isUserVerified = false;
+
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                body.classList.add('light-mode');
+                themeToggleBtn.textContent = '🌙';
+            } else {
+                body.classList.remove('light-mode');
+                themeToggleBtn.textContent = '☀️';
+            }
+            localStorage.setItem('theme', theme || 'dark');
+        }
+
+        themeToggleBtn.addEventListener('click', async () => {
+            const newTheme = body.classList.contains('light-mode') ? 'dark' : 'light';
+            applyTheme(newTheme);
+            if (auth.currentUser) {
+                try {
+                    const userRef = doc(db, "users", auth.currentUser.uid);
+                    await setDoc(userRef, { theme: newTheme }, { merge: true });
+                } catch (e) {
+                    console.error("Error saving theme preference:", e);
+                }
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const authorInput = document.getElementById('author');
+                
+                // Fetch Unique ID (Username)
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists() && userDoc.data().username) {
+                    if (authorInput) {
+                        authorInput.value = userDoc.data().username;
+                        authorInput.readOnly = true; // Lock author name to Unique ID
+                    }
+                    if (userDoc.data().isVerified) isUserVerified = true;
+                } else {
+                    alert("Please create a Unique ID (Username) in your profile first.");
+                    window.location.href = "profile.html?requireUsername=true";
+                    return;
+                }
+                
+                // Check if we are editing an existing blog
+                const urlParams = new URLSearchParams(window.location.search);
+                const editId = urlParams.get('id');
+                if (editId) loadBlogForEdit(editId, user);
+                // Load theme preference
+                try {
+                    const userDocRef = doc(db, "users", user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    let themeToApply = 'dark'; // default
+                    if (userDocSnap.exists() && userDocSnap.data().theme) {
+                        themeToApply = userDocSnap.data().theme;
+                    } else {
+                        const localTheme = localStorage.getItem('theme');
+                        if (localTheme) {
+                            themeToApply = localTheme;
+                            await setDoc(userDocRef, { theme: themeToApply }, { merge: true });
+                        }
+                    }
+                    applyTheme(themeToApply);
+                } catch(e) {
+                    console.error("Error loading theme preference:", e);
+                    applyTheme(localStorage.getItem('theme') || 'dark');
+                }
+            } else {
+                alert("You must be logged in to write a blog.");
+                applyTheme(localStorage.getItem('theme') || 'dark');
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Helper to read file as DataURL (for Video)
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        document.getElementById('add-poll-btn').addEventListener('click', () => {
+            const pollCreator = document.getElementById('poll-creator');
+            pollCreator.style.display = pollCreator.style.display === 'none' ? 'block' : 'none';
+        });
+
+        async function loadBlogForEdit(id, user) {
+            try {
+                const docRef = doc(db, "blogs", id);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const blog = docSnap.data();
+                    const isOwner = (blog.authorUid === user.uid) || (!blog.authorUid && blog.author === user.displayName);
+                    if (!isOwner) {
+                        alert("You can only edit your own blogs!");
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                document.querySelector('h1').innerText = "Edit Blog";
+                document.getElementById('title').value = blog.title;
+                document.getElementById('author').value = blog.author;
+                document.getElementById('content').value = blog.content;
+                document.getElementById('youtube-url').value = blog.youtubeUrl || '';
+                document.querySelector('.btn').innerText = "Update Blog";
+                
+                if (blog.isFlicker) {
+                    document.getElementById('is-flicks').checked = true;
+                }
+
+                // Load existing poll data for editing
+                if (blog.poll) {
+                    const pollCreator = document.getElementById('poll-creator');
+                    pollCreator.style.display = 'block';
+                    document.getElementById('poll-question').value = blog.poll.question;
+                    const optionInputs = document.querySelectorAll('.poll-option');
+                    blog.poll.options.forEach((opt, index) => {
+                        if (optionInputs[index]) optionInputs[index].value = opt.text;
+                    });
+                }
+                }
+            } catch (error) {
+                console.error("Error loading blog:", error);
+            }
+        }
+
+        // Image Compression Function
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const maxWidth = 800;
+                const maxHeight = 800;
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to JPEG 70% quality
+                    };
+                    img.onerror = error => reject(error);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        let submissionStatus = 'published';
+        document.getElementById('save-draft-btn').addEventListener('click', () => {
+            submissionStatus = 'draft';
+            document.getElementById('blogForm').requestSubmit();
+        });
+
+        document.getElementById('blogForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (e.submitter && e.submitter.id !== 'save-draft-btn') submissionStatus = 'published';
+            
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const content = document.getElementById('content').value;
+            const imageInput = document.getElementById('image');
+            const youtubeUrlInput = document.getElementById('youtube-url');
+            const pollQuestion = document.getElementById('poll-question').value.trim();
+            const pollOptions = Array.from(document.querySelectorAll('.poll-option'))
+                                     .map(input => input.value.trim())
+                                     .filter(option => option !== '');
+            const isFlicks = document.getElementById('is-flicks').checked;
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('id');
+            if (isFlicks && !editId && document.getElementById('video-upload').files.length === 0) {
+                alert("A video file is required to post Flicks!");
+                return;
+            }
+
+            // Validation for max 5 images
+            if (imageInput.files.length > 5) {
+                alert("You can only upload a maximum of 5 images.");
+                return;
+            }
+
+            // Validation for max 5MB size per image (already exists)
+            for (let i = 0; i < imageInput.files.length; i++) {
+                if (imageInput.files[i].size > 5 * 1024 * 1024) {
+                    alert(`Image "${imageInput.files[i].name}" is too large. Max 5MB allowed.`);
+                    return;
+                }
+            }
+            
+            // Validation for poll
+            let pollData = null;
+            if (pollQuestion) {
+                if (pollOptions.length < 2) {
+                    alert("A poll must have at least 2 options.");
+                    return;
+                }
+                pollData = {
+                    question: pollQuestion,
+                    options: pollOptions.map(opt => ({ text: opt, votes: 0, voters: [] })),
+                    totalVotes: 0
+                };
+            }
+
+            if(title && author && content) {
+                const processBlog = async (imagesData, youtubeUrl, pollData, videoBase64) => {
+                    try {
+                    if (editId) {
+                        // Update existing blog
+                            const blogRef = doc(db, "blogs", editId);
+                            const updateData = {
+                                title: title,
+                                titleLower: title.toLowerCase(),
+                                content: content,
+                                status: submissionStatus // Allow saving draft on update
+                            };
+                            updateData.authorVerified = isUserVerified;
+                            updateData.isFlicker = isFlicks;
+                            if (imagesData && imagesData.length > 0) {
+                                updateData.images = imagesData;
+                            }
+                            if (videoBase64) updateData.video = videoBase64;
+                            updateData.youtubeUrl = youtubeUrl || null;
+                            updateData.poll = pollData; // Can add/update/remove poll
+                            
+                            updateData.status = submissionStatus;
+                            await updateDoc(blogRef, updateData);
+                    } else {
+                        // Fetch latest user profile for author details
+                        let authorName = author;
+                        let authorPhoto = null;
+                        if (auth.currentUser) {
+                            try {
+                                const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                                if (userDoc.exists()) {
+                                    const userData = userDoc.data();
+                                    if (userData.photoURL) authorPhoto = userData.photoURL;
+                                }
+                            } catch(e) {}
+                        }
+
+                        // Create new blog
+                            await addDoc(collection(db, "blogs"), {
+                            title: title,
+                            titleLower: title.toLowerCase(),
+                            author: authorName,
+                            authorUid: auth.currentUser ? auth.currentUser.uid : null,
+                            authorPhoto: authorPhoto,
+                            authorVerified: isUserVerified,
+                            content: content,
+                            isFlicker: isFlicks,
+                            date: new Date().toISOString(),
+                            images: imagesData || [],
+                            image: (imagesData && imagesData.length > 0) ? imagesData[0] : 'game-logo.png', // Default image
+                            video: videoBase64 || null,
+                            youtubeUrl: youtubeUrl || null,
+                            poll: pollData,
+                                comments: [],
+                                views: 0,
+                                likes: [],
+                                status: submissionStatus
+                            });
+                    }
+                    
+                        alert(submissionStatus === 'draft' ? 'Draft Saved Successfully!' : (editId ? 'Blog Updated Successfully!' : 'Blog Published Successfully!'));
+                        window.location.href = 'index.html';
+                    } catch (e) {
+                        console.error("Error:", e);
+                        alert('Error saving blog: ' + e.message + "\n\n(Check Firestore Rules in Firebase Console)");
+                    }
+                };
+
+                // Show loading state
+                const submitBtn = document.querySelector('.btn');
+                const originalBtnText = submitBtn.innerText;
+                submitBtn.innerText = "Processing...";
+                submitBtn.disabled = true;
+
+                const imageFiles = Array.from(imageInput.files);
+                const youtubeUrl = youtubeUrlInput.value.trim();
+
+                const imagePromises = imageFiles.map(file => compressImage(file));
+                
+                let videoPromise = Promise.resolve(null);
+                const videoInput = document.getElementById('video-upload');
+                if (videoInput && videoInput.files.length > 0) {
+                    const vFile = videoInput.files[0];
+                    if (vFile.size > 800 * 1024) {
+                        alert("Video size is too large! Maximum allowed size is 800KB. For larger videos, please use the YouTube URL option.");
+                        submitBtn.innerText = originalBtnText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    videoPromise = readFile(vFile);
+                }
+                
+                Promise.all([Promise.all(imagePromises), videoPromise]).then(([imageResults, videoResult]) => {
+
+                    let totalSize = JSON.stringify(imageResults).length + content.length + (videoResult ? videoResult.length : 0) + 1000;
+                    if (totalSize > 1024 * 1024) { // 1MB limit
+                        alert("Total data size (Images + Video + Text) is too large for Firestore (Max 1MB). Please reduce media size.");
+                        submitBtn.innerText = originalBtnText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    processBlog(imageResults.length > 0 ? imageResults : null, youtubeUrl, pollData, videoResult);
+                }).catch(err => {
+                    console.error(err);
+                    alert("Error processing media: " + err.message);
+                    submitBtn.innerText = originalBtnText;
+                    submitBtn.disabled = false;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

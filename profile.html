@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; transition: background-color .3s ease, color .3s ease; }
+        .container { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); width: 100%; max-width: 800px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: bold; margin-top: 10px; }
+        button:hover { background: #e68900; }
+        .profile-pic { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid white; margin-bottom: 15px; cursor: pointer; }
+        /* CropperJS CSS Fix */
+        .cropper-container { max-width: 100%; }
+
+        /* Styling for followed/blocked state of transparent buttons */
+        .btn-transparent.following { color: #aaa !important; }
+        .btn-transparent.following::before { background: linear-gradient(45deg, #777, #444) !important; }
+        body.light-mode .btn-transparent.following { color: #666 !important; }
+        body.light-mode .btn-transparent.following::before { background: linear-gradient(45deg, #aaa, #888) !important; }
+        .verified-badge { color: #1da1f2; margin-left: 5px; font-size: 1rem; vertical-align: middle; }
+        
+        /* Badge Styles */
+        .badge-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: help;
+            transition: all 0.2s ease;
+            margin: 5px;
+        }
+        .badge-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .badge-icon {
+            font-size: 1rem;
+        }
+        .badge-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .stat-label { font-size: 0.85rem; color: #aaa; }
+        body.light-mode .stat-label { color: #555; font-weight: bold; }
+
+        @media (max-width: 480px) {
+            .container { width: 90%; padding: 20px; }
+        }
+
+        /* Profile Inputs & Bio Styling */
+        #username, #name, #bio {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        #username:focus, #name:focus, #bio:focus {
+            outline: none;
+            border-color: #87ceeb;
+            box-shadow: 0 0 8px rgba(135, 206, 235, 0.4);
+            background: rgba(0, 0, 0, 0.4);
+        }
+        #bio { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+        /* Light Mode */
+        body.light-mode { background: #f4f7f6; color: #333; }
+        body.light-mode .container { background: #fff; border-color: #ddd; }
+        body.light-mode input, body.light-mode textarea { background: #f0f0f0; color: #333; border: 1px solid #ccc; }
+        
+        /* Light mode for badges */
+        body.light-mode .badge-item {
+            background: #e9ecef;
+            border-color: #dee2e6;
+        }
+        body.light-mode .badge-title { color: #333; }
+
+        /* Light Mode for Inputs & Bio */
+        body.light-mode #username, body.light-mode #name, body.light-mode #bio {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ced4da;
+        }
+        body.light-mode #username:focus, body.light-mode #name:focus, body.light-mode #bio:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
+            background: #fff;
+        }
+
+        body.light-mode #user-list-modal > div { background: #fff; border-color: #ddd; color: #333; }
+        body.light-mode #user-list-title { color: #0d6efd; }
+        body.light-mode #user-list-content > div { border-bottom-color: #eee; }
+        body.light-mode #user-list-content strong { color: #000; }
+        body.light-mode #password-modal > div { background: #fff; border-color: #ddd; color: #333; }
+        body.light-mode #pwd-modal-title { color: #0d6efd; }
+        body.light-mode #pwd-modal-desc { color: #666; }
+        body.light-mode #pwd-auth-section input, body.light-mode #new-password-section input { background: #f0f0f0; border-color: #ccc; color: #333; }
+        .btn {
+            display: inline-block; padding: 10px 20px; font-size: 1rem; font-weight: bold; color: #fff; background-color: #0d6efd; border: none; border-radius: 5px; text-decoration: none; cursor: pointer; transition: background-color 0.2s ease;
+        }
+
+    .theme-btn {
+        position: relative;
+        z-index: 1;
+        border: none !important;
+        background: transparent !important;
+        color: #fff !important;
+        font-size: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .theme-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
+    
+    .btn-transparent {
+        position: relative;
+        background: transparent !important;
+        color: #fff !important;
+        border: none !important;
+        z-index: 1;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-transparent::before, .theme-btn::before {
+        content: "";
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        border-radius: 5px;
+        padding: 1.5px;
+        background: linear-gradient(45deg, #0d6efd, #ffc107);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        z-index: -1;
+        pointer-events: none;
+    }
+    .btn-transparent:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
+    body.light-mode .theme-btn { color: #333 !important; }
+    body.light-mode .btn-transparent { color: #333 !important; }
+
+        /* Styles from news.html for blog cards */
+        .news-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 20px;
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        .news-card img.card-img-top {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            max-height: 400px;
+        }
+        .news-card-content { padding: 25px; }
+        .news-card-content h2 { font-size: 1.75rem; margin-top: 0; margin-bottom: 10px; }
+        .news-card-content h2 a { color: #fff; text-decoration: none; transition: color 0.2s ease; }
+        .news-card-content h2 a:hover { color: #ddd; text-decoration: underline; }
+        .article-meta { font-size: 0.85rem; color: #ddd; margin-bottom: 15px; display: block; }
+        .news-card-content p { font-size: 1.05rem; color: #eee; margin-bottom: 1em; }
+        .carousel-container { position: relative; }
+        .image-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
+        .image-carousel img { flex: 0 0 100%; scroll-snap-align: center; max-height: 300px; object-fit: cover; border-radius: 8px; cursor: pointer; }
+        .image-carousel::-webkit-scrollbar { display: none; }
+        .image-carousel { -ms-overflow-style: none; scrollbar-width: none; }
+        .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; z-index: 5; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s; }
+        .carousel-btn:hover { background: rgba(0,0,0,0.9); }
+        .carousel-btn.prev { left: 10px; }
+        .carousel-btn.next { right: 10px; }
+        .comment-actions { display: flex; gap: 15px; margin-top: 8px; font-size: 0.85rem; color: #aaa; }
+        .comment-action-btn { background: none; border: none; color: inherit; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 5px; transition: color 0.2s; }
+        .comment-action-btn:hover { color: #fff; }
+        .replies-list { margin-left: 20px; margin-top: 10px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px; }
+        .pinned-badge { background: #ffd700; color: #000; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: 8px; font-weight: bold; vertical-align: middle; }
+        .follow-btn.in-card { padding: 2px 8px; font-size: 0.7rem; border-radius: 10px; border: 1px solid #0d6efd; background: transparent; color: #0d6efd; cursor: pointer; margin-left: 10px; transition: all 0.2s; }
+        .follow-btn.in-card.following { background: #0d6efd; color: white; }
+
+        /* Light mode for blog cards */
+        body.light-mode .news-card { background: #fff; border-color: #ddd; }
+        body.light-mode .news-card-content h2 a { color: #333; }
+        body.light-mode .news-card-content p { color: #555; }
+        body.light-mode .article-meta { color: #666; }
+        body.light-mode .comment-actions { color: #666; }
+        body.light-mode .comment-action-btn:hover { color: #000; }
+        body.light-mode .replies-list { border-left-color: #eee; }
+
+        /* Lightbox styles */
+        body.light-mode .replies-list { border-left-color: #eee; }
+
+        /* Lightbox styles */
+        .lightbox-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 30%; overflow: hidden; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        .lightbox-content { display: block; max-width: 90vw; max-height: 85vh; object-fit: contain; transition: transform 0.3s ease; }
+        .profile-lightbox {  border-radius: 50%;left:0; top:0; width: 100%; height: 70%; max-width: 400px; max-height: 400px; object-fit: cover; align-items: center; justify-content: center; }
+        .close-lightbox { position: absolute; top: 20px; right: 30px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer; z-index: 2001; }
+        .close-lightbox:hover { color: #bbb; }        
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Fluid Player for VAST Ads -->
+    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
+    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h2>My Profile</h2>
+    <img id="preview" src="https://via.placeholder.com/100" class="profile-pic" onclick="window.openLightbox(this.src, true)" title="View Photo">
+    <input type="file" id="file-input" style="display: none;" accept="image/*">
+    <div id="profile-action-buttons" style="margin-top: 10px; display: none;">
+        <button id="follow-btn" class="btn-transparent" style="display: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Follow</button>
+        <button id="message-profile-btn" class="btn-transparent" style="display: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px;"><img src="messages-icon.png" alt="Message" height="20px" width="20px" style="vertical-align: middle;"> Message</button>
+        <button id="block-btn" class="btn-transparent" style="display: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px;"><img src="block-icon.png" alt="Block" height="20px" width="20px" style="vertical-align: middle;"> Block</button>
+    </div>
+    <p id="photo-hint" style="font-size: 0.9rem; color: #87ceeb; cursor: pointer; margin-top: -5px; " onclick="document.getElementById('file-input').click()"><img src="camera-icon.png" alt="Change Photo" height="20px" width="20px" style="vertical-align: middle;"> Change Photo</p>
+    
+    <!-- Status display removed from profile, will be handled by stories on news page -->
+    <!-- Followers/Following Stats -->
+    <div style="display: flex; gap: 30px; margin: 15px 0; justify-content: center; width: 100%;">
+        <div id="followers-box" onclick="window.showUserList('followers')" style="cursor: pointer; text-align: center;">
+            <span id="followers-count" class="gold-text" style="font-size: 1.4rem; font-weight: bold;">0</span><br>
+            <span class="stat-label">Followers</span>
+        </div>
+        <div id="following-box" onclick="window.showUserList('following')" style="cursor: pointer; text-align: center;">
+            <span id="following-count" class="gold-text" style="font-size: 1.4rem; font-weight: bold;">0</span><br>
+            <span class="stat-label">Following</span>
+        </div>
+        <div style="text-align: center;">
+            <span id="blogs-count" class="gold-text" style="font-size: 1.4rem; font-weight: bold;">0</span><br>
+            <span class="stat-label">Blogs</span>
+        </div>
+        <div style="text-align: center;">
+            <span id="likes-count" class="gold-text" style="font-size: 1.4rem; font-weight: bold;">0</span><br>
+            <span class="stat-label">Likes</span>
+        </div>
+    </div>
+
+    <div id="verified-indicator" style="display:none; color:#1da1f2; font-weight:bold; margin: 5px 0;"><img src="verify-icon.png" alt="Verified" height="20px" width="20px" style="vertical-align: middle;"> Verified Account</div>
+    
+    <div id="badges-section" style="margin: 20px 0; text-align: center;">
+        <!-- Badges will be populated by JavaScript -->
+    </div>
+
+    <input type="text" id="username" placeholder="Unique ID (e.g. @cricket_lover)">
+    <input type="text" id="name" placeholder="Display Name">
+    <textarea id="bio" rows="3" placeholder="Bio (e.g. Cricket Lover from Mumbai)"></textarea>
+    
+    <button id="create-story-btn" class="btn" style="background-color: #ffc107; color: black; margin-top: 20px; width: 100%; display: none;" onclick="window.location.href='story-editor.html'">➕ Create New Story</button>
+    <button id="studio-btn" class="btn" style="background: linear-gradient(45deg, #9b59b6, #8e44ad); margin-top: 10px; width: 100%; display: none;" onclick="window.location.href='studio.html'">🚀 Creator Studio</button>
+    
+    <button id="save-btn" class="btn-transparent"><img src="save-icon.png" alt="Save Profile" height="30px" width="30px" style="vertical-align: middle;"> Save Profile</button>
+    <button id="theme-toggle" class="btn theme-btn" style="margin-top: 10px;">☀️</button>
+    <button id="change-pwd-btn" class="btn-transparent" style="margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><img src="change-pwd-icon.png" alt="Change Password" height="30px" width="30px" style="vertical-align: middle;"> Change Password</button>
+    <button id="back-to-news-btn" class="btn-transparent" style="margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="window.location.href='index.html'"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
+    <button id="delete-acc-btn" class="btn-transparent" style="margin-top: 30px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><img src="delete-acc-icon.png" alt="Delete Account" height="30px" width="30px" style="vertical-align: middle;"> Delete Account</button>
+
+    <div id="my-blogs-section" style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; text-align: left;">
+        <h3 class="gold-text" style="margin-bottom: 15px; text-align: center;"><img src="blog-icon.png" alt="Blogs" height="30px" width="30px" style="vertical-align: middle;"> Blogs</h3>
+        <div id="my-blogs-list">Loading...</div>
+    </div>
+
+    <!-- Cropper Modal -->
+    <div id="cropper-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="width:90%; max-width:500px; max-height:70vh; background:#000; overflow:hidden; border-radius:8px;">
+            <img id="cropper-image" style="max-width:100%; display:block;">
+        </div>
+        <div style="margin-top:20px; display:flex; gap:15px;">
+            <button id="btn-crop" style="background:#28a745; color:white; padding:10px 25px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Crop & Save</button>
+            <button id="btn-cancel-crop" style="background:#dc3545; color:white; padding:10px 25px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal for blog images -->
+    <div id="lightbox-modal" class="lightbox-modal" onclick="if(event.target === this) window.closeLightbox()">
+        <span class="close-lightbox" onclick="window.closeLightbox()">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+    </div>
+
+    <!-- User List Modal (Followers/Following) -->
+    <div id="user-list-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
+        <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; max-height:70vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                <h3 id="user-list-title" class="gold-text" style="margin:0;">Users</h3>
+                <button onclick="document.getElementById('user-list-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="user-list-content" style="overflow-y:auto; flex:1;">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Password Modal (For Change Password & Delete Account) -->
+    <div id="password-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
+        <div style="background:#1e1e1e; padding:25px; border-radius:10px; width:90%; max-width:400px; border: 1px solid #444; text-align: center; color: white;">
+            <h3 id="pwd-modal-title" class="gold-text" style="margin-top:0; margin-bottom: 15px;">Title</h3>
+            <p id="pwd-modal-desc" style="color:#ccc; font-size:0.9rem; margin-bottom: 20px;">Description</p>
+            
+            <div id="pwd-auth-section">
+                <input type="password" id="current-password" placeholder="Current Password" style="width:100%; padding:10px; margin-bottom:15px; background:#333; border:1px solid #555; color:white; border-radius:5px;">
+            </div>
+            
+            <div id="new-password-section" style="display:none;">
+                <input type="password" id="new-password" placeholder="New Password (min 6 chars)" style="width:100%; padding:10px; margin-bottom:10px; background:#333; border:1px solid #555; color:white; border-radius:5px;">
+                <input type="password" id="confirm-password" placeholder="Confirm New Password" style="width:100%; padding:10px; margin-bottom:15px; background:#333; border:1px solid #555; color:white; border-radius:5px;">
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button id="pwd-action-btn" style="flex:1; padding:10px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Confirm</button>
+                <button onclick="document.getElementById('password-modal').style.display='none'" style="flex:1; background:#555; color:white; padding:10px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, onSnapshot, deleteField, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, updateProfile, deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    let currentUser = null;
+    let currentProfileData = {}; // Store loaded profile data for lists
+    let profilePageBlogs = [];
+    let isUserVerified = false; // Flag to check if current user (owner) is verified
+    let isViewerAdmin = false;
+    let isProfileOwner = false;
+
+    let globalAdConfig = { showAds: false, vastUrl: '' };
+
+    async function loadAdSettings() {
+        try {
+            const adDoc = await getDoc(doc(db, "settings", "ads"));
+            if (adDoc.exists()) {
+                globalAdConfig = adDoc.data();
+            }
+        } catch(e) { console.error("Error loading ad settings:", e); }
+    }
+
+    // Theme Toggle Logic
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    function applyTheme(theme) {
+        if (theme === 'light') {
+            body.classList.add('light-mode');
+            themeToggleBtn.textContent = '🌙';
+        } else {
+            body.classList.remove('light-mode');
+            themeToggleBtn.textContent = '☀️';
+        }
+        localStorage.setItem('theme', theme || 'dark');
+    }
+
+    themeToggleBtn.addEventListener('click', async () => {
+        const newTheme = body.classList.contains('light-mode') ? 'dark' : 'light';
+        applyTheme(newTheme);
+        if (auth.currentUser) {
+            try {
+                const userRef = doc(db, "users", auth.currentUser.uid);
+                await setDoc(userRef, { theme: newTheme }, { merge: true });
+            } catch (e) {
+                console.error("Error saving theme preference:", e);
+            }
+        }
+    });
+
+    // Handle Image Selection
+    const fileInput = document.getElementById('file-input');
+    const preview = document.getElementById('preview');
+    let base64Image = null;
+
+    // Cropper variables
+    let cropper;
+    const cropperModal = document.getElementById('cropper-modal');
+    const cropperImage = document.getElementById('cropper-image');
+    const btnCrop = document.getElementById('btn-crop');
+    const btnCancelCrop = document.getElementById('btn-cancel-crop');
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                cropperImage.src = e.target.result;
+                cropperModal.style.display = 'flex';
+                if(cropper) cropper.destroy();
+                cropper = new Cropper(cropperImage, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    background: false,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+        fileInput.value = ''; // Allow re-selecting same file
+    });
+
+    btnCancelCrop.addEventListener('click', () => {
+        cropperModal.style.display = 'none';
+        if(cropper) cropper.destroy();
+    });
+
+    btnCrop.addEventListener('click', () => {
+        if(!cropper) return;
+        
+        // Get cropped canvas (limit size to 600x600 for profile pic)
+        const canvas = cropper.getCroppedCanvas({
+            width: 600,
+            height: 600,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        });
+
+        // Compress to under 1MB
+        let quality = 0.9;
+        let dataURL = canvas.toDataURL('image/jpeg', quality);
+        
+        // 1MB approx 1.33 million base64 chars
+        while (dataURL.length > 1330000 && quality > 0.1) {
+            quality -= 0.1;
+            dataURL = canvas.toDataURL('image/jpeg', quality);
+        }
+
+        preview.src = dataURL;
+        base64Image = dataURL;
+        
+        cropperModal.style.display = 'none';
+        cropper.destroy();
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewUid = urlParams.get('uid');
+
+        let currentUserFollowing = []; // Keep track of who the current user follows
+        if (user) {
+            currentUser = user;
+            // Check if the person viewing the page is an admin
+            const viewerDoc = await getDoc(doc(db, "users", user.uid));
+            if (viewerDoc.exists() && viewerDoc.data().isAdmin) {
+                isViewerAdmin = true;
+            }
+            // Load theme preference
+            try {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                let themeToApply = 'dark'; // default
+                if (userDocSnap.exists() && userDocSnap.data().theme) {
+                    themeToApply = userDocSnap.data().theme;
+                } else {
+                    const localTheme = localStorage.getItem('theme');
+                    if (localTheme) {
+                        themeToApply = localTheme;
+                        await setDoc(userDocRef, { theme: themeToApply }, { merge: true });
+                    }
+                }
+                applyTheme(themeToApply);
+            } catch(e) {
+                console.error("Error loading theme preference:", e);
+                applyTheme(localStorage.getItem('theme') || 'dark');
+            }
+        }
+
+        if (viewUid && (!user || viewUid !== user.uid)) {
+            // View Mode (Guest or viewing someone else)
+            document.querySelector('h2').innerText = "User Profile";
+            document.getElementById('save-btn').style.display = 'none';
+            document.getElementById('theme-toggle').style.display = 'none'; // Hide theme toggle in view mode
+            document.getElementById('change-pwd-btn').style.display = 'none';
+            document.getElementById('profile-action-buttons').style.display = 'block';
+            document.getElementById('delete-acc-btn').style.display = 'none';
+            document.getElementById('preview').onclick = function() {
+                window.openLightbox(this.src, true);
+            };
+            document.getElementById('preview').style.cursor = 'pointer';
+            document.getElementById('preview').style.border = '3px solid #87ceeb';
+            document.getElementById('followers-box').style.cursor = 'default';
+            document.getElementById('following-box').style.cursor = 'default';
+            
+            ['username', 'name', 'bio'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.readOnly = true;
+                    el.style.border = 'none';
+                    el.style.background = 'transparent';
+                    el.style.textAlign = 'center';
+                }
+            });
+
+            // Load my data first to check for blocks
+            if (user) {
+                const myDocSnap = await getDoc(doc(db, "users", user.uid));
+                if (myDocSnap.exists() && myDocSnap.data().blockedBy && myDocSnap.data().blockedBy.includes(viewUid)) {
+                    handleBlockedProfile("This user has blocked you.");
+                    return;
+                }
+            }
+            document.getElementById('photo-hint').style.display = 'none'; // Hide hint in view mode
+
+            isProfileOwner = false;
+            loadProfileData(viewUid, user);
+            renderUserBlogs(viewUid, false);
+            
+            // Setup Follow Button
+            if (user) { // Only show follow/message if logged in
+                const followBtn = document.getElementById('follow-btn');
+                followBtn.style.display = 'inline-block';
+                
+                const messageBtn = document.getElementById('message-profile-btn');
+                messageBtn.style.display = 'inline-block';
+                messageBtn.onclick = () => {
+                    window.location.href = `chat.html?uid=${viewUid}`;
+                };
+
+                // Check if already following
+                try {
+                    const myDoc = await getDoc(doc(db, "users", user.uid));
+                    if (myDoc.exists()) {
+                        const myData = myDoc.data();
+                        const isFollowing = myData.following && myData.following.includes(viewUid);
+                        updateFollowButton(isFollowing);
+                        followBtn.onclick = () => toggleFollow(viewUid, isFollowing);
+
+                        const isBlocked = myData.blockedUsers && myData.blockedUsers.includes(viewUid);
+                        setupBlockButton(viewUid, isBlocked);
+                    }
+                    // Fetch current user's following list to manage follow button state
+                    const myDocSnap = await getDoc(doc(db, "users", user.uid));
+                    if (myDocSnap.exists()) {
+                        currentUserFollowing = myDocSnap.data().following || [];
+                        updateFollowButton(currentUserFollowing.includes(viewUid));
+                    }
+                    if (isViewerAdmin) {
+                        setupAdminActions(viewUid, document.getElementById('username').value);
+                    }
+                } catch(e) { console.error(e); }
+            }
+        } else if (user) {
+            // Edit Mode (My Profile)
+            // Load existing profile
+                document.getElementById('studio-btn').style.display = 'block';
+                document.getElementById('create-story-btn').style.display = 'block';
+                document.getElementById('profile-action-buttons').style.display = 'none';
+
+                isProfileOwner = true;
+            
+            // Also load my following list if I am viewing my own profile (for my blogs)
+            if (user) {
+                const myDocSnap = await getDoc(doc(db, "users", user.uid));
+                if (myDocSnap.exists()) currentUserFollowing = myDocSnap.data().following || [];
+            }
+
+                loadProfileData(user.uid, user);
+                renderUserBlogs(user.uid, true);
+
+                // Check if username is required
+                if (urlParams.get('requireUsername') === 'true' && !document.getElementById('username').value) {
+                    alert("Please create a Unique ID (Username) to continue.");
+                    document.getElementById('username').focus();
+                    document.getElementById('back-to-news-btn').style.display = 'none'; // Hide back button to enforce creation
+                }
+        } else {
+                window.location.href = 'index.html';
+        }
+    });
+
+    function handleBlockedProfile(message) {
+        document.querySelector('.container').innerHTML = `
+            <h2 style="color: #ff6b6b;">Access Denied</h2>
+            <p style="color: #ccc;">${message}</p>
+            <button class="btn-transparent" style="margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="window.location.href='index.html'"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
+        `;
+    }
+
+    function setupBlockButton(targetUid, isBlocked) {
+        const blockBtn = document.getElementById('block-btn');
+        blockBtn.style.display = 'inline-block';
+        updateBlockButton(isBlocked);
+        blockBtn.onclick = () => toggleBlock(targetUid, isBlocked);
+    }
+
+    function updateFollowButton(isFollowing) {
+        const btn = document.getElementById('follow-btn');
+        if (isFollowing) {
+            btn.innerText = "Following";
+            btn.classList.add('following');
+        } else {
+            btn.innerText = "Follow";
+            btn.classList.remove('following');
+        }
+    }
+
+    function updateBlockButton(isBlocked) {
+        const btn = document.getElementById('block-btn');
+        const followBtn = document.getElementById('follow-btn');
+        const messageBtn = document.getElementById('message-profile-btn');
+
+        btn.innerText = isBlocked ? "Unblock" : "Block";
+        btn.classList.toggle('following', isBlocked); // Use same style for visual cue
+        followBtn.style.display = isBlocked ? 'none' : 'inline-block';
+        messageBtn.style.display = isBlocked ? 'none' : 'inline-block';
+    }
+
+    async function toggleFollow(targetUid, isCurrentlyFollowing) {
+        const myUid = currentUser.uid;
+        const userRef = doc(db, 'users', myUid);
+        const targetRef = doc(db, 'users', targetUid);
+        
+        try {
+            if (isCurrentlyFollowing) {
+                await updateDoc(userRef, { following: arrayRemove(targetUid) });
+                await updateDoc(targetRef, { followers: arrayRemove(myUid) });
+                updateFollowButton(false);
+            } else {
+                await updateDoc(userRef, { following: arrayUnion(targetUid) });
+                await updateDoc(targetRef, { followers: arrayUnion(myUid) });
+                
+                // --- NEW: Check for verification after a new follow ---
+                const targetDocSnap = await getDoc(targetRef);
+                if (targetDocSnap.exists()) {
+                    const targetData = targetDocSnap.data();
+                    const followersCount = (targetData.followers || []).length;
+                    if (followersCount >= 9 && !targetData.isVerified) {
+                        await updateDoc(targetRef, { isVerified: true });
+                        // Send a notification to the newly verified user
+                        await addDoc(collection(db, "notifications"), { 
+                            recipientUid: targetUid, senderName: "Auction To Arena", type: "verification", date: new Date().toISOString(), read: false 
+                        });
+                    }
+                }
+                // --- END NEW LOGIC ---
+
+                // Send Notification
+                await addDoc(collection(db, "notifications"), {
+                    recipientUid: targetUid,
+                    senderUid: myUid,
+                    senderName: currentUser.displayName || "Someone",
+                    type: "follow",
+                    date: new Date().toISOString(),
+                    read: false
+                });
+
+                updateFollowButton(true);
+                document.getElementById('follow-btn').onclick = () => toggleFollow(targetUid, true);
+            }
+            // Refresh counts
+            loadProfileData(targetUid);
+        } catch(e) { console.error("Follow error:", e); alert("Error updating follow status"); }
+    }
+
+    async function toggleBlock(targetUid, isCurrentlyBlocked) {
+        if (!currentUser) return;
+        const myUid = currentUser.uid;
+        const userRef = doc(db, "users", myUid);
+        const targetRef = doc(db, "users", targetUid);
+
+        try {
+            if (isCurrentlyBlocked) {
+                await updateDoc(userRef, { blockedUsers: arrayRemove(targetUid) });
+                await updateDoc(targetRef, { blockedBy: arrayRemove(myUid) });
+                updateBlockButton(false);
+                document.getElementById('block-btn').onclick = () => toggleBlock(targetUid, false);
+            } else {
+                if (confirm(`Are you sure you want to block this user? You won't see their posts, and they won't be able to message you.`)) {
+                    await updateDoc(userRef, { blockedUsers: arrayUnion(targetUid), following: arrayRemove(targetUid) }); // Also unfollow
+                    await updateDoc(targetRef, { blockedBy: arrayUnion(myUid), followers: arrayRemove(myUid) }); // Also remove from their followers
+                    updateBlockButton(true);
+                    document.getElementById('block-btn').onclick = () => toggleBlock(targetUid, true);
+                }
+            }
+        } catch (e) { console.error("Block error:", e); alert("Error updating block status."); }
+    }
+
+    async function loadProfileData(uid, viewerUser) {
+        let data = {};
+        let totalBlogs = 0;
+        let totalLikes = 0;
+
+        try {
+            const docRef = doc(db, "users", uid);
+            const docSnap = await getDoc(docRef);
+            
+            if (docSnap.exists()) {
+                data = docSnap.data();
+
+                // If viewing someone else's profile, check if they have blocked you.
+                if (viewerUser && viewerUser.uid !== uid) {
+                    if (data.blockedUsers && data.blockedUsers.includes(viewerUser.uid)) {
+                        handleBlockedProfile("You have been blocked by this user.");
+                        return;
+                    }
+                }
+
+                currentProfileData = data; // Store for list access
+                document.getElementById('name').value = data.name || "";
+                document.getElementById('username').value = data.username || "";
+                document.getElementById('bio').value = data.bio || "";
+                if (data.photoURL) {
+                    document.getElementById('preview').src = data.photoURL;
+                    if (currentUser && uid === currentUser.uid) base64Image = data.photoURL;
+                    if (currentUser && uid === currentUser.uid) base64Image = data.photoURL; // For my profile
+                }
+                
+                // Update Counts
+                const followers = data.followers || [];
+                const following = data.following || [];
+                document.getElementById('followers-count').innerText = followers.length;
+                document.getElementById('following-count').innerText = following.length;
+
+                // Verified Badge
+                if (data.isVerified) {
+                    document.getElementById('verified-indicator').style.display = 'block';
+                } else {
+                    document.getElementById('verified-indicator').style.display = 'none';
+                }
+
+            } else if (currentUser && uid === currentUser.uid) {
+                document.getElementById('name').value = currentUser.displayName;
+                if (currentUser.photoURL) document.getElementById('preview').src = currentUser.photoURL;
+            }
+
+            // Fetch and display blog stats
+            try {
+                const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid), where("status", "!=", "draft"));
+                const blogsSnapshot = await getDocs(blogsQuery);
+
+                totalBlogs = blogsSnapshot.size;
+                blogsSnapshot.forEach(blogDoc => {
+                    const blogData = blogDoc.data();
+                    totalLikes += Array.isArray(blogData.likes) ? blogData.likes.length : (typeof blogData.likes === 'number' && !isNaN(blogData.likes) ? blogData.likes : 0);
+                });
+
+                document.getElementById('blogs-count').innerText = totalBlogs;
+                document.getElementById('likes-count').innerText = totalLikes;
+            } catch (e) { console.error("Error fetching blog stats:", e); }
+
+            // NEW: Display badges based on stats
+            displayBadges(data, totalBlogs, totalLikes);
+
+        } catch (e) { console.error("Error loading profile:", e); }
+    }
+
+    // --- Blog Rendering Logic ---
+
+    function displayBadges(userData, blogCount, likeCount) {
+        const badgesSection = document.getElementById('badges-section');
+        if (!badgesSection) return;
+        badgesSection.innerHTML = ''; // Clear existing badges
+
+        const badges = [];
+
+        // 1. Verified Badge
+        if (userData.isVerified) {
+            badges.push({
+                icon: '✔',
+                title: 'Verified User',
+                color: '#1da1f2',
+                description: 'A trusted member of the community with 9+ followers.'
+            });
+        }
+
+        // 2. Popular Author Badge
+        if (likeCount >= 500) {
+            badges.push({
+                icon: '🔥',
+                title: 'Popular Author',
+                color: '#ff6b6b',
+                description: 'Received over 500 likes on their blog posts.'
+            });
+        }
+
+        // 3. Community Pillar Badge
+        if (userData.followers && userData.followers.length >= 100) {
+            badges.push({
+                icon: '🏛️',
+                title: 'Community Pillar',
+                color: '#f1c40f', // A golden yellow
+                description: 'Followed by over 100 users.'
+            });
+        }
+        
+        // 4. Prolific Writer Badge
+        if (blogCount >= 25) {
+             badges.push({
+                icon: '✍️',
+                title: 'Prolific Writer',
+                color: '#9b59b6', // A nice purple
+                description: 'Published 25 or more blog posts.'
+            });
+        }
+
+        // 5. First Post Badge
+        if (blogCount > 0) {
+            badges.push({
+                icon: '🎉',
+                title: 'Contributor',
+                color: '#2ecc71', // A friendly green
+                description: 'Published their first blog post.'
+            });
+        }
+
+        if (badges.length > 0) {
+            const header = document.createElement('h3');
+            header.innerText = 'Badges';
+            header.classList.add('gold-text');
+            header.style.marginBottom = '10px';
+            header.style.marginTop = '0';
+            badgesSection.appendChild(header);
+
+            const badgeContainer = document.createElement('div');
+            badgeContainer.style.display = 'flex';
+            badgeContainer.style.flexWrap = 'wrap';
+            badgeContainer.style.gap = '10px';
+            badgeContainer.style.justifyContent = 'center';
+
+            badges.forEach(badge => {
+                const badgeEl = document.createElement('div');
+                badgeEl.className = 'badge-item';
+                badgeEl.title = badge.description;
+                badgeEl.innerHTML = `<span class="badge-icon" style="background-color: ${badge.color}; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">${badge.icon}</span><span class="badge-title">${badge.title}</span>`;
+                badgeContainer.appendChild(badgeEl);
+            });
+            badgesSection.appendChild(badgeContainer);
+        }
+    }
+
+    // --- Blog Rendering Logic ---
+
+    window.openLightbox = function(src, isProfilePic = false) {
+        const img = document.getElementById('lightbox-img');
+        img.src = src;
+        if (isProfilePic) {
+            img.classList.add('profile-lightbox');
+        } else {
+            img.classList.remove('profile-lightbox');
+        }
+        document.getElementById('lightbox-modal').style.display = "flex";
+    };
+    window.closeLightbox = function() {
+        document.getElementById('lightbox-modal').style.display = "none";
+    };
+
+    function getYoutubeVideoId(url) {
+        if (!url) return null;
+        const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const match = url.match(regex);
+        return match ? match[1] : null;
+    }
+
+    window.scrollCarousel = function(btn, direction) {
+        const container = btn.parentElement.querySelector('.image-carousel');
+        const scrollAmount = container.clientWidth;
+        container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    };
+
+    async function renderUserBlogs(uid, isOwner) {
+        const list = document.getElementById('my-blogs-list');
+        list.innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+        try {
+            await loadAdSettings();
+            const constraints = [where("authorUid", "==", uid)];
+            if (!isOwner) {
+                constraints.push(where("status", "==", "published"));
+            }
+            constraints.push(orderBy("date", "desc"));
+            
+            const q = query(collection(db, "blogs"), ...constraints);
+            const querySnapshot = await getDocs(q);
+
+            list.innerHTML = '';
+            if (querySnapshot.empty) {
+                list.innerHTML = '<p style="text-align:center; color:#aaa;">No blogs yet.</p>';
+                return;
+            }
+
+            profilePageBlogs = [];
+            querySnapshot.forEach(doc => {
+                profilePageBlogs.push({ id: doc.id, ...doc.data() });
+            });
+
+            renderBlogsOnProfile(isOwner);
+        } catch (e) {
+            console.error("Error fetching blogs:", e);
+            list.innerHTML = '<p style="color:red;">Error loading blogs.</p>';
+        }
+    }
+
+    function renderBlogsOnProfile(isOwner) {
+        const grid = document.getElementById('my-blogs-list');
+        grid.innerHTML = '';
+        const user = auth.currentUser;
+
+        profilePageBlogs.forEach(blog => {
+            const article = document.createElement('article');
+            article.className = 'news-card';
+            article.id = `blog-${blog.id}`;
+
+            let likeCount = 0;
+            let isLiked = false;
+            
+            if (Array.isArray(blog.likes)) {
+                likeCount = blog.likes.length;
+                isLiked = user && blog.likes.includes(user.uid);
+            } else {
+                likeCount = typeof blog.likes === 'number' && !isNaN(blog.likes) ? blog.likes : 0;
+                let likedPosts = JSON.parse(localStorage.getItem('cricket_user_liked_posts') || '[]');
+                isLiked = likedPosts.includes(blog.id);
+            }
+            let likeIcon = isLiked ? '❤️' : '🤍';
+            
+            let actionButtons = `
+                <button onclick="window.likeUserBlog('${blog.id}')" style="background:none; border:none; color:#ff69b4; cursor:pointer; font-size: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${likeIcon} ${likeCount}</button>
+                <button onclick="window.shareBlog('${blog.id}', '${blog.title.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#0d6efd; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i class="fa-solid fa-share-nodes"></i> Share</button>
+            `;
+
+            if (isOwner) {
+                actionButtons += `<button onclick="window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.9rem;"><i class="fa-solid fa-pen"></i> Edit</button>`;
+                actionButtons += `<button onclick="window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.9rem;"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>`;
+            }
+
+            let mediaHtml = '';
+            if (blog.youtubeUrl) {
+                const videoId = getYoutubeVideoId(blog.youtubeUrl);
+                if (videoId) {
+                    mediaHtml += `<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 10px;"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>`;
+                }
+            }
+
+            if (blog.video) {
+                mediaHtml += `
+                    <video id="video-${blog.id}" controls style="width: 100%; max-height: 300px; border-radius: 8px; margin-bottom: 10px; background: #000;">
+                        <source src="${blog.video}" type="video/mp4">
+                    </video>`;
+            }
+
+            if (blog.images && blog.images.length > 0) {
+                const imagesList = blog.images.map(img => `<img src="${img}" alt="Blog Image" onclick="window.openLightbox('${img}')">`).join('');
+                const arrows = blog.images.length > 1 ? `<button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button><button class="carousel-btn next" onclick="window.scrollCarousel(this, 1)">&#10095;</button>` : '';
+                mediaHtml += `<div class="carousel-container">${arrows}<div class="image-carousel">${imagesList}</div></div>`;
+            } else if (blog.image) {
+                mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="Blog Image" onclick="window.openLightbox('${blog.image}')">`;
+            }
+
+            const draftBadge = (blog.status === 'draft' && isOwner) ? '<span style="background:orange; color:black; padding:2px 5px; border-radius:4px; font-size:0.7rem; margin-left:5px;">DRAFT</span>' : '';
+            
+            const authorHeader = `
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <img src="${blog.authorPhoto || 'game-logo.png'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #87ceeb; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">
+                    <div style="flex: 1;">
+                        <strong style="color: #87ceeb; font-size: 1.1rem; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
+                        <span style="font-size: 0.8rem; color: #aaa; margin-top: 4px; display: block;">${new Date(blog.date).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `;
+
+            article.innerHTML = `
+                ${mediaHtml}
+                <div class="news-card-content">
+                    ${authorHeader}
+                    <h2 style="margin-top: 5px;">${blog.title} ${draftBadge}</h2>
+                    <p>${blog.content.replace(/\n/g, '<br>')}</p>
+                    
+                    <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; display: flex; align-items: center; gap: 15px;">
+                        ${actionButtons}
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                        <h3 style="font-size: 1.1rem; margin-top: 0; color: #ddd;">Comments</h3>
+                        <div id="comments-list-${blog.id}" style="margin-bottom: 10px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                            ${(blog.comments || []).map((c, index) => {
+                                const commentLikes = c.likes || [];
+                                const isCommentLiked = user && commentLikes.includes(user.uid);
+                                const commentLikeIcon = isCommentLiked ? '❤️' : '🤍';
+                                const isCommentOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
+                                const editDelBtns = isCommentOwner ? `
+                                    <button onclick="window.editProfileComment('${blog.id}', ${index})" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.8rem; margin-left: 10px;"><i class="fa-solid fa-pen"></i> Edit</button>
+                                    <button onclick="window.deleteProfileComment('${blog.id}', ${index})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.8rem; margin-left: 10px;"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                                ` : '';
+                                return `
+                                <div id="comment-${blog.id}-${index}" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                        <img src="${c.photo || 'game-logo.png'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                                        <div style="flex: 1;">
+                                            <strong style="color: #87ceeb; font-size: 0.9rem;">${c.author}</strong>
+                                            <p style="font-size: 0.95rem; color: #eee; margin: 5px 0;">${c.text}</p>
+                                            <div class="comment-actions" id="comment-actions-${blog.id}-${index}">
+                                                <button onclick="window.toggleCommentLike('${blog.id}', ${index})" class="comment-action-btn">${commentLikeIcon} ${commentLikes.length}</button>
+                                                ${editDelBtns}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `}).join('')}
+                            ${(!blog.comments || blog.comments.length === 0) ? '<p style="font-size: 0.8rem; color: #ccc;">No comments yet.</p>' : ''}
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="comment-input-${blog.id}" placeholder="Add a comment..." style="flex: 1; width: 250px; padding: 12px 15px; font-size: 1rem; border-radius: 6px; border: none; outline: none;">
+                            <button onclick="window.addBlogComment('${blog.id}')" style="width: 70px; padding: 6px 12px; font-size: 0.85rem; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; height: fit-content;">Post</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(article);
+
+            // Initialize Fluid Player for VAST ads if video exists
+            if (blog.video) {
+                let playerOptions = {};
+                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.vastUrl) {
+                    playerOptions = {
+                        vastOptions: {
+                            adList: [
+                                {
+                                    roll: 'preRoll',
+                                    vastTag: globalAdConfig.vastUrl
+                                }
+                            ]
+                        }
+                    };
+                }
+                fluidPlayer(`video-${blog.id}`, playerOptions);
+            }
+        });
+    }
+
+    window.showLikers = async function(blogId) {
+        const modal = document.getElementById('user-list-modal');
+        const title = document.getElementById('user-list-title');
+        const content = document.getElementById('user-list-content');
+        
+        modal.style.display = 'flex';
+        title.innerText = 'Likers';
+        content.innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+
+        // Check if the blog exists in profilePageBlogs
+        const blogIndex = profilePageBlogs.findIndex(b => b.id === blogId);
+        if (blogIndex === -1) {
+            content.innerHTML = '<p style="color:red;">Blog not found in current view.</p>';
+            return;
+        }
+
+        const blog = profilePageBlogs[blogIndex];
+        const likerUids = blog.likes || [];
+        if (likerUids.length === 0) {
+            content.innerHTML = '<p style="text-align:center; color:#aaa;">No one has liked this post yet.</p>';
+            return;
+        }
+
+        try {
+            const blogRef = doc(db, "blogs", blogId);
+            const blogSnap = await getDoc(blogRef);
+            if (!blogSnap.exists()) {
+                content.innerHTML = '<p style="color:red;">Blog not found.</p>';
+                return;
+            }
+
+            if (likerUids.length === 0) {
+                content.innerHTML = '<p style="text-align:center; color:#aaa;">No one has liked this post yet.</p>';
+                return;
+            }
+
+            content.innerHTML = '';
+            const userPromises = likerUids.map(uid => getDoc(doc(db, "users", uid)));
+            const userSnaps = await Promise.all(userPromises);
+
+            userSnaps.forEach(userSnap => {
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    const div = document.createElement('div');
+                    div.style.cssText = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer;" ;
+                    div.onclick = () => window.location.href = `profile.html?uid=${userSnap.id}`;
+                    
+                    div.innerHTML = `
+                        <img src="${userData.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555;">
+                        <div>
+                            <div style="font-size:0.8rem; color:#aaa;">${userData.username || ''}</div>
+                        </div>
+                    `;
+                    content.appendChild(div);
+                }
+            });
+        } catch (e) {
+            console.error("Error loading likers list:", e);
+            content.innerHTML = '<p style="color:red;">Error loading list.</p>';
+        }
+    };
+
+    window.likeUserBlog = async function(id) {
+        if (!auth.currentUser) { alert("Please login to like posts!"); return; }
+        
+        const blogIndex = profilePageBlogs.findIndex(b => b.id === id);
+        if (blogIndex === -1) return;
+
+        const blogRef = doc(db, "blogs", id);
+        const blog = profilePageBlogs[blogIndex];
+        
+        const uid = auth.currentUser.uid;
+        let isLiking = false;
+
+        if (Array.isArray(blog.likes)) {
+            const likedIndex = blog.likes.indexOf(uid);
+            isLiking = likedIndex === -1;
+
+            if (isLiking) {
+                blog.likes.push(uid);
+                await updateDoc(blogRef, { likes: arrayUnion(uid) });
+            } else {
+                blog.likes.splice(likedIndex, 1);
+                await updateDoc(blogRef, { likes: arrayRemove(uid) });
+            }
+        } else {
+            let likedPosts = JSON.parse(localStorage.getItem('cricket_user_liked_posts') || '[]');
+            const likedIndex = likedPosts.indexOf(id);
+            let currentLikes = typeof blog.likes === 'number' ? blog.likes : 0;
+            
+            if (likedIndex === -1) {
+                currentLikes++;
+                likedPosts.push(id);
+            } else {
+                currentLikes = Math.max(0, currentLikes - 1);
+                likedPosts.splice(likedIndex, 1);
+            }
+            
+            blog.likes = currentLikes;
+            localStorage.setItem('cricket_user_liked_posts', JSON.stringify(likedPosts));
+            await updateDoc(blogRef, { likes: currentLikes });
+        }
+        
+        renderBlogsOnProfile(isProfileOwner); // Re-render to update UI
+    };
+
+    window.shareBlog = async function(id, title) { /* ... (existing code) ... */ };
+    window.readAloud = function(blogId) { /* ... (existing code) ... */ };
+
+    window.addBlogComment = async function(blogId) {
+        if (!auth.currentUser) { alert("Please login to comment!"); return; }
+        const input = document.getElementById(`comment-input-${blogId}`);
+        const text = input.value.trim();
+        if (!text) return;
+
+        let authorName = auth.currentUser.displayName || "User";
+        let authorPhoto = "https://via.placeholder.com/40";
+        try {
+            const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                if (userData.name) authorName = userData.name;
+                if (userData.photoURL) authorPhoto = userData.photoURL;
+            }
+        } catch(e) {}
+
+        const newComment = {
+            author: authorName,
+            userUid: auth.currentUser.uid,
+            photo: authorPhoto,
+            text: text,
+            date: new Date().toISOString(), // Store as ISO string
+            likes: [] // Store UIDs of users who liked this comment
+        };
+
+        const blogRef = doc(db, "blogs", blogId);
+
+        const blogIndex = profilePageBlogs.findIndex(b => b.id === blogId);
+        if (blogIndex !== -1) {
+            if (!profilePageBlogs[blogIndex].comments) {
+                profilePageBlogs[blogIndex].comments = [];
+            }
+            profilePageBlogs[blogIndex].comments.push(newComment);
+            renderBlogsOnProfile(isProfileOwner);
+            input.value = '';
+        }
+
+        await updateDoc(blogRef, { comments: arrayUnion(newComment) });
+
+        // Send Notification
+        const blogSnap = await getDoc(blogRef);
+        if (blogSnap.exists()) {
+            const blogData = blogSnap.data();
+            if (blogData.authorUid && blogData.authorUid !== auth.currentUser.uid) {
+                await addDoc(collection(db, "notifications"), {
+                    recipientUid: blogData.authorUid,
+                    senderUid: auth.currentUser.uid,
+                    senderName: authorName,
+                    type: "comment",
+                    blogId: blogId,
+                    blogTitle: blogData.title,
+                    date: new Date().toISOString(),
+                    read: false
+                });
+            }
+        }
+    };
+
+    window.toggleCommentLike = async function(blogId, commentIndex) {
+        if (!auth.currentUser) { alert("Please login to like comments!"); return; }
+
+        const blogIndex = profilePageBlogs.findIndex(b => b.id === blogId);
+        if (blogIndex === -1) return;
+
+        let blog = profilePageBlogs[blogIndex];
+        let comment = blog.comments[commentIndex];
+        if (!comment) return;
+
+        if (!comment.likes) comment.likes = [];
+        const uid = auth.currentUser.uid;
+        const likedIndex = comment.likes.indexOf(uid);
+        const isLiking = likedIndex === -1;
+
+        if (isLiking) {
+            comment.likes.push(uid);
+        } else {
+            comment.likes.splice(likedIndex, 1);
+        }
+        
+        // Optimistic UI update
+        renderBlogsOnProfile(isProfileOwner);
+
+        // Update Firestore
+        try {
+            const blogRef = doc(db, "blogs", blogId);
+            const docSnap = await getDoc(blogRef);
+            if (docSnap.exists()) {
+                let blogData = docSnap.data();
+                blogData.comments[commentIndex] = comment; // Update the specific comment
+                await updateDoc(blogRef, { comments: blogData.comments });
+            }
+        } catch (e) {
+            console.error("Error toggling comment like:", e);
+            alert("Failed to update comment like.");
+        }
+    };
+
+    window.editProfileComment = async function(blogId, commentIndex) {
+        if (!auth.currentUser) return;
+        const blogIndex = profilePageBlogs.findIndex(b => b.id === blogId);
+        if (blogIndex === -1) return;
+        
+        let blog = profilePageBlogs[blogIndex];
+        let comment = blog.comments[commentIndex];
+        if (!comment) return;
+        const isOwner = comment.userUid === auth.currentUser.uid || (!comment.userUid && comment.author === auth.currentUser.displayName);
+        if (!isOwner) return;
+
+        const newText = prompt("Edit your comment:", comment.text);
+        if (newText !== null && newText.trim() !== "" && newText.trim() !== comment.text) {
+            comment.text = newText.trim();
+            renderBlogsOnProfile(isProfileOwner); // Optimistic UI update
+
+            try {
+                const blogRef = doc(db, "blogs", blogId);
+                const docSnap = await getDoc(blogRef);
+                if (docSnap.exists()) {
+                    let blogData = docSnap.data();
+                    blogData.comments[commentIndex].text = newText.trim();
+                    await updateDoc(blogRef, { comments: blogData.comments });
+                }
+            } catch (e) {
+                console.error("Error editing comment:", e);
+                alert("Failed to edit comment.");
+            }
+        }
+    };
+
+    window.deleteProfileComment = async function(blogId, commentIndex) {
+        if (!auth.currentUser) return;
+        if (!confirm("Are you sure you want to delete this comment?")) return;
+
+        const blogIndex = profilePageBlogs.findIndex(b => b.id === blogId);
+        if (blogIndex === -1) return;
+        
+        let blog = profilePageBlogs[blogIndex];
+        let comment = blog.comments[commentIndex];
+        if (!comment) return;
+        const isOwner = comment.userUid === auth.currentUser.uid || (!comment.userUid && comment.author === auth.currentUser.displayName);
+        if (!isOwner) return;
+
+        blog.comments.splice(commentIndex, 1);
+        renderBlogsOnProfile(isProfileOwner); // Optimistic UI update
+
+        try {
+            const blogRef = doc(db, "blogs", blogId);
+            const docSnap = await getDoc(blogRef);
+            if (docSnap.exists()) {
+                let blogData = docSnap.data();
+                blogData.comments.splice(commentIndex, 1);
+                await updateDoc(blogRef, { comments: blogData.comments });
+            }
+        } catch (e) {
+            console.error("Error deleting comment:", e);
+            alert("Failed to delete comment.");
+        }
+    };
+
+    // Global functions for buttons
+    window.editMyBlog = (id) => {
+        window.location.href = `write-blog.html?id=${id}`;
+    };
+
+    window.deleteMyBlog = async (id) => {
+        if(confirm("Are you sure you want to delete this blog?")) {
+            try {
+                await deleteDoc(doc(db, "blogs", id));
+                if(currentUser) renderUserBlogs(currentUser.uid, true);
+            } catch(e) { alert("Error: " + e.message); }
+        }
+    };
+
+    // Function to show Followers/Following list
+    window.showUserList = async (type) => {
+        if (!isProfileOwner) {
+            return; // Exit completely if the viewer is not the profile owner
+        }
+        
+        const modal = document.getElementById('user-list-modal');
+        const title = document.getElementById('user-list-title');
+        const content = document.getElementById('user-list-content');
+        
+        modal.style.display = 'flex';
+        title.innerText = type === 'followers' ? 'Followers' : 'Following';
+        content.innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+        
+        const uids = (type === 'followers' ? currentProfileData.followers : currentProfileData.following) || [];
+        
+        if (uids.length === 0) {
+            content.innerHTML = '<p style="text-align:center; color:#aaa;">No users found.</p>';
+            return;
+        }
+
+        try {
+            content.innerHTML = '';
+            // Fetch details for each user
+            const promises = uids.map(uid => getDoc(doc(db, "users", uid)));
+            const snapshots = await Promise.all(promises);
+            
+            snapshots.forEach(snap => {
+                if (snap.exists()) {
+                    const u = snap.data();
+                    const div = document.createElement('div');
+                    div.style.cssText = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer;";
+                    div.onclick = () => window.location.href = `profile.html?uid=${snap.id}`;
+                    
+
+                    div.innerHTML = `
+                        <img src="${u.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555;">
+                        <div>
+                            <strong style="color:#fff;">${u.name || 'User'}</strong>
+                            <div style="font-size:0.8rem; color:#aaa;">${u.username || ''}</div>
+                        </div>
+                    `;
+                    content.appendChild(div);
+                }
+            });
+        } catch (e) { console.error(e); content.innerHTML = '<p style="color:red;">Error loading list.</p>'; }
+    };
+
+    document.getElementById('save-btn').addEventListener('click', async () => {
+        if (!currentUser) return;
+        
+        const name = document.getElementById('name').value;
+        const username = document.getElementById('username').value.trim();
+        const bio = document.getElementById('bio').value;
+        const photoURL = base64Image || currentUser.photoURL;
+        let isVerified = (currentProfileData.followers || []).length >= 9;
+        try {
+            // 1. Update Firebase Auth Profile (for basic display)
+            // Note: We don't update photoURL here because Firebase Auth has a small limit.
+            // The large base64 image is stored in Firestore below.
+            await updateProfile(currentUser, {
+                displayName: name
+            });
+
+            // Check Username
+            if (username !== currentProfileData.username) {
+                // Username has changed, so validate it fully
+                if (!username) {
+                    alert("Unique ID (Username) is required!");
+                    return;
+                }
+                if (username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+                    alert("Username can only contain letters, numbers, and underscores, and be max 20 characters.");
+                    return;
+                }
+
+                const q = query(collection(db, "users"), where("usernameLower", "==", username.toLowerCase()));
+                const snap = await getDocs(q);
+                let isTaken = false;
+                snap.forEach(d => { if (d.id !== currentUser.uid) isTaken = true; });
+
+                if (isTaken) {
+                    alert("Username '" + username + "' is already taken. Please choose another.");
+                    return;
+                }
+            } else if (!username) {
+                // Username is unchanged but empty. This is an error state for any user.
+                alert("Unique ID (Username) is required!");
+                return;
+            }
+
+            // 2. Save detailed profile to Firestore
+            await setDoc(doc(db, "users", currentUser.uid), {
+                name: name,
+                username: username,
+                usernameLower: username.toLowerCase(),
+                bio: bio,
+                photoURL: photoURL,
+                email: currentUser.email,
+                isVerified: isVerified
+            }, { merge: true });
+
+            // Update author details in all existing blogs AND comments
+            const allBlogsSnapshot = await getDocs(collection(db, "blogs"));
+            
+            const updatePromises = [];
+            
+            allBlogsSnapshot.forEach((blogDoc) => {
+                const blogData = blogDoc.data();
+                const updates = {};
+                let needsUpdate = false;
+
+                // 1. Update Blog Author info if this user is the author
+                if (blogData.authorUid === currentUser.uid) {
+                    updates.author = name;
+                    updates.authorPhoto = photoURL;
+                    updates.authorVerified = isVerified;
+                    needsUpdate = true;
+                }
+
+                // 2. Update Comments info if this user commented
+                if (blogData.comments && Array.isArray(blogData.comments)) {
+                    let commentsChanged = false;
+                    const updatedComments = blogData.comments.map(comment => {
+                        let c = { ...comment };
+                        let cChanged = false;
+
+                        if (c.userUid === currentUser.uid) {
+                            c.author = name;
+                            c.photo = photoURL;
+                            c.userVerified = isVerified;
+                            cChanged = true;
+                        }
+
+                        if (c.replies && Array.isArray(c.replies)) {
+                            const newReplies = c.replies.map(reply => {
+                                if (reply.userUid === currentUser.uid) {
+                                    cChanged = true;
+                                    return { ...reply, author: name, photo: photoURL, userVerified: isVerified };
+                                }
+                                return reply;
+                            });
+                            if (cChanged) c.replies = newReplies;
+                        }
+
+                        if (cChanged) commentsChanged = true;
+                        return c;
+                    });
+
+                    if (commentsChanged) {
+                        updates.comments = updatedComments;
+                        needsUpdate = true;
+                    }
+                }
+
+                if (needsUpdate) {
+                    updatePromises.push(updateDoc(doc(db, "blogs", blogDoc.id), updates));
+                }
+            });
+            await Promise.all(updatePromises);
+
+            alert("Profile Saved Successfully!");
+            
+            // If came from forced redirect, go back to news
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('requireUsername') === 'true') {
+                window.location.href = 'index.html';
+            }
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            alert("Error saving profile: " + error.message);
+        }
+    });
+
+    // Password Modal Logic
+    const pwdModal = document.getElementById('password-modal');
+    const pwdActionBtn = document.getElementById('pwd-action-btn');
+    let currentAction = null; // 'change_pwd' or 'delete_acc'
+
+    document.getElementById('change-pwd-btn').addEventListener('click', () => {
+        // Check if user is using password provider
+        const isPasswordUser = currentUser.providerData.some(p => p.providerId === 'password');
+        if (!isPasswordUser) {
+            alert("You are logged in with a social account (e.g., Google). Please manage your password through that provider.");
+            return;
+        }
+
+        currentAction = 'change_pwd';
+        document.getElementById('pwd-modal-title').innerText = "Change Password";
+        document.getElementById('pwd-modal-desc').innerText = "Please enter your current password to verify identity, then enter your new password.";
+        document.getElementById('new-password-section').style.display = 'block';
+        pwdActionBtn.innerText = "Update Password";
+        pwdActionBtn.style.backgroundColor = "#198754";
+        pwdActionBtn.style.color = "white";
+        
+        document.getElementById('current-password').value = '';
+        document.getElementById('new-password').value = '';
+        document.getElementById('confirm-password').value = '';
+        pwdModal.style.display = 'flex';
+    });
+
+    document.getElementById('delete-acc-btn').addEventListener('click', async () => {
+        currentAction = 'delete_acc';
+        document.getElementById('pwd-modal-title').innerText = "Delete Account";
+        document.getElementById('pwd-modal-desc').innerText = "WARNING: This action is irreversible. Enter your password to confirm deletion.";
+        document.getElementById('new-password-section').style.display = 'none';
+        pwdActionBtn.innerText = "Delete Forever";
+        pwdActionBtn.style.backgroundColor = "#dc3545";
+        pwdActionBtn.style.color = "white";
+        
+        document.getElementById('current-password').value = '';
+        pwdModal.style.display = 'flex';
+    });
+
+    pwdActionBtn.addEventListener('click', async () => {
+        if (!currentUser) return;
+        const currentPwd = document.getElementById('current-password').value;
+        if (!currentPwd) { alert("Please enter your current password."); return; }
+
+        const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+        
+        try {
+            // 1. Re-authenticate
+            await reauthenticateWithCredential(currentUser, credential);
+
+            if (currentAction === 'delete_acc') {
+                await deleteDoc(doc(db, "users", currentUser.uid));
+                await deleteUser(currentUser);
+                alert("Account deleted successfully.");
+                window.location.href = 'index.html';
+            } else if (currentAction === 'change_pwd') {
+                const newPwd = document.getElementById('new-password').value;
+                const confirmPwd = document.getElementById('confirm-password').value;
+                
+                if (newPwd !== confirmPwd) { alert("New passwords do not match."); return; }
+                if (newPwd.length < 6) { alert("Password must be at least 6 characters."); return; }
+                
+                await updatePassword(currentUser, newPwd);
+                alert("Password updated successfully!");
+                pwdModal.style.display = 'none';
+            }
+        } catch (error) {
+            console.error("Action error:", error);
+            alert("Error: " + error.message);
+        }
+    });
+</script>
+</body>
+</html>

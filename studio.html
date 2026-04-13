@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Studio - Viyo</title>
+    <link rel="icon" href="game-logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #121212;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: gold;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: #aaa;
+        }
+        .stat-card p {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .monetization-card {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid gold;
+            margin-bottom: 30px;
+        }
+        .monetization-card h2 {
+            margin-top: 0;
+        }
+        .progress-bar {
+            background: #444;
+            border-radius: 5px;
+            height: 10px;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-bar-inner {
+            background: #198754;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .btn {
+            display: inline-block; padding: 10px 20px; font-size: 1rem; font-weight: bold; color: #fff; background-color: #0d6efd; border: none; border-radius: 5px; text-decoration: none; cursor: pointer; transition: background-color 0.2s ease;
+        }
+        .btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        .btn-secondary { background-color: #6c757d; }
+
+        /* Modal Styles */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #1e1e1e; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-content h2 { margin-top: 0; color: gold; border-bottom: 1px solid #444; padding-bottom: 15px; font-size: 1.5rem; text-align: center; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; color: #aaa; font-size: 0.9rem; font-weight: bold; }
+        .form-group input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #555; background: #333; color: white; box-sizing: border-box; font-size: 1rem; }
+        .form-group input:focus { border-color: #0d6efd; outline: none; }
+        .tabs { display: flex; border-bottom: 1px solid #444; margin-bottom: 20px; }
+        .tab-btn { background: none; border: none; color: #888; padding: 10px 15px; cursor: pointer; font-size: 1rem; border-bottom: 3px solid transparent; flex: 1; transition: all 0.3s; }
+        .tab-btn.active { color: white; border-bottom-color: #0d6efd; font-weight: bold; background: rgba(13, 110, 253, 0.1); }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="profile.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to Profile</a>
+        <h1><i class="fa-solid fa-chart-line"></i> Creator Studio</h1>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Video Views</h3>
+                <p id="total-views">...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Likes</h3>
+                <p id="total-likes">...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Followers</h3>
+                <p id="total-followers">...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Blogs Published</h3>
+                <p id="total-blogs">...</p>
+            </div>
+        </div>
+
+        <!-- Monetization -->
+        <div class="monetization-card">
+            <h2>Monetization Status</h2>
+            <div id="monetization-status">
+                <p>Loading status...</p>
+            </div>
+        </div>
+
+        <!-- Earnings -->
+        <div class="stat-card" style="text-align: left; margin-bottom: 30px;">
+            <h3>Estimated Earnings</h3>
+            <p id="estimated-earnings" style="color: #198754;">₹0.00</p>
+            <small id="earning-note">Earnings are calculated for monetized users based on views on their videos.</small>
+            <button id="withdraw-btn" class="btn" disabled style="margin-top: 15px;">Withdraw Funds</button>
+        </div>
+
+        <!-- Payment History -->
+        <div class="stat-card" style="text-align: left; margin-bottom: 30px;">
+            <h3>Payment History</h3>
+            <div id="payment-history-list" style="max-height: 300px; overflow-y: auto;">
+                <p style="color: #aaa;">Loading history...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div id="withdraw-modal" class="modal-overlay" onclick="if(event.target === this) window.closeWithdrawModal()">
+        <div class="modal-content">
+            <h2><i class="fa-solid fa-money-bill-transfer"></i> Request Withdrawal</h2>
+            
+            <div class="form-group">
+                <label>Amount to Withdraw (₹) <span id="max-amount-label" style="color:#198754; float:right;"></span></label>
+                <input type="number" id="withdraw-amount" placeholder="Enter amount..." min="1" step="0.01">
+            </div>
+            
+            <label style="color:#aaa; font-size:0.9rem; display:block; margin-bottom:8px; font-weight:bold; text-align:left;">Select Payment Method</label>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="window.switchTab('upi', this)"><i class="fa-solid fa-mobile-screen"></i> UPI ID</button>
+                <button class="tab-btn" onclick="window.switchTab('bank', this)"><i class="fa-solid fa-building-columns"></i> Bank Details</button>
+            </div>
+
+            <div id="tab-upi" class="tab-pane active">
+                <div class="form-group">
+                    <label>Enter UPI ID</label>
+                    <input type="text" id="upi-id" placeholder="e.g., 9876543210@ybl or name@okicici">
+                </div>
+            </div>
+
+            <div id="tab-bank" class="tab-pane">
+                <div class="form-group"><label>Bank Name</label><input type="text" id="bank-name" placeholder="e.g., State Bank of India"></div>
+                <div class="form-group"><label>Account Number</label><input type="number" id="bank-acc" placeholder="Enter your account number"></div>
+                <div class="form-group"><label>IFSC Code</label><input type="text" id="bank-ifsc" placeholder="e.g., SBIN0001234"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button class="btn" style="flex: 1; background-color: #198754; font-size: 1.1rem; padding: 12px;" id="submit-withdraw-btn">Submit Request</button>
+                <button class="btn btn-secondary" style="flex: 1; font-size: 1.1rem; padding: 12px;" onclick="window.closeWithdrawModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const MONETIZATION_VIEWS = 10000;
+        const MONETIZATION_FOLLOWERS = 200;
+        
+        let monetizationSettings = { cpmRate: 50, currency: 'INR' }; // Default values
+        let currentUnpaidViews = 0;
+        let currentEarnings = 0;
+        let currentUserTotalViews = 0;
+
+        // Load monetization config from Firestore
+        async function loadMonetizationConfig() {
+            try {
+                const settingsDoc = await getDoc(doc(db, "settings", "monetization"));
+                if (settingsDoc.exists()) {
+                    monetizationSettings = settingsDoc.data();
+                }
+            } catch (e) {
+                console.error("Could not load monetization config, using defaults.", e);
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await loadMonetizationConfig(); // Wait for config to load first
+                loadCreatorData(user.uid);
+            } else {
+                alert("Please login to access the Creator Studio.");
+                window.location.href = 'index.html';
+            }
+        });
+
+        async function loadCreatorData(uid) {
+            try {
+                // Get user data (followers, monetization status)
+                const userDocRef = doc(db, "users", uid);
+                const userDocSnap = await getDoc(userDocRef);
+                const userData = userDocSnap.exists() ? userDocSnap.data() : {};
+                const followersCount = userData.followers ? userData.followers.length : 0;
+                const isMonetized = userData.isMonetized === true;
+                const paidViews = userData.paidViews || 0; // Views for which payment is already done
+
+                // Check for pending withdrawal requests
+                const pendingQuery = query(collection(db, "withdrawals"), where("uid", "==", uid), where("status", "==", "pending"));
+                const pendingSnap = await getDocs(pendingQuery);
+                const hasPending = !pendingSnap.empty;
+
+                // Get all blogs by user to calculate stats
+                const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid));
+                const blogsSnapshot = await getDocs(blogsQuery);
+
+                let totalViews = 0;
+                let totalLikes = 0;
+                let totalBlogs = 0;
+
+                blogsSnapshot.forEach(blogDoc => {
+                    const blogData = blogDoc.data();
+                    if (blogData.status !== 'draft') {
+                        totalBlogs++;
+                        totalViews += blogData.views || 0;
+                        totalLikes += Array.isArray(blogData.likes) ? blogData.likes.length : (blogData.likes || 0);
+                    }
+                });
+
+                currentUserTotalViews = totalViews;
+                currentUnpaidViews = Math.max(0, totalViews - paidViews);
+
+                // Update UI
+                document.getElementById('total-views').innerText = totalViews.toLocaleString();
+                document.getElementById('total-likes').innerText = totalLikes.toLocaleString();
+                document.getElementById('total-followers').innerText = followersCount.toLocaleString();
+                document.getElementById('total-blogs').innerText = totalBlogs.toLocaleString();
+
+                // Update Monetization UI
+                updateMonetizationUI(isMonetized, totalViews, followersCount);
+
+                // Update Earnings UI (placeholder logic)
+                if (isMonetized) {
+                    const rate = monetizationSettings.cpmRate || 50;
+                    currentEarnings = (currentUnpaidViews / 1000) * rate;
+                    document.getElementById('estimated-earnings').innerText = `₹${currentEarnings.toFixed(2)}`;
+                    document.getElementById('earning-note').innerText = `Based on a rate of ₹${rate} per 1000 views. (Unpaid Views: ${currentUnpaidViews.toLocaleString()})`;
+                    const withdrawBtn = document.getElementById('withdraw-btn');
+                    
+                    if (hasPending) {
+                        withdrawBtn.innerText = "Request Pending";
+                        withdrawBtn.disabled = true;
+                    } else if (currentEarnings > 0) {
+                        withdrawBtn.disabled = false;
+                        withdrawBtn.onclick = () => {
+                            document.getElementById('max-amount-label').innerText = `(Max: ₹${currentEarnings.toFixed(2)})`;
+                            document.getElementById('withdraw-amount').value = currentEarnings.toFixed(2);
+                            document.getElementById('withdraw-amount').max = currentEarnings.toFixed(2);
+                            document.getElementById('withdraw-modal').style.display = 'flex';
+                        };
+                    }
+                }
+
+                // Load Payment History
+                loadPaymentHistory(uid);
+
+            } catch (e) {
+                console.error("Error loading creator data:", e);
+                alert("Could not load your studio data.");
+            }
+        }
+
+        function updateMonetizationUI(isMonetized, views, followers) {
+            const container = document.getElementById('monetization-status');
+            if (isMonetized) {
+                container.innerHTML = `
+                    <p style="color: #198754; font-weight: bold;"><i class="fa-solid fa-check-circle"></i> Congratulations! Your account is monetized.</p>
+                    <p>You are now earning from views on your uploaded videos.</p>
+                `;
+            } else {
+                const viewsProgress = Math.min(100, (views / MONETIZATION_VIEWS) * 100);
+                const followersProgress = Math.min(100, (followers / MONETIZATION_FOLLOWERS) * 100);
+                const canApply = viewsProgress >= 100 && followersProgress >= 100;
+
+                container.innerHTML = `
+                    <p>You are not yet eligible for monetization. Reach the following goals to apply:</p>
+                    <div style="margin-bottom: 15px;">
+                        <label>${followers.toLocaleString()} / ${MONETIZATION_FOLLOWERS.toLocaleString()} Followers</label>
+                        <div class="progress-bar">
+                            <div class="progress-bar-inner" style="width: ${followersProgress}%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label>${views.toLocaleString()} / ${MONETIZATION_VIEWS.toLocaleString()} Video Views</label>
+                        <div class="progress-bar">
+                            <div class="progress-bar-inner" style="width: ${viewsProgress}%;"></div>
+                        </div>
+                    </div>
+                    <button id="apply-btn" class="btn" ${canApply ? '' : 'disabled'} style="margin-top: 20px; background-color: #198754;">
+                        ${canApply ? 'Apply for Monetization' : 'Keep Growing!'}
+                    </button>
+                `;
+
+                if (canApply) {
+                    document.getElementById('apply-btn').addEventListener('click', () => {
+                        alert("Application submitted! The admin will review your profile. (This is a placeholder, manual approval is done by admin).");
+                    });
+                }
+            }
+        }
+
+        async function loadPaymentHistory(uid) {
+            const listDiv = document.getElementById('payment-history-list');
+            try {
+                const q = query(collection(db, "withdrawals"), where("uid", "==", uid));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    listDiv.innerHTML = '<p style="color: #aaa;">No payment history found.</p>';
+                    return;
+                }
+
+                const records = [];
+                snap.forEach(doc => records.push({ id: doc.id, ...doc.data() }));
+                
+                // Sort by date descending (newest first)
+                records.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                listDiv.innerHTML = '';
+                records.forEach(req => {
+                    const isPaid = req.status === 'paid';
+                    const isRejected = req.status === 'rejected';
+                    let statusColor = '#ffc107'; // pending
+                    let statusText = 'PENDING';
+                    if (isPaid) { statusColor = '#198754'; statusText = 'PAID'; }
+                    if (isRejected) { statusColor = '#dc3545'; statusText = 'REJECTED'; }
+                    
+                    const dateText = new Date(req.paidDate || req.rejectDate || req.date).toLocaleString();
+                    
+                    let infoText = req.paymentInfo;
+                    if (isRejected && req.rejectReason) {
+                        infoText += `<br><span style="color:#ff6b6b; font-size: 0.8rem;">Reason: ${req.rejectReason}</span>`;
+                    }
+
+                    const div = document.createElement('div');
+                    div.style.cssText = "background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;";
+                    div.innerHTML = `
+                        <div>
+                            <strong style="color: #fff; font-size: 1.1rem;">₹${(req.amount || 0).toFixed(2)}</strong>
+                            <div style="font-size: 0.85rem; color: #aaa; margin-top: 4px;">${infoText}</div>
+                            <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">${dateText}</div>
+                        </div>
+                        <div>
+                            <span style="background: ${statusColor}; color: ${isPaid ? 'white' : 'black'}; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">${statusText}</span>
+                        </div>
+                    `;
+                    listDiv.appendChild(div);
+                });
+            } catch (e) {
+                console.error("Error loading payment history:", e);
+                listDiv.innerHTML = '<p style="color: #ff6b6b;">Error loading history.</p>';
+            }
+        }
+
+        // --- Modal Logic ---
+        window.switchTab = function(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        };
+
+        window.closeWithdrawModal = function() {
+            document.getElementById('withdraw-modal').style.display = 'none';
+        };
+
+        document.getElementById('submit-withdraw-btn').addEventListener('click', async () => {
+            const reqAmount = parseFloat(document.getElementById('withdraw-amount').value);
+            if (isNaN(reqAmount) || reqAmount <= 0 || reqAmount > currentEarnings) {
+                alert(`Invalid amount! Please enter a value between ₹1 and ₹${currentEarnings.toFixed(2)}.`);
+                return;
+            }
+
+            const isUpi = document.getElementById('tab-upi').classList.contains('active');
+            let paymentInfo = '';
+
+            if (isUpi) {
+                const upiId = document.getElementById('upi-id').value.trim();
+                if (!upiId) { alert("Please enter your UPI ID."); return; }
+                paymentInfo = `UPI: ${upiId}`;
+            } else {
+                const bName = document.getElementById('bank-name').value.trim();
+                const bAcc = document.getElementById('bank-acc').value.trim();
+                const bIfsc = document.getElementById('bank-ifsc').value.trim();
+                if (!bName || !bAcc || !bIfsc) { alert("Please fill all bank details."); return; }
+                paymentInfo = `Bank: ${bName} | A/C: ${bAcc} | IFSC: ${bIfsc}`;
+            }
+
+            const submitBtn = document.getElementById('submit-withdraw-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Processing...";
+
+            try {
+                const rate = monetizationSettings.cpmRate || 50;
+                const viewsForAmount = Math.ceil((reqAmount / rate) * 1000);
+                await addDoc(collection(db, "withdrawals"), {
+                    uid: auth.currentUser.uid,
+                    amount: reqAmount,
+                    viewsCalculated: viewsForAmount,
+                    paymentInfo: paymentInfo,
+                    status: 'pending',
+                    date: new Date().toISOString()
+                });
+                alert("Withdrawal request submitted successfully!");
+                window.closeWithdrawModal();
+                const wBtn = document.getElementById('withdraw-btn');
+                wBtn.innerText = "Request Pending";
+                wBtn.disabled = true;
+            } catch(e) {
+                console.error("Error submitting request:", e);
+                alert("Error submitting request.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Request";
+            }
+        });
+
+    </script>
+</body>
+</html>

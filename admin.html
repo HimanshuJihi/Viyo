@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Cricket News</title>
+    <link rel="icon" href="game-logo.png" type="image/png">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: gold;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        .report-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .report-card h3 {
+            margin-top: 0;
+            color: #87ceeb;
+        }
+        .report-card p {
+            margin: 5px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: #0d6efd;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 10px;
+            transition: background-color 0.2s ease;
+        }
+        .btn-danger { background-color: #dc3545; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn:hover { opacity: 0.8; }
+        .admin-tab-btn {
+            background-color: transparent;
+            border: 1px solid #6c757d;
+            color: #aaa;
+            padding: 8px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .admin-tab-btn.active {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        .admin-tab-btn:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+        <a href="index.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to News</a>
+        <button id="migrate-btn" class="btn btn-secondary" onclick="window.migrateUsernames()" style="margin-bottom: 20px; display: none; background-color: #ffc107; color: #000;">⚙️ Migrate Usernames</button>
+
+        <div id="admin-tabs" style="display: none; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px;">
+            <button id="tab-reported" class="admin-tab-btn active">🚩 Reported Blogs</button>
+            <button id="tab-ads" class="admin-tab-btn">💰 Ad Management</button>
+            <button id="tab-monetization" class="admin-tab-btn">💎 Creator Monetization</button>
+            <button id="tab-copyright" class="admin-tab-btn">© Copyright Claims</button>
+        </div>
+
+        <div id="admin-content" style="display: none;">
+            <!-- Ad Management Section -->
+            <div id="section-ads" style="display: none;">
+            <div class="report-card" style="border-color: gold;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 10px;">
+                    <h2 style="color: gold; margin-top: 0; border: none; padding: 0;">Ad Management</h2>
+                    <a id="view-earnings-btn" href="#" target="_blank" class="btn" style="display: none; background-color: #198754;">View Earnings</a>
+                </div>
+                
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px;">
+                    <input type="checkbox" id="ad-toggle" style="width: 20px; height: 20px;"> 
+                    <strong style="font-size: 1.1rem;">Enable Ads across website</strong>
+                </label>
+
+                <label style="display: block; margin-bottom: 5px;">Ad Network Dashboard URL:</label>
+                <input type="text" id="ad-network-url" placeholder="e.g., https://monetag.com/dashboard" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                <label style="display: block; margin-bottom: 5px;">VAST Tag URL (Video Ads):</label>
+                <input type="text" id="vast-url" placeholder="Enter VAST XML URL..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                <label style="display: block; margin-bottom: 5px;">YouTube Video Ad URL (Embed):</label>
+                <input type="text" id="youtube-ad-url" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                <label style="display: block; margin-bottom: 5px;">Video Ad Frequency (Show after every X blogs):</label>
+                <input type="number" id="video-frequency" value="4" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 10px;">
+                    <h3 style="color: #87ceeb; margin: 0; font-size: 1.1rem;">Rotating Banner Ads (Up to 10)</h3>
+                    <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.85rem; margin: 0;" onclick="window.clearAllBanners()"><i class="fa-solid fa-trash-can"></i> Delete All Banners</button>
+                </div>
+                <label style="display: block; margin-bottom: 5px;">Banner Ad Frequency (Show after every X blogs):</label>
+                <input type="number" id="banner-frequency" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                <p style="font-size: 0.85rem; color: #aaa; margin-top: 0; margin-bottom: 15px;">These banners will show sequentially and repeat.</p>
+                <div id="rotating-banners-container"></div>
+
+                <h3 style="color: #87ceeb; margin-top: 10px; margin-bottom: 10px; font-size: 1.1rem;">Affiliate Product Ad (Amazon etc.)</h3>
+                <label style="display: block; margin-bottom: 5px;">Product Image (Upload or URL):</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                    <input type="file" id="affiliate-file" accept="image/*" style="width: 40%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                    <input type="text" id="affiliate-img" placeholder="e.g., Amazon product image link..." style="width: 60%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                </div>
+                <img id="affiliate-preview" src="" style="max-height: 100px; display: none; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555;">
+
+                <label style="display: block; margin-bottom: 5px;">Product Affiliate Link:</label>
+                <input type="text" id="affiliate-link" placeholder="e.g., Amazon affiliate URL..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                <label style="display: block; margin-bottom: 5px;">Affiliate Ad Frequency (Show after every X blogs):</label>
+                <input type="number" id="affiliate-frequency" value="5" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                <button id="save-ads-btn" class="btn" style="background-color: #198754; width: 100%; margin-top: 10px;" onclick="window.saveAdSettings()">Save Ad Settings</button>
+            </div>
+            </div>
+
+            <!-- Reported Blogs Section -->
+            <div id="section-reported">
+                <h2>Reported Blogs <span style="float: right; background: #dc3545; color: #fff; padding: 2px 12px; border-radius: 20px; font-size: 1rem;">Total: <span id="report-count">0</span></span></h2>
+                <div id="reports-list">
+                    <p>Loading reports...</p>
+                </div>
+            </div>
+
+            <!-- Copyright Claims Section -->
+            <div id="section-copyright" style="display: none;">
+                <h2>Copyright Claims <span style="float: right; background: #dc3545; color: #fff; padding: 2px 12px; border-radius: 20px; font-size: 1rem;">Total: <span id="copyright-count">0</span></span></h2>
+                <div id="copyright-list">
+                    <p>Loading claims...</p>
+                </div>
+            </div>
+
+            <!-- Creator Monetization Section -->
+            <div id="section-monetization" style="display: none;">
+                <h2>Creator Monetization Management</h2>
+
+                <!-- Monetization Settings Card -->
+                <div class="report-card" style="border-color: gold; margin-bottom: 20px;">
+                    <h3 style="color: gold;">Monetization Settings</h3>
+                    <div style="margin-bottom: 15px;">
+                        <label for="cpm-rate" style="display: block; margin-bottom: 5px;">Rate per 1000 Views (in ₹):</label>
+                        <input type="number" id="cpm-rate" value="50" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    </div>
+                    <button class="btn" style="background-color: #198754;" onclick="window.saveMonetizationSettings()">Save Monetization Settings</button>
+                </div>
+                
+                <div class="report-card" style="border-color: #198754;">
+                    <h3 style="color: #198754;"><i class="fa-solid fa-money-bill-wave"></i> Pending Payout Requests</h3>
+                    <button class="btn btn-secondary" onclick="window.loadPayoutRequests()" style="margin-bottom: 15px;"><i class="fa-solid fa-arrows-rotate"></i> Refresh Requests</button>
+                    <div id="payout-requests-list">Click refresh to load pending requests...</div>
+                </div>
+
+                <!-- Payment History Section -->
+                <div class="report-card" style="border-color: #6c757d;">
+                    <h3 style="color: #6c757d;"><i class="fa-solid fa-clock-rotate-left"></i> Payment History</h3>
+                    <button class="btn btn-secondary" onclick="window.loadPaymentHistory()" style="margin-bottom: 15px;"><i class="fa-solid fa-arrows-rotate"></i> Load History</button>
+                    <div id="payment-history-list" style="max-height: 400px; overflow-y: auto;">Click load to view past payments...</div>
+                </div>
+
+                <div class="report-card">
+                    <h3>Directly Monetize Users</h3>
+                    <p style="color: #aaa; font-size: 0.9rem;">Search for a user by their Unique ID (username) to manually approve or revoke their monetization status.</p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="text" id="user-search-input" placeholder="Enter username (e.g. cricket_lover)..." style="flex: 1; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        <button class="btn" onclick="window.searchUserForMonetization()">Search</button>
+                    </div>
+                    <div id="monetization-search-results"></div>
+                </div>
+                <div class="report-card">
+                    <h3>Currently Monetized Creators</h3>
+                    <button class="btn btn-secondary" onclick="window.loadMonetizedUsers()" style="margin-bottom: 15px;"><i class="fa-solid fa-arrows-rotate"></i> Refresh List</button>
+                    <div id="monetized-users-list">Click refresh to load...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="auth-message">
+            <p>Authenticating...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const adminContent = document.getElementById('admin-content');
+        const authMessage = document.getElementById('auth-message');
+        const reportsList = document.getElementById('reports-list');
+
+        const adminTabs = document.getElementById('admin-tabs');
+        const tabReported = document.getElementById('tab-reported');
+        const tabAds = document.getElementById('tab-ads');
+        const tabMonetization = document.getElementById('tab-monetization');
+        const tabCopyright = document.getElementById('tab-copyright');
+        const sectionReported = document.getElementById('section-reported');
+        const sectionAds = document.getElementById('section-ads');
+        const sectionMonetization = document.getElementById('section-monetization');
+        const sectionCopyright = document.getElementById('section-copyright');
+
+        tabReported.addEventListener('click', () => {
+            tabReported.classList.add('active');
+            tabAds.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            sectionReported.style.display = 'block';
+            sectionAds.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+        });
+
+        tabAds.addEventListener('click', () => {
+            tabAds.classList.add('active');
+            tabReported.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            sectionAds.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+        });
+
+        tabMonetization.addEventListener('click', () => {
+            tabMonetization.classList.add('active');
+            tabReported.classList.remove('active');
+            tabAds.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            sectionMonetization.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionAds.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+            window.loadPayoutRequests();
+            window.loadMonetizedUsers();
+        });
+
+        tabCopyright.addEventListener('click', () => {
+            tabCopyright.classList.add('active');
+            tabReported.classList.remove('active');
+            tabAds.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            sectionCopyright.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionAds.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            window.loadCopyrightClaims();
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const adminEmails = ["nshuhima246@gmail.com", "manahoo09@zohomail.in"];
+                let isAdmin = false;
+                
+                // Check if the logged in user's email matches our admin list
+                if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+                    isAdmin = true;
+                } else {
+                    // Check if the user is an admin in Firestore as fallback
+                    const userDocRef = doc(db, "users", user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    isAdmin = userDocSnap.exists() && userDocSnap.data().isAdmin === true;
+                }
+
+                if (isAdmin) {
+                    authMessage.style.display = 'none';
+                    adminContent.style.display = 'block';
+                    adminTabs.style.display = 'flex';
+                    document.getElementById('migrate-btn').style.display = 'inline-block';
+                    
+                    const bannersContainer = document.getElementById('rotating-banners-container');
+                    if (bannersContainer && bannersContainer.innerHTML === '') {
+                        let html = '';
+                        for(let i=1; i<=10; i++) {
+                            html += `
+                            <div style="background: rgba(0,0,0,0.2); border: 1px solid #444; padding: 10px; margin-bottom: 15px; border-radius: 4px;" id="banner-container-${i}">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <label style="font-weight: bold; color: gold; margin: 0;">Banner ${i}</label>
+                                    <button type="button" class="btn btn-danger" style="padding: 2px 8px; font-size: 0.8rem; margin: 0;" onclick="window.clearBanner(${i})"><i class="fa-solid fa-trash"></i> Delete</button>
+                                </div>
+                                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Image (Upload or URL):</label>
+                                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                                    <input type="file" id="banner-file-${i}" accept="image/*" style="width: 40%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                                    <input type="text" id="banner-img-${i}" placeholder="Image URL..." style="width: 60%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                                </div>
+                                <img id="banner-preview-${i}" src="" style="max-height: 80px; display: none; margin-bottom: 10px; border-radius: 4px; border: 1px solid #555;">
+                                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Target Link:</label>
+                                <input type="text" id="banner-link-${i}" placeholder="Link to open on click..." style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                            </div>
+                            `;
+                        }
+                        bannersContainer.innerHTML = html;
+                        
+                        for(let i=1; i<=10; i++) {
+                            const fileInput = document.getElementById(`banner-file-${i}`);
+                            if (fileInput) {
+                                fileInput.addEventListener('change', async (e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        const saveBtn = document.getElementById('save-ads-btn');
+                                        saveBtn.innerText = "Processing Image...";
+                                        try {
+                                            const base64 = await compressImage(file);
+                                            document.getElementById(`banner-img-${i}`).value = base64;
+                                            document.getElementById(`banner-preview-${i}`).src = base64;
+                                            document.getElementById(`banner-preview-${i}`).style.display = 'block';
+                                        } catch(err) { alert("Error processing image: " + err.message); }
+                                        saveBtn.innerText = "Save Ad Settings";
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    loadReports();
+                    loadAdminAds();
+                    loadMonetizationSettings();
+                } else {
+                    authMessage.innerHTML = '<p style="color: red;">Access Denied. You are not an admin.</p>';
+                    setTimeout(() => window.location.href = 'index.html', 2000);
+                }
+            } else {
+                authMessage.innerHTML = '<p>Please login to access the admin panel.</p>';
+                setTimeout(() => window.location.href = 'index.html', 2000);
+            }
+        });
+
+        // Load Ad Settings
+        async function loadAdminAds() {
+            try {
+                const adDoc = await getDoc(doc(db, "settings", "ads"));
+                if (adDoc.exists()) {
+                    const data = adDoc.data();
+                    document.getElementById('ad-toggle').checked = data.showAds || false;
+                    document.getElementById('ad-network-url').value = data.adNetworkUrl || '';
+                    document.getElementById('vast-url').value = data.vastUrl || '';
+                    document.getElementById('youtube-ad-url').value = data.youtubeAdUrl || '';
+                    document.getElementById('video-frequency').value = data.videoFrequency || 4;
+                    document.getElementById('banner-frequency').value = data.bannerFrequency || 3;
+                    document.getElementById('affiliate-frequency').value = data.affiliateFrequency || 5;
+                    
+                    if (data.banners && data.banners.length > 0) {
+                        data.banners.forEach((b, idx) => {
+                            if (idx < 10) {
+                                document.getElementById(`banner-img-${idx+1}`).value = b.img || '';
+                                document.getElementById(`banner-link-${idx+1}`).value = b.link || '';
+                                if (b.img) {
+                                    document.getElementById(`banner-preview-${idx+1}`).src = b.img;
+                                    document.getElementById(`banner-preview-${idx+1}`).style.display = 'block';
+                                }
+                            }
+                        });
+                    } else if (data.bannerImg) {
+                        document.getElementById('banner-img-1').value = data.bannerImg || '';
+                        document.getElementById('banner-link-1').value = data.bannerLink || '';
+                        document.getElementById('banner-preview-1').src = data.bannerImg;
+                        document.getElementById('banner-preview-1').style.display = 'block';
+                    }
+
+                    document.getElementById('affiliate-img').value = data.affiliateImg || '';
+                    document.getElementById('affiliate-link').value = data.affiliateLink || '';
+                    
+                    if (data.affiliateImg) {
+                        document.getElementById('affiliate-preview').src = data.affiliateImg;
+                        document.getElementById('affiliate-preview').style.display = 'block';
+                    }
+
+                    const viewEarningsBtn = document.getElementById('view-earnings-btn');
+                    if (data.adNetworkUrl) {
+                        viewEarningsBtn.href = data.adNetworkUrl;
+                        viewEarningsBtn.style.display = 'inline-block';
+                    }
+                }
+            } catch(e) {
+                console.error("Error fetching ad configuration:", e);
+            }
+        }
+
+        // Save Ad Settings
+        window.saveAdSettings = async () => {
+            const saveBtn = document.getElementById('save-ads-btn');
+            saveBtn.innerText = "Saving...";
+            saveBtn.disabled = true;
+            
+            const banners = [];
+            for(let i=1; i<=10; i++) {
+                const img = document.getElementById(`banner-img-${i}`).value.trim();
+                const link = document.getElementById(`banner-link-${i}`).value.trim();
+                if (img) banners.push({ img, link });
+            }
+
+            const adData = {
+                showAds: document.getElementById('ad-toggle').checked,
+                adNetworkUrl: document.getElementById('ad-network-url').value.trim(),
+                vastUrl: document.getElementById('vast-url').value.trim(),
+                youtubeAdUrl: document.getElementById('youtube-ad-url').value.trim(),
+                videoFrequency: parseInt(document.getElementById('video-frequency').value) || 4,
+                bannerFrequency: parseInt(document.getElementById('banner-frequency').value) || 3,
+                banners: banners,
+                bannerImg: banners.length > 0 ? banners[0].img : '',
+                bannerLink: banners.length > 0 ? banners[0].link : '',
+                affiliateImg: document.getElementById('affiliate-img').value.trim(),
+                affiliateLink: document.getElementById('affiliate-link').value.trim(),
+                affiliateFrequency: parseInt(document.getElementById('affiliate-frequency').value) || 5
+            };
+
+            try {
+                await setDoc(doc(db, "settings", "ads"), adData);
+                alert("Ads configuration updated successfully! Changes are now live on the site.");
+                // Update the earnings button visibility immediately after saving
+                const viewEarningsBtn = document.getElementById('view-earnings-btn');
+                if (adData.adNetworkUrl) {
+                    viewEarningsBtn.href = adData.adNetworkUrl;
+                    viewEarningsBtn.style.display = 'inline-block';
+                } else { viewEarningsBtn.style.display = 'none'; }
+            } catch(e) {
+                console.error("Error saving ads:", e);
+                alert("Failed to save ad settings.");
+            } finally {
+                saveBtn.innerText = "Save Ad Settings";
+                saveBtn.disabled = false;
+            }
+        };
+
+        // Clear Banner Functions
+        window.clearBanner = (i) => {
+            const fileInput = document.getElementById(`banner-file-${i}`);
+            const imgInput = document.getElementById(`banner-img-${i}`);
+            const linkInput = document.getElementById(`banner-link-${i}`);
+            const preview = document.getElementById(`banner-preview-${i}`);
+            
+            if (fileInput) fileInput.value = '';
+            if (imgInput) imgInput.value = '';
+            if (linkInput) linkInput.value = '';
+            if (preview) {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+        };
+
+        window.clearAllBanners = () => {
+            if(!confirm("Are you sure you want to delete all 10 banner ads?")) return;
+            for(let i=1; i<=10; i++) {
+                window.clearBanner(i);
+            }
+        };
+
+        // Image Compression Function
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const maxWidth = 800;
+                const maxHeight = 800;
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+                        } else {
+                            if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to JPEG 70% quality
+                    };
+                    img.onerror = error => reject(error);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Setup File Upload Listeners
+
+        document.getElementById('affiliate-file').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const saveBtn = document.getElementById('save-ads-btn');
+                saveBtn.innerText = "Processing Image...";
+                try {
+                    const base64 = await compressImage(file);
+                    document.getElementById('affiliate-img').value = base64;
+                    document.getElementById('affiliate-preview').src = base64;
+                    document.getElementById('affiliate-preview').style.display = 'block';
+                } catch(err) { alert("Error processing image: " + err.message); }
+                saveBtn.innerText = "Save Ad Settings";
+            }
+        });
+
+        async function loadReports() {
+            reportsList.innerHTML = '<p>Loading reports...</p>';
+            try {
+                const reportsSnapshot = await getDocs(collection(db, "reports"));
+            const countEl = document.getElementById('report-count');
+            if (countEl) countEl.innerText = reportsSnapshot.size;
+
+                if (reportsSnapshot.empty) {
+                    reportsList.innerHTML = '<p>No active reports.</p>';
+                    return;
+                }
+
+                reportsList.innerHTML = ''; // Clear loading message
+
+                for (const reportDoc of reportsSnapshot.docs) {
+                    const report = reportDoc.data();
+
+                    // Prevent crash if a report is missing a blogId
+                    if (!report.blogId) {
+                        console.warn("Skipping invalid report (missing blogId):", reportDoc.id);
+                        continue;
+                    }
+
+                    const blogDoc = await getDoc(doc(db, "blogs", report.blogId));
+
+                    const card = document.createElement('div');
+                    card.className = 'report-card';
+                    card.id = `report-${reportDoc.id}`;
+
+                    if (blogDoc.exists()) {
+                        const blog = blogDoc.data();
+                        const safeAuthor = blog.author ? blog.author.replace(/'/g, "\\'") : 'Unknown';
+                        card.innerHTML = `
+                            <h3>${blog.title}</h3>
+                            <p><strong>Author:</strong> ${blog.author}</p>
+                            <p><strong>Report Reason:</strong> ${report.reason}</p>
+                            <p><strong>Reported by UID:</strong> ${report.reporterUid}</p>
+                            <p><strong>Date:</strong> ${new Date(report.date).toLocaleString()}</p>
+                            <div>
+                                <a href="index.html?blogId=${report.blogId}" target="_blank" class="btn">View Blog</a>
+                                <button class="btn btn-danger" onclick="window.deleteBlog('${report.blogId}', '${reportDoc.id}')">Delete Blog & Report</button>
+                                <button class="btn btn-secondary" onclick="window.dismissReport('${reportDoc.id}')">Dismiss Report</button>
+                                <button class="btn btn-danger" style="background-color: #8b0000; margin-top: 10px;" onclick="window.banUser('${blog.authorUid || ''}', '${safeAuthor}')">Ban User</button>
+                                <button class="btn btn-secondary" style="background-color: #198754; margin-top: 10px;" onclick="window.unbanUser('${blog.authorUid || ''}', '${safeAuthor}')">Unban User</button>
+                            </div>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <h3>Blog not found (ID: ${report.blogId})</h3>
+                            <p>It might have been already deleted.</p>
+                            <p><strong>Report Reason:</strong> ${report.reason}</p>
+                             <div>
+                                <button class="btn btn-secondary" onclick="window.dismissReport('${reportDoc.id}')">Dismiss Report</button>
+                            </div>
+                        `;
+                    }
+                    reportsList.appendChild(card);
+                }
+            } catch (e) {
+                console.error("Error loading reports:", e);
+                reportsList.innerHTML = `<p style="color: red;">Failed to load reports: ${e.message}</p>`;
+            }
+        }
+
+        window.dismissReport = async (reportId) => {
+            if (!confirm("Are you sure you want to dismiss this report?")) return;
+            try {
+                await deleteDoc(doc(db, "reports", reportId));
+                document.getElementById(`report-${reportId}`).remove();
+            
+            const countEl = document.getElementById('report-count');
+            if (countEl) countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
+            
+                alert("Report dismissed.");
+            } catch (e) {
+                console.error("Error dismissing report:", e);
+                alert("Failed to dismiss report.");
+            }
+        };
+
+        window.deleteBlog = async (blogId, reportId) => {
+            if (!confirm("Are you sure you want to DELETE this blog permanently? This action cannot be undone.")) return;
+            try {
+                // Delete the blog
+                await deleteDoc(doc(db, "blogs", blogId));
+                
+                // Delete the associated report
+                await deleteDoc(doc(db, "reports", reportId));
+
+                document.getElementById(`report-${reportId}`).remove();
+                alert("Blog and report have been deleted.");
+            } catch (e) {
+                console.error("Error deleting blog:", e);
+                alert("Failed to delete blog.");
+            }
+        };
+
+        window.loadCopyrightClaims = async () => {
+            const copyrightList = document.getElementById('copyright-list');
+            copyrightList.innerHTML = '<p>Loading claims...</p>';
+            try {
+                const claimsSnapshot = await getDocs(collection(db, "copyright_claims"));
+                const countEl = document.getElementById('copyright-count');
+                if (countEl) countEl.innerText = claimsSnapshot.size;
+
+                if (claimsSnapshot.empty) {
+                    copyrightList.innerHTML = '<p>No active copyright claims.</p>';
+                    return;
+                }
+
+                copyrightList.innerHTML = '';
+
+                for (const claimDoc of claimsSnapshot.docs) {
+                    const claim = claimDoc.data();
+                    if (!claim.blogId) continue;
+
+                    const blogDoc = await getDoc(doc(db, "blogs", claim.blogId));
+                    const card = document.createElement('div');
+                    card.className = 'report-card';
+                    card.id = `copyright-${claimDoc.id}`;
+
+                    if (blogDoc.exists()) {
+                        const blog = blogDoc.data();
+                        const safeAuthor = blog.author ? blog.author.replace(/'/g, "\\'") : 'Unknown';
+                        card.innerHTML = `
+                            <h3>${blog.title}</h3>
+                            <p><strong>Author:</strong> ${blog.author}</p>
+                            <p><strong>Claim Reason/Region:</strong> ${claim.reason}</p>
+                            <p><strong>Claimed by UID:</strong> ${claim.claimerUid}</p>
+                            <p><strong>Date:</strong> ${new Date(claim.date).toLocaleString()}</p>
+                            <div>
+                                <a href="index.html?blogId=${claim.blogId}" target="_blank" class="btn">View Blog</a>
+                                <button class="btn btn-danger" onclick="window.deleteBlogFromClaim('${claim.blogId}', '${claimDoc.id}')">Delete Blog & Claim</button>
+                                <button class="btn btn-secondary" onclick="window.dismissCopyrightClaim('${claimDoc.id}')">Dismiss Claim</button>
+                                <button class="btn btn-danger" style="background-color: #8b0000; margin-top: 10px;" onclick="window.banUser('${blog.authorUid || ''}', '${safeAuthor}')">Ban User</button>
+                            </div>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <h3>Blog not found (ID: ${claim.blogId})</h3>
+                            <p>It might have been already deleted.</p>
+                            <p><strong>Claim Reason/Region:</strong> ${claim.reason}</p>
+                             <div>
+                                <button class="btn btn-secondary" onclick="window.dismissCopyrightClaim('${claimDoc.id}')">Dismiss Claim</button>
+                            </div>
+                        `;
+                    }
+                    copyrightList.appendChild(card);
+                }
+            } catch (e) {
+                console.error("Error loading claims:", e);
+                copyrightList.innerHTML = `<p style="color: red;">Failed to load copyright claims: ${e.message}</p>`;
+            }
+        };
+
+        window.dismissCopyrightClaim = async (claimId) => {
+            if (!confirm("Are you sure you want to dismiss this copyright claim?")) return;
+            try {
+                await deleteDoc(doc(db, "copyright_claims", claimId));
+                document.getElementById(`copyright-${claimId}`).remove();
+                const countEl = document.getElementById('copyright-count');
+                if (countEl) countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
+                alert("Copyright claim dismissed.");
+            } catch (e) {
+                console.error("Error dismissing claim:", e);
+                alert("Failed to dismiss claim.");
+            }
+        };
+
+        window.deleteBlogFromClaim = async (blogId, claimId) => {
+            if (!confirm("Are you sure you want to DELETE this blog permanently due to a copyright strike? This action cannot be undone.")) return;
+            try {
+                await deleteDoc(doc(db, "blogs", blogId));
+                await deleteDoc(doc(db, "copyright_claims", claimId));
+                document.getElementById(`copyright-${claimId}`).remove();
+                const countEl = document.getElementById('copyright-count');
+                if (countEl) countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
+                alert("Blog and copyright claim have been deleted.");
+            } catch (e) {
+                console.error("Error deleting blog:", e);
+                alert("Failed to delete blog.");
+            }
+        };
+
+        window.banUser = async (uid, username) => {
+            if (!confirm(`Are you sure you want to BAN the user "${username}"? They will not be able to log in.`)) return;
+            try {
+                const userRef = doc(db, "users", uid);
+                await updateDoc(userRef, { isBanned: true });
+                alert(`User ${username} has been banned.`);
+            } catch (e) {
+                console.error("Error banning user:", e);
+                alert("Failed to ban user.");
+            }
+        };
+
+        window.unbanUser = async (uid, username) => {
+            if (!confirm(`Are you sure you want to UNBAN the user "${username}"? They will be able to use the app normally.`)) return;
+            try {
+                const userRef = doc(db, "users", uid);
+                await updateDoc(userRef, { isBanned: false });
+                alert(`User ${username} has been unbanned.`);
+            } catch (e) {
+                console.error("Error unbanning user:", e);
+                alert("Failed to unban user.");
+            }
+        };
+
+        window.migrateUsernames = async () => {
+            if (!confirm("This will add 'usernameLower' to all users who don't have it yet. Proceed?")) return;
+            
+            const btn = document.getElementById('migrate-btn');
+            btn.innerText = "Migrating...";
+            btn.disabled = true;
+            
+            try {
+                const usersSnap = await getDocs(collection(db, "users"));
+                const updatePromises = [];
+
+                usersSnap.forEach(userDoc => {
+                    const data = userDoc.data();
+                    if (data.username && !data.usernameLower) {
+                        updatePromises.push(updateDoc(userDoc.ref, { usernameLower: data.username.toLowerCase() }));
+                    }
+                });
+
+                if (updatePromises.length > 0) {
+                    await Promise.all(updatePromises);
+                    alert(`Successfully updated ${updatePromises.length} users!`);
+                } else {
+                    alert("All users already have usernameLower or no username to update.");
+                }
+            } catch (e) {
+                console.error("Migration error:", e);
+                alert("Failed to migrate usernames: " + e.message);
+            } finally {
+                btn.innerText = "⚙️ Migrate Usernames";
+                btn.disabled = false;
+            }
+        };
+
+        // --- Monetization Settings Logic ---
+        async function loadMonetizationSettings() {
+            try {
+                const settingsDoc = await getDoc(doc(db, "settings", "monetization"));
+                if (settingsDoc.exists()) {
+                    const data = settingsDoc.data();
+                    document.getElementById('cpm-rate').value = data.cpmRate || 50;
+                }
+            } catch (e) {
+                console.error("Error loading monetization settings:", e);
+            }
+        }
+
+        window.saveMonetizationSettings = async () => {
+            const rate = parseFloat(document.getElementById('cpm-rate').value);
+            if (isNaN(rate) || rate < 0) {
+                alert("Please enter a valid, non-negative rate.");
+                return;
+            }
+            const settingsData = { cpmRate: rate, currency: 'INR' };
+            try {
+                await setDoc(doc(db, "settings", "monetization"), settingsData);
+                alert("Monetization settings saved successfully!");
+            } catch (e) {
+                console.error("Error saving monetization settings:", e);
+                alert("Failed to save settings.");
+            }
+        };
+
+        // --- Creator Monetization Logic ---
+        window.searchUserForMonetization = async () => {
+            const username = document.getElementById('user-search-input').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('monetization-search-results');
+            if (!username) return;
+            resultsDiv.innerHTML = '<p style="color:#aaa;">Searching...</p>';
+            try {
+                const q = query(collection(db, "users"), where("usernameLower", "==", username));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    resultsDiv.innerHTML = '<p style="color: #ff6b6b;">No user found with username: @' + username + '</p>';
+                    return;
+                }
+                resultsDiv.innerHTML = '';
+                snap.forEach(docSnap => {
+                    renderMonetizationUserCard(docSnap.id, docSnap.data(), resultsDiv);
+                });
+            } catch (e) {
+                console.error(e);
+                resultsDiv.innerHTML = '<p style="color: #ff6b6b;">Error searching user.</p>';
+            }
+        };
+
+        window.loadMonetizedUsers = async () => {
+            const listDiv = document.getElementById('monetized-users-list');
+            listDiv.innerHTML = '<p style="color:#aaa;">Loading monetized users...</p>';
+            try {
+                const q = query(collection(db, "users"), where("isMonetized", "==", true));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    listDiv.innerHTML = '<p style="color: #aaa;">No monetized users found yet.</p>';
+                    return;
+                }
+                listDiv.innerHTML = '';
+                snap.forEach(docSnap => {
+                    renderMonetizationUserCard(docSnap.id, docSnap.data(), listDiv);
+                });
+            } catch (e) {
+                console.error(e);
+                listDiv.innerHTML = '<p style="color: #ff6b6b;">Error loading users.</p>';
+            }
+        };
+
+        function renderMonetizationUserCard(uid, userData, container) {
+            const card = document.createElement('div');
+            card.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;";
+            const isMonetized = userData.isMonetized === true;
+            const followersCount = userData.followers ? userData.followers.length : 0;
+            
+            card.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="${userData.photoURL || 'game-logo.png'}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid ${isMonetized ? '#198754' : '#666'};">
+                    <div>
+                        <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'}</strong> <span style="color: #aaa; font-size: 0.9rem;">(@${userData.username || 'unknown'})</span>
+                        <div style="font-size: 0.85rem; color: #ccc; margin-top: 5px;">Followers: <strong>${followersCount}</strong> | Monetized: <strong style="color: ${isMonetized ? '#198754' : '#dc3545'}">${isMonetized ? 'Yes' : 'No'}</strong></div>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn" style="background-color: ${isMonetized ? '#dc3545' : '#198754'}; margin: 0;" onclick="window.toggleMonetization('${uid}', ${!isMonetized})">
+                        ${isMonetized ? '<i class="fa-solid fa-ban"></i> Revoke Monetization' : '<i class="fa-solid fa-check"></i> Monetize User'}
+                    </button>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        window.toggleMonetization = async (uid, makeMonetized) => {
+            if (!confirm(`Are you sure you want to ${makeMonetized ? 'MONETIZE' : 'REVOKE monetization for'} this user?`)) return;
+            try {
+                await updateDoc(doc(db, "users", uid), { isMonetized: makeMonetized });
+                alert(`User status updated to ${makeMonetized ? 'Monetized' : 'Not Monetized'} successfully.`);
+                window.loadMonetizedUsers();
+                document.getElementById('monetization-search-results').innerHTML = ''; 
+            } catch (e) {
+                console.error(e);
+                alert("Failed to update monetization status.");
+            }
+        };
+
+        // --- Payout Requests Logic ---
+        window.loadPayoutRequests = async () => {
+            const listDiv = document.getElementById('payout-requests-list');
+            listDiv.innerHTML = '<p style="color:#aaa;">Loading requests...</p>';
+            try {
+                const q = query(collection(db, "withdrawals"), where("status", "==", "pending"));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    listDiv.innerHTML = '<p style="color: #aaa;">No pending payout requests.</p>';
+                    return;
+                }
+                listDiv.innerHTML = '';
+                for (const reqDoc of snap.docs) {
+                    const req = reqDoc.data();
+                    const userSnap = await getDoc(doc(db, "users", req.uid));
+                    const userData = userSnap.exists() ? userSnap.data() : {};
+                    const div = document.createElement('div');
+                    div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;";
+                    div.innerHTML = `
+                        <div>
+                            <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
+                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Requested Amount: <strong style="color: #198754;">₹${req.amount.toFixed(2)}</strong> <span style="font-size:0.8rem; color:#888;">(Calculated on ${req.viewsCalculated} views)</span></div>
+                            <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Payment Details:</strong> ${req.paymentInfo}</div>
+                            <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Requested on: ${new Date(req.date).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${req.viewsCalculated}, ${req.amount})"><i class="fa-solid fa-check"></i> Paid</button>
+                            <button class="btn" style="background-color: #dc3545; height: fit-content; padding: 8px 12px;" onclick="window.rejectPayout('${reqDoc.id}', '${req.uid}', ${req.amount})"><i class="fa-solid fa-times"></i> Reject</button>
+                        </div>
+                    `;
+                    listDiv.appendChild(div);
+                }
+            } catch (e) {
+                console.error(e);
+                listDiv.innerHTML = '<p style="color: #ff6b6b;">Error loading requests.</p>';
+            }
+        };
+
+        window.markAsPaid = async (reqId, uid, viewsCalculated, amount) => {
+            if (!confirm("Are you sure you have transferred the money? This will mark the request as paid and reset their estimated earnings.")) return;
+            try {
+                await updateDoc(doc(db, "withdrawals", reqId), { status: 'paid', paidDate: new Date().toISOString() });
+                const userRef = doc(db, "users", uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const currentPaid = userSnap.data().paidViews || 0;
+                    // Add the views that were paid for in this specific transaction
+                    await updateDoc(userRef, { paidViews: currentPaid + viewsCalculated });
+                }
+                
+                // Send Automatic Notification to User
+                await addDoc(collection(db, "notifications"), {
+                    recipientUid: uid,
+                    senderUid: "admin",
+                    senderName: "System",
+                    type: "payment",
+                    message: `Your payment of ₹${parseFloat(amount).toFixed(2)} has been successfully processed!`,
+                    date: new Date().toISOString(),
+                    read: false
+                });
+                
+                alert("User marked as paid successfully!");
+                window.loadPayoutRequests();
+            } catch (e) {
+                console.error(e);
+                alert("Error marking as paid.");
+            }
+        };
+        
+        window.rejectPayout = async (reqId, uid, amount) => {
+            const reason = prompt("Enter reason for rejection (e.g., Invalid UPI ID, Wrong Bank details):");
+            if (reason === null) return; // User cancelled
+            
+            try {
+                await updateDoc(doc(db, "withdrawals", reqId), { status: 'rejected', rejectReason: reason, rejectDate: new Date().toISOString() });
+                
+                // Send Automatic Notification to User
+                await addDoc(collection(db, "notifications"), {
+                    recipientUid: uid,
+                    senderUid: "admin",
+                    senderName: "System",
+                    type: "payment_rejected",
+                    message: `Your withdrawal request of ₹${parseFloat(amount).toFixed(2)} was rejected. Reason: ${reason || 'Not specified'}. Please update your details and request again.`,
+                    date: new Date().toISOString(),
+                    read: false
+                });
+                
+                alert("Payout request rejected.");
+                window.loadPayoutRequests();
+            } catch (e) { console.error(e); alert("Error rejecting request."); }
+        };
+
+        window.loadPaymentHistory = async () => {
+            const listDiv = document.getElementById('payment-history-list');
+            listDiv.innerHTML = '<p style="color:#aaa;">Loading history...</p>';
+            try {
+                const q = query(collection(db, "withdrawals"), where("status", "==", "paid"));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    listDiv.innerHTML = '<p style="color: #aaa;">No payment history found.</p>';
+                    return;
+                }
+                
+                const records = [];
+                snap.forEach(d => records.push({id: d.id, ...d.data()}));
+                records.sort((a, b) => new Date(b.paidDate || b.date) - new Date(a.paidDate || a.date)); // Newest first
+
+                listDiv.innerHTML = '';
+                for (const req of records) {
+                    const userSnap = await getDoc(doc(db, "users", req.uid));
+                    const userData = userSnap.exists() ? userSnap.data() : {};
+                    const div = document.createElement('div');
+                    div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: flex-start;";
+                    div.innerHTML = `
+                        <div>
+                            <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
+                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount Paid: <strong style="color: #198754;">₹${(req.amount || 0).toFixed(2)}</strong></div>
+                            <div style="font-size: 0.9rem; color: #aaa; margin-top: 5px;">Payment Details: ${req.paymentInfo}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="background: #198754; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">PAID</span>
+                            <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">${new Date(req.paidDate || req.date).toLocaleString()}</div>
+                        </div>
+                    `;
+                    listDiv.appendChild(div);
+                }
+            } catch (e) {
+                console.error(e);
+                listDiv.innerHTML = '<p style="color: #ff6b6b;">Error loading history.</p>';
+            }
+        };
+
+    </script>
+</body>
+</html>

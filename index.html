@@ -1,0 +1,3698 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viyo</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Latest cricket news, IPL 2026 auction analysis, match reports, and player stats. Stay updated with Auction to Arena cricket insights.">
+    <meta name="keywords" content="Cricket News, IPL 2026, WPL, Match Reports, Cricket Analysis, Sports News, Auction cricket game, ipl auction game, best ipl game, auctio to arena, ">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Cricket News - IPL 2026 Updates">
+    <meta property="og:description" content="Latest cricket news, IPL 2026 auction analysis, match reports, and player stats.">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="game-logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="game-logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6FBZXVMTR6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-6FBZXVMTR6');
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Fluid Player for VAST Ads -->
+    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
+    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #121212; /* Default Dark Mode */
+            color: #fff;
+            transition: background 0.3s, color 0.3s;
+        }
+        #stories-reel::-webkit-scrollbar { display: none; }
+        .story-item { text-align: center; cursor: pointer; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .story-ring { width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .story-item:hover .story-ring { transform: scale(1.05); }
+        .story-item.viewed .story-ring { background: #555; }
+        .story-item img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #121212; }
+        .story-item p { margin: 5px 0 0 0; font-size: 0.75rem; color: #ccc; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        body.light-mode .story-item p { color: #555; }
+        body.light-mode .story-item.viewed .story-ring { background: #ccc; }
+        body.light-mode .story-item img { border-color: #f4f7f6; }
+        
+        .story-ring-container { position: relative; display: inline-block; width: 68px; height: 68px; }
+        .add-story-badge { position: absolute; bottom: 0px; right: 0px; background: #0d6efd; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 18px; line-height: 22px; font-weight: bold; display: flex; align-items: center; justify-content: center; border: 2px solid #121212; z-index: 2; cursor: pointer; transition: transform 0.2s; box-sizing: border-box; padding-bottom: 2px; }
+        .add-story-badge:hover { transform: scale(1.1); background: #0b5ed7; }
+        body.light-mode .add-story-badge { border-color: #f4f7f6; }
+        .story-ring-empty { width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .story-item:hover .story-ring-empty { transform: scale(1.05); }
+        
+        /* Add Story Badge Click Animation */
+        @keyframes badge-click-anim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5) rotate(90deg); background-color: #198754; border-color: #198754; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .add-story-badge.badge-clicked {
+            animation: badge-click-anim 0.4s ease-in-out forwards;
+            pointer-events: none;
+        }
+
+        /* Story Viewer Modal */
+        #story-viewer-modal .close-lightbox { z-index: 15; }
+        #story-viewer-content { position: relative; max-width: 450px; max-height: 95vh; width: 95%; background: #111; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px; }
+        #story-viewer-content .story-header { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 8px; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 15px; }
+        #story-viewer-content .story-header img { width: 30px; height: 30px; border-radius: 50%; }
+        #story-viewer-content .story-header strong { color: white; font-size: 0.9rem; }
+        #story-viewer-content .story-text { color: white; font-size: 1.5rem; padding: 20px; text-align: center; word-wrap: break-word; }
+        
+        .story-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 25;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+        .story-nav-btn:hover { background: rgba(0,0,0,0.9); }
+        .story-nav-btn.prev { left: 10px; }
+        .story-nav-btn.next { right: 10px; }
+        .container {
+            max-width: 1200px; /* Wider for a more modern, spacious feel */
+            margin: 0 auto;    /* Center the container */
+            padding: 20px 15px; /* Add some padding on all sides */
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            color: #fff;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: #0d6efd; /* A modern blue */
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn:hover {
+            background-color: #0b5ed7; /* Darker blue on hover */
+        }
+
+        .btn-read-more {
+            display: inline-block;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #0d6efd;
+            background-color: transparent;
+            border: 1px solid #0d6efd;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .btn-read-more:hover {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+
+        .btn-vertical {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 5px;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            vertical-align: middle;
+            position: relative;
+            z-index: 1;
+            border: none !important;
+            background: transparent !important;
+            color: #fff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-vertical:hover {
+            background: transparent !important;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+        .btn-vertical img {
+            width: 82px;
+            height: 82px;
+            object-fit: contain;
+        }
+
+        .theme-btn {
+            position: relative;
+            z-index: 1;
+            border: none !important;
+            background: transparent !important;
+            color: #fff !important;
+            font-size: 1.2rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .theme-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+
+        .btn-transparent {
+            position: relative;
+            z-index: 1;
+            border: none !important;
+            background: transparent !important;
+            color: #fff !important;
+            transition: transform 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-vertical::before, .btn-transparent::before, .theme-btn::before {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            border-radius: 5px;
+            padding: 1.5px;
+            background: linear-gradient(45deg, #0d6efd, #ffc107);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .btn-transparent:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+
+        .latest-news {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .latest-news h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .latest-news ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .latest-news li {
+            padding: 8px 0;
+        }
+
+        .latest-news a {
+            text-decoration: none;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .news-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .news-card img.card-img-top {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .news-card-content {
+            padding: 25px;
+        }
+
+        .news-card-content h2 {
+            font-size: 1.75rem;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .news-card-content h2 a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .news-card-content h2 a:hover {
+            color: #ddd;
+            text-decoration: underline;
+        }
+
+        .article-meta {
+            font-size: 0.85rem;
+            color: #ddd;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .news-card-content p {
+            font-size: 1.05rem;
+            color: #eee;
+            margin-bottom: 1em;
+        }
+
+        .shayari-p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #fff;
+            white-space: pre-wrap;
+            font-style: italic;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-left: 4px solid #87ceeb;
+            border-radius: 5px;
+        }
+        
+        strong {
+            color: #198754; /* A nice green for emphasis */
+        }
+
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #0d6efd;
+            margin: 20px 0;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        .news-card-content .img-fluid {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: block;
+        }
+
+        /* Responsive Design for Mobile Devices */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px; /* Add space between title and button */
+            }
+
+            .header h1 {
+                font-size: 2rem; /* Reduce heading size */
+            }
+
+            .news-card-content h2 {
+                font-size: 1.5rem; /* Reduce article title size */
+            }
+
+            .latest-news, .news-card-content {
+                padding: 20px; /* Adjust padding for smaller screens */
+            }
+        }
+
+        .back-to-top-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: none; /* Hidden by default */
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            font-size: 24px;
+            color: #fff;
+            background-color: #0d6efd;
+            border-radius: 50%;
+            text-decoration: none;
+            z-index: 1000;
+            transition: opacity 0.3s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .back-to-top-btn:hover {
+            background-color: #0b5ed7;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px 15px;
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #eee;
+            border-top: 1px solid #dee2e6;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        /* Carousel Styles for Multiple Images */
+        .image-carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 10px;
+            padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        .image-carousel img {
+            flex: 0 0 100%; /* Show one image at a time fully */
+            scroll-snap-align: center;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        /* Hide scrollbar for cleaner look */
+        .image-carousel::-webkit-scrollbar { display: none; }
+        .image-carousel { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Comment Actions */
+        .comment-actions { display: flex; gap: 15px; margin-top: 8px; font-size: 0.85rem; color: #aaa; }
+        .comment-action-btn { background: none; border: none; color: inherit; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 5px; transition: color 0.2s; }
+        .comment-action-btn:hover { color: #fff; }
+        .replies-list { margin-left: 20px; margin-top: 10px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px; }
+        .pinned-badge { background: #ffd700; color: #000; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: 8px; font-weight: bold; vertical-align: middle; }
+        .follow-btn { padding: 2px 8px; font-size: 0.7rem; border-radius: 10px; border: 1px solid #0d6efd; background: transparent; color: #0d6efd; cursor: pointer; margin-left: 10px; transition: all 0.2s; }
+        .follow-btn.following { background: #0d6efd; color: white; }
+
+        /* Search & Notifications */
+        .header-actions { display: flex; align-items: center; gap: 15px; }
+        .search-box { position: relative; }
+        .search-box input { padding: 8px; border-radius: 20px; border: none; background: rgba(255,255,255,0.2); color: white; width: 200px; }
+        .search-results { position: absolute; top: 100%; left: 0; width: 100%; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; display: none; z-index: 1000; max-height: 300px; overflow-y: auto; }
+        .search-result-item { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .search-result-item:hover { background: #333; }
+        
+        .notif-box { position: relative; }
+        .notif-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; position: relative; }
+        .notif-badge { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 50%; display: none; }
+        .notif-dropdown { position: absolute; top: 100%; right: 0; width: 300px; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; display: none; z-index: 1000; max-height: 400px; overflow-y: auto; }
+        .notif-item { padding: 10px; border-bottom: 1px solid #333; font-size: 0.9rem; color: #ddd; }
+        .notif-item strong { color: gold; }
+
+        /* Navigation Buttons Container */
+        .nav-buttons { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .nav-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+        /* Enhanced Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container { padding: 0 10px; }
+            
+            .header { 
+                flex-direction: column; 
+                align-items: center; 
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+            
+            .header-actions { 
+                width: 100%; 
+                justify-content: center; 
+                margin-top: 10px; 
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            
+            .search-box { width: 100%; max-width: 100%; }
+            .search-box input { width: 100%; box-sizing: border-box; }
+            .search-wrapper { max-width: 100% !important; width: 100%; }
+            
+            .nav-buttons { align-items: center; width: 100%; gap: 15px; }
+            .nav-row { justify-content: center; width: 100%; gap: 8px; }
+            .btn { padding: 8px 12px; font-size: 0.9rem; flex: 1 1 auto; min-width: 100px; text-align: center; }
+            
+            .news-card-content { padding: 15px; }
+            .news-card-content h2 { font-size: 1.4rem; }
+            .image-carousel img { max-height: 200px; }
+        }
+
+        /* Lightbox */
+        .lightbox-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        .lightbox-content { display: block; max-width: 90vw; max-height: 85vh; object-fit: contain; transition: transform 0.3s ease; }
+        .profile-lightbox { border-radius: 50%; width: 85vmin; height: 85vmin; max-width: 400px; max-height: 400px; object-fit: cover; }
+        .close-lightbox { position: absolute; top: 20px; right: 30px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer; z-index: 2001; }
+        .close-lightbox:hover { color: #bbb; }
+
+        /* Story Text Animations */
+        @keyframes story-anim-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes story-anim-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes story-anim-zoom {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes story-anim-slide {
+            0% { transform: translateY(50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .story-anim-bounce { animation: story-anim-bounce 2s infinite; }
+        .story-anim-pulse { animation: story-anim-pulse 2s infinite; }
+        .story-anim-zoom { animation: story-anim-zoom 0.5s ease-out forwards; }
+        .story-anim-slide { animation: story-anim-slide 0.5s ease-out forwards; }
+
+        /* Carousel Arrows */
+        .carousel-container { position: relative; }
+        .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; z-index: 5; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s; }
+        .carousel-btn:hover { background: rgba(0,0,0,0.9); }
+        .carousel-btn.prev { left: 10px; }
+        .carousel-btn.next { right: 10px; }
+        .verified-badge { color: #1da1f2; margin-left: 4px; font-size: 0.9em; vertical-align: middle; display: inline-block; }
+
+        /* Light Mode Styles */
+        body.light-mode {
+            background: #f4f7f6;
+            color: #333;
+        }
+        body.light-mode .header h1 { color: #333; }
+        body.light-mode .latest-news, 
+        body.light-mode .news-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        body.light-mode .latest-news h2 { color: #333; border-bottom-color: #ddd; }
+        body.light-mode #trending-section h2,
+        body.light-mode #trending-grid h3 { color: #120a88 !important; }
+        body.light-mode .latest-news a { color: #0d6efd; }
+        body.light-mode .news-card-content h2 a { color: #333; }
+        body.light-mode .news-card-content p { color: #555; }
+        body.light-mode .article-meta { color: #666; }
+        body.light-mode .shayari-p { color: #444; background: #f8f9fa; }
+        body.light-mode footer { background: #fff; color: #666; border-top-color: #ddd; }
+        body.light-mode .comment-actions { color: #666; }
+        body.light-mode .comment-action-btn:hover { color: #000; }
+        body.light-mode .search-box input { background: #fff; color: #333; border: 1px solid #ccc; }
+        body.light-mode .search-results,
+        body.light-mode .notif-dropdown,
+        body.light-mode #user-list-modal > div,
+        body.light-mode #edit-modal > div { background: #fff !important; border-color: #ddd !important; color: #333 !important; }
+        body.light-mode .search-result-item:hover { background: #f0f0f0; }
+        body.light-mode .notif-item { border-bottom-color: #eee; color: #555; }
+        body.light-mode #user-list-title { color: #0d6efd; }
+        body.light-mode #edit-modal h2 { color: #0d6efd !important; }
+        body.light-mode #edit-text-input { background: #f0f0f0 !important; color: #333 !important; border-color: #ccc !important; }
+        body.light-mode #user-list-content > div { border-bottom-color: #eee; }
+        body.light-mode #user-list-content strong { color: #000; }
+        body.light-mode .btn-vertical { color: #333; }
+        body.light-mode .theme-btn { color: #333 !important; }
+        body.light-mode .btn-transparent { color: #333 !important; }
+        .feed-btn {
+            background-color: transparent;
+            border: 1px solid #6c757d;
+            color: #aaa;
+            padding: 5px 15px;
+        }
+        .feed-btn.active {
+            background-color: #198754;
+            border-color: #198754;
+            color: white;
+        }
+        #feed-verified-btn {
+            border-color: #1da1f2;
+            color: #1da1f2;
+        }
+        #feed-verified-btn.active {
+            background-color: #1da1f2;
+            border-color: #1da1f2;
+            color: white;
+        }
+        body.light-mode .feed-btn {
+            color: #555;
+            border-color: #ccc;
+        }
+        body.light-mode .feed-btn.active {
+            background-color: #198754;
+            border-color: #198754;
+            color: white;
+        }
+        body.light-mode #feed-verified-btn {
+            color: #1da1f2;
+            border-color: #1da1f2;
+        }
+        #flicks-reel::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1 style="background: linear-gradient(135deg, #ff007a, #7a00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 3rem; letter-spacing: 2px; margin: 0;">Viyo</h1>
+            <div class="header-actions">
+                <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px;">
+                    <div class="search-box" style="width: 100%;">
+                        <input type="text" id="user-search" placeholder="Search users (@id)..." style="width: 100%; box-sizing: border-box;">
+                        <div id="search-results" class="search-results"></div>
+                    </div>
+                    <div id="search-filter-container" style="display: flex; gap: 5px; background: rgba(255,255,255,0.1); padding: 5px; border-radius: 8px; width: 100%; box-sizing: border-box;">
+                        <button id="search-filter-content" class="btn feed-btn" style="flex: 1; padding: 5px;">Content</button>
+                        <button id="search-filter-account" class="btn feed-btn active" style="flex: 1; padding: 5px;">Account</button>
+                    </div>
+                </div>
+                <div class="notif-box">
+                    <button id="notif-btn" class="notif-btn"><img src="notif-icon.png" alt="Notifications" style="width: 70px; height: 70px;"> <span id="notif-badge" class="notif-badge">0</span></button>
+                    <div id="notif-dropdown" class="notif-dropdown"><p style="padding:10px; text-align:center;">No notifications</p></div>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <div class="nav-row">
+                    <span id="user-info" style="font-weight: bold; display: none;"></span>
+                    <button id="theme-toggle" class="btn theme-btn" style="padding: 8px 12px;"><i class="fa-regular fa-sun"></i></button>
+                    <a href="admin.html" id="admin-btn" class="btn btn-transparent" style="display: none;">🛡️ Admin Panel</a>
+                    <button id="login-btn" class="btn btn-transparent"><i class="fa-solid fa-right-to-bracket"></i>  Login</button>
+                    <button id="logout-btn" class="btn btn-transparent" style="display: none;"><i class="fa-solid fa-right-from-bracket"></i>  Logout</button>
+                </div>
+                <div class="nav-row">
+                    <a href="write-blog.html" id="write-blog-btn" class="btn btn-vertical">
+                        <img src="blog-icon.png" alt="Write Blog">
+                        <span>Write Blog</span>
+                    </a>
+                    <a href="profile.html" id="profile-btn" class="btn btn-vertical" style="display: none;">
+                        <img src="profile-icon.png" alt="Profile">
+                        <span>Profile</span>
+                    </a>
+                    <a href="messages.html" id="messages-btn" class="btn btn-vertical" style="display: none; position: relative;"> 
+                        <img src="messages-icon.png" alt="Messages">
+                        <span>Messages</span>
+                        <span id="unread-messages-badge" style="position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 50%; display: none;">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stories Reel -->
+        <div id="stories-reel-container" style="margin-bottom: 30px; display: none;">
+            <h2 style="font-size: 1.2rem; color: #ccc; margin-bottom: 10px; padding-left: 5px;">Stories</h2>
+            <div id="stories-reel" style="display: flex; gap: 15px; overflow-x: auto; padding: 10px 5px; scrollbar-width: none; -ms-overflow-style: none;">
+                <!-- Story items will be populated here -->
+            </div>
+        </div>
+
+        <!-- Trending Section -->
+        <div class="latest-news" id="trending-section" style="display:none; border-left: 4px solid #ffc107;">
+            <h2 style="color: #ffe600;"><i class="fa-solid fa-fire" style="color: #f09433;"></i>  Trending Now (Top Liked in 24h)</h2>
+            <div class="news-grid" id="trending-grid"></div>
+        </div>
+
+        <!-- Flicks Section -->
+        <div class="latest-news" id="flicks-section" style="display:none; border-left: 4px solid #ff0050; padding-bottom: 10px;">
+            <h2 style="color: #ff0050; border-bottom: 1px solid #444; margin-bottom: 15px; padding-bottom: 10px;"><i class="fa-solid fa-bolt"></i> Flicks</h2>
+            <div id="flicks-reel" style="display: flex; gap: 15px; overflow-x: auto; padding: 5px; scrollbar-width: none; -ms-overflow-style: none;">
+                <!-- Flicks items will be populated here -->
+            </div>
+        </div>
+
+        <!-- User Blogs Section -->
+        <div class="latest-news" id="user-blogs-section" style="display:none; border-left: 4px solid #198754;">
+            <h2 style="color: #198754;">Community Blogs (User Posts)</h2>
+            <div id="feed-toggle" style="margin-bottom: 15px; display: none; gap: 10px;">
+                <button id="feed-all-btn" class="btn feed-btn active">All Posts</button>
+                <button id="feed-following-btn" class="btn feed-btn">Following</button>
+                <button id="feed-verified-btn" class="btn feed-btn"> <i class="fa-solid fa-check"></i> Verified</button>
+            </div>
+            <div class="news-grid" id="user-blogs-grid"></div>
+            <div id="load-more-container" style="text-align: center; margin-top: 20px; display: none;">
+                <div id="scroll-trigger" style="padding: 20px; color: #888;"><i class="fa-solid fa-spinner fa-spin"></i> Loading more...</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Cricket Auction Game. All Rights Reserved.</p>
+    </footer>
+
+    <a href="#" id="back-to-top" class="back-to-top-btn" title="Go to top"> <i class="fa-solid fa-arrow-up"></i></a>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" class="lightbox-modal" onclick="if(event.target === this) window.closeLightbox()">
+        <span class="close-lightbox" onclick="window.closeLightbox()">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+    </div>
+
+    <!-- User List Modal (for viewers) -->
+    <div id="user-list-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
+        <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; max-height:70vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                <h3 id="user-list-title" style="margin:0; color:gold;">Users</h3>
+                <button onclick="document.getElementById('user-list-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="user-list-content" style="overflow-y:auto; flex:1;">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Story Viewer Modal -->
+    <div id="story-viewer-modal" class="lightbox-modal" style="padding: 0; align-items: center; justify-content: center;" onclick="if(event.target === this) window.closeStoryViewer()">
+        <span class="close-lightbox" onclick="window.closeStoryViewer()">&times;</span>
+        <div id="story-viewer-content">
+            <!-- Story content will be populated here -->
+        </div>
+    </div>
+
+    <!-- Flicks Viewer Modal -->
+    <div id="flicks-viewer-modal" class="lightbox-modal" style="padding: 0; align-items: center; justify-content: center; background: #000;" onclick="if(event.target === this) window.closeFlicksViewer()">
+        <span class="close-lightbox" style="z-index: 3000; right: 20px; top: 20px;" onclick="window.closeFlicksViewer()">&times;</span>
+        <div id="flicks-viewer-content" style="position: relative; width: 100%; max-width: 450px; height: 100vh; background: #111; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+            <video id="flicks-video-player" src="" loop playsinline style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" onclick="this.paused ? this.play() : this.pause()"></video>
+            
+            <!-- Flicks Ad Container -->
+            <div id="flicks-ad-container" style="display:none; position: absolute; top:0; left:0; width: 100%; height: 100%; background: #000; z-index: 15;"></div>
+
+            <div id="flicks-ui-overlays">
+            <!-- Overlay details -->
+            <div style="position: absolute; bottom: 30px; left: 15px; right: 70px; color: white; z-index: 20;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <img id="flicks-author-pic" src="" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; cursor: pointer;">
+                    <strong id="flicks-author-name" style="font-size: 1.1rem; cursor: pointer;"></strong>
+                </div>
+                <p id="flicks-title-display" style="margin: 0; font-size: 1rem; line-height: 1.3; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);"></p>
+            </div>
+            
+            <!-- Action buttons -->
+            <div style="position: absolute; bottom: 30px; right: 15px; display: flex; flex-direction: column; gap: 20px; z-index: 20; align-items: center;">
+                <div style="text-align: center;">
+                    <button id="flicks-like-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-heart"></i></button>
+                    <span id="flicks-like-count" style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">0</span>
+                </div>
+                <div style="text-align: center;">
+                    <button id="flicks-share-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-share"></i></button>
+                    <span style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">Share</span>
+                </div>
+                <div style="text-align: center;">
+                    <button id="flicks-send-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-paper-plane"></i></button>
+                    <span style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">Send</span>
+                </div>
+            </div>
+
+            <!-- Swipe/Keyboard Navigation Hints -->
+            <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); z-index: 10; pointer-events: none; font-size: 1.5rem; animation: story-anim-bounce 2s infinite;"><i class="fa-solid fa-chevron-up"></i></div>
+            <div style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); z-index: 10; pointer-events: none; font-size: 1.5rem; animation: story-anim-bounce 2s infinite;"><i class="fa-solid fa-chevron-down"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Flick Modal -->
+    <div id="send-flick-modal" class="lightbox-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3005; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
+        <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; max-height:70vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                <h3 style="margin:0; color:gold;">Send to...</h3>
+                <button onclick="document.getElementById('send-flick-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="send-flick-user-list" style="overflow-y:auto; flex:1; padding-right: 5px;">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="lightbox-modal" onclick="if(event.target === this) this.style.display='none'">
+        <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; color: white; position: relative; margin: auto;">
+            <span class="close-lightbox" onclick="document.getElementById('login-modal').style.display='none'" style="top: 10px; right: 15px; font-size: 24px; position: absolute; cursor: pointer;">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 20px; color: gold;">Login / Sign Up</h2>
+            
+            <div style="display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #444;">
+                <button id="tab-google" class="tab-btn" style="background:none; border:none; color:white; padding: 10px; cursor: pointer; border-bottom: 2px solid gold;">Google</button>
+                <button id="tab-email" class="tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer;">Email</button>
+            </div>
+
+            
+            <div id="content-google" class="auth-content">
+                <button id="google-login-btn" class="btn" style="width: 100%; background-color: #4285F4;">Sign in with Google</button>
+            </div>
+
+            <div id="content-email" class="auth-content" style="display: none;">
+                <input type="email" id="email-input" placeholder="Email" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                <input type="password" id="password-input" placeholder="Password" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                <div style="text-align: right; margin-bottom: 10px;"><a href="#" id="forgot-pwd-link" style="color: gold; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a></div>
+                <button id="email-login-btn" class="btn" style="width: 100%; margin-bottom: 10px;">Login</button>
+                <button id="email-signup-btn" class="btn" style="width: 100%; background-color: #198754;">Sign Up</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="lightbox-modal" onclick="if(event.target === this) document.getElementById('edit-modal').style.display='none'">
+        <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; color: white; position: relative; margin: auto; border: 1px solid #444;">
+            <span class="close-lightbox" onclick="document.getElementById('edit-modal').style.display='none'" style="top: 10px; right: 15px; font-size: 24px; position: absolute; cursor: pointer;">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 15px; margin-top: 0; color: gold; font-size: 1.5rem;">Edit</h2>
+            <textarea id="edit-text-input" style="width: 100%; height: 100px; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; resize: vertical; box-sizing: border-box; font-family: inherit; font-size: 1rem;"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn" style="background-color: #6c757d;" onclick="document.getElementById('edit-modal').style.display='none'">Cancel</button>
+                <button class="btn" id="edit-modal-btn-save" style="background-color: #198754;" onclick="window.saveEdit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, getDoc, query, orderBy, arrayUnion, arrayRemove, addDoc, where, onSnapshot, limit, startAfter, setDoc, writeBatch, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPhoneNumber, RecaptchaVerifier, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        let currentUserFollowing = [];
+        let lastVisibleBlog = null;
+        let currentUserBlocked = [];
+        const BLOGS_PER_PAGE = 5;
+        let viewedStories = JSON.parse(localStorage.getItem('viewed_stories') || '[]');
+        let observer; // For infinite scroll
+        let currentFeedMode = 'all'; // 'all' or 'following'
+        let currentNotifications = [];
+        let currentEditContext = null;
+        let globalGroupedStories = [];
+        let currentStoryUserIdx = -1;
+        let currentStoryIdx = -1;
+        let globalAdConfig = { showAds: false, vastUrl: '', youtubeAdUrl: '', bannerImg: '', bannerLink: '', affiliateImg: '', affiliateLink: '' };
+        let viewedBlogsInSession = new Set(); // For view tracking
+
+        // View tracking observer
+        const viewObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const blogId = entry.target.id.replace('blog-', '');
+                    if (blogId && !viewedBlogsInSession.has(blogId)) {
+                        viewedBlogsInSession.add(blogId);
+                        const blogRef = doc(db, "blogs", blogId);
+                        // Use server-side increment to avoid race conditions
+                        updateDoc(blogRef, { views: increment(1) })
+                            .catch(e => console.error("Error updating view count:", e));
+                    }
+                    viewObserver.unobserve(entry.target); // Only count once per session
+                }
+            });
+        }, { threshold: 0.5 }); // Trigger when 50% of the card is visible
+
+        // Fetch Ad Settings from Firestore
+        async function loadAdSettings() {
+            try {
+                const adDoc = await getDoc(doc(db, "settings", "ads"));
+                if (adDoc.exists()) {
+                    globalAdConfig = adDoc.data();
+                }
+            } catch(e) { console.error("Error loading ad settings:", e); }
+        }
+
+        // --- NEW: Function to delete expired stories ---
+        async function cleanupExpiredStories() {
+            // To prevent this from running too often, check a timestamp in localStorage.
+            // This is a simple client-side throttle.
+            const lastCleanup = localStorage.getItem('lastStoryCleanup');
+            const sixHours = 6 * 60 * 60 * 1000; // Run cleanup at most once every 6 hours per client.
+            if (lastCleanup && (Date.now() - lastCleanup < sixHours)) {
+                console.log("Story cleanup ran within the last 6 hours. Skipping.");
+                return;
+            }
+
+            console.log("Running cleanup for expired stories...");
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            
+            try {
+                // Query for stories older than 24 hours
+                const q = query(collection(db, "stories"), 
+                                where("timestamp", "<", twentyFourHoursAgo), 
+                                limit(20)); // Limit to 20 deletes per run to manage cost/performance
+                
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    console.log("No expired stories to delete.");
+                    localStorage.setItem('lastStoryCleanup', Date.now().toString());
+                    return;
+                }
+
+                // Use a batch to delete all found documents at once
+                const batch = writeBatch(db);
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                
+                await batch.commit();
+                console.log(`Successfully deleted ${snapshot.size} expired stories.`);
+                localStorage.setItem('lastStoryCleanup', Date.now().toString());
+
+            } catch (e) {
+                console.error("Error during story cleanup:", e);
+                // To avoid repeated failed attempts on index error, we still set the timestamp.
+                if (e.code === 'failed-precondition') {
+                    console.error("This error means you need to create a composite index in Firestore for story cleanup. The error message from Firebase should contain a direct link to create it. It will likely be on 'timestamp' (ascending).");
+                    localStorage.setItem('lastStoryCleanup', Date.now().toString());
+                }
+            }
+        }
+
+        // Login/Logout Logic
+
+        function getConversationId(uid1, uid2) {
+            return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
+        }
+
+        function getYoutubeVideoId(url) {
+            if (!url) return null;
+            let videoId = null;
+            const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = url.match(regex);
+            if (match) {
+                videoId = match[1];
+            }
+            return videoId;
+        }
+
+        window.deleteStory = async function(storyId) {
+            if (!auth.currentUser) {
+                alert("Authentication error.");
+                return;
+            }
+
+            if (confirm("Are you sure you want to delete this story? This action cannot be undone.")) {
+                try {
+                    const storyRef = doc(db, "stories", storyId);
+                    await deleteDoc(storyRef);
+
+                    // Close the viewer
+                    window.closeStoryViewer();
+
+                    // Reload stories to reflect the deletion
+                    loadStories(auth.currentUser);
+                } catch (e) {
+                    console.error("Error deleting story:", e);
+                    alert("Failed to delete story.");
+                }
+            }
+        };
+
+        window.showStoryLikers = async function(storyId) {
+            const modal = document.getElementById('user-list-modal');
+            const title = document.getElementById('user-list-title');
+            const content = document.getElementById('user-list-content');
+            
+            modal.style.display = 'flex';
+            title.innerText = 'Likes';
+            content.innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+
+            try {
+                const storyRef = doc(db, "stories", storyId);
+                const storySnap = await getDoc(storyRef);
+                if (!storySnap.exists()) {
+                    content.innerHTML = '<p style="color:red;">Story not found.</p>';
+                    return;
+                }
+
+                const likerUids = storySnap.data().likes || [];
+
+                if (likerUids.length === 0) {
+                    content.innerHTML = '<p style="text-align:center; color:#aaa;">No one has liked this story yet.</p>';
+                    return;
+                }
+
+                content.innerHTML = '';
+                const userPromises = likerUids.map(uid => getDoc(doc(db, "users", uid)));
+                const userSnaps = await Promise.all(userPromises);
+
+                userSnaps.forEach(userSnap => {
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
+                        const div = document.createElement('div');
+                        div.style.cssText = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer;";
+                        div.onclick = () => window.location.href = `profile.html?uid=${userSnap.id}`;
+                        
+                        div.innerHTML = `
+                            <img src="${userData.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555;">
+                            <div>
+                                <strong style="color:#fff;">${userData.name || 'User'}</strong>
+                            </div>
+                        `;
+                        content.appendChild(div);
+                    }
+                });
+            } catch (e) {
+                console.error("Error loading likers list:", e);
+                content.innerHTML = '<p style="color:red;">Error loading list.</p>';
+            }
+        };
+
+        window.likeStory = async function(storyId) {
+            if (!auth.currentUser) {
+                alert("Please login to like stories.");
+                return;
+            }
+            const storyRef = doc(db, "stories", storyId);
+            const uid = auth.currentUser.uid;
+
+            try {
+                const docSnap = await getDoc(storyRef);
+                if (!docSnap.exists()) return;
+
+                const storyData = docSnap.data();
+                const likes = storyData.likes || [];
+                const isLiking = !likes.includes(uid);
+
+                if (isLiking) {
+                    await updateDoc(storyRef, { likes: arrayUnion(uid) });
+                } else {
+                    await updateDoc(storyRef, { likes: arrayRemove(uid) });
+                }
+
+                // Optimistic UI update
+                const likeButton = document.getElementById(`story-like-btn-${storyId}`);
+                const likeCount = document.getElementById(`story-like-count-${storyId}`);
+                if (likeButton && likeCount) {
+                    const newLikes = likes.length + (isLiking ? 1 : -1);
+                    likeButton.innerHTML = isLiking ? '<i class="fa-solid fa-heart" style="color: rgb(224, 109, 25);"></i>' : '<i class="fa-regular fa-heart" style="color: rgb(223, 229, 242);"></i>';
+                    likeCount.innerText = newLikes;
+                }
+            } catch (e) {
+                console.error("Error liking story:", e);
+            }
+        };
+
+        window.sendStoryReplyAsMessage = async function(storyId, authorUid, storyImage, storyMessage) {
+            if (!auth.currentUser) {
+                alert("Please login to reply.");
+                return;
+            }
+            const replyInput = document.getElementById(`story-reply-input-${storyId}`);
+            const text = replyInput.value.trim();
+            if (!text) return;
+
+            const conversationId = getConversationId(auth.currentUser.uid, authorUid);
+            const convRef = doc(db, "conversations", conversationId);
+            const messagesRef = collection(db, "conversations", conversationId, "messages");
+
+            const messagePayload = {
+                type: 'story_reply',
+                content: text,
+                storyImage: storyImage || null,
+                storyMessage: storyMessage || null,
+                storyId: storyId,
+                senderUid: auth.currentUser.uid,
+                timestamp: serverTimestamp()
+            };
+
+            replyInput.value = '';
+            replyInput.placeholder = 'Sent!';
+            setTimeout(() => { replyInput.placeholder = 'Send a message...'; }, 2000);
+
+            try {
+                await addDoc(messagesRef, messagePayload);
+
+                const myProfileSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+                const partnerProfileSnap = await getDoc(doc(db, "users", authorUid));
+
+                if (myProfileSnap.exists() && partnerProfileSnap.exists()) {
+                    const myProfile = myProfileSnap.data();
+                    const partnerProfile = partnerProfileSnap.data();
+
+                    await setDoc(convRef, {
+                        participants: [auth.currentUser.uid, authorUid],
+                        participantDetails: {
+                            [auth.currentUser.uid]: { name: myProfile.name || "User", photoURL: myProfile.photoURL || null },
+                            [authorUid]: { name: partnerProfile.name || "User", photoURL: partnerProfile.photoURL || null }
+                        },
+                        lastMessage: {
+                            text: text,
+                            senderUid: auth.currentUser.uid,
+                            timestamp: serverTimestamp(),
+                            isRead: false
+                        }
+                    }, { merge: true });
+                }
+            } catch (e) {
+                console.error("Error sending story reply:", e);
+                alert("Failed to send reply.");
+                replyInput.value = text; // Put text back on error
+            }
+        };
+
+        window.showStoryViewers = async function(storyId) {
+            const modal = document.getElementById('user-list-modal');
+            const title = document.getElementById('user-list-title');
+            const content = document.getElementById('user-list-content');
+            
+            modal.style.display = 'flex';
+            title.innerText = 'Viewers';
+            content.innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+
+            try {
+                const storyRef = doc(db, "stories", storyId);
+                const storySnap = await getDoc(storyRef);
+                if (!storySnap.exists()) {
+                    content.innerHTML = '<p style="color:red;">Story not found.</p>';
+                    return;
+                }
+
+                const viewers = storySnap.data().viewers || [];
+
+                if (viewers.length === 0) {
+                    content.innerHTML = '<p style="text-align:center; color:#aaa;">No one has viewed this story yet.</p>';
+                    return;
+                }
+
+                content.innerHTML = '';
+                viewers.forEach(viewer => {
+                    const div = document.createElement('div');
+                    div.style.cssText = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer;";
+                    div.onclick = () => window.location.href = `profile.html?uid=${viewer.uid}`;
+                    
+                    div.innerHTML = `
+                        <img src="${viewer.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555;">
+                        <div>
+                            <strong style="color:#fff;">${viewer.name || 'User'}</strong>
+                        </div>
+                    `;
+                    content.appendChild(div);
+                });
+            } catch (e) {
+                console.error(e);
+                content.innerHTML = '<p style="color:red;">Error loading list.</p>';
+            }
+        };
+
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userInfo = document.getElementById('user-info');
+
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                body.classList.add('light-mode');
+                themeToggleBtn.textContent = '🌙';
+            } else {
+                body.classList.remove('light-mode');
+                themeToggleBtn.textContent = '☀️';
+            }
+            // Also update local storage for consistency when logged out
+            localStorage.setItem('theme', theme || 'dark');
+        }
+
+        themeToggleBtn.addEventListener('click', async () => {
+            const newTheme = body.classList.contains('light-mode') ? 'dark' : 'light';
+            applyTheme(newTheme);
+
+            if (auth.currentUser) {
+                try {
+                    const userRef = doc(db, "users", auth.currentUser.uid);
+                    // Using setDoc with merge to create the field if it doesn't exist
+                    await setDoc(userRef, { theme: newTheme }, { merge: true });
+                } catch (e) {
+                    console.error("Error saving theme preference:", e);
+                }
+            }
+        });
+
+        // Open Login Modal
+        loginBtn.addEventListener('click', () => {
+            document.getElementById('login-modal').style.display = 'flex';
+        });
+
+        // Tab Switching Logic
+        const tabs = ['google', 'email'];
+        tabs.forEach(tab => {
+            document.getElementById(`tab-${tab}`).addEventListener('click', () => {
+                tabs.forEach(t => {
+                    document.getElementById(`content-${t}`).style.display = 'none';
+                    const btn = document.getElementById(`tab-${t}`);
+                    btn.style.color = '#aaa';
+                    btn.style.borderBottom = 'none';
+                });
+                document.getElementById(`content-${tab}`).style.display = 'block';
+                const activeBtn = document.getElementById(`tab-${tab}`);
+                activeBtn.style.color = 'white';
+                activeBtn.style.borderBottom = '2px solid gold';
+            });
+        });
+
+        // 1. Google Login
+        document.getElementById('google-login-btn').addEventListener('click', () => {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    console.log("User logged in:", result.user);
+                    document.getElementById('login-modal').style.display = 'none';
+                })
+                .catch((error) => {
+                    console.error("Login Error:", error);
+                    alert(`Login Failed:\n${error.message}\n(Code: ${error.code})`);
+                });
+        });
+
+        // 2. Email/Password Login & Signup
+        document.getElementById('email-login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('email-input').value.trim();
+            const pass = document.getElementById('password-input').value;
+
+            if (!email || !pass) {
+                alert("Please enter both email and password.");
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert("Please enter a valid email address.");
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                document.getElementById('login-modal').style.display = 'none';
+            } catch(e) {
+                if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+                    alert("Invalid email or password. Please try again.");
+                } else {
+                    alert("Login Error: " + e.message);
+                }
+            }
+        });
+
+        document.getElementById('email-signup-btn').addEventListener('click', async () => {
+            const email = document.getElementById('email-input').value.trim();
+            const pass = document.getElementById('password-input').value;
+
+            if (!email || !pass) {
+                alert("Please enter both email and password.");
+                return;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert("Please enter a valid email address.");
+                return;
+            }
+            if (pass.length < 6) {
+                alert("Password must be at least 6 characters long.");
+                return;
+            }
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                document.getElementById('login-modal').style.display = 'none';
+            } catch(e) {
+                if (e.code === 'auth/email-already-in-use') {
+                    alert("This email address is already in use. Please login or use a different email.");
+                } else {
+                    alert("Signup Error: " + e.message);
+                }
+            }
+        });
+
+        // Forgot Password
+        document.getElementById('forgot-pwd-link').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email-input').value;
+            if (!email) {
+                alert("Please enter your email address in the field above to reset your password.");
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("Password reset email sent to " + email);
+            } catch(e) { alert("Error: " + e.message); }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+                document.getElementById('profile-btn').style.display = 'inline-flex';
+                document.getElementById('messages-btn').style.display = 'inline-flex';
+                userInfo.style.display = 'inline-block';
+                document.getElementById('feed-toggle').style.display = 'flex'; // Show feed toggle
+                userInfo.textContent = `Hi, ${user.displayName ? user.displayName.split(' ')[0] : 'User'}`;
+
+                const adminBtn = document.getElementById('admin-btn');
+                if (adminBtn) {
+                    const adminEmails = ["nshuhima246@gmail.com", "manahoo09@zohomail.in"];
+                    let isAdmin = user.email && adminEmails.includes(user.email.toLowerCase());
+                    if (!isAdmin) {
+                        try {
+                            const userDocSnap = await getDoc(doc(db, "users", user.uid));
+                            isAdmin = userDocSnap.exists() && userDocSnap.data().isAdmin === true;
+                        } catch(e) {}
+                    }
+                    adminBtn.style.display = isAdmin ? 'inline-block' : 'none';
+                }
+
+                // --- NEW: Trigger story cleanup on user login ---
+                cleanupExpiredStories();
+                
+                listenForNotifications(user.uid);
+                listenForUnreadMessages(user.uid);
+
+                // Load theme preference
+                loadStories(user);
+                try {
+                    const userDocRef = doc(db, "users", user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    let themeToApply = 'dark'; // default
+                    if (userDocSnap.exists() && userDocSnap.data().theme) {
+                        themeToApply = userDocSnap.data().theme;
+                    } else {
+                        const localTheme = localStorage.getItem('theme');
+                        if (localTheme) {
+                            themeToApply = localTheme;
+                            // Sync local theme to firestore for the first time
+                            await setDoc(userDocRef, { theme: themeToApply }, { merge: true });
+                        }
+                    }
+                    applyTheme(themeToApply);
+                } catch(e) {
+                    console.error("Error loading theme preference:", e);
+                    applyTheme(localStorage.getItem('theme') || 'dark');
+                }
+
+                // Load following list
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        window.currentUserData = userDoc.data();
+                        currentUserFollowing = userDoc.data().following || [];
+                        currentUserBlocked = userDoc.data().blockedUsers || [];
+                    }
+                } catch(e) { console.error("Error loading following:", e); }
+
+                loadStories(user);
+
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (!userDoc.exists() || !userDoc.data().username) {
+                    // Redirect to profile to create unique ID
+                    window.location.href = "profile.html?requireUsername=true";
+                    return;
+                }
+
+                resetAndLoadBlogs(); // Call this instead of renderBlogs directly
+            } else {
+                // User is logged out, just use local storage
+                document.getElementById('stories-reel-container').style.display = 'none';
+                applyTheme(localStorage.getItem('theme') || 'dark');
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+                document.getElementById('profile-btn').style.display = 'none';
+                document.getElementById('messages-btn').style.display = 'none';
+                const adminBtn = document.getElementById('admin-btn');
+                if (adminBtn) adminBtn.style.display = 'none';
+                userInfo.style.display = 'none';
+                document.getElementById('feed-toggle').style.display = 'none'; // Hide feed toggle
+                currentFeedMode = 'all'; // Reset to all posts on logout
+                currentUserBlocked = []; // Clear blocked list on logout
+                resetAndLoadBlogs(); // Call this to load all posts
+            }
+        });
+
+        const writeBlogBtn = document.getElementById('write-blog-btn');
+        if (writeBlogBtn) {
+            writeBlogBtn.addEventListener('click', (e) => {
+                if (!auth.currentUser) {
+                    e.preventDefault();
+                    alert("Please login to write a blog!");
+                }
+            });
+        }
+
+        // Get the button
+        
+        let fetchedBlogs = [];
+
+        // New functions for feed toggle
+        function updateFeedToggleUI() {
+            const allBtn = document.getElementById('feed-all-btn');
+            const followingBtn = document.getElementById('feed-following-btn');
+            const verifiedBtn = document.getElementById('feed-verified-btn');
+            if (!allBtn || !followingBtn || !verifiedBtn) return;
+
+            allBtn.classList.remove('active');
+            followingBtn.classList.remove('active');
+            verifiedBtn.classList.remove('active');
+
+            if (currentFeedMode === 'following') {
+                followingBtn.classList.add('active');
+            } else if (currentFeedMode === 'verified') {
+                verifiedBtn.classList.add('active');
+            } else {
+                allBtn.classList.add('active');
+            }
+        }
+
+        async function resetAndLoadBlogs() {
+            const grid = document.getElementById('user-blogs-grid');
+            if (grid) grid.innerHTML = '';
+            fetchedBlogs = [];
+            lastVisibleBlog = null;
+            updateFeedToggleUI();
+            await loadAdSettings(); // Ensure ad config is loaded before showing feed
+            loadFlicks(); // Reload flicks alongside feed
+            loadBlogs(false); // Start loading from the beginning
+        }
+
+        // Add event listeners for feed toggle
+        document.getElementById('feed-all-btn').addEventListener('click', () => {
+            if (currentFeedMode === 'all') return;
+            currentFeedMode = 'all';
+            resetAndLoadBlogs();
+        });
+
+        document.getElementById('feed-following-btn').addEventListener('click', () => {
+            if (currentFeedMode === 'following') return;
+            if (!auth.currentUser) { alert("Please login to see posts from users you follow."); return; }
+            currentFeedMode = 'following';
+            resetAndLoadBlogs();
+        });
+
+        document.getElementById('feed-verified-btn').addEventListener('click', () => {
+            if (currentFeedMode === 'verified') return;
+            currentFeedMode = 'verified';
+            resetAndLoadBlogs();
+        });
+
+        // Load Trending Blogs
+        async function loadTrending() {
+            const trendingSection = document.getElementById('trending-section');
+            const trendingGrid = document.getElementById('trending-grid');
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+            try {
+                const q = query(collection(db, "blogs"), where("date", ">=", twentyFourHoursAgo));
+                const snapshot = await getDocs(q);
+                
+                let blogs = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.status !== 'draft') {
+                        blogs.push({ id: doc.id, ...data });
+                    }
+                });
+
+                // Sort by likes descending
+                blogs.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+                const topBlogs = blogs.slice(0, 3);
+
+                if (topBlogs.length > 0) {
+                    trendingSection.style.display = 'block';
+                    trendingGrid.innerHTML = '';
+                    topBlogs.forEach(blog => {
+                        const div = document.createElement('div');
+                        div.className = 'news-card';
+                        div.style.cursor = 'pointer';
+                        div.onclick = () => window.location.href = `index.html?blogId=${blog.id}`;
+                        
+                        const img = (blog.images && blog.images.length) ? blog.images[0] : (blog.image || '');
+                        const imgHtml = img ? `<img src="${img}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">` : '';
+
+                        div.innerHTML = `
+                            <div style="display: flex; gap: 15px; padding: 15px; align-items: center;">
+                                ${imgHtml}
+                                <div>
+                                    <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color: gold;">${blog.title}</h3>
+                                    <div style="font-size: 0.8rem; color: #aaa;">By ${blog.author} • ❤️ ${blog.likes || 0}</div>
+                                </div>
+                            </div>`;
+                        trendingGrid.appendChild(div);
+                    });
+                } else {
+                    trendingSection.style.display = 'none';
+                }
+            } catch (e) { console.error("Trending error:", e); }
+        }
+
+        // Load Blogs with Pagination
+        async function loadBlogs(isLoadMore = false) {
+            const loadMoreContainer = document.getElementById('load-more-container');
+            const scrollTrigger = document.getElementById('scroll-trigger');
+            const grid = document.getElementById('user-blogs-grid');
+
+            // Prevent multiple simultaneous loads
+            if (isLoadMore && scrollTrigger.innerText !== "Loading more...") {
+                return;
+            }
+            
+            if (isLoadMore) {
+                scrollTrigger.innerText = "Loading...";
+            } else {
+                // If it's a fresh load, ensure the grid is clear
+                if(grid) grid.innerHTML = '';
+            }
+
+            try {
+                let newBlogs = [];
+                let hasMoreDocs = true;
+                let useStartAfter = isLoadMore;
+                const blogsRef = collection(db, "blogs");
+                
+                // Loop until we find valid posts or exhaust the database
+                while (newBlogs.length === 0 && hasMoreDocs) {
+                    let q;
+                    if (currentFeedMode === 'following') {
+                        if (!auth.currentUser || currentUserFollowing.length === 0) {
+                            if(grid) grid.innerHTML = '<p style="text-align: center; color: #aaa; padding: 20px;">You are not following anyone. Follow users to see their posts here.</p>';
+                            if(loadMoreContainer) loadMoreContainer.style.display = 'none';
+                            return;
+                        }
+                        
+                        const followedUIDs = currentUserFollowing.slice(0, 30);
+                        if (currentUserFollowing.length > 30) {
+                            console.warn("Following feed is currently limited to the first 30 users you followed.");
+                        }
+
+                        if (useStartAfter && lastVisibleBlog) {
+                            q = query(blogsRef, where("authorUid", "in", followedUIDs), orderBy("date", "desc"), startAfter(lastVisibleBlog), limit(BLOGS_PER_PAGE));
+                        } else {
+                            q = query(blogsRef, where("authorUid", "in", followedUIDs), orderBy("date", "desc"), limit(BLOGS_PER_PAGE));
+                        }
+                    } else if (currentFeedMode === 'verified') {
+                        if (useStartAfter && lastVisibleBlog) {
+                            q = query(blogsRef, where("authorVerified", "==", true), orderBy("date", "desc"), startAfter(lastVisibleBlog), limit(BLOGS_PER_PAGE));
+                        } else {
+                            q = query(blogsRef, where("authorVerified", "==", true), orderBy("date", "desc"), limit(BLOGS_PER_PAGE));
+                        }
+                    } else { // 'all' mode
+                        if (useStartAfter && lastVisibleBlog) {
+                            q = query(blogsRef, orderBy("date", "desc"), startAfter(lastVisibleBlog), limit(BLOGS_PER_PAGE));
+                        } else {
+                            q = query(blogsRef, orderBy("date", "desc"), limit(BLOGS_PER_PAGE));
+                        }
+                    }
+
+                    const querySnapshot = await getDocs(q);
+                    
+                    if (querySnapshot.docs.length > 0) {
+                        lastVisibleBlog = querySnapshot.docs[querySnapshot.docs.length - 1];
+                    } else {
+                        hasMoreDocs = false; // No more posts in DB
+                    }
+
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        // Filter out blogs from blocked users and drafts
+                        // Exclude Flickers from the main text feed so they stay in their dedicated section
+                        if (data.status !== 'draft' && !currentUserBlocked.includes(data.authorUid) && !data.isFlicker) {
+                            newBlogs.push({ id: doc.id, ...data });
+                        }
+                    });
+
+                    if (querySnapshot.docs.length < BLOGS_PER_PAGE) {
+                        hasMoreDocs = false;
+                    }
+                    
+                    // Force pagination on next iteration if loop continues
+                    useStartAfter = true; 
+                }
+
+                if (hasMoreDocs) {
+                    if(loadMoreContainer) loadMoreContainer.style.display = 'block';
+                    if(scrollTrigger) scrollTrigger.innerText = "Loading more...";
+                } else {
+                    if(loadMoreContainer) loadMoreContainer.style.display = 'block';
+                    if(scrollTrigger) scrollTrigger.innerText = (fetchedBlogs.length > 0 || newBlogs.length > 0) ? "No more posts to load." : "";
+                    if (!isLoadMore && fetchedBlogs.length === 0 && newBlogs.length === 0) {
+                         if(grid) grid.innerHTML = '<p style="text-align: center; color: #aaa; padding: 20px;">No posts to show in this feed yet.</p>';
+                    }
+                }
+
+                if (!isLoadMore) fetchedBlogs = [];
+                fetchedBlogs = [...fetchedBlogs, ...newBlogs];
+                
+                if (newBlogs.length > 0 || fetchedBlogs.length > 0) {
+                    renderBlogs(auth.currentUser);
+                }
+
+            } catch (e) {
+                console.error("Error loading blogs:", e);
+                if(grid) {
+                    let errorMsg = "पोस्ट लोड करते समय एक त्रुटि हुई।";
+                    if (e.code === 'failed-precondition') {
+                        errorMsg = "त्रुटि: एक आवश्यक डेटाबेस इंडेक्स गायब है। इसे बनाने के लिए लिंक हेतु कृपया ब्राउज़र के डेवलपर कंसोल (F12) की जाँच करें।";
+                        console.error("This error usually means you need to create a composite index in Firestore for the 'verified' feed. The error message from Firebase should contain a direct link to create it.");
+                    }
+                    grid.innerHTML = `<p style="text-align: center; color: #ff6b6b; padding: 20px;">${errorMsg}</p>`;
+                }
+                if(loadMoreContainer) loadMoreContainer.style.display = 'none';
+            }
+        }
+
+        // Infinite Scroll Setup
+        function setupInfiniteScroll() {
+            const scrollTrigger = document.getElementById('scroll-trigger');
+            if (!scrollTrigger) return;
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px 0px 200px 0px', // Start loading 200px before it's in view
+                threshold: 0
+            };
+
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                         loadBlogs(true);
+                    }
+                });
+            }, observerOptions);
+
+            observer.observe(scrollTrigger);
+        }
+
+        // Fetch and display Flicks
+        async function loadFlicks() {
+            try {
+                const q = query(collection(db, "blogs"), where("isFlicker", "==", true));
+                const snapshot = await getDocs(q);
+                let flicks = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Blocked list check safely
+                    if (data.status !== 'draft' && (!currentUserBlocked || !currentUserBlocked.includes(data.authorUid))) {
+                        flicks.push({ id: doc.id, ...data });
+                    }
+                });
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetBlogId = urlParams.get('blogId');
+                let targetFlick = null;
+                if (targetBlogId) {
+                    targetFlick = flicks.find(f => f.id === targetBlogId);
+                    if (!targetFlick) {
+                        try {
+                            const docSnap = await getDoc(doc(db, "blogs", targetBlogId));
+                            if (docSnap.exists() && docSnap.data().isFlicker) {
+                                targetFlick = { id: docSnap.id, ...docSnap.data() };
+                            }
+                        } catch(e) {}
+                    }
+                }
+
+                flicks.sort((a, b) => new Date(b.date) - new Date(a.date));
+                if (targetFlick) {
+                    flicks = flicks.filter(f => f.id !== targetFlick.id);
+                    flicks = flicks.slice(0, 14);
+                    flicks.unshift(targetFlick);
+                } else {
+                    flicks = flicks.slice(0, 15);
+                }
+                
+                if (flicks.length > 0) {
+                    document.getElementById('flicks-section').style.display = 'block';
+                    const reel = document.getElementById('flicks-reel');
+                    reel.innerHTML = '';
+                    window.globalFlicks = flicks; // Store globally for viewer operations
+                    flicks.forEach((flick, idx) => {
+                        const div = document.createElement('div');
+                        div.style.cssText = "flex: 0 0 140px; height: 240px; background: #000; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; border: 1px solid #444; transition: transform 0.2s;";
+                        div.onmouseover = () => div.style.transform = "scale(1.05)";
+                        div.onmouseout = () => div.style.transform = "scale(1)";
+                        div.onclick = () => window.openFlicksViewer(idx);
+                        
+                        div.innerHTML = `
+                            <video src="${flick.video}" style="width: 100%; height: 100%; object-fit: cover;" muted preload="metadata"></video>
+                            <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px; font-size: 0.7rem; color: white;">
+                                <i class="fa-solid fa-play"></i>
+                            </div>
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 10px 5px 5px 5px; box-sizing: border-box;">
+                                <div style="color: white; font-size: 0.85rem; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${flick.title}</div>
+                                <div style="color: #aaa; font-size: 0.7rem; margin-top: 2px;">@${flick.author}</div>
+                            </div>
+                        `;
+                        reel.appendChild(div);
+                    });
+
+                    if (targetFlick) {
+                        setTimeout(() => window.openFlicksViewer(0), 500);
+                    }
+                }
+            } catch (e) { console.error("Flicks load error:", e); }
+        }
+
+        function renderBlogs(user) {
+            if (fetchedBlogs.length > 0) {
+                document.getElementById('user-blogs-section').style.display = 'block';
+                const grid = document.getElementById('user-blogs-grid');
+                grid.innerHTML = '';
+                
+                let bannerAdCount = 0; // Track the sequential ad position
+                
+                fetchedBlogs.forEach((blog, index) => {
+                    let likeCount = 0;
+                    let isLiked = false;
+                    
+                    if (Array.isArray(blog.likes)) {
+                        likeCount = blog.likes.length;
+                        isLiked = user && blog.likes.includes(user.uid);
+                    } else {
+                        likeCount = typeof blog.likes === 'number' ? blog.likes : 0;
+                        let likedPosts = JSON.parse(localStorage.getItem('cricket_user_liked_posts') || '[]');
+                        isLiked = likedPosts.includes(blog.id);
+                    }
+                    const likeIcon = isLiked ? '<i class="fa-solid fa-heart" style="color: rgb(224, 109, 25);"></i>' : '<i class="fa-regular fa-heart" style="color: rgb(223, 229, 242);"></i>';
+                    const isBlogOwner = user && (blog.authorUid === user.uid);
+
+                    const article = document.createElement('article');
+                    article.className = 'news-card';
+                    article.id = `blog-${blog.id}`; // Add ID for scrolling
+                    article.style.marginBottom = '20px';
+                    
+                    let likeButtonHTML;
+                    if (isBlogOwner && likeCount > 0) {
+                        likeButtonHTML = `<button onclick="window.showLikers('${blog.id}')" style="background:none; border:none; color:#ff69b4; cursor:pointer; font-size: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${likeIcon} ${likeCount}</button>`;
+                    } else {
+                        likeButtonHTML = `<button onclick="likeUserBlog('${blog.id}')" style="background:none; border:none; color:#ff69b4; cursor:pointer; font-size: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${likeIcon} ${likeCount}</button>`;
+                    }
+
+                    let actionButtons = likeButtonHTML;
+                    actionButtons += `<button onclick="shareBlog('${blog.id}', '${blog.title.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#0d6efd; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i class="fa-solid fa-share-nodes"></i> Share</button>`;
+                    actionButtons += `<button onclick="readAloud('${blog.id}')" style="background:none; border:none; color:#87ceeb; cursor:pointer; font-size: 1.2rem; margin-left: 10px;" title="Read Aloud"> <i class="fa-solid fa-volume-up"></i></button>`;
+                    actionButtons += `<button onclick="stopReadAloud()" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 1.2rem; margin-left: 10px;" title="Stop Audio"> <i class="fa-solid fa-circle-stop"></i></button>`;
+                    actionButtons += `<button onclick="reportBlog('${blog.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 1rem; margin-left: 10px;" title="Report">🚩</button>`;
+
+                    if (blog.video || blog.youtubeUrl) {
+                        actionButtons += `<button onclick="submitCopyrightClaim('${blog.id}')" style="background:none; border:none; color:#dc3545; cursor:pointer; font-size: 1rem; margin-left: 10px;" title="Copyright Strike">© Claim</button>`;
+                    }
+                    
+                    if (isBlogOwner) {
+                        actionButtons += `
+                            <button onclick="editUserBlog('${blog.id}')" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.9rem;"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button onclick="deleteUserBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.9rem;"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                        `;
+                    }
+
+                    let mediaHtml = '';
+                    
+                    // YouTube Video Display
+                    if (blog.youtubeUrl) {
+                        const videoId = getYoutubeVideoId(blog.youtubeUrl);
+                        if (videoId) {
+                            mediaHtml += `
+                                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 10px;">
+                                    <iframe 
+                                        src="https://www.youtube.com/embed/${videoId}" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen
+                                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                    </iframe>
+                                </div>`;
+                        }
+                    }
+
+                    // Video Display
+                    if (blog.video) {
+                        mediaHtml += `
+                            <video id="video-${blog.id}" controls style="width: 100%; max-height: 300px; border-radius: 8px; margin-bottom: 10px; background: #000;">
+                                <source src="${blog.video}" type="video/mp4">
+                            </video>`;
+                    }
+
+                    if (blog.images && blog.images.length > 0) {
+                        const imagesList = blog.images.map(img => 
+                            `<img src="${img}" alt="Blog Image" onclick="window.openLightbox('${img}')" style="cursor: pointer;">`
+                        ).join('');
+                        const arrows = blog.images.length > 1 ? `
+                            <button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button>
+                            <button class="carousel-btn next" onclick="window.scrollCarousel(this, 1)">&#10095;</button>` : '';
+                        mediaHtml += `<div class="carousel-container">
+                            ${arrows}
+                            <div class="image-carousel">${imagesList}</div>
+                        </div>`;
+                    } else if (blog.image) {
+                        mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="Blog Image" style="max-height: 300px; object-fit: cover; cursor: pointer;" onclick="window.openLightbox('${blog.image}')">`;
+                    }
+                    
+                    // Follow Button Logic
+                    let followBtnHtml = '';
+                    if (user && blog.authorUid && blog.authorUid !== user.uid) {
+                        const isFollowing = currentUserFollowing.includes(blog.authorUid);
+                        followBtnHtml = `<button onclick="toggleFollow('${blog.authorUid}')" class="follow-btn ${isFollowing ? 'following' : ''}">${isFollowing ? 'Following' : 'Follow'}</button>`;
+                    }
+                    const verifiedBadge = blog.authorVerified ? '<span class="verified-badge" title="Verified">✔</span>' : '';
+
+                    // Status display has been removed from blog cards.
+
+                    // User Profile & ID Header
+                    const authorHeader = `
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <img src="${blog.authorPhoto || 'https://via.placeholder.com/40'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #87ceeb; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">
+                            <div style="flex: 1;">
+                                <div style="display:flex; align-items:center; gap: 8px; flex-wrap: wrap;">
+                                    <strong style="color: #87ceeb; font-size: 1.1rem; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
+                                    ${verifiedBadge}
+                                    ${followBtnHtml}
+                                </div>
+                                <span style="font-size: 0.8rem; color: #aaa; margin-top: 4px; display: block;">${new Date(blog.date).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    article.innerHTML = `
+                        ${mediaHtml}
+                        <div class="news-card-content">
+                            ${authorHeader}
+                            <h2 style="margin-top: 5px;"><a href="#">${blog.title}</a></h2>
+                            <p>${blog.content.replace(/\n/g, '<br>')}</p>
+
+                            ${blog.poll ? `
+                                <div class="poll-container" style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                    <h4 style="margin: 0 0 10px 0; color: #ffc107;">Poll: ${blog.poll.question}</h4>
+                                    <div id="poll-options-${blog.id}">
+                                        ${(() => {
+                                            const userHasVoted = user && blog.poll.options.some(opt => opt.voters && opt.voters.includes(user.uid));
+                                            const totalVotes = blog.poll.totalVotes || blog.poll.options.reduce((acc, opt) => acc + (opt.votes || 0), 0);
+
+                                            return blog.poll.options.map((option, index) => {
+                                                if (userHasVoted || !user) {
+                                                    // Show results
+                                                    const percentage = totalVotes > 0 ? (((option.votes || 0) / totalVotes) * 100).toFixed(0) : 0;
+                                                    return `
+                                                        <div style="margin-bottom: 8px;">
+                                                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>${option.text}</span> <span style="color: #ccc;">${percentage}%</span></div>
+                                                            <div style="background: #555; border-radius: 5px; overflow: hidden; height: 10px;">
+                                                                <div style="width: ${percentage}%; background: #0d6efd; height: 100%; border-radius: 5px;"></div>
+                                                            </div>
+                                                        </div>`;
+                                                } else {
+                                                    // Show vote buttons
+                                                    return `<button class="btn" style="width: 100%; margin: 5px 0; text-align: left; background: rgba(255,255,255,0.1);" onclick="window.voteOnPoll('${blog.id}', ${index})">${option.text}</button>`;
+                                                }
+                                            }).join('');
+                                        })()}
+                                    </div>
+                                    <small style="color: #aaa; margin-top: 10px; display: block;">Total Votes: ${blog.poll.totalVotes || blog.poll.options.reduce((acc, opt) => acc + (opt.votes || 0), 0)}</small>
+                                </div>
+                            ` : ''}
+                            
+                            <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; display: flex; align-items: center; gap: 15px;">
+                                ${actionButtons}
+                            </div>
+
+                            <!-- Comments Section -->
+                            <div style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                                <h3 style="font-size: 1.1rem; margin-top: 0; color: #ddd;">Comments</h3>
+                                <div id="comments-list-${blog.id}" style="margin-bottom: 10px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                                    ${(() => {
+                                        // Prepare comments: add original index, sort by pinned then date
+                                        const comments = blog.comments || [];
+                                        const indexedComments = comments.map((c, i) => ({...c, originalIndex: i}));
+                                        
+                                        indexedComments.sort((a, b) => {
+                                            if (a.isPinned && !b.isPinned) return -1;
+                                            if (!a.isPinned && b.isPinned) return 1;
+                                            // Newest first
+                                            return new Date(b.date) - new Date(a.date);
+                                        });
+
+                                        return indexedComments.map(c => {
+                                        // --- Block Check for Comments ---
+                                        if (currentUserBlocked.includes(c.userUid)) {
+                                            return `<div style="padding: 5px; font-style: italic; color: #888; font-size: 0.85rem;">Comment from a blocked user.</div>`;
+                                        }
+                                        // --- End Block Check ---
+
+                                        const index = c.originalIndex;
+                                        
+                                        // Like Logic
+                                        const likes = c.likes || [];
+                                        const isLiked = user && likes.includes(user.uid);
+                                        const likeColor = isLiked ? '#ff69b4' : 'inherit';
+                                        const likeIcon = isLiked ? '❤️' : '🤍';
+
+                                        // Pin Logic
+                                        const isPinned = c.isPinned || false;
+                                        const pinnedStyle = isPinned ? 'border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.05);' : '';
+                                        const pinnedBadge = isPinned ? '<span class="pinned-badge">PINNED</span>' : '';
+                                        const pinBtnText = isPinned ? 'Unpin' : 'Pin';
+                                        const pinBtnColor = isPinned ? '#ffd700' : 'inherit';
+
+                                        // Ownership
+                                        const isCommentOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
+                                        const commentActions = isCommentOwner ? `
+                                            <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                                                <button onclick="editComment('${blog.id}', '${c.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; padding: 0; transition: color 0.2s;" onmouseover="this.style.color='#ffc107'" onmouseout="this.style.color='#aaa'"><i class="fa-solid fa-pen"></i> Edit</button>
+                                                <button onclick="deleteComment('${blog.id}', '${c.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; padding: 0; transition: color 0.2s;" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='#aaa'"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                                            </div>
+                                        ` : '';
+
+                                        // Replies
+                                        const replies = c.replies || [];
+                                        const repliesHtml = replies.map((r, rIndex) => {
+                                            // --- Block Check for Replies ---
+                                            if (currentUserBlocked.includes(r.userUid)) {
+                                                return `<div style="margin-top: 10px; padding-left: 10px; font-style: italic; color: #888; font-size: 0.8rem;">Reply from a blocked user.</div>`;
+                                            }
+                                            // --- End Block Check ---
+
+                                            const rLikes = r.likes || [];
+                                            const rIsLiked = user && rLikes.includes(user.uid);
+                                            const rLikeColor = rIsLiked ? '#ff69b4' : 'inherit';
+                                            const rLikeIcon = rIsLiked ? '❤️' : '🤍';
+                                            const rVerified = r.userVerified ? '<span class="verified-badge" title="Verified">✔</span>' : '';
+                                            const rEditedBadge = r.isEdited ? '<span style="font-size: 0.7rem; color: #888; font-style: italic; margin-left: 5px;">(edited)</span>' : '';
+                                            
+                                            // Ownership Check for Reply
+                                            const isReplyOwner = user && (r.userUid === user.uid || (!r.userUid && r.author === user.displayName));
+                                            const replyActions = isReplyOwner ? `
+                                                <button onclick="window.editReply('${blog.id}', '${c.id}', '${r.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; margin-left:10px; transition: color 0.2s;" onmouseover="this.style.color='#ffc107'" onmouseout="this.style.color='#aaa'"><i class="fa-solid fa-pen"></i> Edit</button>
+                                                <button onclick="window.deleteReply('${blog.id}', '${c.id}', '${r.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; margin-left:10px; transition: color 0.2s;" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='#aaa'"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                                            ` : '';
+                                            
+                                            return `
+                                            <div style="margin-top: 10px; display: flex; gap: 10px; align-items: flex-start;">
+                                                <img src="${r.photo || 'https://via.placeholder.com/30'}" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;">
+                                                <div style="flex: 1;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <strong style="color: #87ceeb; font-size: 0.8rem;">${r.author} ${rVerified}</strong>
+                                                        <span style="font-size: 0.65rem; color: #888;">${new Date(r.date).toLocaleDateString()}${rEditedBadge}</span>
+                                                    </div>
+                                                    <div style="font-size: 0.9rem; color: #ddd;">${r.text}</div>
+                                                    <div class="comment-actions">
+                                                        <button onclick="toggleLike('${blog.id}', '${c.id}', '${r.id}')" class="comment-action-btn" style="color: ${rLikeColor}">${rLikeIcon} ${rLikes.length || 0}</button>
+                                                    ${replyActions}
+                                                    </div>
+                                                </div>
+                                            </div>`;
+                                        }).join('');
+                                        
+                                        const cVerified = c.userVerified ? '<span class="verified-badge" title="Verified">✔</span>' : '';
+                                        const editedBadge = c.isEdited ? '<span style="font-size: 0.75rem; color: #888; font-style: italic; margin-left: 5px;">(edited)</span>' : '';
+                                        return `
+                                        <div id="comment-${c.id}" style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 10px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.1); ${pinnedStyle}">
+                                            <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                                <img src="${c.photo || 'https://via.placeholder.com/40'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #555; cursor: pointer;" onclick="window.location.href='profile.html?uid=${c.userUid}'">
+                                                <div style="flex: 1;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                                        <div>
+                                                            <strong style="color: #87ceeb; font-size: 0.9rem; cursor: pointer;" onclick="window.location.href='profile.html?uid=${c.userUid}'">${c.author} ${cVerified}</strong>
+                                                            ${pinnedBadge}
+                                                        </div>
+                                                        <span style="font-size: 0.75rem; color: #888;">${c.date ? new Date(c.date).toLocaleDateString() : ''}${editedBadge}</span>
+                                                    </div>
+                                                    <div style="font-size: 0.95rem; color: #eee; line-height: 1.4; margin-bottom: 8px;">${c.text}</div>
+                                                    
+                                                    <div class="comment-actions">
+                                                        <button onclick="toggleLike('${blog.id}', '${c.id}')" class="comment-action-btn" style="color: ${likeColor}">${likeIcon} ${likes.length || 0}</button>
+                                                        <button onclick="toggleReplyBox('${blog.id}', '${c.id}')" class="comment-action-btn">💬 Reply</button>
+                                                        ${isBlogOwner ? `<button onclick="togglePin('${blog.id}', '${c.id}')" class="comment-action-btn" style="color: ${pinBtnColor}">📌 ${pinBtnText}</button>` : ''}
+                                                    </div>
+
+                                                    <div id="reply-box-${c.id}" style="display: none; margin-top: 10px; gap: 5px;">
+                                                        <input type="text" id="reply-input-${c.id}" placeholder="Write a reply..." style="flex: 1; padding: 5px; border-radius: 4px; border: none; font-size: 0.85rem; width: 70%;">
+                                                        <button onclick="submitReply('${blog.id}', '${c.id}')" style="padding: 5px 10px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Send</button>
+                                                    </div>
+
+                                                    <div class="replies-list">
+                                                        ${repliesHtml}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            ${commentActions}
+                                        </div>
+                                    `}).join('');
+                                    })()}
+                                    ${(!blog.comments || blog.comments.length === 0) ? '<p style="font-size: 0.8rem; color: #ccc;">No comments yet.</p>' : ''}
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="comment-input-${blog.id}" placeholder="Add a comment..." style="flex: 1; padding: 8px; border-radius: 4px; border: none;" onkeypress="if(event.key === 'Enter') addComment('${blog.id}')">
+                                    <button onclick="addComment('${blog.id}')" style="padding: 8px 15px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer;">Post</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(article);
+
+                    // Observe the article for view tracking ONLY if it has a video
+                    if (blog.video) {
+                        viewObserver.observe(article);
+                    }
+
+                // Initialize Fluid Player for VAST ads if video exists
+                if (blog.video) {
+                    let playerOptions = {};
+                    if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.vastUrl) {
+                        playerOptions = {
+                            vastOptions: {
+                                adList: [
+                                    {
+                                        roll: 'preRoll',
+                                        vastTag: globalAdConfig.vastUrl
+                                    }
+                                ]
+                            }
+                        };
+                    }
+                    fluidPlayer(`video-${blog.id}`, playerOptions);
+                }
+
+                // --- बैनर ऐड (Banner Ad) लॉजिक ---
+                // एडमिन की सेट की हुई फ्रीक्वेंसी पर बैनर ऐड दिखाएं
+                if (globalAdConfig && globalAdConfig.showAds && (index + 1) % (globalAdConfig.bannerFrequency || 3) === 0) {
+                    let bImg = globalAdConfig.bannerImg;
+                    let bLink = globalAdConfig.bannerLink || '#';
+                    let hasAd = false;
+                    
+                    if (globalAdConfig.banners && globalAdConfig.banners.length > 0) {
+                        const b = globalAdConfig.banners[bannerAdCount % globalAdConfig.banners.length];
+                        bImg = b.img || bImg;
+                        bLink = b.link || bLink;
+                        hasAd = true;
+                    } else if (globalAdConfig.bannerImg) {
+                        hasAd = true;
+                    }
+
+                    if (hasAd && bImg) {
+                        const adDiv = document.createElement('div');
+                        adDiv.className = 'news-card';
+                        adDiv.style.marginBottom = '20px';
+                        adDiv.style.padding = '15px';
+                        adDiv.style.textAlign = 'center';
+                        adDiv.innerHTML = `
+                            <span style="font-size: 0.75rem; color: #888; display: block; margin-bottom: 10px;">Advertisement</span>
+                            <a href="${bLink}" target="_blank">
+                                <img src="${bImg}" alt="Advertisement" style="max-width: 100%; border-radius: 8px;">
+                            </a>
+                        `;
+                        grid.appendChild(adDiv);
+                        bannerAdCount++;
+                    }
+                }
+
+                // --- एफिलिएट प्रोडक्ट ऐड (Amazon Affiliate Ad) लॉजिक ---
+                // एडमिन की सेट की हुई फ्रीक्वेंसी पर एफिलिएट ऐड दिखाएं
+                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.affiliateImg && (index + 1) % (globalAdConfig.affiliateFrequency || 5) === 0) {
+                    const affDiv = document.createElement('div');
+                    affDiv.className = 'news-card';
+                    affDiv.style.marginBottom = '20px';
+                    affDiv.style.padding = '15px';
+                    affDiv.style.textAlign = 'center';
+                    affDiv.style.border = '2px dashed #ff9900'; // Amazon style border
+                    affDiv.innerHTML = `
+                        <span style="font-size: 0.85rem; color: #ff9900; display: block; margin-bottom: 10px; font-weight: bold;">Sponsored Product</span>
+                        <a href="${globalAdConfig.affiliateLink || '#'}" target="_blank">
+                            <img src="${globalAdConfig.affiliateImg}" alt="Affiliate Product" style="max-width: 100%; max-height: 250px; border-radius: 8px; object-fit: contain;">
+                        </a>
+                        <a href="${globalAdConfig.affiliateLink || '#'}" target="_blank" class="btn" style="background-color: #ff9900; color: #000; margin-top: 15px; width: 100%; font-size: 1.1rem;">Buy Now / View Offer</a>
+                    `;
+                    grid.appendChild(affDiv);
+                }
+
+                // --- YouTube Video Ad लॉजिक ---
+                // एडमिन की सेट की हुई फ्रीक्वेंसी पर YouTube वीडियो ऐड दिखाएं
+                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.youtubeAdUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
+                    const videoId = getYoutubeVideoId(globalAdConfig.youtubeAdUrl);
+                    if (videoId) {
+                        const ytAdDiv = document.createElement('div');
+                        ytAdDiv.className = 'news-card';
+                        ytAdDiv.style.marginBottom = '20px';
+                        ytAdDiv.style.padding = '15px';
+                        ytAdDiv.style.textAlign = 'center';
+                        ytAdDiv.style.border = '2px solid #ff0000'; // YouTube red border
+                        ytAdDiv.innerHTML = `
+                            <span style="font-size: 0.85rem; color: #ff0000; display: block; margin-bottom: 10px; font-weight: bold;">Sponsored Video</span>
+                            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px;">
+                                <iframe 
+                                    src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                </iframe>
+                            </div>
+                        `;
+                        grid.appendChild(ytAdDiv);
+                    }
+                }
+
+                // --- Standalone VAST Video Ad लॉजिक ---
+                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.vastUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
+                    const vastAdDiv = document.createElement('div');
+                    vastAdDiv.className = 'news-card';
+                    vastAdDiv.style.marginBottom = '20px';
+                    vastAdDiv.style.padding = '15px';
+                    vastAdDiv.style.textAlign = 'center';
+                    vastAdDiv.style.border = '2px solid #0d6efd'; 
+                    
+                    const uniqueVidId = `vast-video-${blog.id}-${index}`;
+                    vastAdDiv.innerHTML = `
+                        <span style="font-size: 0.85rem; color: #0d6efd; display: block; margin-bottom: 10px; font-weight: bold;">Sponsored Ad</span>
+                        <video id="${uniqueVidId}" style="width: 100%; max-height: 300px; border-radius: 8px; background: #000;">
+                            <source src="https://cdn.fluidplayer.com/static/blank.mp4" type="video/mp4" />
+                        </video>
+                    `;
+                    grid.appendChild(vastAdDiv);
+                    
+                    fluidPlayer(uniqueVidId, {
+                        vastOptions: {
+                            adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl }]
+                        }
+                    });
+                }
+                });
+
+                // Scroll to specific blog if URL has ?blogId=...
+                const hash = window.location.hash;
+                const urlParams = new URLSearchParams(window.location.search);
+                const blogId = urlParams.get('blogId');
+                if (blogId) {
+                    setTimeout(() => {
+                        const el = document.getElementById(`blog-${blogId}`);
+                        if (el) {
+                            let targetEl = el;
+                            if (hash && hash.startsWith('#comment-')) {
+                                const commentEl = el.querySelector(hash);
+                                if (commentEl) {
+                                    targetEl = commentEl;
+                                    commentEl.style.outline = "2px solid gold";
+                                    commentEl.style.transition = "outline 1s ease-out";
+                                    setTimeout(() => { commentEl.style.outline = 'none'; }, 3000);
+                                }
+                            }
+                            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 500);
+                }
+            }
+        }
+        loadTrending();
+        loadFlicks();
+        setupInfiniteScroll();
+
+        let backToTopButton = document.getElementById("back-to-top");
+
+        // When the user scrolls down 200px from the top of the document, show the button
+        window.onscroll = function() {
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                backToTopButton.style.display = "block";
+            } else {
+                backToTopButton.style.display = "none";
+            }
+        };
+
+        // When the user clicks on the button, scroll to the top of the document smoothly
+        backToTopButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+
+        window.deleteUserBlog = async function(id) {
+            if (!auth.currentUser) {
+                alert("Please login to delete posts!");
+                return;
+            }
+            
+            const docRef = doc(db, "blogs", id);
+            const docSnap = await getDoc(docRef);
+            if (!docSnap.exists()) return;
+            
+            const blog = docSnap.data();
+            const isAuthor = (blog.authorUid === auth.currentUser.uid) || (!blog.authorUid && blog.author === auth.currentUser.displayName);
+            
+            if (!isAuthor) {
+                alert("You can only delete your own blog posts!");
+                return;
+            }
+
+            if(confirm('Are you sure you want to delete this blog post?')) {
+                await deleteDoc(docRef);
+                location.reload();
+            }
+        };
+
+        window.toggleFollow = async function(targetUid) {
+            if (!auth.currentUser) { alert("Please login to follow!"); return; }
+            const myUid = auth.currentUser.uid;
+            const userRef = doc(db, "users", myUid);
+            const targetRef = doc(db, "users", targetUid);
+            
+            try {
+                if (currentUserFollowing.includes(targetUid)) {
+                    // Unfollow
+                    await updateDoc(userRef, { following: arrayRemove(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayRemove(myUid) });
+                    currentUserFollowing = currentUserFollowing.filter(id => id !== targetUid);
+                } else {
+                    // Follow
+                    await updateDoc(userRef, { following: arrayUnion(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayUnion(myUid) });
+                    
+                    // Send Notification
+                    await addDoc(collection(db, "notifications"), {
+                        recipientUid: targetUid,
+                        senderUid: myUid,
+                        senderName: auth.currentUser.displayName || "Someone",
+                        type: "follow",
+                        date: new Date().toISOString(),
+                        read: false
+                    });
+                    currentUserFollowing.push(targetUid);
+                }
+                renderBlogs(auth.currentUser); // Re-render to update buttons
+            } catch(e) { console.error("Follow error:", e); alert("Error updating follow status."); }
+        };
+
+        window.editUserBlog = function(id) {
+            if (!auth.currentUser) {
+                alert("Please login to edit posts!");
+                return;
+            }
+            window.location.href = `write-blog.html?id=${id}`;
+        };
+        
+
+        window.likeUserBlog = async function(id) {
+            if (!auth.currentUser) {
+                alert("Please login to like posts!");
+                return;
+            }
+
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === id);
+            if (blogIndex === -1) return;
+
+            const blog = fetchedBlogs[blogIndex];
+            const blogRef = doc(db, "blogs", id);
+            const uid = auth.currentUser.uid;
+            let isLiking = false;
+
+            if (Array.isArray(blog.likes)) {
+                const likedIndex = blog.likes.indexOf(uid);
+                isLiking = likedIndex === -1;
+
+                if (isLiking) {
+                    blog.likes.push(uid);
+                    await updateDoc(blogRef, { likes: arrayUnion(uid) });
+                } else {
+                    blog.likes.splice(likedIndex, 1);
+                    await updateDoc(blogRef, { likes: arrayRemove(uid) });
+                }
+            } else {
+                let likedPosts = JSON.parse(localStorage.getItem('cricket_user_liked_posts') || '[]');
+                const likedIndex = likedPosts.indexOf(id);
+                let currentLikes = typeof blog.likes === 'number' ? blog.likes : 0;
+
+                if (likedIndex === -1) {
+                    currentLikes++;
+                    likedPosts.push(id);
+                    isLiking = true;
+                } else {
+                    currentLikes = Math.max(0, currentLikes - 1);
+                    likedPosts.splice(likedIndex, 1);
+                }
+
+                blog.likes = currentLikes;
+                localStorage.setItem('cricket_user_liked_posts', JSON.stringify(likedPosts));
+                await updateDoc(blogRef, { likes: currentLikes });
+            }
+
+                // Send Notification on Like
+                if (isLiking) {
+                    try {
+                        const blogSnap = await getDoc(blogRef);
+                        if (blogSnap.exists()) {
+                            const blogData = blogSnap.data();
+                            if (blogData.authorUid && blogData.authorUid !== auth.currentUser.uid) {
+                                await addDoc(collection(db, "notifications"), {
+                                    recipientUid: blogData.authorUid,
+                                    senderUid: auth.currentUser.uid,
+                                    senderName: auth.currentUser.displayName || "Someone",
+                                    type: "like",
+                                    blogId: id,
+                                    blogTitle: blogData.title,
+                                    date: new Date().toISOString(),
+                                    read: false
+                                });
+                            }
+                        }
+                    } catch(e) { console.error("Notification error:", e); }
+                }
+
+                renderBlogs(auth.currentUser);
+        };
+
+        window.shareBlog = async function(id, title) {
+            const url = `${window.location.origin}${window.location.pathname}?blogId=${id}`;
+            const shareData = {
+                title: title,
+                text: `Check out this cricket blog: ${title}`,
+                url: url
+            };
+
+            if (navigator.share) {
+                try { await navigator.share(shareData); } catch (err) { console.log('Share canceled'); }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    alert("Link copied to clipboard!");
+                } catch (err) { alert("Could not copy link."); }
+            }
+        };
+
+        window.reportBlog = async function(id) {
+            if (!auth.currentUser) { alert("Please login to report!"); return; }
+            const reason = prompt("Please provide a reason for reporting this post:");
+            if (reason) {
+                try {
+                    await addDoc(collection(db, "reports"), {
+                        blogId: id,
+                        reporterUid: auth.currentUser.uid,
+                        reason: reason,
+                        date: new Date().toISOString()
+                    });
+                    alert("Report submitted successfully. We will review it.");
+                } catch(e) { console.error(e); alert("Error submitting report."); }
+            }
+        };
+
+        window.submitCopyrightClaim = async function(id) {
+            if (!auth.currentUser) { alert("Please login to submit a copyright claim!"); return; }
+            const reason = prompt("Please provide a reason/region for the copyright strike:", "It's my content...");
+            if (reason) {
+                try {
+                    await addDoc(collection(db, "copyright_claims"), {
+                        blogId: id,
+                        claimerUid: auth.currentUser.uid,
+                        reason: reason,
+                        date: new Date().toISOString()
+                    });
+                    alert("Copyright claim submitted successfully. The admin will review it.");
+                } catch(e) { console.error(e); alert("Error submitting copyright claim."); }
+            }
+        };
+
+        // --- NEW: Text-to-Speech ---
+        let speechInterval;
+
+        window.stopReadAloud = function() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+            if (speechInterval) {
+                clearInterval(speechInterval);
+            }
+        };
+
+        window.readAloud = function(blogId) {
+            // Stop any previous speech
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            if (speechInterval) {
+                clearInterval(speechInterval);
+            }
+
+            const blog = fetchedBlogs.find(b => b.id === blogId);
+            if (!blog || !blog.content) return;
+
+            const textToRead = `${blog.title}. ${blog.content}`;
+            
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(textToRead);
+                
+                // Try to find a Hindi voice
+                const voices = window.speechSynthesis.getVoices();
+                const hindiVoice = voices.find(voice => voice.lang.startsWith('hi'));
+                if (hindiVoice) utterance.voice = hindiVoice;
+
+                utterance.onend = function() {
+                    if (speechInterval) clearInterval(speechInterval);
+                };
+
+                utterance.onerror = function() {
+                    if (speechInterval) clearInterval(speechInterval);
+                };
+
+                window.speechSynthesis.speak(utterance);
+
+                // Workaround for Chrome bug where speech stops after ~15 seconds
+                speechInterval = setInterval(() => {
+                    if (window.speechSynthesis.speaking) {
+                        window.speechSynthesis.pause();
+                        window.speechSynthesis.resume();
+                    } else {
+                        clearInterval(speechInterval);
+                    }
+                }, 10000);
+            } else {
+                alert("Sorry, your browser does not support text-to-speech.");
+            }
+        };
+
+        window.voteOnPoll = async function(blogId, optionIndex) {
+            if (!auth.currentUser) {
+                alert("Please login to vote!");
+                return;
+            }
+            const uid = auth.currentUser.uid;
+            const blogRef = doc(db, "blogs", blogId);
+
+            try {
+                const docSnap = await getDoc(blogRef);
+                if (!docSnap.exists()) {
+                    alert("Blog not found!");
+                    return;
+                }
+
+                const blog = docSnap.data();
+                const poll = blog.poll;
+
+                // Check if user already voted
+                const hasVoted = poll.options.some(opt => opt.voters && opt.voters.includes(uid));
+                if (hasVoted) {
+                    alert("You have already voted in this poll.");
+                    return;
+                }
+
+                // Update poll data
+                poll.options[optionIndex].votes = (poll.options[optionIndex].votes || 0) + 1;
+                if (!poll.options[optionIndex].voters) {
+                    poll.options[optionIndex].voters = [];
+                }
+                poll.options[optionIndex].voters.push(uid);
+                poll.totalVotes = (poll.totalVotes || 0) + 1;
+
+                // Update Firestore
+                await updateDoc(blogRef, { poll: poll });
+
+                // Optimistic UI update
+                const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+                if (blogIndex !== -1) {
+                    fetchedBlogs[blogIndex].poll = poll;
+                    renderBlogs(auth.currentUser); // Re-render to show results
+                }
+            } catch (e) {
+                console.error("Error voting on poll:", e);
+                alert("An error occurred while casting your vote.");
+            }
+        };
+
+        window.addComment = async function(id) {
+            if (!auth.currentUser) {
+                alert("Please login to comment!");
+                return;
+            }
+            const input = document.getElementById(`comment-input-${id}`);
+            const text = input.value.trim();
+            if (!text) return;
+            
+            let authorName = auth.currentUser.displayName || "User";
+            let authorPhoto = "https://via.placeholder.com/40";
+            let isVerified = false;
+            
+            try {
+                const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (userData.name) authorName = userData.name;
+                    if (userData.photoURL) authorPhoto = userData.photoURL;
+                    if (userData.isVerified) isVerified = true;
+                }
+            } catch(e) { console.log("Profile fetch error", e); }
+
+            const newComment = {
+                id: Date.now().toString(),
+                author: authorName,
+                userUid: auth.currentUser.uid,
+                photo: authorPhoto,
+                text: text,
+                date: new Date().toISOString(),
+                likes: [],
+                replies: [],
+                isPinned: false,
+                userVerified: isVerified
+            };
+
+            const blogRef = doc(db, "blogs", id);
+
+            // Optimistic UI update
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === id);
+            if (blogIndex !== -1) {
+                if (!fetchedBlogs[blogIndex].comments) {
+                    fetchedBlogs[blogIndex].comments = [];
+                }
+                fetchedBlogs[blogIndex].comments.push(newComment);
+                renderBlogs(auth.currentUser);
+                input.value = '';
+            }
+
+            try {
+                await updateDoc(blogRef, { comments: arrayUnion(newComment) });
+                
+                // Send Notification on Comment
+                const docSnap = await getDoc(blogRef);
+                if (docSnap.exists()) {
+                    const blog = docSnap.data();
+                    if (blog.authorUid && blog.authorUid !== auth.currentUser.uid) {
+                        await addDoc(collection(db, "notifications"), {
+                            recipientUid: blog.authorUid,
+                            senderUid: auth.currentUser.uid,
+                            senderName: authorName,
+                            type: "comment",
+                            blogId: id,
+                            blogTitle: blog.title,
+                            date: new Date().toISOString(),
+                            read: false
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Error adding comment:", e);
+                alert("Failed to add comment. Please refresh and try again.");
+                location.reload();
+            }
+        };
+
+        window.toggleReplyBox = function(blogId, commentId) {
+            if (!auth.currentUser) { alert("Please login to reply!"); return; }
+            const box = document.getElementById(`reply-box-${commentId}`);
+            box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+        };
+
+        window.submitReply = async function(blogId, commentId) {
+            if (!auth.currentUser) return;
+            const input = document.getElementById(`reply-input-${blogId}-${commentIndex}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            let authorName = auth.currentUser.displayName || "User";
+            let authorPhoto = auth.currentUser.photoURL;
+            let isVerified = false;
+            
+            try {
+                const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (userData.name) authorName = userData.name;
+                    if (userData.photoURL) authorPhoto = userData.photoURL;
+                    if (userData.isVerified) isVerified = true;
+                }
+            } catch(e) {}
+
+            const newReply = {
+                id: Date.now().toString(),
+                author: authorName,
+                userUid: auth.currentUser.uid,
+                photo: authorPhoto,
+                text: text,
+                date: new Date().toISOString(),
+                likes: [],
+                userVerified: isVerified
+            };
+
+            // Optimistic UI update
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (blogIndex !== -1) {
+                const blog = fetchedBlogs[blogIndex];
+                const comment = blog.comments.find(c => c.id === commentId);
+                if (comment) {
+                    if (!comment.replies) {
+                        comment.replies = [];
+                    }
+                    comment.replies.push(newReply);
+                    renderBlogs(auth.currentUser);
+                    if(input) input.value = '';
+                    document.getElementById(`reply-box-${blogId}-${commentIndex}`).style.display = 'none';
+                }
+            }
+
+            // Update Firestore
+            const blogRef = doc(db, "blogs", blogId);
+            try {
+                const docSnap = await getDoc(blogRef);
+                if (docSnap.exists()) {
+                    const blog = docSnap.data();
+                    const comments = blog.comments || [];
+                    const comment = comments.find(c => c.id === commentId);
+                    if (comment) {
+                        if (!comment.replies) comment.replies = [];
+                        comment.replies.push(newReply);
+
+                        // Send Notification on Reply
+                        const parentComment = comment;
+                        if (parentComment && parentComment.userUid && parentComment.userUid !== auth.currentUser.uid) {
+                            await addDoc(collection(db, "notifications"), {
+                                recipientUid: parentComment.userUid,
+                                senderUid: auth.currentUser.uid,
+                                senderName: authorName,
+                                type: "reply",
+                                blogId: blogId,
+                                blogTitle: blog.title,
+                                commentId: parentComment.id,
+                                date: new Date().toISOString(),
+                                read: false
+                            });
+                        }
+                        await updateDoc(blogRef, { comments: comments });
+                    }
+                }
+            } catch (e) {
+                console.error("Error submitting reply:", e);
+                alert("Failed to submit reply. Please refresh and try again.");
+                location.reload();
+            }
+        };
+
+        window.toggleLike = async function(blogId, targetId, replyId = null) {
+            if (!auth.currentUser) { alert("Please login to like!"); return; }
+            const uid = auth.currentUser.uid;
+
+            // Optimistic UI update
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (blogIndex !== -1) {
+                const blog = fetchedBlogs[blogIndex];
+                const comment = blog.comments.find(c => c.id === targetId);
+                if (comment) {
+                    let target = comment;
+                    if (replyId !== null) {
+                        target = comment.replies.find(r => r.id === replyId);
+                    }
+                    if (!target) return;
+                    if (!target.likes) target.likes = [];
+                    const likeIdx = target.likes.indexOf(uid);
+                    if (likeIdx === -1) target.likes.push(uid);
+                    else target.likes.splice(likeIdx, 1);
+                    renderBlogs(auth.currentUser);
+                }
+            }
+
+            // Update Firestore in background
+            const blogRef = doc(db, "blogs", blogId);
+            try {
+                const docSnap = await getDoc(blogRef);
+                if (docSnap.exists()) {
+                    const blog = docSnap.data();
+                    const comments = blog.comments || [];
+                    const comment = comments.find(c => c.id === targetId);
+                    if (comment) {
+                        let target = comment;
+                        if (replyId !== null) {
+                            target = comment.replies.find(r => r.id === replyId);
+                        }
+                        if (!target) return;
+                        if (!target.likes) target.likes = [];
+                        const likeIdx = target.likes.indexOf(uid);
+                        if (likeIdx === -1) target.likes.push(uid);
+                        else target.likes.splice(likeIdx, 1);
+                        await updateDoc(blogRef, { comments: comments });
+                    }
+                }
+            } catch (e) {
+                console.error("Error toggling like:", e);
+                // Consider reverting UI on error
+            }
+        };
+
+        window.togglePin = async function(blogId, commentId) {
+            if (!auth.currentUser) return;
+            const blogRef = doc(db, "blogs", blogId);
+
+            // Optimistic UI update
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (blogIndex !== -1) {
+                const blog = fetchedBlogs[blogIndex];
+                const isOwner = (blog.authorUid === auth.currentUser.uid);
+                if (!isOwner) { alert("Only the author can pin comments."); return; }
+                const comment = blog.comments.find(c => c.id === commentId);
+                if (comment) {
+                    comment.isPinned = !comment.isPinned;
+                    renderBlogs(auth.currentUser);
+                }
+            }
+
+            // Update Firestore
+            try {
+                const docSnap = await getDoc(blogRef);
+                if (docSnap.exists()) {
+                    const blog = docSnap.data();
+                    const isOwner = (blog.authorUid === auth.currentUser.uid);
+                    if (!isOwner) return;
+
+                    const comments = blog.comments || [];
+                    const comment = comments.find(c => c.id === commentId);
+                    if (comment) {
+                        comment.isPinned = !comment.isPinned;
+                        await updateDoc(blogRef, { comments: comments });
+                    }
+                }
+            } catch (e) {
+                console.error("Error pinning comment:", e);
+            }
+        };
+
+        window.deleteComment = async function(blogId, commentId) {
+            if (!auth.currentUser) {
+                alert("Please login to delete comments!");
+                return;
+            }
+            
+            // Check ownership locally
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (blogIndex === -1) return;
+            const blogData = fetchedBlogs[blogIndex];
+            const comment = blogData.comments.find(c => c.id === commentId);
+            if (!comment) return;
+            const isAuthor = (comment.userUid === auth.currentUser.uid);
+            if (!isAuthor) {
+                alert("You can only delete your own comments!");
+                return;
+            }
+
+            if(confirm('Delete this comment?')) {
+                // Optimistic UI update
+                fetchedBlogs[blogIndex].comments = fetchedBlogs[blogIndex].comments.filter(c => c.id !== commentId);
+                renderBlogs(auth.currentUser);
+
+                // Update Firestore
+                const blogRef = doc(db, "blogs", blogId);
+                try {
+                    const docSnap = await getDoc(blogRef);
+                    if (docSnap.exists()) {
+                        const updatedComments = (docSnap.data().comments || []).filter(c => c.id !== commentId);
+                        await updateDoc(blogRef, { comments: updatedComments });
+                    }
+                } catch (e) { console.error("Error deleting comment:", e); location.reload(); }
+            }
+        };
+
+        window.editComment = async function(blogId, commentId) {
+            if (!auth.currentUser) {
+                alert("Please login to edit comments!");
+                return;
+            }
+            
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (blogIndex === -1) return;
+            const blogData = fetchedBlogs[blogIndex];
+            const comment = blogData.comments.find(c => c.id === commentId);
+            if (!comment) return;
+            const oldText = comment.text;
+
+            window.openEditModal('comment', blogId, commentId, null, oldText);
+        };
+
+        window.deleteReply = async function(blogId, commentId, replyId) {
+            if (!auth.currentUser) {
+                alert("Please login to delete replies!");
+                return;
+            }
+            
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (blogIndex === -1) return;
+            const blogData = fetchedBlogs[blogIndex];
+            const comment = blogData.comments.find(c => c.id === commentId);
+            if (!comment) return;
+            const replyIndex = comment.replies.findIndex(r => r.id === replyId);
+            if (replyIndex === -1) return;
+            
+            const isAuthor = (comment.replies[replyIndex].userUid === auth.currentUser.uid) || (!comment.replies[replyIndex].userUid && comment.replies[replyIndex].author === auth.currentUser.displayName);
+            if (!isAuthor) {
+                alert("You can only delete your own replies!");
+                return;
+            }
+
+            if(confirm('Delete this reply?')) {
+                // Optimistic UI update
+                comment.replies.splice(replyIndex, 1);
+                renderBlogs(auth.currentUser);
+
+                // Update Firestore
+                const blogRef = doc(db, "blogs", blogId);
+                try {
+                    const docSnap = await getDoc(blogRef);
+                    if (docSnap.exists()) {
+                        const dbBlogData = docSnap.data();
+                        const dbComments = dbBlogData.comments || [];
+                        const dbCommentIndex = dbComments.findIndex(c => c.id === commentId);
+                        if (dbCommentIndex !== -1) {
+                            const dbReplies = dbComments[dbCommentIndex].replies || [];
+                            dbComments[dbCommentIndex].replies = dbReplies.filter(r => r.id !== replyId);
+                            await updateDoc(blogRef, { comments: dbComments });
+                        }
+                    }
+                } catch (e) { console.error("Error deleting reply:", e); location.reload(); }
+            }
+        };
+
+        window.editReply = async function(blogId, commentId, replyId) {
+            if (!auth.currentUser) {
+                alert("Please login to edit replies!");
+                return;
+            }
+            
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (blogIndex === -1) return;
+            const blogData = fetchedBlogs[blogIndex];
+            const comment = blogData.comments.find(c => c.id === commentId);
+            if (!comment) return;
+            const reply = comment.replies.find(r => r.id === replyId);
+            if (!reply) return;
+            const oldText = reply.text;
+
+            window.openEditModal('reply', blogId, commentId, replyId, oldText);
+        };
+
+        window.openEditModal = function(type, blogId, commentId, replyId, oldText) {
+            currentEditContext = { type, blogId, commentId, replyId, oldText };
+            document.getElementById('edit-text-input').value = oldText;
+            document.getElementById('edit-modal').style.display = 'flex';
+            document.getElementById('edit-text-input').focus();
+        };
+
+        window.saveEdit = async function() {
+            if (!currentEditContext || !auth.currentUser) return;
+            const newText = document.getElementById('edit-text-input').value.trim();
+            const { type, blogId, commentId, replyId, oldText } = currentEditContext;
+
+            if (!newText || newText === oldText) {
+                document.getElementById('edit-modal').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('edit-modal-btn-save').innerText = 'Saving...';
+            document.getElementById('edit-modal-btn-save').disabled = true;
+
+            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (blogIndex === -1) return;
+            const blogData = fetchedBlogs[blogIndex];
+            const blogRef = doc(db, "blogs", blogId);
+
+            try {
+                if (type === 'comment') {
+                    const comment = blogData.comments.find(c => c.id === commentId);
+                    if (comment) {
+                        comment.text = newText;
+                        comment.isEdited = true;
+                        renderBlogs(auth.currentUser); 
+
+                        const docSnap = await getDoc(blogRef);
+                        if (docSnap.exists()) {
+                            const updatedComments = (docSnap.data().comments || []).map(c => 
+                                c.id === commentId ? { ...c, text: newText, isEdited: true } : c
+                            );
+                            await updateDoc(blogRef, { comments: updatedComments });
+                        }
+                    }
+                } else if (type === 'reply') {
+                    const comment = blogData.comments.find(c => c.id === commentId);
+                    if (comment) {
+                        const reply = comment.replies.find(r => r.id === replyId);
+                        if (reply) {
+                            reply.text = newText;
+                            reply.isEdited = true;
+                            renderBlogs(auth.currentUser); 
+
+                            const docSnap = await getDoc(blogRef);
+                            if (docSnap.exists()) {
+                                const dbComments = docSnap.data().comments || [];
+                                const dbCommentIndex = dbComments.findIndex(c => c.id === commentId);
+                                if (dbCommentIndex !== -1) {
+                                    const dbReplies = dbComments[dbCommentIndex].replies || [];
+                                    const dbReplyIndex = dbReplies.findIndex(r => r.id === replyId);
+                                    if (dbReplyIndex !== -1) {
+                                        dbReplies[dbReplyIndex].text = newText;
+                                        dbReplies[dbReplyIndex].isEdited = true;
+                                        await updateDoc(blogRef, { comments: dbComments });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error saving edit:", e);
+                alert("Failed to save edit.");
+            }
+
+            document.getElementById('edit-modal-btn-save').innerText = 'Save';
+            document.getElementById('edit-modal-btn-save').disabled = false;
+            document.getElementById('edit-modal').style.display = 'none';
+            currentEditContext = null;
+        };
+
+        // Search Logic
+        const searchInput = document.getElementById('user-search');
+        const searchResults = document.getElementById('search-results');
+
+        const searchFilterContent = document.getElementById('search-filter-content');
+        const searchFilterAccount = document.getElementById('search-filter-account');
+        let searchMode = 'account'; // 'account' or 'content'
+
+        function updateSearchUI() {
+            if (searchMode === 'content') {
+                searchInput.placeholder = "Search blogs by title...";
+                searchFilterContent.classList.add('active');
+                searchFilterAccount.classList.remove('active');
+            } else {
+                searchInput.placeholder = "Search users (@id)...";
+                searchFilterContent.classList.remove('active');
+                searchFilterAccount.classList.add('active');
+            }
+            searchInput.value = '';
+            searchResults.style.display = 'none';
+        }
+        updateSearchUI(); // Initial setup
+
+        searchFilterContent.addEventListener('click', () => {
+            searchMode = 'content';
+            updateSearchUI();
+        });
+
+        searchFilterAccount.addEventListener('click', () => {
+            searchMode = 'account';
+            updateSearchUI();
+        });
+
+        searchInput.addEventListener('input', async (e) => {
+            const term = e.target.value.trim().toLowerCase();
+            if (term.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            if (searchMode === 'account') {
+                // Existing user search logic
+                const q = query(collection(db, "users"), 
+                    where("usernameLower", ">=", term), 
+                    where("usernameLower", "<=", term + "\uf8ff"),
+                    limit(5));
+                
+                const snap = await getDocs(q);
+                searchResults.innerHTML = '';
+                if (snap.empty) {
+                    searchResults.innerHTML = '<div style="padding:10px;">No users found</div>';
+                } else {
+                    snap.forEach(doc => {
+                        const u = doc.data();
+                        const div = document.createElement('div');
+                        div.className = 'search-result-item';
+                        div.innerHTML = `
+                            <img src="${u.photoURL || 'https://via.placeholder.com/30'}" style="width:30px; height:30px; border-radius:50%;">
+                            <div>
+                                <div style="font-weight:bold; color:white;">${u.name}</div>
+                                <div style="font-size:0.8rem; color:#aaa;">@${u.username}</div>
+                            </div>
+                        `;
+                        div.onclick = () => window.location.href = `profile.html?uid=${doc.id}`;
+                        searchResults.appendChild(div);
+                    });
+                }
+            } else { // searchMode === 'content'
+                // New blog search logic
+                // NOTE: This requires a Firestore index on 'titleLower' and 'status'.
+                // The console will provide a link to create it if it's missing.
+                const q = query(collection(db, "blogs"), 
+                    where("titleLower", ">=", term), 
+                    where("titleLower", "<=", term + "\uf8ff"),
+                    where("status", "==", "published"),
+                    limit(5));
+
+                const snap = await getDocs(q);
+                searchResults.innerHTML = '';
+                if (snap.empty) {
+                    searchResults.innerHTML = '<div style="padding:10px;">No blogs found</div>';
+                } else {
+                    snap.forEach(doc => {
+                        const blog = doc.data();
+                        const div = document.createElement('div');
+                        div.className = 'search-result-item';
+                        div.innerHTML = `
+                            <i class="fa-solid fa-newspaper" style="color:#ccc; font-size: 1.5rem; width: 30px; text-align: center;"></i>
+                            <div>
+                                <div style="font-weight:bold; color:white;">${blog.title}</div>
+                                <div style="font-size:0.8rem; color:#aaa;">by @${blog.author}</div>
+                            </div>
+                        `;
+                        div.onclick = () => window.location.href = `index.html?blogId=${doc.id}`;
+                        searchResults.appendChild(div);
+                    });
+                }
+            }
+            searchResults.style.display = 'block';
+        });
+
+        // Notification Logic
+        const notifBtn = document.getElementById('notif-btn');
+        const notifDropdown = document.getElementById('notif-dropdown');
+        const notifBadge = document.getElementById('notif-badge');
+
+        notifBtn.addEventListener('click', () => {
+            const isOpening = notifDropdown.style.display !== 'block';
+            notifDropdown.style.display = isOpening ? 'block' : 'none';
+
+            // If opening and there are unread notifications, mark them as read
+            if (isOpening && currentNotifications.some(n => !n.read)) {
+                const unreadNotifs = currentNotifications.filter(n => !n.read);
+                
+                const batch = writeBatch(db);
+                unreadNotifs.forEach(notif => {
+                    const notifRef = doc(db, "notifications", notif.id);
+                    batch.update(notifRef, { read: true });
+                });
+                
+                batch.commit().catch(e => console.error("Error marking notifications as read:", e));
+            }
+        });
+
+        function listenForNotifications(uid) {
+            const q = query(collection(db, "notifications"), where("recipientUid", "==", uid));
+            onSnapshot(q, (snap) => {
+                const notifs = [];
+                snap.forEach(doc => notifs.push({ id: doc.id, ...doc.data() }));
+                
+                // Sort client-side to avoid needing a composite index
+                notifs.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                currentNotifications = notifs; // Store for 'mark as read'
+                
+                const unreadCount = notifs.filter(n => !n.read).length;
+
+                notifBadge.innerText = unreadCount;
+                notifBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+                
+                notifDropdown.innerHTML = notifs.length ? '' : '<p style="padding:10px; text-align:center;">No notifications</p>';
+                notifs.forEach(n => {
+                    const div = document.createElement('div');
+                    div.className = 'notif-item';
+                    if (!n.read) {
+                        div.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
+                    }
+                    
+                    let notifHtml = '';
+                    const notifDate = `<br><span style="font-size:0.7rem; color:#888;">${new Date(n.date).toLocaleDateString()}</span>`;
+
+                    switch (n.type) {
+                        case 'follow':
+                            notifHtml = `<strong>${n.senderName}</strong> started following you.`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `profile.html?uid=${n.senderUid}`;
+                            break;
+                        case 'like':
+                            notifHtml = `<strong>${n.senderName}</strong> liked your post: <em>${n.blogTitle}</em>.`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}`;
+                            break;
+                        case 'comment':
+                            notifHtml = `<strong>${n.senderName}</strong> commented on your post: <em>${n.blogTitle}</em>.`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}`;
+                            break;
+                        case 'reply':
+                            notifHtml = `<strong>${n.senderName}</strong> replied to your comment on <em>${n.blogTitle}</em>.`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}#comment-${n.commentId}`;
+                            break;
+                        case 'verification':
+                            notifHtml = `🎉 Congratulations! You are now a <strong>Verified User</strong>.`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `profile.html`;
+                            break;
+                        case 'payment':
+                            notifHtml = `💰 <strong>Payment Processed:</strong> ${n.message}`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `studio.html`;
+                            break;
+                        case 'payment_rejected':
+                            notifHtml = `❌ <strong>Payment Rejected:</strong> ${n.message}`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `studio.html`;
+                            break;
+                        default:
+                            notifHtml = `You have a new notification.`;
+                    }
+                    div.innerHTML = notifHtml + notifDate;
+                    notifDropdown.appendChild(div);
+                });
+            });
+        }
+
+        function listenForUnreadMessages(uid) {
+            const badge = document.getElementById('unread-messages-badge');
+            if (!badge) return;
+ 
+            const q = query(
+                collection(db, "conversations"),
+                where("participants", "array-contains", uid),
+                where("lastMessage.isRead", "==", false)
+            );
+ 
+            onSnapshot(q, (snapshot) => {
+                let unreadCount = 0;
+                snapshot.forEach(doc => {
+                    const conv = doc.data();
+                    // Client-side check: count only if the last message was NOT sent by the current user
+                    if (conv.lastMessage && conv.lastMessage.senderUid !== uid) {
+                        unreadCount++;
+                    }
+                });
+
+                badge.innerText = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'block' : 'none';
+            }, (error) => {
+                console.error("Error listening for unread messages:", error);
+                if (error.code === 'failed-precondition') {
+                    console.error("This error likely means you are missing a composite index in Firestore for unread messages. The error from Firebase should contain a link to create it. It will likely be on 'participants' (array) and 'lastMessage.isRead' (ascending).");
+                }
+                badge.style.display = 'none';
+            });
+        }
+
+        // Lightbox & Carousel Functions
+        window.openLightbox = function(src) {
+            const modal = document.getElementById('lightbox-modal');
+            const modalImg = document.getElementById('lightbox-img');
+            modal.style.display = "flex";
+            modalImg.src = src;
+        };
+        window.closeLightbox = function() {
+            document.getElementById('lightbox-modal').style.display = "none";
+        };
+        window.scrollCarousel = function(btn, direction) {
+            const container = btn.parentElement.querySelector('.image-carousel');
+            const scrollAmount = container.clientWidth;
+            container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        };
+
+        // Flicks Viewer Logic
+        window.globalFlicks = [];
+        let currentFlickIdx = -1;
+        let flickTouchStartY = 0;
+        let flickTouchEndY = 0;
+        let currentFlicksAdPlayer = null;
+        let lastAdShownAtIdx = -1;
+
+        window.openFlicksViewer = function(idx) {
+            currentFlickIdx = idx;
+            updateFlicksView();
+            document.getElementById('flicks-viewer-modal').style.display = 'flex';
+            document.addEventListener('keydown', handleFlicksKeys);
+        };
+
+        window.closeFlicksViewer = function() {
+            document.getElementById('flicks-viewer-modal').style.display = 'none';
+            const vid = document.getElementById('flicks-video-player');
+            vid.pause();
+            vid.src = "";
+            if (currentFlicksAdPlayer) {
+                const adVid = document.getElementById(`flicks-ad-player-${lastAdShownAtIdx}`);
+                if (adVid) {
+                    adVid.pause();
+                    adVid.removeAttribute('src');
+                    adVid.load(); // ब्राउज़र से ऑडियो ट्रैक पूरी तरह क्लियर करने के लिए
+                }
+                currentFlicksAdPlayer.destroy();
+                currentFlicksAdPlayer = null;
+            }
+            const adContainer = document.getElementById('flicks-ad-container');
+            if (adContainer) { adContainer.innerHTML = ''; adContainer.style.display = 'none'; }
+            const uiOverlays = document.getElementById('flicks-ui-overlays');
+            if (uiOverlays) uiOverlays.style.display = 'block';
+            vid.style.display = 'block';
+            document.removeEventListener('keydown', handleFlicksKeys);
+        };
+
+        window.prevFlick = function(e) {
+            if(e) e.stopPropagation();
+            if (currentFlickIdx > 0) {
+                currentFlickIdx--;
+                updateFlicksView();
+            }
+        };
+
+        window.nextFlick = function(e) {
+            if(e) e.stopPropagation();
+            if (currentFlickIdx < window.globalFlicks.length - 1) {
+                currentFlickIdx++;
+                updateFlicksView();
+            } else {
+                window.closeFlicksViewer();
+            }
+        };
+
+        function handleFlicksKeys(e) {
+            if (e.key === "ArrowUp") {
+                window.prevFlick();
+            } else if (e.key === "ArrowDown") {
+                window.nextFlick();
+            }
+        };
+
+        window.updateFlicksView = function() {
+            const flick = window.globalFlicks[currentFlickIdx];
+            const vid = document.getElementById('flicks-video-player');
+            const adContainer = document.getElementById('flicks-ad-container');
+            const uiOverlays = document.getElementById('flicks-ui-overlays');
+
+            // पिछले एड की ऑडियो/वीडियो को फ़ोर्स क्लीनअप करें
+            if (currentFlicksAdPlayer) {
+                const adVid = document.getElementById(`flicks-ad-player-${lastAdShownAtIdx}`);
+                if (adVid) {
+                    adVid.pause();
+                    adVid.removeAttribute('src');
+                    adVid.load();
+                }
+                try { currentFlicksAdPlayer.destroy(); } catch(e) {}
+                currentFlicksAdPlayer = null;
+            }
+
+            // Ad Logic: Show VAST ad every 4th flick, and ensure it's only shown once per index
+            if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.vastUrl && currentFlickIdx > 0 && currentFlickIdx % 4 === 0 && lastAdShownAtIdx !== currentFlickIdx) {
+                lastAdShownAtIdx = currentFlickIdx;
+                
+                vid.pause();
+                vid.style.display = 'none';
+                uiOverlays.style.display = 'none';
+                adContainer.style.display = 'block';
+
+                adContainer.innerHTML = `
+                    <video id="flicks-ad-player-${currentFlickIdx}" style="width: 100%; height: 100%; object-fit: contain;">
+                        <source src="https://cdn.fluidplayer.com/static/blank.mp4" type="video/mp4" />
+                    </video>
+                    <div style="position: absolute; top: 15px; left: 15px; color: gold; font-weight: bold; z-index: 60; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 4px; font-size: 0.85rem;">Sponsored Ad</div>
+                `;
+
+                currentFlicksAdPlayer = fluidPlayer(`flicks-ad-player-${currentFlickIdx}`, {
+                    vastOptions: { adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl }] },
+                    layoutControls: { controlBar: { autoHideTimeout: 1, animated: false }, playButtonShowing: true }
+                });
+
+                document.getElementById(`flicks-ad-player-${currentFlickIdx}`).addEventListener('ended', () => {
+                    const adVid = document.getElementById(`flicks-ad-player-${currentFlickIdx}`);
+                    if (adVid) {
+                        adVid.pause();
+                        adVid.removeAttribute('src');
+                        adVid.load();
+                    }
+                    if (currentFlicksAdPlayer) {
+                        currentFlicksAdPlayer.destroy();
+                        currentFlicksAdPlayer = null;
+                    }
+                    adContainer.style.display = 'none';
+                    adContainer.innerHTML = '';
+                    vid.style.display = 'block';
+                    uiOverlays.style.display = 'block';
+                    vid.play().catch(e => console.log("Autoplay prevented by browser", e));
+                });
+            } else {
+                adContainer.style.display = 'none';
+                adContainer.innerHTML = '';
+                vid.style.display = 'block';
+                uiOverlays.style.display = 'block';
+            }
+
+            vid.src = flick.video;
+            if (adContainer.style.display === 'none') {
+                vid.play().catch(e => console.log("Autoplay prevented by browser", e));
+            }
+
+            document.getElementById('flicks-title-display').innerText = flick.title;
+            document.getElementById('flicks-author-name').innerText = "@" + flick.author;
+            document.getElementById('flicks-author-pic').src = flick.authorPhoto || 'https://via.placeholder.com/40';
+            
+            document.getElementById('flicks-author-pic').onclick = () => { window.location.href = 'profile.html?uid=' + flick.authorUid; };
+            document.getElementById('flicks-author-name').onclick = () => { window.location.href = 'profile.html?uid=' + flick.authorUid; };
+
+            const user = auth.currentUser;
+            const likes = Array.isArray(flick.likes) ? flick.likes : [];
+            
+            let isLiked = user && likes.includes(user.uid);
+            
+            const likeBtn = document.getElementById('flicks-like-btn');
+            likeBtn.style.color = isLiked ? '#ff0050' : 'white';
+            document.getElementById('flicks-like-count').innerText = likes.length;
+
+            likeBtn.onclick = () => window.likeFlickFromViewer(flick.id);
+            document.getElementById('flicks-share-btn').onclick = () => window.shareBlog(flick.id, flick.title);
+            document.getElementById('flicks-send-btn').onclick = () => window.openSendFlickModal();
+        };
+
+        window.likeFlickFromViewer = async function(id) {
+            if (!auth.currentUser) { alert("Please login to like!"); return; }
+            const flick = window.globalFlicks[currentFlickIdx];
+            if (!Array.isArray(flick.likes)) flick.likes = [];
+            
+            const uid = auth.currentUser.uid;
+            const likeIdx = flick.likes.indexOf(uid);
+            const isLiking = likeIdx === -1;
+
+            if (isLiking) flick.likes.push(uid);
+            else flick.likes.splice(likeIdx, 1);
+            
+            updateFlicksView(); // Update UI optimistically
+
+            // Update Firestore
+            const blogRef = doc(db, "blogs", id);
+            try {
+                if (isLiking) {
+                    await updateDoc(blogRef, { likes: arrayUnion(uid) });
+                } else {
+                    await updateDoc(blogRef, { likes: arrayRemove(uid) });
+                }
+            } catch (e) { console.error("Error liking flicker", e); }
+        };
+
+        // Flicks Internal Forwarding Logic
+        window.openSendFlickModal = async function() {
+            if (!auth.currentUser) { alert("Please login to send Flicks!"); return; }
+            const modal = document.getElementById('send-flick-modal');
+            const list = document.getElementById('send-flick-user-list');
+            modal.style.display = 'flex';
+            list.innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+
+            try {
+                if (currentUserFollowing.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; color:#aaa;">You are not following anyone to send this to.</p>';
+                    return;
+                }
+                list.innerHTML = '';
+                const promises = currentUserFollowing.map(uid => getDoc(doc(db, "users", uid)));
+                const snaps = await Promise.all(promises);
+
+                snaps.forEach(snap => {
+                    if (snap.exists()) {
+                        const u = snap.data();
+                        const div = document.createElement('div');
+                        div.style.cssText = "display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1);";
+                        div.innerHTML = `
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <img src="${u.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <div><strong style="color:#fff;">${u.name || 'User'}</strong><br><span style="font-size:0.8rem; color:#aaa;">@${u.username || ''}</span></div>
+                            </div>
+                            <button class="btn feed-btn" style="padding:5px 15px;" onclick="window.sendFlickToUser('${snap.id}', this)">Send</button>
+                        `;
+                        list.appendChild(div);
+                    }
+                });
+            } catch(e) { console.error(e); list.innerHTML = '<p style="color:red;">Error loading users.</p>'; }
+        };
+
+        window.sendFlickToUser = async function(targetUid, btnElement) {
+            const flick = window.globalFlicks[currentFlickIdx];
+            if (!flick || !auth.currentUser) return;
+            btnElement.innerText = "Sending...";
+            btnElement.disabled = true;
+            const conversationId = getConversationId(auth.currentUser.uid, targetUid);
+            const convRef = doc(db, "conversations", conversationId);
+            const messagesRef = collection(db, "conversations", conversationId, "messages");
+            try {
+                await addDoc(messagesRef, { type: 'flick', flickId: flick.id, videoUrl: flick.video, title: flick.title, senderUid: auth.currentUser.uid, timestamp: serverTimestamp() });
+                const partnerProfileSnap = await getDoc(doc(db, "users", targetUid));
+                await setDoc(convRef, { participants: [auth.currentUser.uid, targetUid], participantDetails: { [auth.currentUser.uid]: { name: auth.currentUser.displayName || "User", photoURL: auth.currentUser.photoURL || null }, [targetUid]: { name: partnerProfileSnap.exists() ? partnerProfileSnap.data().name : "User", photoURL: partnerProfileSnap.exists() ? partnerProfileSnap.data().photoURL : null } }, lastMessage: { text: "Sent a Flick", senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } }, { merge: true });
+                btnElement.innerText = "Sent!"; btnElement.style.background = "#198754"; btnElement.style.borderColor = "#198754"; btnElement.style.color = "white";
+            } catch (e) { console.error(e); btnElement.innerText = "Error"; }
+        };
+
+        // Setup touch swipe up/down for Flicks
+        const flicksContent = document.getElementById('flicks-viewer-content');
+        if (flicksContent) {
+            flicksContent.addEventListener('touchstart', e => {
+                flickTouchStartY = e.changedTouches[0].screenY;
+            }, {passive: true});
+            flicksContent.addEventListener('touchend', e => {
+                flickTouchEndY = e.changedTouches[0].screenY;
+                if (flickTouchStartY - flickTouchEndY > 50) {
+                    window.nextFlick(); // Swiped up -> Next
+                } else if (flickTouchEndY - flickTouchStartY > 50) {
+                    window.prevFlick(); // Swiped down -> Prev
+                }
+            }, {passive: true});
+        }
+
+        // --- NEW: Story Functions ---
+        async function loadStories(user) {
+            const reelContainer = document.getElementById('stories-reel-container');
+            const reel = document.getElementById('stories-reel');
+            if (!reel || !reelContainer) return;
+
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            
+            let uidsToFetch = [...currentUserFollowing];
+            if (user) {
+                uidsToFetch.push(user.uid);
+            }
+            
+            if (uidsToFetch.length === 0 && !user) {
+                reelContainer.style.display = 'none';
+                return;
+            }
+
+            // Firestore 'in' query is limited to 30 UIDs.
+            const queryUIDs = [...new Set(uidsToFetch)].slice(0, 30);
+
+            try {
+                let snapshot = { docs: [], empty: true, forEach: function(){} };
+                if (queryUIDs.length > 0) {
+                    const q = query(collection(db, "stories"),
+                        where("authorUid", "in", queryUIDs),
+                        where("timestamp", ">=", twentyFourHoursAgo),
+                        orderBy("timestamp", "desc")
+                    );
+                    snapshot = await getDocs(q);
+                }
+                const userStoriesMap = new Map();
+                
+                snapshot.forEach(doc => {
+                    const story = { id: doc.id, ...doc.data() };
+                    if (!userStoriesMap.has(story.authorUid)) {
+                        userStoriesMap.set(story.authorUid, {
+                            authorUid: story.authorUid,
+                            authorName: story.authorName,
+                            authorPhoto: story.authorPhoto,
+                            stories: []
+                        });
+                    }
+                    userStoriesMap.get(story.authorUid).stories.push(story);
+                });
+
+                globalGroupedStories = Array.from(userStoriesMap.values());
+                // Reverse stories internally so oldest play first
+                globalGroupedStories.forEach(group => group.stories.reverse());
+
+                reelContainer.style.display = 'block';
+                reel.innerHTML = '';
+
+                // 1. Current User's Item (Always visible if logged in)
+                if (user) {
+                    let currentUserStoryGroupIndex = globalGroupedStories.findIndex(g => g.authorUid === user.uid);
+                    let hasStory = currentUserStoryGroupIndex !== -1;
+                    let userPhoto = window.currentUserData?.photoURL || user.photoURL || 'https://via.placeholder.com/60';
+                    
+                    const userDiv = document.createElement('div');
+                    userDiv.className = `story-item ${hasStory && globalGroupedStories[currentUserStoryGroupIndex].stories.every(s => viewedStories.includes(s.id)) ? 'viewed' : ''}`;
+                    userDiv.dataset.authorUid = user.uid;
+                    
+                    userDiv.innerHTML = `
+                        <div class="story-ring-container">
+                            <div class="${hasStory ? 'story-ring' : 'story-ring-empty'}">
+                                <img src="${userPhoto}" alt="Your story">
+                            </div>
+                            <div class="add-story-badge" onclick="event.stopPropagation(); this.classList.add('badge-clicked'); setTimeout(() => window.location.href='story-editor.html', 350);" title="Add Story">+</div>
+                        </div>
+                        <p>Your Story</p>
+                    `;
+                    
+                    if (hasStory) {
+                        let startIdx = globalGroupedStories[currentUserStoryGroupIndex].stories.findIndex(s => !viewedStories.includes(s.id));
+                        if (startIdx === -1) startIdx = 0;
+                        userDiv.onclick = () => window.openStoryViewer(currentUserStoryGroupIndex, startIdx);
+                    } else {
+                        userDiv.onclick = function() {
+                            const badge = this.querySelector('.add-story-badge');
+                            if (badge) badge.classList.add('badge-clicked');
+                            setTimeout(() => window.location.href = 'story-editor.html', 350);
+                        };
+                    }
+                    reel.appendChild(userDiv);
+                }
+
+                // 2. Followed Users' Stories
+                globalGroupedStories.forEach((group, userIdx) => {
+                    if (user && group.authorUid === user.uid) return; // Skip current user
+                    
+                    const isAllViewed = group.stories.every(s => viewedStories.includes(s.id));
+                    const div = document.createElement('div');
+                    div.className = `story-item ${isAllViewed ? 'viewed' : ''}`;
+                    div.dataset.authorUid = group.authorUid;
+                    div.innerHTML = `
+                        <div class="story-ring-container">
+                            <div class="story-ring">
+                                <img src="${group.authorPhoto || 'https://via.placeholder.com/60'}" alt="${group.authorName}'s story">
+                            </div>
+                        </div>
+                        <p>${group.authorName.split(' ')[0]}</p>
+                    `;
+                    let startIdx = group.stories.findIndex(s => !viewedStories.includes(s.id));
+                    if (startIdx === -1) startIdx = 0;
+
+                    div.onclick = () => window.openStoryViewer(userIdx, startIdx);
+                    reel.appendChild(div);
+                });
+
+                if (!user && globalGroupedStories.length === 0) {
+                    reelContainer.style.display = 'none';
+                }
+
+            } catch (e) {
+                console.error("Error loading stories:", e);
+                if (e.code === 'failed-precondition') {
+                    console.error("This error means you need to create a composite index in Firestore for stories. The error message from Firebase should contain a direct link to create it. It will likely be on 'authorUid' and 'timestamp'.");
+                }
+                reelContainer.style.display = 'none';
+            }
+        }
+
+        window.openStoryViewer = async function(userIdx, storyIdx) {
+            currentStoryUserIdx = userIdx;
+            currentStoryIdx = storyIdx;
+
+            const modal = document.getElementById('story-viewer-modal');
+            const content = document.getElementById('story-viewer-content');
+            if (!modal || !content) return;
+
+            const group = globalGroupedStories[userIdx];
+            const story = group.stories[storyIdx];
+            const user = auth.currentUser;
+            const isOwner = user && user.uid === story.authorUid;
+
+            // --- Viewer Tracking ---
+            if (user && !isOwner && !viewedStories.includes(story.id)) {
+                const storyRef = doc(db, "stories", story.id);
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        const viewerData = {
+                            uid: user.uid,
+                            name: userData.name || user.displayName,
+                            photoURL: userData.photoURL || user.photoURL
+                        };
+                        // Use arrayUnion to avoid duplicates if multiple tabs are open
+                        await updateDoc(storyRef, { viewers: arrayUnion(viewerData) });
+                    }
+                } catch (e) { console.error("Error adding story viewer:", e); }
+            }
+
+            // --- UI Construction ---
+            const hasPrev = userIdx > 0 || storyIdx > 0;
+            const hasNext = userIdx < globalGroupedStories.length - 1 || storyIdx < group.stories.length - 1;
+
+            let storyHTML = `
+                <!-- Tap Navigation Overlays (Left/Right Clicks) -->
+                <div style="position: absolute; top: 0; left: 0; width: 40%; height: 100%; z-index: 5;" onclick="window.prevStory(event)"></div>
+                <div style="position: absolute; top: 0; right: 0; width: 40%; height: 100%; z-index: 5;" onclick="window.nextStory(event)"></div>
+
+                ${hasPrev ? `<button class="story-nav-btn prev" onclick="window.prevStory(event)">&#10094;</button>` : ''}
+                ${hasNext ? `<button class="story-nav-btn next" onclick="window.nextStory(event)">&#10095;</button>` : ''}
+                <div class="story-header" style="z-index: 20;">
+                    <img src="${story.authorPhoto || 'https://via.placeholder.com/40'}" style="cursor:pointer;" onclick="window.location.href='profile.html?uid=${story.authorUid}'">
+                    <strong>${story.authorName}</strong>
+                    <span style="color:#ddd; font-size:0.8rem; margin-left: 8px;">(${storyIdx + 1}/${group.stories.length})</span>
+                </div>`;
+
+        storyHTML += `<div style="position: relative; width: 100%; height: 80vh; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; border-radius: 8px; margin: 5px 0;">`;
+        if (story.statusImage) {
+            storyHTML += `<img src="${story.statusImage}" style="max-width: 100%; max-height: 100%; object-fit: contain; z-index: 1;">`;
+        }
+        let textsToRender = [];
+        if (story.texts && story.texts.length > 0) {
+            textsToRender = story.texts;
+        } else if (story.statusMessage) {
+            textsToRender.push({
+                text: story.statusMessage, x: story.textPosX, y: story.textPosY, color: story.textColor,
+                size: story.textSize, font: story.textFont, bgColor: story.bgColor, bgAlpha: story.bgAlpha,
+                borderColor: story.borderColor, borderSize: story.borderSize, textOutlineColor: story.textOutlineColor,
+                textOutlineSize: story.textOutlineSize, animation: story.textAnimation, rotation: story.textRotation
+            });
+        }
+        textsToRender.forEach(txt => {
+            let posX = txt.x !== undefined ? txt.x : 50;
+            let posY = txt.y !== undefined ? txt.y : (story.statusImage ? 80 : 50);
+            let color = txt.color || '#ffffff';
+            let size = txt.size || 24;
+            let font = txt.font || 'Arial, sans-serif';
+            
+            let bgAlpha = txt.bgAlpha || 0;
+            let bgColor = txt.bgColor || '#000000';
+            let borderSize = txt.borderSize || 0;
+            let borderColor = txt.borderColor || '#ffffff';
+            
+            let outlineSize = txt.textOutlineSize || 0;
+            let outlineColor = txt.textOutlineColor || '#000000';
+            let animation = txt.animation || 'none';
+            let rotation = txt.rotation || 0;
+            
+            let extraStyles = '';
+            if (bgAlpha > 0) {
+                let r = parseInt(bgColor.slice(1, 3), 16) || 0;
+                let g = parseInt(bgColor.slice(3, 5), 16) || 0;
+                let b = parseInt(bgColor.slice(5, 7), 16) || 0;
+                extraStyles += `background-color: rgba(${r}, ${g}, ${b}, ${bgAlpha}); `;
+            }
+            if (borderSize > 0) {
+                extraStyles += `border: ${borderSize}px solid ${borderColor}; `;
+            }
+            if (bgAlpha > 0 || borderSize > 0) {
+                extraStyles += `padding: 10px 15px; border-radius: 8px; `;
+            } else {
+                extraStyles += `padding: 0; `;
+            }
+            if (outlineSize > 0) {
+                extraStyles += `-webkit-text-stroke: ${outlineSize}px ${outlineColor}; `;
+            }
+
+            let posStyle = `position: absolute; left: ${posX}%; top: ${posY}%; transform: translate(-50%, -50%) rotate(${rotation}deg); z-index: 2; max-width: 90%; width: max-content; pointer-events: none;`;
+            let innerStyle = `color: ${color}; font-size: ${size}px; font-family: ${font}; font-weight: bold; text-shadow: 1px 1px 4px rgba(0,0,0,0.9); word-wrap: break-word; text-align: center; margin: 0; line-height: 1.2; box-sizing: border-box; ${extraStyles}`;
+            let animClass = animation !== 'none' ? `story-anim-${animation}` : '';
+
+            const safeMsg = txt.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+            storyHTML += `<div style="${posStyle}"><div class="${animClass}" style="${innerStyle}">${safeMsg}</div></div>`;
+        });
+        storyHTML += `</div>`;
+
+            // --- Footer with Actions ---
+            storyHTML += `<div style="position: absolute; bottom: 10px; width: calc(100% - 20px); display: flex; flex-direction: column; gap: 10px; z-index: 20;">`;
+
+            // Viewers count for owner
+            if (isOwner) {
+                const viewersCount = story.viewers ? story.viewers.length : 0;
+                const likesCount = story.likes ? story.likes.length : 0;
+                storyHTML += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+                        <div onclick="window.showStoryViewers('${story.id}')" style="cursor: pointer; color: #ccc; font-size: 0.9rem;">
+                            👁️ ${viewersCount} viewers
+                        </div>
+                        <div onclick="window.showStoryLikers('${story.id}')" style="cursor: pointer; color: #ccc; font-size: 0.9rem;">
+                            ❤️ ${likesCount} likes
+                        </div>
+                        <button onclick="window.deleteStory('${story.id}')" style="background: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 10px; font-size: 0.8rem; cursor: pointer;">Delete Story</button>
+                    </div>`;
+            }
+
+            // Like and Reply for non-owners
+            if (user && !isOwner) {
+                const likes = story.likes || [];
+                const hasLiked = likes.includes(user.uid);
+                const safeMsg = (story.texts && story.texts.length > 0 ? story.texts[0].text : (story.statusMessage || '')).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
+                storyHTML += `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
+                        <button id="story-like-btn-${story.id}" onclick="window.likeStory('${story.id}')" style="background:none; border:none; color:white; font-size: 1.5rem; cursor:pointer;">
+                            ${hasLiked ? '❤️' : '🤍'}
+                        </button>
+                        <span id="story-like-count-${story.id}" style="color: white; font-size: 1rem;">${likes.length}</span>
+                    </div>
+                `;
+                storyHTML += `
+                        <div style="display: flex; gap: 5px; padding: 0 10px;">
+                            <input type="text" id="story-reply-input-${story.id}" placeholder="Send a message..." style="flex: 1; padding: 8px; border-radius: 20px; border: none; background: rgba(255,255,255,0.2); color: white;">
+                            <button onclick="window.sendStoryReplyAsMessage('${story.id}', '${story.authorUid}', '${story.statusImage || ''}', '${safeMsg}')" style="background:none; border:none; color:white; font-size: 1.2rem; cursor:pointer;">➤</button>
+                        </div>
+                    `;
+            } else if (!user && !isOwner) {
+                storyHTML += `<p style="text-align:center; font-size:0.9rem; color:#aaa; padding:10px;">Login to like or reply</p>`;
+            }
+
+            storyHTML += `</div>`;
+
+            content.innerHTML = storyHTML;
+            modal.style.display = 'flex';
+
+            if (!viewedStories.includes(story.id)) {
+                viewedStories.push(story.id);
+                localStorage.setItem('viewed_stories', JSON.stringify(viewedStories));
+                const isAllViewed = group.stories.every(s => viewedStories.includes(s.id));
+                if (isAllViewed) {
+                    const reelItem = document.querySelector(`.story-item[data-author-uid="${group.authorUid}"]`);
+                    if (reelItem) reelItem.classList.add('viewed');
+                }
+            }
+        }
+
+        window.nextStory = function(e) {
+            if(e) e.stopPropagation();
+            const group = globalGroupedStories[currentStoryUserIdx];
+            if (currentStoryIdx < group.stories.length - 1) {
+                window.openStoryViewer(currentStoryUserIdx, currentStoryIdx + 1);
+            } else if (currentStoryUserIdx < globalGroupedStories.length - 1) {
+                window.openStoryViewer(currentStoryUserIdx + 1, 0);
+            } else {
+                window.closeStoryViewer();
+            }
+        };
+
+        window.prevStory = function(e) {
+            if(e) e.stopPropagation();
+            if (currentStoryIdx > 0) {
+                window.openStoryViewer(currentStoryUserIdx, currentStoryIdx - 1);
+            } else if (currentStoryUserIdx > 0) {
+                const prevGroup = globalGroupedStories[currentStoryUserIdx - 1];
+                window.openStoryViewer(currentStoryUserIdx - 1, prevGroup.stories.length - 1);
+            }
+        };
+
+        window.closeStoryViewer = function() {
+            document.getElementById('story-viewer-modal').style.display = 'none';
+        };
+    </script>
+</body>
+</html>

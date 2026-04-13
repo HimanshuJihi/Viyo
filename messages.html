@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viyo</title>
+    <link rel="icon" href="game-logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #121212; /* Default Dark Mode */
+            color: #fff;
+            transition: background 0.3s, color 0.3s;
+        }
+        .container {
+            max-width: 800px; /* Optimized for chat list */
+            margin: 20px auto;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            color: #fff;
+        }
+        .header .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: #0d6efd;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+        .btn:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-transparent {
+            position: relative;
+            background: transparent !important;
+            color: #fff !important;
+            border: none !important;
+            z-index: 1;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-transparent::before {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            border-radius: 5px;
+            padding: 1.5px;
+            background: linear-gradient(45deg, #0d6efd, #ffc107);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .btn-transparent:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+
+        .conversation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .conversation-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .conversation-item:last-child {
+            border-bottom: none;
+        }
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #87ceeb;
+        }
+        .conversation-info {
+            flex-grow: 1;
+        }
+        .conversation-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #87ceeb;
+        }
+        .conversation-info p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            color: #ccc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .last-message-time {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+        /* Light Mode */
+        body.light-mode { background: #f4f7f6; color: #333; }
+        body.light-mode .container { background: #fff; border-color: #ddd; }
+        body.light-mode .header h1 { color: #333; }
+        body.light-mode .conversation-item { border-bottom-color: #eee; }
+        body.light-mode .conversation-item:hover { background-color: #f0f0f0; }
+        body.light-mode .conversation-info h3 { color: #0d6efd; }
+        body.light-mode .conversation-info p { color: #555; }
+        body.light-mode .last-message-time { color: #666; }
+        /* New styles for modal in light mode */
+        body.light-mode #user-list-modal > div { background: #fff; border-color: #ddd; color: #333; }
+        body.light-mode #user-list-title { color: #0d6efd; }
+        body.light-mode #user-list-content > div { border-bottom-color: #eee; }
+        body.light-mode #user-list-content strong { color: #000; }
+        body.light-mode .btn-transparent { color: #333 !important; }
+
+        /* Light Mode Gold Color Fix */
+        .gold-text { color: gold !important; }
+        body.light-mode .gold-text,
+        body.light-mode [style*="color: gold"],
+        body.light-mode [style*="color:gold"] { color: #000080 !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>My Messages</h1>
+            <div class="header-actions">
+                <button id="new-message-btn" class="btn btn-transparent"><i class="fa-brands fa-rocketchat"></i> New Message</button>
+                <a href="index.html" class="btn btn-transparent">← Back to Viyo</a>
+            </div>
+        </div>
+
+        <div id="loading-indicator" style="text-align: center; padding: 20px; color: #aaa;">Loading conversations...</div>
+        <ul class="conversation-list" id="conversation-list">
+            <!-- Conversation items will be dynamically loaded here by JavaScript -->
+        </ul>
+        <div id="no-conversations" style="text-align: center; padding: 20px; color: #aaa; display: none;">No conversations yet.</div>
+    </div>
+
+    <!-- User List Modal (for new message) -->
+    <div id="user-list-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; max-height:70vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                <h3 id="user-list-title" class="gold-text" style="margin:0;">Start a new chat</h3>
+                <button onclick="document.getElementById('user-list-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="user-list-content" style="overflow-y:auto; flex:1;">Loading...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const conversationList = document.getElementById('conversation-list');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const noConversationsMessage = document.getElementById('no-conversations');
+        const newMessageBtn = document.getElementById('new-message-btn');
+
+        // Theme Toggle Logic
+        const body = document.body;
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                body.classList.add('light-mode');
+            } else {
+                body.classList.remove('light-mode');
+            }
+            localStorage.setItem('theme', theme || 'dark');
+        }
+        applyTheme(localStorage.getItem('theme') || 'dark');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                window.currentUser = user;
+                loadingIndicator.style.display = 'block';
+                conversationList.innerHTML = '';
+                noConversationsMessage.style.display = 'none';
+                let blockedUsers = [];
+                
+                // Load user's theme preference
+                try {
+                    const userDocRef = doc(db, "users", user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (userDocSnap.exists() && userDocSnap.data().theme) {
+                        applyTheme(userDocSnap.data().theme);
+                    }
+                    if (userDocSnap.exists() && userDocSnap.data().blockedUsers) {
+                        blockedUsers = userDocSnap.data().blockedUsers;
+                    }
+                } catch(e) {
+                    console.error("Error loading theme preference:", e);
+                }
+                listenForConversations(blockedUsers);
+                setupNewMessageButton();
+            } else {
+                alert("Please login to view your messages.");
+                window.location.href = 'index.html';
+            }
+        });
+
+        function setupNewMessageButton() {
+            newMessageBtn.addEventListener('click', async () => {
+                const modal = document.getElementById('user-list-modal');
+                const content = document.getElementById('user-list-content');
+                modal.style.display = 'flex';
+                content.innerHTML = '<p style="text-align:center; color:#aaa;">Loading following list...</p>';
+
+                try {
+                    const myDocRef = doc(db, "users", window.currentUser.uid);
+                    const myDocSnap = await getDoc(myDocRef);
+                    if (!myDocSnap.exists()) {
+                        content.innerHTML = '<p style="color:red;">Could not find your user profile.</p>';
+                        return;
+                    }
+
+                    const myData = myDocSnap.data();
+                    const followingUIDs = myData.following || [];
+
+                    if (followingUIDs.length === 0) {
+                        content.innerHTML = '<p style="text-align:center; color:#aaa;">You are not following anyone. Follow users from their profiles to message them.</p>';
+                        return;
+                    }
+
+                    content.innerHTML = ''; // Clear loading text
+                    const promises = followingUIDs.map(uid => getDoc(doc(db, "users", uid)));
+                    const snapshots = await Promise.all(promises);
+
+                    snapshots.forEach(snap => {
+                        if (snap.exists()) {
+                            const u = snap.data();
+                            const div = document.createElement('div');
+                            div.style.cssText = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer;";
+                            div.onclick = () => {
+                                window.location.href = `chat.html?uid=${snap.id}`;
+                            };
+                            
+                            div.innerHTML = `
+                                <img src="${u.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555;">
+                                <div>
+                                    <strong>${u.name || 'User'}</strong>
+                                    <div style="font-size:0.8rem; color:#aaa;">${u.username || ''}</div>
+                                </div>
+                            `;
+                            content.appendChild(div);
+                        }
+                    });
+
+                } catch (e) {
+                    console.error("Error loading following list:", e);
+                    content.innerHTML = '<p style="color:red;">Error loading user list.</p>';
+                }
+            });
+        }
+
+        function listenForConversations(blockedUsers = []) {
+            const q = query(
+                collection(db, "conversations"),
+                where("participants", "array-contains", window.currentUser.uid),
+                orderBy("lastMessage.timestamp", "desc")
+            );
+
+            onSnapshot(q, (snapshot) => {
+                loadingIndicator.style.display = 'none';
+                if (snapshot.empty) {
+                    noConversationsMessage.style.display = 'block';
+                    conversationList.innerHTML = '';
+                    return;
+                }
+                noConversationsMessage.style.display = 'none';
+                
+                conversationList.innerHTML = ''; // Clear list to preserve sort order
+                
+                snapshot.forEach((docSnap) => {
+                    const conversation = docSnap.data();
+                    const conversationId = docSnap.id;
+                    const otherParticipantUid = conversation.participants.find(uid => uid !== window.currentUser.uid);
+
+                    // --- Block Check ---
+                    if (blockedUsers.includes(otherParticipantUid)) {
+                        return; // Skip rendering this conversation
+                    }
+
+                    if (!otherParticipantUid) return;
+
+                    // Safety check for corrupted conversation documents
+                    if (!conversation.participantDetails || !conversation.participantDetails[otherParticipantUid]) {
+                        console.warn(`Conversation document ${conversationId} is missing details for participant ${otherParticipantUid}. Skipping.`);
+                        return;
+                    }
+
+                    const otherUser = conversation.participantDetails[otherParticipantUid];
+                    const lastMessage = conversation.lastMessage;
+                    const isUnread = lastMessage && lastMessage.isRead === false && lastMessage.senderUid !== window.currentUser.uid;
+
+                    let lastMessageText = "No messages yet.";
+                    if (lastMessage) {
+                        const senderName = lastMessage.senderUid === window.currentUser.uid ? "You" : (otherUser.name || 'User').split(' ')[0];
+                        let decodedText = lastMessage.text;
+                        try {
+                            // Attempt to decode. If it fails, it's probably not base64.
+                            if (decodedText && !decodedText.startsWith('[')) { // Don't decode placeholders like [Image]
+                                decodedText = atob(decodedText);
+                            }
+                        } catch (e) {
+                            // Not a valid base64 string, show original text.
+                        }
+                        lastMessageText = `${senderName}: ${decodedText}`;
+                    }
+
+                    const li = document.createElement('li');
+                    li.id = `conv-${conversationId}`;
+                    li.className = 'conversation-item';
+                    li.style.fontWeight = isUnread ? 'bold' : 'normal';
+                    if (isUnread) li.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
+
+                    li.innerHTML = `
+                        <img src="${otherUser.photoURL || 'https://via.placeholder.com/50'}" class="profile-pic">
+                        <div class="conversation-info">
+                            <h3>${otherUser.name || 'Unknown User'}</h3>
+                            <p style="color: ${isUnread ? '#fff' : '#ccc'};">${lastMessageText}</p>
+                        </div>
+                        <span class="last-message-time">${lastMessage && lastMessage.timestamp ? new Date(lastMessage.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                    `;
+                    li.onclick = () => {
+                        window.location.href = `chat.html?uid=${otherParticipantUid}`;
+                    };
+
+                    conversationList.appendChild(li);
+                });
+            }, (error) => {
+                loadingIndicator.style.display = 'none';
+                conversationList.innerHTML = ''; // Clear any stale items
+                // Provide a more helpful error for developers
+                noConversationsMessage.innerText = "Error loading conversations. Please check the browser console for details.";
+                noConversationsMessage.style.display = 'block';
+                console.error("Error fetching conversations:", error);
+                if (error.code === 'failed-precondition') {
+                    console.error("This error often means you are missing a composite index in Firestore. Please check the error message from Firebase in the console. It might contain a link to create the required index.");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
