@@ -1,0 +1,23 @@
+{
+  "name": "Viyou",
+  "short_name": "Viyou",
+  "description": "Viyou - A modern platform for news, short flicks, and social interactions.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "game-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "game-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
