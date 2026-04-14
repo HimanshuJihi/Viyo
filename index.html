@@ -14,8 +14,8 @@
     <meta property="og:description" content="Latest cricket news, IPL 2026 auction analysis, match reports, and player stats.">
     <meta property="og:type" content="website">
 
-    <link rel="icon" href="game-logo.png" type="image/png">
-    <link rel="apple-touch-icon" href="game-logo.png">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     
@@ -602,7 +602,7 @@
 
     <div class="container">
         <div class="header">
-            <h1 style="background: linear-gradient(135deg, #ff007a, #7a00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 3rem; letter-spacing: 2px; margin: 0;">Viyou</h1>
+            <h1 style="background: linear-gradient(135deg, #ff007a, #7a00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 3rem; letter-spacing: 2px; margin: 0;"><img src="logo.png" alt="Viyou" style="width: 42px; height: 42px;"> Viyou </h1>
             <div class="header-actions">
                 <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px;">
                     <div class="search-box" style="width: 100%;">
@@ -776,6 +776,7 @@
             <div style="display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #444;">
                 <button id="tab-google" class="tab-btn" style="background:none; border:none; color:white; padding: 10px; cursor: pointer; border-bottom: 2px solid gold;">Google</button>
                 <button id="tab-email" class="tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer;">Email</button>
+                <button id="tab-phone" class="tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer;">Phone</button>
             </div>
 
             
@@ -789,6 +790,17 @@
                 <div style="text-align: right; margin-bottom: 10px;"><a href="#" id="forgot-pwd-link" style="color: gold; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a></div>
                 <button id="email-login-btn" class="btn" style="width: 100%; margin-bottom: 10px;">Login</button>
                 <button id="email-signup-btn" class="btn" style="width: 100%; background-color: #198754;">Sign Up</button>
+            </div>
+
+            <div id="content-phone" class="auth-content" style="display: none;">
+                <div id="recaptcha-container" style="margin-bottom: 10px;"></div>
+                <input type="tel" id="phone-input" placeholder="Phone Number (e.g. +919876543210)" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                <button id="send-otp-btn" class="btn" style="width: 100%; margin-bottom: 10px; background-color: #198754;">Send OTP</button>
+                
+                <div id="otp-section" style="display: none;">
+                    <input type="text" id="otp-input" placeholder="Enter 6-digit OTP" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                    <button id="verify-otp-btn" class="btn" style="width: 100%; background-color: #0d6efd;">Verify OTP & Login</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1175,7 +1187,7 @@
         });
 
         // Tab Switching Logic
-        const tabs = ['google', 'email'];
+        const tabs = ['google', 'email', 'phone'];
         tabs.forEach(tab => {
             document.getElementById(`tab-${tab}`).addEventListener('click', () => {
                 tabs.forEach(t => {
@@ -1188,15 +1200,26 @@
                 const activeBtn = document.getElementById(`tab-${tab}`);
                 activeBtn.style.color = 'white';
                 activeBtn.style.borderBottom = '2px solid gold';
+                
+                if (tab === 'phone') {
+                    initRecaptcha();
+                }
             });
         });
 
         // 1. Google Login
         document.getElementById('google-login-btn').addEventListener('click', () => {
             signInWithPopup(auth, provider)
-                .then((result) => {
+                .then(async (result) => {
                     console.log("User logged in:", result.user);
                     document.getElementById('login-modal').style.display = 'none';
+                    
+                    // Automatically save the Google profile data (including picture) to Firestore
+                    await setDoc(doc(db, "users", result.user.uid), {
+                        name: result.user.displayName,
+                        email: result.user.email,
+                        photoURL: result.user.photoURL
+                    }, { merge: true });
                 })
                 .catch((error) => {
                     console.error("Login Error:", error);
@@ -1274,6 +1297,79 @@
                 await sendPasswordResetEmail(auth, email);
                 alert("Password reset email sent to " + email);
             } catch(e) { alert("Error: " + e.message); }
+        });
+
+        // --- Phone Auth Logic ---
+        let confirmationResult = null;
+
+        function initRecaptcha() {
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'normal',
+                    'callback': (response) => {
+                        // reCAPTCHA solved, allow signInWithPhoneNumber.
+                    }
+                });
+            }
+        }
+
+        document.getElementById('send-otp-btn').addEventListener('click', async () => {
+            const phoneNumber = document.getElementById('phone-input').value.trim();
+            if (!phoneNumber || !phoneNumber.startsWith('+')) {
+                alert("Please enter a valid phone number with country code (e.g., +919876543210).");
+                return;
+            }
+            
+            const btn = document.getElementById('send-otp-btn');
+            btn.innerText = "Sending...";
+            btn.disabled = true;
+
+            initRecaptcha();
+            const appVerifier = window.recaptchaVerifier;
+
+            try {
+                confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+                document.getElementById('otp-section').style.display = 'block';
+                btn.style.display = 'none';
+                alert("OTP sent successfully!");
+            } catch (error) {
+                console.error("Error sending OTP:", error);
+                alert("Failed to send OTP. Please check the phone number format or try again.");
+                btn.innerText = "Send OTP";
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('verify-otp-btn').addEventListener('click', async () => {
+            const otp = document.getElementById('otp-input').value.trim();
+            if (!otp || otp.length !== 6) {
+                alert("Please enter the 6-digit OTP.");
+                return;
+            }
+
+            const btn = document.getElementById('verify-otp-btn');
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
+            try {
+                await confirmationResult.confirm(otp);
+                document.getElementById('login-modal').style.display = 'none';
+                
+                // Reset UI for next login attempt
+                document.getElementById('otp-section').style.display = 'none';
+                document.getElementById('send-otp-btn').style.display = 'block';
+                document.getElementById('send-otp-btn').innerText = 'Send OTP';
+                document.getElementById('send-otp-btn').disabled = false;
+                btn.innerText = "Verify OTP & Login";
+                btn.disabled = false;
+                document.getElementById('phone-input').value = '';
+                document.getElementById('otp-input').value = '';
+            } catch (error) {
+                console.error("Error verifying OTP:", error);
+                alert("Invalid OTP. Please try again.");
+                btn.innerText = "Verify OTP & Login";
+                btn.disabled = false;
+            }
         });
 
         logoutBtn.addEventListener('click', () => {

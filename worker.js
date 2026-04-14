@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Viyou-v4';
+const CACHE_NAME = 'Viyou-v5'; // Cache version ko update kiya gaya hai
 const urlsToCache = [
   '/',
   '/index.html',
@@ -9,10 +9,14 @@ const urlsToCache = [
   '/about-us.html',
   '/studio.html',
   '/story-editor.html',
-  '/game-logo.png',
-  '/manifest.json'
-  // अगर आपकी कोई और महत्वपूर्ण एसेट्स (जैसे JS फाइलें या इमेज) हैं जो लोकल हैं, तो उन्हें यहां जोड़ सकते हैं।
-  // CDN से लोड होने वाली लाइब्रेरीज़ को आमतौर पर सीधे कैश करने की ज़रूरत नहीं होती।
+  '/manifest.json',
+  // पुराना लोगो 'game-logo.png' हटा दिया गया है।
+  // कृपया सुनिश्चित करें कि नीचे दिए गए पाथ आपके नए लोगो और आइकॉन से मेल खाते हैं।
+  '/logo.png', // <-- अपना मुख्य लोगो यहां डालें
+  '/favicon.ico', // <-- अपना favicon यहां डालें
+  '/icons/icon-192x192.png', // <-- PWA के लिए आइकॉन
+  '/icons/icon-512x512.png'  // <-- PWA के लिए आइकॉन
+  // अगर और भी आइकॉन हैं, तो उन्हें भी यहां जोड़ें, जैसे: '/icons/icon-144x144.png'
 ];
 
 self.addEventListener('install', event => {
