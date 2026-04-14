@@ -214,6 +214,31 @@
         .profile-lightbox {  border-radius: 50%;left:0; top:0; width: 100%; height: 70%; max-width: 400px; max-height: 400px; object-fit: cover; align-items: center; justify-content: center; }
         .close-lightbox { position: absolute; top: 20px; right: 30px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer; z-index: 2001; }
         .close-lightbox:hover { color: #bbb; }        
+
+        /* Profile Tabs Styles */
+        .profile-tabs { display: flex; border-bottom: 1px solid #444; margin-top: 30px; margin-bottom: 20px; }
+        .profile-tab-btn { flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        .profile-tab-btn.active { color: #fff; border-bottom-color: #0d6efd; }
+        .profile-tab-btn:hover { color: #ccc; }
+        body.light-mode .profile-tabs { border-bottom-color: #ddd; }
+        body.light-mode .profile-tab-btn { color: #666; }
+        body.light-mode .profile-tab-btn.active { color: #0d6efd; border-bottom-color: #0d6efd; }
+        body.light-mode .profile-tab-btn:hover { color: #333; }
+        .profile-tab-content { display: none; text-align: left; }
+        .profile-tab-content.active { display: block; }
+
+        /* Grid View Styles for Videos and Flicks */
+        .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; }
+        .flicks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .yt-grid-item { cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .yt-grid-item:hover { transform: scale(1.02); }
+        .video-thumbnail { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #222; border: 1px solid #444; }
+        .flick-thumbnail { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; background: #222; border: 1px solid #444; }
+        .yt-grid-item h4 { margin: 8px 0 4px 0; font-size: 0.95rem; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+        .yt-grid-item p { margin: 0; font-size: 0.8rem; color: #aaa; }
+        body.light-mode .yt-grid-item h4 { color: #333; }
+        body.light-mode .yt-grid-item p { color: #666; }
+        body.light-mode .video-thumbnail, body.light-mode .flick-thumbnail { border-color: #ddd; }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -222,6 +247,8 @@
     <!-- Fluid Player for VAST Ads -->
     <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
     <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
+     crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -263,9 +290,9 @@
         <!-- Badges will be populated by JavaScript -->
     </div>
 
-    <input type="text" id="username" placeholder="Unique ID (e.g. @cricket_lover)">
+    <input type="text" id="username" placeholder="Unique ID (e.g. @creator_name)">
     <input type="text" id="name" placeholder="Display Name">
-    <textarea id="bio" rows="3" placeholder="Bio (e.g. Cricket Lover from Mumbai)"></textarea>
+    <textarea id="bio" rows="3" placeholder="Bio (e.g. Content Creator from Mumbai)"></textarea>
     
     <button id="create-story-btn" class="btn" style="background-color: #ffc107; color: black; margin-top: 20px; width: 100%; display: none;" onclick="window.location.href='story-editor.html'">➕ Create New Story</button>
     <button id="studio-btn" class="btn" style="background: linear-gradient(45deg, #9b59b6, #8e44ad); margin-top: 10px; width: 100%; display: none;" onclick="window.location.href='studio.html'">🚀 Creator Studio</button>
@@ -276,9 +303,23 @@
     <button id="back-to-news-btn" class="btn-transparent" style="margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="window.location.href='index.html'"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
     <button id="delete-acc-btn" class="btn-transparent" style="margin-top: 30px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><img src="delete-acc-icon.png" alt="Delete Account" height="30px" width="30px" style="vertical-align: middle;"> Delete Account</button>
 
-    <div id="my-blogs-section" style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; text-align: left;">
-        <h3 class="gold-text" style="margin-bottom: 15px; text-align: center;"><img src="blog-icon.png" alt="Blogs" height="30px" width="30px" style="vertical-align: middle;"> Blogs</h3>
-        <div id="my-blogs-list">Loading...</div>
+    <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
+        <h3 class="gold-text" style="margin-bottom: 5px; text-align: center;"><i class="fa-solid fa-photo-film"></i> My Content</h3>
+    </div>
+    <div class="profile-tabs">
+        <button id="btn-tab-blogs" class="profile-tab-btn active" onclick="window.switchProfileTab('blogs')">Blogs</button>
+        <button id="btn-tab-videos" class="profile-tab-btn" onclick="window.switchProfileTab('videos')">Videos</button>
+        <button id="btn-tab-flicks" class="profile-tab-btn" onclick="window.switchProfileTab('flicks')">Flicks</button>
+    </div>
+
+    <div id="tab-blogs" class="profile-tab-content active">
+        <div id="my-blogs-list"></div>
+    </div>
+    <div id="tab-videos" class="profile-tab-content">
+        <div id="my-videos-list"></div>
+    </div>
+    <div id="tab-flicks" class="profile-tab-content">
+        <div id="my-flicks-list"></div>
     </div>
 
     <!-- Cropper Modal -->
@@ -436,12 +477,12 @@
             imageSmoothingQuality: 'high',
         });
 
-        // Compress to under 1MB
+        // Compress to under 100KB
         let quality = 0.9;
         let dataURL = canvas.toDataURL('image/jpeg', quality);
         
-        // 1MB approx 1.33 million base64 chars
-        while (dataURL.length > 1330000 && quality > 0.1) {
+        // 100KB approx 135,000 base64 chars
+        while (dataURL.length > 135000 && quality > 0.1) {
             quality -= 0.1;
             dataURL = canvas.toDataURL('image/jpeg', quality);
         }
@@ -865,6 +906,14 @@
         document.getElementById('lightbox-modal').style.display = "none";
     };
 
+    window.switchProfileTab = function(tabName) {
+        document.querySelectorAll('.profile-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.profile-tab-content').forEach(content => content.classList.remove('active'));
+        
+        document.getElementById(`btn-tab-${tabName}`).classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+    };
+
     function getYoutubeVideoId(url) {
         if (!url) return null;
         const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
@@ -881,6 +930,10 @@
     async function renderUserBlogs(uid, isOwner) {
         const list = document.getElementById('my-blogs-list');
         list.innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+        document.getElementById('my-blogs-list').innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+        document.getElementById('my-videos-list').innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+        document.getElementById('my-flicks-list').innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+
         try {
             await loadAdSettings();
             const constraints = [where("authorUid", "==", uid)];
@@ -895,6 +948,9 @@
             list.innerHTML = '';
             if (querySnapshot.empty) {
                 list.innerHTML = '<p style="text-align:center; color:#aaa;">No blogs yet.</p>';
+                document.getElementById('my-blogs-list').innerHTML = '<p style="text-align:center; color:#aaa;">No blogs yet.</p>';
+                document.getElementById('my-videos-list').innerHTML = '<p style="text-align:center; color:#aaa;">No videos yet.</p>';
+                document.getElementById('my-flicks-list').innerHTML = '<p style="text-align:center; color:#aaa;">No flicks yet.</p>';
                 return;
             }
 
@@ -907,145 +963,210 @@
         } catch (e) {
             console.error("Error fetching blogs:", e);
             list.innerHTML = '<p style="color:red;">Error loading blogs.</p>';
+            const errorHtml = '<p style="color:red;">Error loading blogs.</p>';
+            document.getElementById('my-blogs-list').innerHTML = errorHtml;
+            document.getElementById('my-videos-list').innerHTML = errorHtml;
+            document.getElementById('my-flicks-list').innerHTML = errorHtml;
         }
     }
 
     function renderBlogsOnProfile(isOwner) {
-        const grid = document.getElementById('my-blogs-list');
-        grid.innerHTML = '';
+        const blogsGrid = document.getElementById('my-blogs-list');
+        const videosGrid = document.getElementById('my-videos-list');
+        const flicksGrid = document.getElementById('my-flicks-list');
+        
+        videosGrid.className = 'videos-grid';
+        flicksGrid.className = 'flicks-grid';
+        blogsGrid.className = '';
+
+        blogsGrid.innerHTML = '';
+        videosGrid.innerHTML = '';
+        flicksGrid.innerHTML = '';
+        
         const user = auth.currentUser;
+        let blogsCount = 0, videosCount = 0, flicksCount = 0;
 
         profilePageBlogs.forEach(blog => {
-            const article = document.createElement('article');
-            article.className = 'news-card';
-            article.id = `blog-${blog.id}`;
+            let category = 'blogs';
+            if (blog.isFlicker) category = 'flicks';
+            else if (blog.video || blog.youtubeUrl) category = 'videos';
 
-            let likeCount = 0;
-            let isLiked = false;
-            
-            if (Array.isArray(blog.likes)) {
-                likeCount = blog.likes.length;
-                isLiked = user && blog.likes.includes(user.uid);
-            } else {
-                likeCount = typeof blog.likes === 'number' && !isNaN(blog.likes) ? blog.likes : 0;
-                let likedPosts = JSON.parse(localStorage.getItem('cricket_user_liked_posts') || '[]');
-                isLiked = likedPosts.includes(blog.id);
-            }
-            let likeIcon = isLiked ? '❤️' : '🤍';
-            
-            let actionButtons = `
-                <button onclick="window.likeUserBlog('${blog.id}')" style="background:none; border:none; color:#ff69b4; cursor:pointer; font-size: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${likeIcon} ${likeCount}</button>
-                <button onclick="window.shareBlog('${blog.id}', '${blog.title.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#0d6efd; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i class="fa-solid fa-share-nodes"></i> Share</button>
-            `;
-
-            if (isOwner) {
-                actionButtons += `<button onclick="window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.9rem;"><i class="fa-solid fa-pen"></i> Edit</button>`;
-                actionButtons += `<button onclick="window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.9rem;"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>`;
-            }
-
-            let mediaHtml = '';
-            if (blog.youtubeUrl) {
-                const videoId = getYoutubeVideoId(blog.youtubeUrl);
-                if (videoId) {
-                    mediaHtml += `<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 10px;"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>`;
+            if (category === 'flicks' || category === 'videos') {
+                // YouTube style Thumbnail Grid for Videos & Flicks
+                const item = document.createElement('div');
+                item.className = 'yt-grid-item';
+                
+                let thumbHtml = '';
+                if (blog.youtubeUrl) {
+                    const videoId = getYoutubeVideoId(blog.youtubeUrl);
+                    thumbHtml = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                } else if (blog.video) {
+                    if (blog.thumbnail) {
+                        thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                    } else {
+                        thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
+                    }
+                } else if (blog.image && blog.image !== 'game-logo.png') {
+                    thumbHtml = `<img src="${blog.image}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                } else {
+                    thumbHtml = `<div class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}"></div>`;
                 }
-            }
 
-            if (blog.video) {
-                mediaHtml += `
-                    <video id="video-${blog.id}" controls style="width: 100%; max-height: 300px; border-radius: 8px; margin-bottom: 10px; background: #000;">
-                        <source src="${blog.video}" type="video/mp4">
-                    </video>`;
-            }
+                let editDelHtml = '';
+                if (isOwner) {
+                    editDelHtml = `
+                        <div style="display: flex; gap: 15px; margin-top: 5px;">
+                            <button onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.85rem; padding: 0;"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.85rem; padding: 0;"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    `;
+                }
 
-            if (blog.images && blog.images.length > 0) {
-                const imagesList = blog.images.map(img => `<img src="${img}" alt="Blog Image" onclick="window.openLightbox('${img}')">`).join('');
-                const arrows = blog.images.length > 1 ? `<button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button><button class="carousel-btn next" onclick="window.scrollCarousel(this, 1)">&#10095;</button>` : '';
-                mediaHtml += `<div class="carousel-container">${arrows}<div class="image-carousel">${imagesList}</div></div>`;
-            } else if (blog.image) {
-                mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="Blog Image" onclick="window.openLightbox('${blog.image}')">`;
-            }
+                const views = blog.views || 0;
+                const dateStr = new Date(blog.date).toLocaleDateString();
+                const icon = category === 'flicks' ? '<i class="fa-solid fa-bolt" style="color: #ff0050;"></i>' : '<i class="fa-solid fa-play"></i>';
+                let targetUrl = 'index.html?blogId=' + blog.id;
+                if (category === 'flicks') targetUrl = 'flicks.html?id=' + blog.id;
+                else if (category === 'videos') targetUrl = 'watch.html?id=' + blog.id;
 
-            const draftBadge = (blog.status === 'draft' && isOwner) ? '<span style="background:orange; color:black; padding:2px 5px; border-radius:4px; font-size:0.7rem; margin-left:5px;">DRAFT</span>' : '';
-            
-            const authorHeader = `
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <img src="${blog.authorPhoto || 'game-logo.png'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #87ceeb; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">
-                    <div style="flex: 1;">
-                        <strong style="color: #87ceeb; font-size: 1.1rem; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
-                        <span style="font-size: 0.8rem; color: #aaa; margin-top: 4px; display: block;">${new Date(blog.date).toLocaleDateString()}</span>
+                item.innerHTML = `
+                    <div style="position: relative;" onclick="window.location.href='${targetUrl}'">
+                        ${thumbHtml}
+                        <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.8rem;">
+                            ${icon}
+                        </div>
                     </div>
-                </div>
-            `;
+                    <h4 onclick="window.location.href='${targetUrl}'">${blog.title || 'Untitled'}</h4>
+                    <p>${views} views • ${dateStr}</p>
+                    ${editDelHtml}
+                `;
 
-            article.innerHTML = `
-                ${mediaHtml}
-                <div class="news-card-content">
-                    ${authorHeader}
-                    <h2 style="margin-top: 5px;">${blog.title} ${draftBadge}</h2>
-                    <p>${blog.content.replace(/\n/g, '<br>')}</p>
-                    
-                    <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; display: flex; align-items: center; gap: 15px;">
-                        ${actionButtons}
+                if (category === 'flicks') {
+                    flicksGrid.appendChild(item);
+                    flicksCount++;
+                } else {
+                    videosGrid.appendChild(item);
+                    videosCount++;
+                }
+            } else {
+                // Original Post/Blog View (Full Card)
+                const article = document.createElement('article');
+                article.className = 'news-card';
+                article.id = `blog-${blog.id}`;
+
+                let likeCount = 0;
+                let isLiked = false;
+                
+                if (Array.isArray(blog.likes)) {
+                    likeCount = blog.likes.length;
+                    isLiked = user && blog.likes.includes(user.uid);
+                } else {
+                    likeCount = typeof blog.likes === 'number' && !isNaN(blog.likes) ? blog.likes : 0;
+                    let likedPosts = JSON.parse(localStorage.getItem('viyou_user_liked_posts') || '[]');
+                    isLiked = likedPosts.includes(blog.id);
+                }
+                let likeIcon = isLiked ? '❤️' : '🤍';
+                
+                let actionButtons = `
+                    <button onclick="window.likeUserBlog('${blog.id}')" style="background:none; border:none; color:#ff69b4; cursor:pointer; font-size: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${likeIcon} ${likeCount}</button>
+                    <button onclick="window.shareBlog('${blog.id}', '${blog.title.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#0d6efd; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                `;
+
+                if (isOwner) {
+                    actionButtons += `<button onclick="window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.9rem;"><i class="fa-solid fa-pen"></i> Edit</button>`;
+                    actionButtons += `<button onclick="window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.9rem;"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>`;
+                }
+
+                let mediaHtml = '';
+                if (blog.images && blog.images.length > 0) {
+                    const imagesList = blog.images.map(img => `<img src="${img}" alt="Blog Image" onclick="window.openLightbox('${img}')">`).join('');
+                    const arrows = blog.images.length > 1 ? `<button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button><button class="carousel-btn next" onclick="window.scrollCarousel(this, 1)">&#10095;</button>` : '';
+                    mediaHtml += `<div class="carousel-container">${arrows}<div class="image-carousel">${imagesList}</div></div>`;
+                } else if (blog.image) {
+                    if (blog.image !== 'game-logo.png') mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="" onclick="window.openLightbox('${blog.image}')">`;
+                }
+
+                const draftBadge = (blog.status === 'draft' && isOwner) ? '<span style="background:orange; color:black; padding:2px 5px; border-radius:4px; font-size:0.7rem; margin-left:5px;">DRAFT</span>' : '';
+                
+                const renderTextWithMentions = (text) => {
+                    let safeText = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+                    if (blog.mentionMap) {
+                        return safeText.replace(/@([\w_]+)/g, (match, username) => {
+                            const uid = blog.mentionMap[username.toLowerCase()];
+                            if (uid) return `<a href="profile.html?uid=${uid}" style="color: #0d6efd; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation();">${match}</a>`;
+                            return match;
+                        });
+                    }
+                    return safeText;
+                };
+
+                const authorHeader = `
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <img src="${blog.authorPhoto || 'game-logo.png'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #87ceeb; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">
+                        <div style="flex: 1;">
+                            <strong style="color: #87ceeb; font-size: 1.1rem; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
+                            <span style="font-size: 0.8rem; color: #aaa; margin-top: 4px; display: block;">${new Date(blog.date).toLocaleDateString()}</span>
+                        </div>
                     </div>
+                `;
 
-                    <!-- Comments Section -->
-                    <div style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
-                        <h3 style="font-size: 1.1rem; margin-top: 0; color: #ddd;">Comments</h3>
-                        <div id="comments-list-${blog.id}" style="margin-bottom: 10px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
-                            ${(blog.comments || []).map((c, index) => {
-                                const commentLikes = c.likes || [];
-                                const isCommentLiked = user && commentLikes.includes(user.uid);
-                                const commentLikeIcon = isCommentLiked ? '❤️' : '🤍';
-                                const isCommentOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
-                                const editDelBtns = isCommentOwner ? `
-                                    <button onclick="window.editProfileComment('${blog.id}', ${index})" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.8rem; margin-left: 10px;"><i class="fa-solid fa-pen"></i> Edit</button>
-                                    <button onclick="window.deleteProfileComment('${blog.id}', ${index})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.8rem; margin-left: 10px;"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
-                                ` : '';
-                                return `
-                                <div id="comment-${blog.id}-${index}" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
-                                    <div style="display: flex; gap: 10px; align-items: flex-start;">
-                                        <img src="${c.photo || 'game-logo.png'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-                                        <div style="flex: 1;">
-                                            <strong style="color: #87ceeb; font-size: 0.9rem;">${c.author}</strong>
-                                            <p style="font-size: 0.95rem; color: #eee; margin: 5px 0;">${c.text}</p>
-                                            <div class="comment-actions" id="comment-actions-${blog.id}-${index}">
-                                                <button onclick="window.toggleCommentLike('${blog.id}', ${index})" class="comment-action-btn">${commentLikeIcon} ${commentLikes.length}</button>
-                                                ${editDelBtns}
+                article.innerHTML = `
+                    ${mediaHtml}
+                    <div class="news-card-content">
+                        ${authorHeader}
+                        <h2 style="margin-top: 5px;">${renderTextWithMentions(blog.title)} ${draftBadge}</h2>
+                        <p>${renderTextWithMentions(blog.content)}</p>
+                        
+                        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; display: flex; align-items: center; gap: 15px;">
+                            ${actionButtons}
+                        </div>
+
+                        <!-- Comments Section -->
+                        <div style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                            <h3 style="font-size: 1.1rem; margin-top: 0; color: #ddd;">Comments</h3>
+                            <div id="comments-list-${blog.id}" style="margin-bottom: 10px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                                ${(blog.comments || []).map((c, index) => {
+                                    const commentLikes = c.likes || [];
+                                    const isCommentLiked = user && commentLikes.includes(user.uid);
+                                    const commentLikeIcon = isCommentLiked ? '❤️' : '🤍';
+                                    const isCommentOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
+                                    const editDelBtns = isCommentOwner ? `
+                                        <button onclick="window.editProfileComment('${blog.id}', ${index})" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.8rem; margin-left: 10px;"><i class="fa-solid fa-pen"></i> Edit</button>
+                                        <button onclick="window.deleteProfileComment('${blog.id}', ${index})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.8rem; margin-left: 10px;"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                                    ` : '';
+                                    return `
+                                    <div id="comment-${blog.id}-${index}" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <img src="${c.photo || 'game-logo.png'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                                            <div style="flex: 1;">
+                                                <strong style="color: #87ceeb; font-size: 0.9rem;">${c.author}</strong>
+                                                <p style="font-size: 0.95rem; color: #eee; margin: 5px 0;">${c.text}</p>
+                                                <div class="comment-actions" id="comment-actions-${blog.id}-${index}">
+                                                    <button onclick="window.toggleCommentLike('${blog.id}', ${index})" class="comment-action-btn">${commentLikeIcon} ${commentLikes.length}</button>
+                                                    ${editDelBtns}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            `}).join('')}
-                            ${(!blog.comments || blog.comments.length === 0) ? '<p style="font-size: 0.8rem; color: #ccc;">No comments yet.</p>' : ''}
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="comment-input-${blog.id}" placeholder="Add a comment..." style="flex: 1; width: 250px; padding: 12px 15px; font-size: 1rem; border-radius: 6px; border: none; outline: none;">
-                            <button onclick="window.addBlogComment('${blog.id}')" style="width: 70px; padding: 6px 12px; font-size: 0.85rem; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; height: fit-content;">Post</button>
+                                `}).join('')}
+                                ${(!blog.comments || blog.comments.length === 0) ? '<p style="font-size: 0.8rem; color: #ccc;">No comments yet.</p>' : ''}
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="comment-input-${blog.id}" placeholder="Add a comment..." style="flex: 1; width: 250px; padding: 12px 15px; font-size: 1rem; border-radius: 6px; border: none; outline: none;">
+                                <button onclick="window.addBlogComment('${blog.id}')" style="width: 70px; padding: 6px 12px; font-size: 0.85rem; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; height: fit-content;">Post</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-            grid.appendChild(article);
+                `;
 
-            // Initialize Fluid Player for VAST ads if video exists
-            if (blog.video) {
-                let playerOptions = {};
-                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.vastUrl) {
-                    playerOptions = {
-                        vastOptions: {
-                            adList: [
-                                {
-                                    roll: 'preRoll',
-                                    vastTag: globalAdConfig.vastUrl
-                                }
-                            ]
-                        }
-                    };
-                }
-                fluidPlayer(`video-${blog.id}`, playerOptions);
+                blogsGrid.appendChild(article);
+                blogsCount++;
             }
         });
+
+        if (blogsCount === 0) blogsGrid.innerHTML = '<p style="text-align:center; color:#aaa; grid-column: 1 / -1;">No blogs yet.</p>';
+        if (videosCount === 0) videosGrid.innerHTML = '<p style="text-align:center; color:#aaa; grid-column: 1 / -1;">No videos yet.</p>';
+        if (flicksCount === 0) flicksGrid.innerHTML = '<p style="text-align:center; color:#aaa; grid-column: 1 / -1;">No flicks yet.</p>';
     }
 
     window.showLikers = async function(blogId) {
@@ -1134,7 +1255,7 @@
                 await updateDoc(blogRef, { likes: arrayRemove(uid) });
             }
         } else {
-            let likedPosts = JSON.parse(localStorage.getItem('cricket_user_liked_posts') || '[]');
+            let likedPosts = JSON.parse(localStorage.getItem('viyou_user_liked_posts') || '[]');
             const likedIndex = likedPosts.indexOf(id);
             let currentLikes = typeof blog.likes === 'number' ? blog.likes : 0;
             
@@ -1147,7 +1268,7 @@
             }
             
             blog.likes = currentLikes;
-            localStorage.setItem('cricket_user_liked_posts', JSON.stringify(likedPosts));
+            localStorage.setItem('viyou_user_liked_posts', JSON.stringify(likedPosts));
             await updateDoc(blogRef, { likes: currentLikes });
         }
         

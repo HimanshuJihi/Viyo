@@ -6,13 +6,13 @@
     <title>Viyou</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Latest cricket news, IPL 2026 auction analysis, match reports, and player stats. Stay updated with Auction to Arena cricket insights.">
-    <meta name="keywords" content="Cricket News, IPL 2026, WPL, Match Reports, Cricket Analysis, Sports News, Auction cricket game, ipl auction game, best ipl game, auctio to arena, ">
+    <meta name="description" content="Viyou - A modern social media platform for sharing posts, short videos, and connecting with creators worldwide.">
+    <meta name="keywords" content="Social Media, Viyou, Creator Platform, Short Videos, Blogs, Networking">
     
     <meta name="0d4daa8107753b3ce78725ff60febbc952d922d6" content="0d4daa8107753b3ce78725ff60febbc952d922d6" />
     <!-- Open Graph -->
-    <meta property="og:title" content="Cricket News - IPL 2026 Updates">
-    <meta property="og:description" content="Latest cricket news, IPL 2026 auction analysis, match reports, and player stats.">
+    <meta property="og:title" content="Viyou - Social Media Platform">
+    <meta property="og:description" content="Share your stories, short videos, and connect with a global community on Viyou.">
     <meta property="og:type" content="website">
 
     <link rel="icon" href="logo.png" type="image/png">
@@ -563,6 +563,10 @@
         body.light-mode .btn-vertical { color: #333; }
         body.light-mode .theme-btn { color: #333 !important; }
         body.light-mode .btn-transparent { color: #333 !important; }
+        
+        /* Cookie Banner Light Mode */
+        body.light-mode #cookie-consent-banner { background: rgba(255, 255, 255, 0.95) !important; border-top-color: #ddd !important; }
+        body.light-mode #cookie-consent-banner p { color: #333 !important; }
         .feed-btn {
             background-color: transparent;
             border: 1px solid #6c757d;
@@ -597,9 +601,47 @@
             border-color: #1da1f2;
         }
         #flicks-reel::-webkit-scrollbar { display: none; }
+        .category-bar {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 5px;
+            margin-bottom: 15px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .category-bar::-webkit-scrollbar { display: none; }
+        .category-chip {
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            color: #ddd;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .category-chip:hover { background: rgba(255, 255, 255, 0.2); }
+        .category-chip.active { background: #fff; color: #000; font-weight: bold; }
+        body.light-mode .category-chip { background: #f0f0f0; border-color: #ccc; color: #555; }
+        body.light-mode .category-chip.active { background: #333; color: #fff; }
     </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
+     crossorigin="anonymous"></script>
 </head>
 <body>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-consent-banner" style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0, 0, 0, 0.9); border-top: 1px solid #444; padding: 15px 20px; z-index: 9999; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(10px);">
+        <p style="margin: 0 0 10px 0; color: #ddd; font-size: 0.95rem; max-width: 800px;">
+            We use cookies and similar technologies to personalize content, tailor and measure ads (including Google AdSense), and provide a better experience. By clicking "Accept", you agree to this use of cookies. <a href="privacy.html" style="color: #0d6efd; text-decoration: underline;">Learn more</a>.
+        </p>
+        <div style="display: flex; gap: 15px;">
+            <button id="accept-cookies-btn" class="btn" style="background-color: #198754; padding: 8px 20px; font-size: 0.9rem;">Accept</button>
+            <button id="decline-cookies-btn" class="btn" style="background-color: #6c757d; padding: 8px 20px; font-size: 0.9rem;">Decline</button>
+        </div>
+    </div>
 
     <div class="container">
         <div class="header">
@@ -654,6 +696,12 @@
             </div>
         </div>
 
+    <!-- Main Headline Box -->
+    <div id="main-headline-container" class="latest-news" style="display:none; background: linear-gradient(45deg, #ff0050, #0d6efd); padding: 15px 25px; margin-bottom: 30px; border-radius: 8px; text-align: center; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+        <i class="fa-solid fa-bullhorn" style="font-size: 1.5rem; margin-right: 10px; color: gold; vertical-align: middle;"></i>
+        <span id="main-headline-text" style="font-size: 1.2rem; color: white; font-weight: bold; vertical-align: middle;"></span>
+    </div>
+
         <!-- Trending Section -->
         <div class="latest-news" id="trending-section" style="display:none; border-left: 4px solid #ffc107;">
             <h2 style="color: #ffe600;"><i class="fa-solid fa-fire" style="color: #f09433;"></i>  Trending Now (Top Liked in 24h)</h2>
@@ -671,6 +719,21 @@
         <!-- User Blogs Section -->
         <div class="latest-news" id="user-blogs-section" style="display:none; border-left: 4px solid #198754;">
             <h2 style="color: #198754;">Community Blogs (User Posts)</h2>
+            <div id="category-bar" class="category-bar" style="display: flex;">
+                <button class="category-chip active" data-category="All">All</button>
+                <button class="category-chip" data-category="Entertainment">Entertainment</button>
+                <button class="category-chip" data-category="Music">Music</button>
+                <button class="category-chip" data-category="Gaming">Gaming</button>
+                <button class="category-chip" data-category="Education">Education</button>
+                <button class="category-chip" data-category="Sports">Sports</button>
+                <button class="category-chip" data-category="News & Politics">News & Politics</button>
+                <button class="category-chip" data-category="Science & Technology">Science & Technology</button>
+                <button class="category-chip" data-category="Comedy">Comedy</button>
+                <button class="category-chip" data-category="Travel & Events">Travel & Events</button>
+                <button class="category-chip" data-category="Fashion & Beauty">Fashion & Beauty</button>
+                <button class="category-chip" data-category="Food">Food</button>
+                <button class="category-chip" data-category="Others">Others</button>
+            </div>
             <div id="feed-toggle" style="margin-bottom: 15px; display: none; gap: 10px;">
                 <button id="feed-all-btn" class="btn feed-btn active">All Posts</button>
                 <button id="feed-following-btn" class="btn feed-btn">Following</button>
@@ -684,9 +747,7 @@
         
     </div>
 
-    <footer>
-        <p>&copy; 2026 Cricket Auction Game. All Rights Reserved.</p>
-    </footer>
+    
 
     <a href="#" id="back-to-top" class="back-to-top-btn" title="Go to top"> <i class="fa-solid fa-arrow-up"></i></a>
 
@@ -720,7 +781,12 @@
         <span class="close-lightbox" style="z-index: 3000; right: 20px; top: 20px;" onclick="window.closeFlicksViewer()">&times;</span>
         <div id="flicks-viewer-content" style="position: relative; width: 100%; max-width: 450px; height: 100vh; background: #111; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
             <video id="flicks-video-player" src="" loop playsinline style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" onclick="this.paused ? this.play() : this.pause()"></video>
+            <video id="flicks-video-player" src="" loop playsinline style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" onclick="window.handleFlickVideoClick(event)"></video>
             
+            <div id="flicks-heart-anim" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: #ff0050; font-size: 6rem; z-index: 25; pointer-events: none; opacity: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; text-shadow: 0 0 20px rgba(0,0,0,0.5);">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+
             <!-- Flicks Ad Container -->
             <div id="flicks-ad-container" style="display:none; position: absolute; top:0; left:0; width: 100%; height: 100%; background: #000; z-index: 15;"></div>
 
@@ -730,6 +796,7 @@
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <img id="flicks-author-pic" src="" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; cursor: pointer;">
                     <strong id="flicks-author-name" style="font-size: 1.1rem; cursor: pointer;"></strong>
+                    <button id="flicks-follow-btn" style="display: none; background: transparent; border: 1px solid white; color: white; border-radius: 4px; padding: 2px 10px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;"></button>
                 </div>
                 <p id="flicks-title-display" style="margin: 0; font-size: 1rem; line-height: 1.3; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);"></p>
             </div>
@@ -739,6 +806,10 @@
                 <div style="text-align: center;">
                     <button id="flicks-like-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-heart"></i></button>
                     <span id="flicks-like-count" style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">0</span>
+                </div>
+                <div style="text-align: center;">
+                    <button id="flicks-comment-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-comment"></i></button>
+                    <span id="flicks-comment-count" style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">0</span>
                 </div>
                 <div style="text-align: center;">
                     <button id="flicks-share-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-share"></i></button>
@@ -753,6 +824,20 @@
             <!-- Swipe/Keyboard Navigation Hints -->
             <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); z-index: 10; pointer-events: none; font-size: 1.5rem; animation: story-anim-bounce 2s infinite;"><i class="fa-solid fa-chevron-up"></i></div>
             <div style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); z-index: 10; pointer-events: none; font-size: 1.5rem; animation: story-anim-bounce 2s infinite;"><i class="fa-solid fa-chevron-down"></i></div>
+            </div>
+
+            <!-- Flicks Comments Panel -->
+            <div id="flicks-comments-panel" style="display:none; position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: #1e1e1e; border-top-left-radius: 15px; border-top-right-radius: 15px; z-index: 30; flex-direction: column; box-shadow: 0 -5px 20px rgba(0,0,0,0.5);">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #333;">
+                    <h3 style="margin: 0; font-size: 1.1rem; color: white;">Comments</h3>
+                    <button onclick="document.getElementById('flicks-comments-panel').style.display='none'" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                </div>
+                <div id="flicks-comments-list" style="flex: 1; overflow-y: auto; padding: 15px; color: white;"></div>
+                <div style="padding: 15px; border-top: 1px solid #333; display: flex; gap: 10px; position: relative;">
+                    <div id="flick-mention-dropdown" style="display: none; position: absolute; bottom: 100%; left: 15px; right: 15px; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; max-height: 150px; overflow-y: auto; z-index: 50; margin-bottom: 5px; box-shadow: 0 -4px 10px rgba(0,0,0,0.5);"></div>
+                    <input type="text" id="flicks-comment-input" autocomplete="off" placeholder="Add a comment..." style="flex: 1; padding: 10px; border-radius: 20px; border: none; background: rgba(255,255,255,0.2); color: white;" onkeypress="if(event.key === 'Enter') window.addFlickComment()" oninput="window.handleFlickMentionInput(event, 'flick-mention-dropdown')">
+                    <button onclick="window.addFlickComment()" style="background: transparent; border: none; color: #0d6efd; font-weight: bold; cursor: pointer;">Post</button>
+                </div>
             </div>
         </div>
     </div>
@@ -837,6 +922,7 @@
         let viewedStories = JSON.parse(localStorage.getItem('viewed_stories') || '[]');
         let observer; // For infinite scroll
         let currentFeedMode = 'all'; // 'all' or 'following'
+        let currentCategoryFilter = 'All';
         let currentNotifications = [];
         let currentEditContext = null;
         let globalGroupedStories = [];
@@ -861,6 +947,47 @@
                 }
             });
         }, { threshold: 0.5 }); // Trigger when 50% of the card is visible
+
+    // Track Ad Clicks
+    window.trackAdClick = async function(blogId) {
+        if (!blogId) return;
+
+        // --- Daily Limit Logic for Click Fraud Prevention ---
+        const today = new Date().toDateString();
+        let clickData = JSON.parse(localStorage.getItem('ad_click_data') || '{"date":"","count":0}');
+        if (clickData.date !== today) {
+            clickData = { date: today, count: 0 };
+        }
+        
+        const MAX_CLICKS_PER_DAY = 3; // Maximum allowed ad clicks per user/device per day
+        if (clickData.count >= MAX_CLICKS_PER_DAY) {
+            console.log("Daily ad click limit reached. Click ignored to prevent fraud.");
+            return;
+        }
+        
+        clickData.count++;
+        localStorage.setItem('ad_click_data', JSON.stringify(clickData));
+        // ----------------------------------------------------
+
+        try {
+            const blogRef = doc(db, "blogs", blogId);
+            await updateDoc(blogRef, { adClicks: increment(1) });
+            console.log("Ad click tracked for blog:", blogId);
+        } catch(e) { console.error("Error tracking ad click:", e); }
+    };
+
+    // Load Main Headline
+    async function loadMainHeadline() {
+        try {
+            const docSnap = await getDoc(doc(db, "settings", "headlines"));
+            if (docSnap.exists() && docSnap.data().mainHeadline && docSnap.data().mainHeadline.trim() !== '') {
+                document.getElementById('main-headline-text').innerText = docSnap.data().mainHeadline;
+                document.getElementById('main-headline-container').style.display = 'block';
+            } else {
+                document.getElementById('main-headline-container').style.display = 'none';
+            }
+        } catch(e) { console.error("Error loading headline:", e); }
+    }
 
         // Fetch Ad Settings from Firestore
         async function loadAdSettings() {
@@ -919,6 +1046,9 @@
                 }
             }
         }
+
+    // Call immediately to show for guests too
+    loadMainHeadline();
 
         // Login/Logout Logic
 
@@ -1533,6 +1663,15 @@
             resetAndLoadBlogs();
         });
 
+        document.querySelectorAll('.category-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategoryFilter = e.target.getAttribute('data-category');
+                resetAndLoadBlogs();
+            });
+        });
+
         // Load Trending Blogs
         async function loadTrending() {
             const trendingSection = document.getElementById('trending-section');
@@ -1553,7 +1692,7 @@
 
                 // Sort by likes descending
                 blogs.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-                const topBlogs = blogs.slice(0, 3);
+                const topBlogs = blogs.slice(0, 10);
 
                 if (topBlogs.length > 0) {
                     trendingSection.style.display = 'block';
@@ -1564,8 +1703,8 @@
                         div.style.cursor = 'pointer';
                         div.onclick = () => window.location.href = `index.html?blogId=${blog.id}`;
                         
-                        const img = (blog.images && blog.images.length) ? blog.images[0] : (blog.image || '');
-                        const imgHtml = img ? `<img src="${img}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">` : '';
+                        const img = blog.authorPhoto || 'https://via.placeholder.com/60';
+                        const imgHtml = `<img src="${img}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #87ceeb; cursor: pointer;" onclick="event.stopPropagation(); window.location.href='profile.html?uid=${blog.authorUid}'">`;
 
                         div.innerHTML = `
                             <div style="display: flex; gap: 15px; padding: 15px; align-items: center;">
@@ -1609,37 +1748,35 @@
                 
                 // Loop until we find valid posts or exhaust the database
                 while (newBlogs.length === 0 && hasMoreDocs) {
-                    let q;
+                    let queryConstraints = [];
+
                     if (currentFeedMode === 'following') {
                         if (!auth.currentUser || currentUserFollowing.length === 0) {
                             if(grid) grid.innerHTML = '<p style="text-align: center; color: #aaa; padding: 20px;">You are not following anyone. Follow users to see their posts here.</p>';
                             if(loadMoreContainer) loadMoreContainer.style.display = 'none';
                             return;
                         }
-                        
                         const followedUIDs = currentUserFollowing.slice(0, 30);
                         if (currentUserFollowing.length > 30) {
                             console.warn("Following feed is currently limited to the first 30 users you followed.");
                         }
-
-                        if (useStartAfter && lastVisibleBlog) {
-                            q = query(blogsRef, where("authorUid", "in", followedUIDs), orderBy("date", "desc"), startAfter(lastVisibleBlog), limit(BLOGS_PER_PAGE));
-                        } else {
-                            q = query(blogsRef, where("authorUid", "in", followedUIDs), orderBy("date", "desc"), limit(BLOGS_PER_PAGE));
-                        }
+                        queryConstraints.push(where("authorUid", "in", followedUIDs));
                     } else if (currentFeedMode === 'verified') {
-                        if (useStartAfter && lastVisibleBlog) {
-                            q = query(blogsRef, where("authorVerified", "==", true), orderBy("date", "desc"), startAfter(lastVisibleBlog), limit(BLOGS_PER_PAGE));
-                        } else {
-                            q = query(blogsRef, where("authorVerified", "==", true), orderBy("date", "desc"), limit(BLOGS_PER_PAGE));
-                        }
-                    } else { // 'all' mode
-                        if (useStartAfter && lastVisibleBlog) {
-                            q = query(blogsRef, orderBy("date", "desc"), startAfter(lastVisibleBlog), limit(BLOGS_PER_PAGE));
-                        } else {
-                            q = query(blogsRef, orderBy("date", "desc"), limit(BLOGS_PER_PAGE));
-                        }
+                        queryConstraints.push(where("authorVerified", "==", true));
                     }
+
+                    if (currentCategoryFilter !== 'All') {
+                        queryConstraints.push(where("category", "==", currentCategoryFilter));
+                    }
+
+                    queryConstraints.push(orderBy("date", "desc"));
+
+                    if (useStartAfter && lastVisibleBlog) {
+                        queryConstraints.push(startAfter(lastVisibleBlog));
+                    }
+                    queryConstraints.push(limit(BLOGS_PER_PAGE));
+
+                    const q = query(blogsRef, ...queryConstraints);
 
                     const querySnapshot = await getDocs(q);
                     
@@ -1689,8 +1826,8 @@
                 if(grid) {
                     let errorMsg = "पोस्ट लोड करते समय एक त्रुटि हुई।";
                     if (e.code === 'failed-precondition') {
-                        errorMsg = "त्रुटि: एक आवश्यक डेटाबेस इंडेक्स गायब है। इसे बनाने के लिए लिंक हेतु कृपया ब्राउज़र के डेवलपर कंसोल (F12) की जाँच करें।";
-                        console.error("This error usually means you need to create a composite index in Firestore for the 'verified' feed. The error message from Firebase should contain a direct link to create it.");
+                        errorMsg = "त्रुटि: एक आवश्यक डेटाबेस इंडेक्स गायब है (उदा: category + date)। इसे बनाने के लिए लिंक हेतु कृपया ब्राउज़र के डेवलपर कंसोल (F12) की जाँच करें।";
+                        console.error("This error usually means you need to create a composite index in Firestore for the 'category' or 'verified' feed. The error message from Firebase should contain a direct link to create it.");
                     }
                     grid.innerHTML = `<p style="text-align: center; color: #ff6b6b; padding: 20px;">${errorMsg}</p>`;
                 }
@@ -1770,7 +1907,7 @@
                         div.style.cssText = "flex: 0 0 140px; height: 240px; background: #000; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; border: 1px solid #444; transition: transform 0.2s;";
                         div.onmouseover = () => div.style.transform = "scale(1.05)";
                         div.onmouseout = () => div.style.transform = "scale(1)";
-                        div.onclick = () => window.openFlicksViewer(idx);
+                        div.onclick = () => window.location.href = `flicks.html?id=${flick.id}`;
                         
                         div.innerHTML = `
                             <video src="${flick.video}" style="width: 100%; height: 100%; object-fit: cover;" muted preload="metadata"></video>
@@ -1809,7 +1946,7 @@
                         isLiked = user && blog.likes.includes(user.uid);
                     } else {
                         likeCount = typeof blog.likes === 'number' ? blog.likes : 0;
-                        let likedPosts = JSON.parse(localStorage.getItem('cricket_user_liked_posts') || '[]');
+                        let likedPosts = JSON.parse(localStorage.getItem('viyou_user_liked_posts') || '[]');
                         isLiked = likedPosts.includes(blog.id);
                     }
                     const likeIcon = isLiked ? '<i class="fa-solid fa-heart" style="color: rgb(224, 109, 25);"></i>' : '<i class="fa-regular fa-heart" style="color: rgb(223, 229, 242);"></i>';
@@ -1851,14 +1988,9 @@
                         const videoId = getYoutubeVideoId(blog.youtubeUrl);
                         if (videoId) {
                             mediaHtml += `
-                                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 10px;">
-                                    <iframe 
-                                        src="https://www.youtube.com/embed/${videoId}" 
-                                        frameborder="0" 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                        allowfullscreen
-                                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-                                    </iframe>
+                                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 10px; cursor: pointer;" onclick="window.location.href='watch.html?id=${blog.id}'">
+                                    <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; color: rgba(255,255,255,0.9);"><i class="fa-brands fa-youtube" style="color: #ff0000;"></i></div>
                                 </div>`;
                         }
                     }
@@ -1866,9 +1998,10 @@
                     // Video Display
                     if (blog.video) {
                         mediaHtml += `
-                            <video id="video-${blog.id}" controls style="width: 100%; max-height: 300px; border-radius: 8px; margin-bottom: 10px; background: #000;">
-                                <source src="${blog.video}" type="video/mp4">
-                            </video>`;
+                            <div style="position: relative; width: 100%; height: 250px; border-radius: 8px; margin-bottom: 10px; background: #000; cursor: pointer; display: flex; justify-content: center; align-items: center; overflow: hidden;" onclick="window.location.href='watch.html?id=${blog.id}'">
+                                <img src="${blog.thumbnail || 'game-logo.png'}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+                                <div style="position: absolute; font-size: 4rem; color: rgba(255,255,255,0.9); text-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i class="fa-solid fa-play-circle"></i></div>
+                            </div>`;
                     }
 
                     if (blog.images && blog.images.length > 0) {
@@ -1882,8 +2015,8 @@
                             ${arrows}
                             <div class="image-carousel">${imagesList}</div>
                         </div>`;
-                    } else if (blog.image) {
-                        mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="Blog Image" style="max-height: 300px; object-fit: cover; cursor: pointer;" onclick="window.openLightbox('${blog.image}')">`;
+                    } else if (blog.image && blog.image !== 'game-logo.png') {
+                        mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="" style="max-height: 300px; object-fit: cover; cursor: pointer;" onclick="window.openLightbox('${blog.image}')">`;
                     }
                     
                     // Follow Button Logic
@@ -1897,6 +2030,19 @@
                     // Status display has been removed from blog cards.
 
                     // User Profile & ID Header
+
+                    const renderTextWithMentions = (text) => {
+                        let safeText = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+                        if (blog.mentionMap) {
+                            return safeText.replace(/@([\w_]+)/g, (match, username) => {
+                                const uid = blog.mentionMap[username.toLowerCase()];
+                                if (uid) return `<a href="profile.html?uid=${uid}" style="color: #0d6efd; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation();">${match}</a>`;
+                                return match;
+                            });
+                        }
+                        return safeText;
+                    };
+
                     const authorHeader = `
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                             <img src="${blog.authorPhoto || 'https://via.placeholder.com/40'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #87ceeb; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">
@@ -1911,12 +2057,15 @@
                         </div>
                     `;
 
+                    const categoryBadge = blog.category ? `<span style="background: rgba(128,128,128,0.2); color: inherit; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; margin-bottom: 10px; display: inline-block;">🏷️ ${blog.category}</span>` : '';
+
                     article.innerHTML = `
                         ${mediaHtml}
                         <div class="news-card-content">
                             ${authorHeader}
-                            <h2 style="margin-top: 5px;"><a href="#">${blog.title}</a></h2>
-                            <p>${blog.content.replace(/\n/g, '<br>')}</p>
+                            ${categoryBadge}
+                            <h2 style="margin-top: 5px;"><a href="index.html?blogId=${blog.id}" style="text-decoration:none;">${renderTextWithMentions(blog.title)}</a></h2>
+                            <p>${renderTextWithMentions(blog.content)}</p>
 
                             ${blog.poll ? `
                                 <div class="poll-container" style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
@@ -2039,6 +2188,12 @@
                                             </div>`;
                                         }).join('');
                                         
+                                        const isOpen = window.openBlogReplyThreads && window.openBlogReplyThreads.has(c.id);
+                                        const repliesDisplay = isOpen ? 'block' : 'none';
+                                        const toggleBtnHtml = replies.length > 0 
+                                            ? `<button id="blog-replies-btn-${c.id}" data-count="${replies.length}" onclick="window.toggleBlogReplies('${c.id}')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8rem; padding: 0; margin-top: 10px; font-weight: bold; outline: none; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">${isOpen ? '&#9652; Hide replies' : `&#9662; View ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`}</button>` 
+                                            : '';
+
                                         const cVerified = c.userVerified ? '<span class="verified-badge" title="Verified">✔</span>' : '';
                                         const editedBadge = c.isEdited ? '<span style="font-size: 0.75rem; color: #888; font-style: italic; margin-left: 5px;">(edited)</span>' : '';
                                         return `
@@ -2066,7 +2221,8 @@
                                                         <button onclick="submitReply('${blog.id}', '${c.id}')" style="padding: 5px 10px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Send</button>
                                                     </div>
 
-                                                    <div class="replies-list">
+                                                    ${toggleBtnHtml}
+                                                    <div id="blog-replies-${c.id}" class="replies-list" style="display: ${repliesDisplay};">
                                                         ${repliesHtml}
                                                     </div>
                                                 </div>
@@ -2086,28 +2242,11 @@
                     `;
                     grid.appendChild(article);
 
-                    // Observe the article for view tracking ONLY if it has a video
-                    if (blog.video) {
+                    // Track views for text and image posts when they are scrolled into view
+                    // Video views are now tracked inside watch.html
+                    if (!blog.video && !blog.youtubeUrl) {
                         viewObserver.observe(article);
                     }
-
-                // Initialize Fluid Player for VAST ads if video exists
-                if (blog.video) {
-                    let playerOptions = {};
-                    if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.vastUrl) {
-                        playerOptions = {
-                            vastOptions: {
-                                adList: [
-                                    {
-                                        roll: 'preRoll',
-                                        vastTag: globalAdConfig.vastUrl
-                                    }
-                                ]
-                            }
-                        };
-                    }
-                    fluidPlayer(`video-${blog.id}`, playerOptions);
-                }
 
                 // --- बैनर ऐड (Banner Ad) लॉजिक ---
                 // एडमिन की सेट की हुई फ्रीक्वेंसी पर बैनर ऐड दिखाएं
@@ -2133,7 +2272,7 @@
                         adDiv.style.textAlign = 'center';
                         adDiv.innerHTML = `
                             <span style="font-size: 0.75rem; color: #888; display: block; margin-bottom: 10px;">Advertisement</span>
-                            <a href="${bLink}" target="_blank">
+                            <a href="${bLink}" target="_blank" onclick="window.trackAdClick('${blog.id}')">
                                 <img src="${bImg}" alt="Advertisement" style="max-width: 100%; border-radius: 8px;">
                             </a>
                         `;
@@ -2142,9 +2281,21 @@
                     }
                 }
 
+                let showAffiliate = false;
+                if (globalAdConfig.affiliateImg) {
+                    if (globalAdConfig.affiliateAlwaysShow) {
+                        showAffiliate = true;
+                    } else {
+                        const elapsedHours = (Date.now() - (globalAdConfig.affiliateStartTime || Date.now())) / (1000 * 60 * 60);
+                        if (elapsedHours < (globalAdConfig.affiliateDuration || 24)) {
+                            showAffiliate = true;
+                        }
+                    }
+                }
+
                 // --- एफिलिएट प्रोडक्ट ऐड (Amazon Affiliate Ad) लॉजिक ---
                 // एडमिन की सेट की हुई फ्रीक्वेंसी पर एफिलिएट ऐड दिखाएं
-                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.affiliateImg && (index + 1) % (globalAdConfig.affiliateFrequency || 5) === 0) {
+                if (globalAdConfig && globalAdConfig.showAds && showAffiliate && (index + 1) % (globalAdConfig.affiliateFrequency || 5) === 0) {
                     const affDiv = document.createElement('div');
                     affDiv.className = 'news-card';
                     affDiv.style.marginBottom = '20px';
@@ -2153,17 +2304,29 @@
                     affDiv.style.border = '2px dashed #ff9900'; // Amazon style border
                     affDiv.innerHTML = `
                         <span style="font-size: 0.85rem; color: #ff9900; display: block; margin-bottom: 10px; font-weight: bold;">Sponsored Product</span>
-                        <a href="${globalAdConfig.affiliateLink || '#'}" target="_blank">
+                        <a href="${globalAdConfig.affiliateLink || '#'}" target="_blank" onclick="window.trackAdClick('${blog.id}')">
                             <img src="${globalAdConfig.affiliateImg}" alt="Affiliate Product" style="max-width: 100%; max-height: 250px; border-radius: 8px; object-fit: contain;">
                         </a>
-                        <a href="${globalAdConfig.affiliateLink || '#'}" target="_blank" class="btn" style="background-color: #ff9900; color: #000; margin-top: 15px; width: 100%; font-size: 1.1rem;">Buy Now / View Offer</a>
+                        <a href="${globalAdConfig.affiliateLink || '#'}" target="_blank" onclick="window.trackAdClick('${blog.id}')" class="btn" style="background-color: #ff9900; color: #000; margin-top: 15px; width: 100%; font-size: 1.1rem;">Buy Now / View Offer</a>
                     `;
                     grid.appendChild(affDiv);
                 }
 
+                let showVideoAd = false;
+                if (globalAdConfig.youtubeAdUrl || globalAdConfig.vastUrl) {
+                    if (globalAdConfig.videoAdAlwaysShow) {
+                        showVideoAd = true;
+                    } else {
+                        const elapsedHours = (Date.now() - (globalAdConfig.videoAdStartTime || Date.now())) / (1000 * 60 * 60);
+                        if (elapsedHours < (globalAdConfig.videoAdDuration || 24)) {
+                            showVideoAd = true;
+                        }
+                    }
+                }
+
                 // --- YouTube Video Ad लॉजिक ---
                 // एडमिन की सेट की हुई फ्रीक्वेंसी पर YouTube वीडियो ऐड दिखाएं
-                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.youtubeAdUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
+                if (globalAdConfig && globalAdConfig.showAds && showVideoAd && globalAdConfig.youtubeAdUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
                     const videoId = getYoutubeVideoId(globalAdConfig.youtubeAdUrl);
                     if (videoId) {
                         const ytAdDiv = document.createElement('div');
@@ -2189,7 +2352,7 @@
                 }
 
                 // --- Standalone VAST Video Ad लॉजिक ---
-                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.vastUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
+                if (globalAdConfig && globalAdConfig.showAds && showVideoAd && globalAdConfig.vastUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
                     const vastAdDiv = document.createElement('div');
                     vastAdDiv.className = 'news-card';
                     vastAdDiv.style.marginBottom = '20px';
@@ -2200,17 +2363,22 @@
                     const uniqueVidId = `vast-video-${blog.id}-${index}`;
                     vastAdDiv.innerHTML = `
                         <span style="font-size: 0.85rem; color: #0d6efd; display: block; margin-bottom: 10px; font-weight: bold;">Sponsored Ad</span>
-                        <video id="${uniqueVidId}" style="width: 100%; max-height: 300px; border-radius: 8px; background: #000;">
-                            <source src="https://cdn.fluidplayer.com/static/blank.mp4" type="video/mp4" />
-                        </video>
+                        <div>
+                            <video id="${uniqueVidId}" style="width: 100%; max-height: 300px; border-radius: 8px; background: #000;">
+                                <source src="https://cdn.fluidplayer.com/static/blank.mp4" type="video/mp4" />
+                            </video>
+                        </div>
                     `;
                     grid.appendChild(vastAdDiv);
                     
-                    fluidPlayer(uniqueVidId, {
+                    const fpStandalone = fluidPlayer(uniqueVidId, {
                         vastOptions: {
-                            adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl }]
+                            adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl || 'https://baggymaintenance.com/d/mjFLz.dlGYNGv/Z/GtUO/je/ml9LuiZ/UelXkcPdTXY/5pNtTdchwiNBTmcEtYN/jqkU1vNnzQAf2dMzSSZ/staFWV1Cp_dIDB0exV' }]
                         }
                     });
+                    
+                    // Track click ONLY when the actual ad is clicked (new tab opens)
+                    fpStandalone.on('adClick', () => window.trackAdClick(blog.id));
                 }
                 });
 
@@ -2309,6 +2477,9 @@
                     currentUserFollowing.push(targetUid);
                 }
                 renderBlogs(auth.currentUser); // Re-render to update buttons
+                if (document.getElementById('flicks-viewer-modal') && document.getElementById('flicks-viewer-modal').style.display === 'flex') {
+                    window.updateFlicksView();
+                }
             } catch(e) { console.error("Follow error:", e); alert("Error updating follow status."); }
         };
 
@@ -2335,6 +2506,24 @@
             const uid = auth.currentUser.uid;
             let isLiking = false;
 
+            const followBtn = document.getElementById('flicks-follow-btn');
+            if (user && flick.authorUid !== user.uid) {
+                followBtn.style.display = 'inline-block';
+                const isFollowing = currentUserFollowing.includes(flick.authorUid);
+                if (isFollowing) {
+                    followBtn.innerText = 'Following';
+                    followBtn.style.background = 'rgba(255,255,255,0.2)';
+                    followBtn.style.border = '1px solid transparent';
+                } else {
+                    followBtn.innerText = 'Follow';
+                    followBtn.style.background = 'transparent';
+                    followBtn.style.border = '1px solid white';
+                }
+                followBtn.onclick = (e) => { e.stopPropagation(); window.toggleFollow(flick.authorUid); };
+            } else {
+                followBtn.style.display = 'none';
+            }
+
             if (Array.isArray(blog.likes)) {
                 const likedIndex = blog.likes.indexOf(uid);
                 isLiking = likedIndex === -1;
@@ -2347,7 +2536,7 @@
                     await updateDoc(blogRef, { likes: arrayRemove(uid) });
                 }
             } else {
-                let likedPosts = JSON.parse(localStorage.getItem('cricket_user_liked_posts') || '[]');
+                let likedPosts = JSON.parse(localStorage.getItem('viyou_user_liked_posts') || '[]');
                 const likedIndex = likedPosts.indexOf(id);
                 let currentLikes = typeof blog.likes === 'number' ? blog.likes : 0;
 
@@ -2361,7 +2550,7 @@
                 }
 
                 blog.likes = currentLikes;
-                localStorage.setItem('cricket_user_liked_posts', JSON.stringify(likedPosts));
+                localStorage.setItem('viyou_user_liked_posts', JSON.stringify(likedPosts));
                 await updateDoc(blogRef, { likes: currentLikes });
             }
 
@@ -2394,7 +2583,7 @@
             const url = `${window.location.origin}${window.location.pathname}?blogId=${id}`;
             const shareData = {
                 title: title,
-                text: `Check out this cricket blog: ${title}`,
+                text: `Check out this post on Viyou: ${title}`,
                 url: url
             };
 
@@ -2569,6 +2758,20 @@
                 }
             } catch(e) { console.log("Profile fetch error", e); }
 
+            // --- Mention Logic ---
+            const mentionRegex = /@([\w_]+)/g;
+            const mentions = [...new Set([...text.matchAll(mentionRegex)].map(m => m[1].toLowerCase()))];
+            let mentionedUids = [];
+            let mentionMap = {};
+            if (mentions.length > 0) {
+                const q = query(collection(db, "users"), where("usernameLower", "in", mentions.slice(0, 30)));
+                const usersSnap = await getDocs(q);
+                usersSnap.forEach(docSnap => {
+                    mentionedUids.push(docSnap.id);
+                    mentionMap[docSnap.data().usernameLower] = docSnap.id;
+                });
+            }
+
             const newComment = {
                 id: Date.now().toString(),
                 author: authorName,
@@ -2579,7 +2782,9 @@
                 likes: [],
                 replies: [],
                 isPinned: false,
-                userVerified: isVerified
+                userVerified: isVerified,
+                mentionedUids: mentionedUids,
+                mentionMap: mentionMap
             };
 
             const blogRef = doc(db, "blogs", id);
@@ -2614,6 +2819,16 @@
                             read: false
                         });
                     }
+                    // Notification for mentioned users
+                    for (const mentionedUid of mentionedUids) {
+                        if (mentionedUid !== auth.currentUser.uid && mentionedUid !== blog.authorUid) {
+                            await addDoc(collection(db, "notifications"), {
+                                recipientUid: mentionedUid,
+                                senderUid: auth.currentUser.uid, senderName: authorName, type: "mention",
+                                blogId: id, blogTitle: blog.title, date: new Date().toISOString(), read: false
+                            });
+                        }
+                    }
                 }
             } catch (e) {
                 console.error("Error adding comment:", e);
@@ -2628,9 +2843,31 @@
             box.style.display = box.style.display === 'none' ? 'flex' : 'none';
         };
 
+        window.openBlogReplyThreads = window.openBlogReplyThreads || new Set();
+        window.toggleBlogReplies = function(commentId) {
+            const container = document.getElementById(`blog-replies-${commentId}`);
+            const btn = document.getElementById(`blog-replies-btn-${commentId}`);
+            if (container && btn) {
+                if (container.style.display === 'none') {
+                    container.style.display = 'block';
+                    btn.innerHTML = '&#9652; Hide replies';
+                    window.openBlogReplyThreads.add(commentId);
+                } else {
+                    container.style.display = 'none';
+                    btn.innerHTML = `&#9662; View ${btn.dataset.count} ${btn.dataset.count == 1 ? 'reply' : 'replies'}`;
+                    window.openBlogReplyThreads.delete(commentId);
+                }
+            }
+        };
+
         window.submitReply = async function(blogId, commentId) {
             if (!auth.currentUser) return;
-            const input = document.getElementById(`reply-input-${blogId}-${commentIndex}`);
+            
+            const dropdown = document.getElementById(`blog-reply-dropdown-${commentId}`);
+            if (dropdown) dropdown.style.display = 'none';
+
+            const input = document.getElementById(`reply-input-${commentId}`);
+            if (!input) return;
             const text = input.value.trim();
             if (!text) return;
 
@@ -2648,6 +2885,20 @@
                 }
             } catch(e) {}
 
+            // --- Mention Logic ---
+            const mentionRegex = /@([\w_]+)/g;
+            const mentions = [...new Set([...text.matchAll(mentionRegex)].map(m => m[1].toLowerCase()))];
+            let mentionedUids = [];
+            let mentionMap = {};
+            if (mentions.length > 0) {
+                const q = query(collection(db, "users"), where("usernameLower", "in", mentions.slice(0, 30)));
+                const usersSnap = await getDocs(q);
+                usersSnap.forEach(docSnap => {
+                    mentionedUids.push(docSnap.id);
+                    mentionMap[docSnap.data().usernameLower] = docSnap.id;
+                });
+            }
+
             const newReply = {
                 id: Date.now().toString(),
                 author: authorName,
@@ -2656,7 +2907,9 @@
                 text: text,
                 date: new Date().toISOString(),
                 likes: [],
-                userVerified: isVerified
+                userVerified: isVerified,
+                mentionedUids: mentionedUids,
+                mentionMap: mentionMap
             };
 
             // Optimistic UI update
@@ -2669,9 +2922,12 @@
                         comment.replies = [];
                     }
                     comment.replies.push(newReply);
+                    if (!window.openBlogReplyThreads) window.openBlogReplyThreads = new Set();
+                    window.openBlogReplyThreads.add(commentId);
                     renderBlogs(auth.currentUser);
                     if(input) input.value = '';
-                    document.getElementById(`reply-box-${blogId}-${commentIndex}`).style.display = 'none';
+                    const replyBox = document.getElementById(`reply-box-${commentId}`);
+                    if(replyBox) replyBox.style.display = 'none';
                 }
             }
 
@@ -2701,6 +2957,16 @@
                                 date: new Date().toISOString(),
                                 read: false
                             });
+                        }
+                        // Notification for mentioned users
+                        for (const mentionedUid of mentionedUids) {
+                            if (mentionedUid !== auth.currentUser.uid && (!parentComment || mentionedUid !== parentComment.userUid)) {
+                                await addDoc(collection(db, "notifications"), {
+                                    recipientUid: mentionedUid,
+                                    senderUid: auth.currentUser.uid, senderName: authorName, type: "mention",
+                                    blogId: blogId, blogTitle: blog.title, date: new Date().toISOString(), read: false
+                                });
+                            }
                         }
                         await updateDoc(blogRef, { comments: comments });
                     }
@@ -3146,6 +3412,11 @@
                             div.style.cursor = 'pointer';
                             div.onclick = () => window.location.href = `profile.html?uid=${n.senderUid}`;
                             break;
+                        case 'mention':
+                            notifHtml = `<strong>${n.senderName}</strong> mentioned you in a comment on <em>${n.blogTitle}</em>.`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}`;
+                            break;
                         case 'like':
                             notifHtml = `<strong>${n.senderName}</strong> liked your post: <em>${n.blogTitle}</em>.`;
                             div.style.cursor = 'pointer';
@@ -3315,7 +3586,7 @@
             }
 
             // Ad Logic: Show VAST ad every 4th flick, and ensure it's only shown once per index
-            if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.vastUrl && currentFlickIdx > 0 && currentFlickIdx % 4 === 0 && lastAdShownAtIdx !== currentFlickIdx) {
+            if (currentFlickIdx > 0 && currentFlickIdx % 4 === 0 && lastAdShownAtIdx !== currentFlickIdx) {
                 lastAdShownAtIdx = currentFlickIdx;
                 
                 vid.pause();
@@ -3331,9 +3602,12 @@
                 `;
 
                 currentFlicksAdPlayer = fluidPlayer(`flicks-ad-player-${currentFlickIdx}`, {
-                    vastOptions: { adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl }] },
+                    vastOptions: { adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl || 'https://baggymaintenance.com/d/mjFLz.dlGYNGv/Z/GtUO/je/ml9LuiZ/UelXkcPdTXY/5pNtTdchwiNBTmcEtYN/jqkU1vNnzQAf2dMzSSZ/staFWV1Cp_dIDB0exV' }] },
                     layoutControls: { controlBar: { autoHideTimeout: 1, animated: false }, playButtonShowing: true }
                 });
+
+                const flick = window.globalFlicks[currentFlickIdx];
+                currentFlicksAdPlayer.on('adClick', () => window.trackAdClick(flick.id));
 
                 document.getElementById(`flicks-ad-player-${currentFlickIdx}`).addEventListener('ended', () => {
                     const adVid = document.getElementById(`flicks-ad-player-${currentFlickIdx}`);
@@ -3364,9 +3638,28 @@
                 vid.play().catch(e => console.log("Autoplay prevented by browser", e));
             }
 
-            document.getElementById('flicks-title-display').innerText = flick.title;
+            document.getElementById('flicks-comment-count').innerText = flick.comments ? flick.comments.length : 0;
+            document.getElementById('flicks-comment-btn').onclick = (e) => {
+                e.stopPropagation();
+                document.getElementById('flicks-comments-panel').style.display = 'flex';
+                window.renderFlickComments();
+            };
+            document.getElementById('flicks-comments-panel').style.display = 'none';
+
+            const titleDisplay = document.getElementById('flicks-title-display');
+            if (flick.mentionMap) {
+                const safeTitle = (flick.title || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                titleDisplay.innerHTML = safeTitle.replace(/@([\w_]+)/g, (match, username) => {
+                    const uid = flick.mentionMap[username.toLowerCase()];
+                    if (uid) return `<span onclick="event.stopPropagation(); window.location.href='profile.html?uid=${uid}'" style="color: #87ceeb; cursor: pointer; pointer-events: auto;">${match}</span>`;
+                    return match;
+                });
+                titleDisplay.style.pointerEvents = "auto";
+            } else {
+                titleDisplay.innerText = flick.title;
+            }
             document.getElementById('flicks-author-name').innerText = "@" + flick.author;
-            document.getElementById('flicks-author-pic').src = flick.authorPhoto || 'https://via.placeholder.com/40';
+            document.getElementById('flicks-author-pic').src = (flick.authorPhoto && flick.authorPhoto !== 'null' && flick.authorPhoto !== 'undefined' && flick.authorPhoto !== '') ? flick.authorPhoto : 'game-logo.png';
             
             document.getElementById('flicks-author-pic').onclick = () => { window.location.href = 'profile.html?uid=' + flick.authorUid; };
             document.getElementById('flicks-author-name').onclick = () => { window.location.href = 'profile.html?uid=' + flick.authorUid; };
@@ -3410,6 +3703,577 @@
             } catch (e) { console.error("Error liking flicker", e); }
         };
 
+        window.openFlickReplyThreads = window.openFlickReplyThreads || new Set();
+        window.toggleFlickReplies = function(commentId) {
+            const container = document.getElementById(`flick-replies-${commentId}`);
+            const btn = document.getElementById(`flick-replies-btn-${commentId}`);
+            if (container && btn) {
+                if (container.style.display === 'none') {
+                    container.style.display = 'block';
+                    btn.innerHTML = '&#9652; Hide replies';
+                    window.openFlickReplyThreads.add(commentId);
+                } else {
+                    container.style.display = 'none';
+                    btn.innerHTML = `&#9662; View ${btn.dataset.count} ${btn.dataset.count == 1 ? 'reply' : 'replies'}`;
+                    window.openFlickReplyThreads.delete(commentId);
+                }
+            }
+        };
+
+        let flickClickTimer = null;
+        window.handleFlickVideoClick = function(e) {
+            if (e) e.stopPropagation();
+            if (flickClickTimer) {
+                clearTimeout(flickClickTimer);
+                flickClickTimer = null;
+                // Double Tap Detected
+                const flick = window.globalFlicks[currentFlickIdx];
+                if (flick) {
+                    const uid = auth.currentUser ? auth.currentUser.uid : null;
+                    if (uid) {
+                        const isLiked = flick.likes && flick.likes.includes(uid);
+                        if (!isLiked) {
+                            window.likeFlickFromViewer(flick.id);
+                        }
+                    }
+                    const heart = document.getElementById('flicks-heart-anim');
+                    heart.style.transition = 'none';
+                    heart.style.transform = 'translate(-50%, -50%) scale(1)';
+                    heart.style.opacity = '1';
+                    void heart.offsetWidth; // force reflow
+                    heart.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out';
+                    heart.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                    setTimeout(() => {
+                        heart.style.transition = 'transform 0.2s ease-in, opacity 0.2s ease-in';
+                        heart.style.transform = 'translate(-50%, -50%) scale(2)';
+                        heart.style.opacity = '0';
+                    }, 500);
+                }
+            } else {
+                flickClickTimer = setTimeout(() => {
+                    flickClickTimer = null;
+                    const vid = document.getElementById('flicks-video-player');
+                    if (vid.paused) vid.play(); else vid.pause();
+                }, 300);
+            }
+        };
+
+        window.renderFlickComments = async function() {
+            const list = document.getElementById('flicks-comments-list');
+            const flick = window.globalFlicks[currentFlickIdx];
+            if (!flick) return;
+
+            const user = auth.currentUser;
+            const isFlickOwner = user && user.uid === flick.authorUid;
+            const comments = flick.comments || [];
+            
+            const sortedComments = [...comments].map((c, i) => ({...c, originalIndex: i})).sort((a, b) => {
+                if (a.isPinned && !b.isPinned) return -1;
+                if (!a.isPinned && b.isPinned) return 1;
+                return new Date(b.date) - new Date(a.date);
+            });
+
+            // --- Mention Pre-fetching ---
+            const allMentionedUids = new Set();
+            sortedComments.forEach(c => {
+                if (c.mentionedUids) c.mentionedUids.forEach(uid => allMentionedUids.add(uid));
+                if (c.replies) {
+                    c.replies.forEach(r => {
+                        if (r.mentionedUids) r.mentionedUids.forEach(uid => allMentionedUids.add(uid));
+                    });
+                }
+            });
+
+            const uidToUserMap = new Map();
+            if (allMentionedUids.size > 0) {
+                const userPromises = [...allMentionedUids].map(uid => getDoc(doc(db, "users", uid)));
+                const userSnaps = await Promise.all(userPromises);
+                userSnaps.forEach(snap => { if (snap.exists()) uidToUserMap.set(snap.id, snap.data()); });
+            }
+
+            const flickAuthorPhoto = (flick.authorPhoto && flick.authorPhoto !== 'null' && flick.authorPhoto !== 'undefined' && flick.authorPhoto !== '') ? flick.authorPhoto : 'game-logo.png';
+
+            list.innerHTML = sortedComments.length === 0 ? '<p style="text-align:center; color:#aaa;">No comments yet.</p>' : sortedComments.map(c => {
+                const cPhoto = (c.photo && c.photo !== 'null' && c.photo !== 'undefined' && c.photo !== '') ? c.photo : 'game-logo.png';
+                const isOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
+                const isLiked = user && (c.likes || []).includes(user.uid);
+                const authorLiked = (c.likes || []).includes(flick.authorUid);
+                const likeColor = isLiked ? '#ff0050' : 'inherit';
+                const likeIcon = isLiked ? '❤️' : '🤍';
+                const editedBadge = c.isEdited ? '<span style="font-size: 0.75rem; color: #888; font-style: italic; margin-left: 5px;">(edited)</span>' : '';
+                const pinnedBadge = c.isPinned ? '<span style="font-size: 0.75rem; color: #ffc107; font-weight: bold; margin-left: 8px;">• Pinned</span>' : '';
+                const authorLikeIndicator = authorLiked ? `<img src="${flickAuthorPhoto}" style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #ff0050; margin-left: 4px;" title="Liked by author">` : '';
+                
+                const renderMentions = (text) => {
+                    if (!text) return '';
+                    return text.replace(/@([\w_]+)/g, (match, username) => {
+                        for (const [uid, userData] of uidToUserMap.entries()) {
+                            if (userData.username.toLowerCase() === username.toLowerCase()) {
+                                return `<a href="profile.html?uid=${uid}" class="comment-mention" onclick="event.stopPropagation()">${match}</a>`;
+                            }
+                        }
+                        return match; // Return original if no user found
+                    });
+                };
+
+                const replies = c.replies || [];
+                const repliesHtml = replies.map(r => {
+                    const rPhoto = (r.photo && r.photo !== 'null' && r.photo !== 'undefined' && r.photo !== '') ? r.photo : 'game-logo.png';
+                    const rIsLiked = user && (r.likes || []).includes(user.uid);
+                    const rLikeColor = rIsLiked ? '#ff0050' : 'inherit';
+                    const rIsOwner = user && (r.userUid === user.uid || (!r.userUid && r.author === user.displayName));
+                    const rEditedBadge = r.isEdited ? '<span style="font-size: 0.7rem; color: #888; font-style: italic; margin-left: 5px;">(edited)</span>' : '';
+                    const isReplyByFlickAuthor = r.userUid === flick.authorUid;
+                    const authorBadge = isReplyByFlickAuthor ? '<span style="background: #555; color: #fff; font-size: 0.65rem; padding: 1px 5px; border-radius: 4px; margin-left: 5px; font-weight: bold;">Author</span>' : '';
+                    const rAuthorLiked = (r.likes || []).includes(flick.authorUid);
+                    const rAuthorLikeIndicator = rAuthorLiked ? `<img src="${flickAuthorPhoto}" style="width: 14px; height: 14px; border-radius: 50%; border: 1px solid #ff0050; margin-left: 4px;" title="Liked by author">` : '';
+                    return `
+                    <div style="margin-top: 10px; display: flex; gap: 10px; align-items: flex-start;">
+                        <img src="${rPhoto}" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="color: #87ceeb; font-size: 0.8rem;">${r.author}${authorBadge}</strong>
+                                <span style="font-size: 0.65rem; color: #888;">${new Date(r.date).toLocaleDateString()}${rEditedBadge}</span>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #ddd; word-wrap: break-word;">${renderMentions(r.text)}</div>
+                            <div style="display: flex; gap: 15px; margin-top: 5px; align-items: center;">
+                                <button onclick="window.toggleFlickCommentLike('${c.id}', '${r.id}')" style="background:none; border:none; color:${rLikeColor}; cursor:pointer; font-size:0.75rem; padding:0;">${rIsLiked ? '❤️' : '🤍'} ${(r.likes||[]).length || 0}</button>${rAuthorLikeIndicator}
+                                ${rIsOwner ? `<button onclick="window.editFlickReply('${c.id}', '${r.id}')" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size:0.75rem; padding:0;">Edit</button>
+                                <button onclick="window.deleteFlickReply('${c.id}', '${r.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.75rem; padding:0;">Delete</button>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                const isOpen = window.openFlickReplyThreads && window.openFlickReplyThreads.has(c.id);
+                const repliesDisplay = isOpen ? 'block' : 'none';
+                const toggleBtnHtml = replies.length > 0 
+                    ? `<button id="flick-replies-btn-${c.id}" data-count="${replies.length}" onclick="window.toggleFlickReplies('${c.id}')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8rem; padding: 0; margin-top: 10px; font-weight: bold; outline: none; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">${isOpen ? '&#9652; Hide replies' : `&#9662; View ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`}</button>` 
+                    : '';
+
+                return `
+                <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+                    <img src="${cPhoto}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: #87ceeb; font-size: 0.9rem;">${c.author}</strong>
+                            <span style="font-size: 0.7rem; color: #888;">${new Date(c.date).toLocaleDateString()}${editedBadge}${pinnedBadge}</span>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #eee; margin: 4px 0; word-wrap: break-word;">${renderMentions(c.text)}</div>
+                        <div style="display: flex; gap: 15px; margin-top: 5px; align-items: center;">
+                            <button onclick="window.toggleFlickCommentLike('${c.id}')" style="background:none; border:none; color:${likeColor}; cursor:pointer; font-size:0.8rem; padding:0;">${likeIcon} ${(c.likes||[]).length || 0}</button>${authorLikeIndicator}
+                            <button onclick="document.getElementById('flick-reply-box-${c.id}').style.display='flex'" style="background:none; border:none; color:#aaa; cursor:pointer; font-size:0.8rem; padding:0;">Reply</button>
+                            ${isOwner ? `<button onclick="window.editFlickComment('${c.id}')" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size:0.8rem; padding:0;">Edit</button>
+                            <button onclick="window.deleteFlickComment('${c.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.8rem; padding:0;">Delete</button>` : ''}
+                            ${isFlickOwner ? `<button onclick="window.toggleFlickCommentPin('${c.id}')" style="background:none; border:none; color:${c.isPinned ? '#ffc107' : '#aaa'}; cursor:pointer; font-size:0.8rem; padding:0;">${c.isPinned ? '📌 Unpin' : '📌 Pin'}</button>` : ''}
+                        </div>
+                        <div id="flick-reply-box-${c.id}" style="display: none; margin-top: 10px; flex-direction: column; gap: 5px; position: relative;">
+                            <div id="flick-reply-dropdown-${c.id}" style="display: none; position: absolute; bottom: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; max-height: 150px; overflow-y: auto; z-index: 50; margin-bottom: 5px; box-shadow: 0 -4px 10px rgba(0,0,0,0.5);"></div>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" id="flick-reply-input-${c.id}" autocomplete="off" placeholder="Reply..." style="flex: 1; padding: 5px; border-radius: 4px; border: none; font-size: 0.85rem; background: rgba(255,255,255,0.1); color: white;" oninput="window.handleFlickMentionInput(event, 'flick-reply-dropdown-${c.id}')">
+                                <button onclick="window.submitFlickReply('${c.id}')" style="padding: 5px 10px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Send</button>
+                            </div>
+                        </div>
+                        <div style="margin-left: 15px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px;">
+                        ${toggleBtnHtml}
+                        <div id="flick-replies-${c.id}" style="display: ${repliesDisplay}; margin-left: 15px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px;">
+                            ${repliesHtml}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        window.addFlickComment = async function() {
+            if (!auth.currentUser) { alert("Please login to comment!"); return; }
+            
+            const dropdown = document.getElementById('flick-mention-dropdown');
+            if (dropdown) dropdown.style.display = 'none';
+            const input = document.getElementById('flicks-comment-input');
+            const text = input.value.trim();
+            if (!text) return;
+            const flick = window.globalFlicks[currentFlickIdx];
+            const user = auth.currentUser;
+
+            let authorName = user.displayName || "User";
+            let authorPhoto = user.photoURL || "game-logo.png";
+            let isVerified = false;
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (userData.name) authorName = userData.name;
+                    if (userData.photoURL) authorPhoto = userData.photoURL;
+                    if (userData.isVerified) isVerified = true;
+                }
+            } catch(e) {}
+
+            // --- Mention Logic ---
+            const mentionRegex = /@([\w_]+)/g;
+            const mentions = [...text.matchAll(mentionRegex)].map(match => match[1].toLowerCase());
+            const mentionedUids = [];
+            if (mentions.length > 0) { // Firestore 'in' query is limited to 30 values
+                const q = query(collection(db, "users"), where("usernameLower", "in", mentions.slice(0, 30)));
+                const usersSnap = await getDocs(q);
+                usersSnap.forEach(doc => mentionedUids.push(doc.id));
+            }
+            
+            const newComment = {
+                id: Date.now().toString(),
+                author: authorName,
+                userUid: auth.currentUser.uid,
+                photo: authorPhoto,
+                text: text,
+                date: new Date().toISOString(),
+                likes: [], replies: [], isPinned: false,
+                userVerified: isVerified,
+                mentionedUids: mentionedUids
+            };
+
+            if (!flick.comments) flick.comments = [];
+            flick.comments.push(newComment);
+            input.value = '';
+            document.getElementById('flicks-comment-count').innerText = flick.comments.length;
+            window.renderFlickComments();
+
+            try {
+                await updateDoc(doc(db, "blogs", flick.id), { comments: arrayUnion(newComment) });
+                // Notification for comment author
+                if (flick.authorUid && flick.authorUid !== user.uid) {
+                    await addDoc(collection(db, "notifications"), {
+                        recipientUid: flick.authorUid,
+                        senderUid: user.uid,
+                        senderName: authorName,
+                        type: "comment",
+                        blogId: flick.id,
+                        blogTitle: flick.title,
+                        date: new Date().toISOString(),
+                        read: false
+                    });
+                }
+                // Notification for mentioned users
+                for (const mentionedUid of mentionedUids) {
+                    if (mentionedUid !== user.uid && mentionedUid !== flick.authorUid) { // Don't self-notify or double-notify author
+                        await addDoc(collection(db, "notifications"), {
+                            recipientUid: mentionedUid,
+                            senderUid: user.uid, senderName: authorName, type: "mention",
+                            blogId: flick.id, blogTitle: flick.title, date: new Date().toISOString(), read: false
+                        });
+                    }
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.deleteFlickComment = async function(commentId) {
+            if (!confirm('Delete this comment?')) return;
+            const flick = window.globalFlicks[currentFlickIdx];
+            flick.comments = flick.comments.filter(c => c.id !== commentId);
+            document.getElementById('flicks-comment-count').innerText = flick.comments.length;
+            window.renderFlickComments();
+
+            try {
+                const docSnap = await getDoc(doc(db, "blogs", flick.id));
+                if (docSnap.exists()) {
+                    const dbComments = docSnap.data().comments || [];
+                    const updated = dbComments.filter(c => c.id !== commentId);
+                    await updateDoc(doc(db, "blogs", flick.id), { comments: updated });
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.editFlickComment = function(commentId) {
+            const flick = window.globalFlicks[currentFlickIdx];
+            const comment = flick.comments.find(c => c.id === commentId);
+            if (!comment) return;
+            const newText = prompt("Edit your comment:", comment.text);
+            if (newText !== null && newText.trim() !== "" && newText.trim() !== comment.text) {
+                comment.text = newText.trim();
+                comment.isEdited = true;
+                window.renderFlickComments();
+                
+                getDoc(doc(db, "blogs", flick.id)).then(docSnap => {
+                    if (docSnap.exists()) {
+                        const dbComments = docSnap.data().comments || [];
+                        const updated = dbComments.map(c => c.id === commentId ? { ...c, text: newText.trim(), isEdited: true } : c);
+                        updateDoc(doc(db, "blogs", flick.id), { comments: updated });
+                    }
+                });
+            }
+        };
+
+        window.toggleFlickCommentPin = async function(commentId) {
+            if (!auth.currentUser) return;
+            const flick = window.globalFlicks[currentFlickIdx];
+            if (auth.currentUser.uid !== flick.authorUid) {
+                alert("Only the author can pin comments.");
+                return;
+            }
+
+            const comment = flick.comments.find(c => c.id === commentId);
+            if (!comment) return;
+
+            const currentlyPinned = flick.comments.filter(c => c.isPinned).length;
+            const isPinning = !comment.isPinned;
+
+            if (isPinning && currentlyPinned >= 3) {
+                alert("You can only pin up to 3 comments.");
+                return;
+            }
+
+            comment.isPinned = isPinning;
+            window.renderFlickComments(); // Optimistic update
+
+            try {
+                const docSnap = await getDoc(doc(db, "blogs", flick.id));
+                if (docSnap.exists()) {
+                    const dbComments = docSnap.data().comments || [];
+                    const updatedComments = dbComments.map(c => c.id === commentId ? { ...c, isPinned: isPinning } : c);
+                    await updateDoc(doc(db, "blogs", flick.id), { comments: updatedComments });
+                }
+            } catch (e) { console.error("Error pinning comment:", e); alert("Failed to update pin status."); }
+        };
+
+        window.toggleFlickCommentLike = async function(commentId, replyId = null) {
+            if (!auth.currentUser) { alert("Please login to like!"); return; }
+            const flick = window.globalFlicks[currentFlickIdx];
+            const uid = auth.currentUser.uid;
+            
+            let target;
+            if (replyId) {
+                const c = flick.comments.find(c => c.id === commentId);
+                target = c ? c.replies.find(r => r.id === replyId) : null;
+            } else {
+                target = flick.comments.find(c => c.id === commentId);
+            }
+            if (!target) return;
+
+            if (!target.likes) target.likes = [];
+            const idx = target.likes.indexOf(uid);
+            if (idx === -1) target.likes.push(uid);
+            else target.likes.splice(idx, 1);
+            
+            window.renderFlickComments();
+
+            try {
+                const docSnap = await getDoc(doc(db, "blogs", flick.id));
+                if (docSnap.exists()) {
+                    const dbComments = docSnap.data().comments || [];
+                    let dbTarget;
+                    if (replyId) {
+                        const c = dbComments.find(c => c.id === commentId);
+                        dbTarget = c ? c.replies.find(r => r.id === replyId) : null;
+                    } else {
+                        dbTarget = dbComments.find(c => c.id === commentId);
+                    }
+                    if (dbTarget) {
+                        if (!dbTarget.likes) dbTarget.likes = [];
+                        const dIdx = dbTarget.likes.indexOf(uid);
+                        if (dIdx === -1) dbTarget.likes.push(uid);
+                        else dbTarget.likes.splice(dIdx, 1);
+                        await updateDoc(doc(db, "blogs", flick.id), { comments: dbComments });
+                    }
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.submitFlickReply = async function(commentId) {
+            if (!auth.currentUser) return;
+            
+            const dropdown = document.getElementById(`flick-reply-dropdown-${commentId}`);
+            if (dropdown) dropdown.style.display = 'none';
+            const flick = window.globalFlicks[currentFlickIdx];
+            const input = document.getElementById(`flick-reply-input-${commentId}`);
+            const text = input.value.trim();
+            if (!text) return;
+            const user = auth.currentUser;
+
+            let authorName = user.displayName || "User";
+            let authorPhoto = user.photoURL || "game-logo.png";
+            let isVerified = false;
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (userData.name) authorName = userData.name;
+                    if (userData.photoURL) authorPhoto = userData.photoURL;
+                    if (userData.isVerified) isVerified = true;
+                }
+            } catch(e) {}
+
+            // --- Mention Logic for Replies ---
+            const mentionRegex = /@([\w_]+)/g;
+            const mentions = [...text.matchAll(mentionRegex)].map(match => match[1].toLowerCase());
+            const mentionedUids = [];
+            if (mentions.length > 0) {
+                const q = query(collection(db, "users"), where("usernameLower", "in", mentions.slice(0, 30)));
+                const usersSnap = await getDocs(q);
+                usersSnap.forEach(doc => mentionedUids.push(doc.id));
+            }
+
+            const newReply = {
+                id: Date.now().toString(),
+                author: authorName,
+                userUid: auth.currentUser.uid,
+                photo: authorPhoto,
+                text: text,
+                date: new Date().toISOString(),
+                likes: [],
+                userVerified: isVerified,
+                mentionedUids: mentionedUids
+            };
+
+            const comment = flick.comments.find(c => c.id === commentId);
+            if (comment) {
+                if (!comment.replies) comment.replies = [];
+                comment.replies.push(newReply);
+                if (!window.openFlickReplyThreads) window.openFlickReplyThreads = new Set();
+                window.openFlickReplyThreads.add(commentId);
+                window.renderFlickComments();
+                
+                try {
+                    const docSnap = await getDoc(doc(db, "blogs", flick.id));
+                    if (docSnap.exists()) {
+                        const dbComments = docSnap.data().comments || [];
+                        const dbComment = dbComments.find(c => c.id === commentId);
+                        if (dbComment) {
+                            if (!dbComment.replies) dbComment.replies = [];
+                            dbComment.replies.push(newReply);
+                            await updateDoc(doc(db, "blogs", flick.id), { comments: dbComments });
+
+                            // Notification for reply
+                            if (comment.userUid && comment.userUid !== user.uid) {
+                                await addDoc(collection(db, "notifications"), {
+                                    recipientUid: comment.userUid,
+                                    senderUid: user.uid, senderName: authorName, type: "reply",
+                                    blogId: flick.id, blogTitle: flick.title, date: new Date().toISOString(), read: false
+                                });
+                            }
+                            // Notification for mentioned users in reply
+                            for (const mentionedUid of mentionedUids) {
+                                if (mentionedUid !== user.uid && mentionedUid !== comment.userUid) {
+                                    await addDoc(collection(db, "notifications"), {
+                                        recipientUid: mentionedUid,
+                                        senderUid: user.uid, senderName: authorName, type: "mention",
+                                        blogId: flick.id, blogTitle: flick.title, date: new Date().toISOString(), read: false
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } catch(e) { console.error(e); }
+            }
+        };
+
+        window.deleteFlickReply = async function(commentId, replyId) {
+            if (!confirm('Delete this reply?')) return;
+            const flick = window.globalFlicks[currentFlickIdx];
+            const comment = flick.comments.find(c => c.id === commentId);
+            if (comment) {
+                comment.replies = comment.replies.filter(r => r.id !== replyId);
+                window.renderFlickComments();
+                
+                try {
+                    const docSnap = await getDoc(doc(db, "blogs", flick.id));
+                    if (docSnap.exists()) {
+                        const dbComments = docSnap.data().comments || [];
+                        const dbComment = dbComments.find(c => c.id === commentId);
+                        if (dbComment) {
+                            dbComment.replies = dbComment.replies.filter(r => r.id !== replyId);
+                            await updateDoc(doc(db, "blogs", flick.id), { comments: dbComments });
+                        }
+                    }
+                } catch(e) { console.error(e); }
+            }
+        };
+
+        window.editFlickReply = function(commentId, replyId) {
+            const flick = window.globalFlicks[currentFlickIdx];
+            const comment = flick.comments.find(c => c.id === commentId);
+            if (!comment) return;
+            const reply = comment.replies.find(r => r.id === replyId);
+            if (!reply) return;
+            const newText = prompt("Edit your reply:", reply.text);
+            if (newText !== null && newText.trim() !== "" && newText.trim() !== reply.text) {
+                reply.text = newText.trim();
+                reply.isEdited = true;
+                window.renderFlickComments();
+                
+                getDoc(doc(db, "blogs", flick.id)).then(docSnap => {
+                    if (docSnap.exists()) {
+                        const dbComments = docSnap.data().comments || [];
+                        const dbC = dbComments.find(c => c.id === commentId);
+                        if (dbC && dbC.replies) {
+                            dbC.replies = dbC.replies.map(r => r.id === replyId ? { ...r, text: newText.trim(), isEdited: true } : r);
+                            updateDoc(doc(db, "blogs", flick.id), { comments: dbComments });
+                        }
+                    }
+                });
+            }
+        };
+
+        let flickMentionTimer = null;
+        window.handleFlickMentionInput = async function(e, dropdownId) {
+            const input = e.target;
+            const text = input.value;
+            const cursorPosition = input.selectionStart;
+            
+            const textBeforeCursor = text.substring(0, cursorPosition);
+            const words = textBeforeCursor.split(/\s+/);
+            const currentWord = words[words.length - 1];
+            
+            const dropdown = document.getElementById(dropdownId);
+            if (!dropdown) return;
+            
+            if (currentWord.startsWith('@') && currentWord.length > 1) {
+                const searchTerm = currentWord.substring(1).toLowerCase();
+                
+                if (flickMentionTimer) clearTimeout(flickMentionTimer);
+                flickMentionTimer = setTimeout(async () => {
+                    try {
+                        const q = query(collection(db, "users"), 
+                            where("usernameLower", ">=", searchTerm), 
+                            where("usernameLower", "<=", searchTerm + "\uf8ff"),
+                            limit(5));
+                        const snap = await getDocs(q);
+                        
+                        if (snap.empty) {
+                            dropdown.style.display = 'none';
+                            return;
+                        }
+                        
+                        dropdown.innerHTML = '';
+                        snap.forEach(docSnap => {
+                            const u = docSnap.data();
+                            const div = document.createElement('div');
+                            div.style.cssText = "padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; color: white;";
+                            div.onmouseover = () => div.style.background = "#333";
+                            div.onmouseout = () => div.style.background = "transparent";
+                            const photo = (u.photoURL && u.photoURL !== 'null') ? u.photoURL : 'game-logo.png';
+                            div.innerHTML = `<img src="${photo}" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;">
+                                             <div style="font-size: 0.85rem;"><strong>${u.name || 'User'}</strong> <span style="color:#aaa;">@${u.username}</span></div>`;
+                            
+                            div.onclick = (event) => {
+                                event.stopPropagation();
+                                const replaceText = `@${u.username} `;
+                                const newText = text.substring(0, cursorPosition - currentWord.length) + replaceText + text.substring(cursorPosition);
+                                input.value = newText;
+                                dropdown.style.display = 'none';
+                                input.focus();
+                            };
+                            dropdown.appendChild(div);
+                        });
+                        dropdown.style.display = 'block';
+                        
+                    } catch(err) {
+                        console.error("Mention search error:", err);
+                    }
+                }, 300);
+            } else {
+                dropdown.style.display = 'none';
+            }
+        };
+
         // Flicks Internal Forwarding Logic
         window.openSendFlickModal = async function() {
             if (!auth.currentUser) { alert("Please login to send Flicks!"); return; }
@@ -3434,7 +4298,7 @@
                         div.style.cssText = "display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1);";
                         div.innerHTML = `
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <img src="${u.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <img src="${u.photoURL || 'game-logo.png'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                                 <div><strong style="color:#fff;">${u.name || 'User'}</strong><br><span style="font-size:0.8rem; color:#aaa;">@${u.username || ''}</span></div>
                             </div>
                             <button class="btn feed-btn" style="padding:5px 15px;" onclick="window.sendFlickToUser('${snap.id}', this)">Send</button>
@@ -3474,6 +4338,42 @@
                 } else if (flickTouchEndY - flickTouchStartY > 50) {
                     window.prevFlick(); // Swiped down -> Prev
                 }
+            }, {passive: true});
+        }
+
+        // Setup touch swipe down to close for Flicks Comments Panel
+        const flicksCommentsPanel = document.getElementById('flicks-comments-panel');
+        const flicksCommentsList = document.getElementById('flicks-comments-list');
+        let commentTouchStartY = 0;
+
+        if (flicksCommentsPanel) {
+            flicksCommentsPanel.addEventListener('touchstart', e => {
+                if (flicksCommentsList && flicksCommentsList.scrollTop > 0) {
+                    commentTouchStartY = 0;
+                    return;
+                }
+                commentTouchStartY = e.changedTouches[0].screenY;
+                flicksCommentsPanel.style.transition = 'none';
+            }, {passive: true});
+
+            flicksCommentsPanel.addEventListener('touchmove', e => {
+                if (commentTouchStartY === 0) return;
+                const currentY = e.changedTouches[0].screenY;
+                const deltaY = currentY - commentTouchStartY;
+                if (deltaY > 0) { // Only allow swiping down
+                    flicksCommentsPanel.style.transform = `translateY(${deltaY}px)`;
+                }
+            }, {passive: true});
+
+            flicksCommentsPanel.addEventListener('touchend', e => {
+                if (commentTouchStartY === 0) return;
+                const deltaY = e.changedTouches[0].screenY - commentTouchStartY;
+                flicksCommentsPanel.style.transition = 'transform 0.3s ease-out';
+                if (deltaY > 100) {
+                    flicksCommentsPanel.style.display = 'none';
+                }
+                flicksCommentsPanel.style.transform = 'translateY(0)';
+                commentTouchStartY = 0;
             }, {passive: true});
         }
 
@@ -3791,6 +4691,77 @@
         window.closeStoryViewer = function() {
             document.getElementById('story-viewer-modal').style.display = 'none';
         };
+
+        // --- Cookie Consent Logic ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const consentBanner = document.getElementById('cookie-consent-banner');
+            const acceptBtn = document.getElementById('accept-cookies-btn');
+            const declineBtn = document.getElementById('decline-cookies-btn');
+
+            // Check if user has already made a choice
+            if (!localStorage.getItem('viyou_cookie_consent')) {
+                consentBanner.style.display = 'flex';
+            }
+
+            // Save the choice and hide the banner
+            const handleConsent = (choice) => {
+                localStorage.setItem('viyou_cookie_consent', choice);
+                consentBanner.style.display = 'none';
+            };
+
+            acceptBtn.addEventListener('click', () => handleConsent('accepted'));
+            declineBtn.addEventListener('click', () => handleConsent('declined'));
+        });
     </script>
+    <!-- // 1st ad script  -->
+    <script>
+(function(cahg){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = cahg || {};
+s.src = "\/\/webbedtrash.com\/bqX\/VIs.dpGpld0\/YVWhc_\/aegm\/9MuaZWUAlLkbPrTCY\/5\/NzTLYU0VNIDbU-trNdjNkO1qNdjvQh0kOaQr";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+
+<!-- //-- 3rd ad script -->
+ <script>
+(function(yfduc){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = yfduc || {};
+s.src = "\/\/webbedtrash.com\/b.X\/V\/s\/dyGflV0PYfWccV\/xeqm_9pu\/Z-Uyl\/kSPkTUYL5BNDTYYP0RN\/zfcRtdNojtkz1GNGjaQZ4\/MaQc";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- //-- 4th ad script -->
+ <script>
+(function(twy){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = twy || {};
+s.src = "\/\/webbedtrash.com\/btX\/V.sOd\/Gul\/0KYpWocF\/benmm9guBZLUSlikrPnTlY-5wN\/Tuctw\/NvDYEwtaNIjWka1yNdzCA\/0yNpQo";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
 </body>
+<footer>
+   <p>&copy; 2026 Viyou. All Rights Reserved.</p>
+   <div style="margin-top: 10px;">
+       <a href="about-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">About Us</a>
+       <a href="contact-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Contact Us</a>
+       <a href="privacy.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+       <a href="terms.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+   </div>
+</footer>
+
 </html>

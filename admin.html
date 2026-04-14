@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Cricket News</title>
+    <title>Admin Panel - Viyou</title>
     <link rel="icon" href="game-logo.png" type="image/png">
     <style>
         body {
@@ -79,7 +79,7 @@
 <body>
     <div class="container">
         <h1>Admin Panel</h1>
-        <a href="index.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to News</a>
+        <a href="index.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to Viyou</a>
         <button id="migrate-btn" class="btn btn-secondary" onclick="window.migrateUsernames()" style="margin-bottom: 20px; display: none; background-color: #ffc107; color: #000;">⚙️ Migrate Usernames</button>
 
         <div id="admin-tabs" style="display: none; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px;">
@@ -87,6 +87,7 @@
             <button id="tab-ads" class="admin-tab-btn">💰 Ad Management</button>
             <button id="tab-monetization" class="admin-tab-btn">💎 Creator Monetization</button>
             <button id="tab-copyright" class="admin-tab-btn">© Copyright Claims</button>
+            <button id="tab-headlines" class="admin-tab-btn">📢 Headlines</button>
         </div>
 
         <div id="admin-content" style="display: none;">
@@ -112,6 +113,19 @@
                 <label style="display: block; margin-bottom: 5px;">YouTube Video Ad URL (Embed):</label>
                 <input type="text" id="youtube-ad-url" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
 
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center;">
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 5px;">Duration (Hours):</label>
+                        <input type="number" id="video-ad-duration" value="24" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1; margin-top: 20px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="video-ad-always" style="width: 20px; height: 20px;"> 
+                            <strong style="font-size: 1rem;">Always Show</strong>
+                        </label>
+                    </div>
+                </div>
+
                 <label style="display: block; margin-bottom: 5px;">Video Ad Frequency (Show after every X blogs):</label>
                 <input type="number" id="video-frequency" value="4" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
 
@@ -134,6 +148,19 @@
 
                 <label style="display: block; margin-bottom: 5px;">Product Affiliate Link:</label>
                 <input type="text" id="affiliate-link" placeholder="e.g., Amazon affiliate URL..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center;">
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 5px;">Duration (Hours):</label>
+                        <input type="number" id="affiliate-duration" value="24" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1; margin-top: 20px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="affiliate-always" style="width: 20px; height: 20px;"> 
+                            <strong style="font-size: 1rem;">Always Show</strong>
+                        </label>
+                    </div>
+                </div>
 
                 <label style="display: block; margin-bottom: 5px;">Affiliate Ad Frequency (Show after every X blogs):</label>
                 <input type="number" id="affiliate-frequency" value="5" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
@@ -166,8 +193,18 @@
                 <div class="report-card" style="border-color: gold; margin-bottom: 20px;">
                     <h3 style="color: gold;">Monetization Settings</h3>
                     <div style="margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
+                            <input type="checkbox" id="enable-cpm" checked style="width: 20px; height: 20px;"> 
+                            <strong style="font-size: 1.1rem;">Enable Pay Per View (CPM)</strong>
+                        </label>
                         <label for="cpm-rate" style="display: block; margin-bottom: 5px;">Rate per 1000 Views (in ₹):</label>
-                        <input type="number" id="cpm-rate" value="50" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        <input type="number" id="cpm-rate" value="50" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
+                            <input type="checkbox" id="enable-cpc" style="width: 20px; height: 20px;"> 
+                            <strong style="font-size: 1.1rem;">Enable Pay Per Click (CPC)</strong>
+                        </label>
+                        <label for="cpc-rate" style="display: block; margin-bottom: 5px;">Rate per 1000 Clicks (in ₹):</label>
+                        <input type="number" id="cpc-rate" value="200" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                     </div>
                     <button class="btn" style="background-color: #198754;" onclick="window.saveMonetizationSettings()">Save Monetization Settings</button>
                 </div>
@@ -189,7 +226,7 @@
                     <h3>Directly Monetize Users</h3>
                     <p style="color: #aaa; font-size: 0.9rem;">Search for a user by their Unique ID (username) to manually approve or revoke their monetization status.</p>
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <input type="text" id="user-search-input" placeholder="Enter username (e.g. cricket_lover)..." style="flex: 1; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        <input type="text" id="user-search-input" placeholder="Enter username (e.g. creator_name)..." style="flex: 1; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                         <button class="btn" onclick="window.searchUserForMonetization()">Search</button>
                     </div>
                     <div id="monetization-search-results"></div>
@@ -198,6 +235,22 @@
                     <h3>Currently Monetized Creators</h3>
                     <button class="btn btn-secondary" onclick="window.loadMonetizedUsers()" style="margin-bottom: 15px;"><i class="fa-solid fa-arrows-rotate"></i> Refresh List</button>
                     <div id="monetized-users-list">Click refresh to load...</div>
+                </div>
+            </div>
+
+            <!-- Headlines Section -->
+            <div id="section-headlines" style="display: none;">
+                <h2>Headlines & Alerts</h2>
+                <div class="report-card" style="border-color: #0d6efd;">
+                    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 15px;">Display important announcements to your users. Leave empty to hide.</p>
+                    
+                    <label style="display: block; margin-bottom: 5px;">Main Page Headline (Below Stories):</label>
+                    <input type="text" id="admin-main-headline" placeholder="e.g. Welcome to Viyou!" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <label style="display: block; margin-bottom: 5px;">Creator Studio Headline:</label>
+                    <input type="text" id="admin-studio-headline" placeholder="e.g. New monetization rules applied!" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <button class="btn" style="background-color: #0d6efd;" onclick="window.saveHeadlines()">Save Headlines</button>
                 </div>
             </div>
         </div>
@@ -226,20 +279,25 @@
         const tabAds = document.getElementById('tab-ads');
         const tabMonetization = document.getElementById('tab-monetization');
         const tabCopyright = document.getElementById('tab-copyright');
+        const tabHeadlines = document.getElementById('tab-headlines');
         const sectionReported = document.getElementById('section-reported');
         const sectionAds = document.getElementById('section-ads');
         const sectionMonetization = document.getElementById('section-monetization');
         const sectionCopyright = document.getElementById('section-copyright');
+        const sectionHeadlines = document.getElementById('section-headlines');
+        let currentAdConfig = {};
 
         tabReported.addEventListener('click', () => {
             tabReported.classList.add('active');
             tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
+            tabHeadlines.classList.remove('active');
             sectionReported.style.display = 'block';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
         });
 
         tabAds.addEventListener('click', () => {
@@ -247,10 +305,12 @@
             tabReported.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
+            tabHeadlines.classList.remove('active');
             sectionAds.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
         });
 
         tabMonetization.addEventListener('click', () => {
@@ -258,10 +318,12 @@
             tabReported.classList.remove('active');
             tabAds.classList.remove('active');
             tabCopyright.classList.remove('active');
+            tabHeadlines.classList.remove('active');
             sectionMonetization.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionCopyright.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
             window.loadPayoutRequests();
             window.loadMonetizedUsers();
         });
@@ -271,11 +333,27 @@
             tabReported.classList.remove('active');
             tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
+            tabHeadlines.classList.remove('active');
             sectionCopyright.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
             window.loadCopyrightClaims();
+        });
+
+        tabHeadlines.addEventListener('click', () => {
+            tabHeadlines.classList.add('active');
+            tabReported.classList.remove('active');
+            tabAds.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            sectionHeadlines.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionAds.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+            window.loadHeadlines();
         });
 
         onAuthStateChanged(auth, async (user) => {
@@ -317,6 +395,18 @@
                                 <img id="banner-preview-${i}" src="" style="max-height: 80px; display: none; margin-bottom: 10px; border-radius: 4px; border: 1px solid #555;">
                                 <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Target Link:</label>
                                 <input type="text" id="banner-link-${i}" placeholder="Link to open on click..." style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                                <div style="display: flex; gap: 15px; margin-top: 10px; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Duration (Hours):</label>
+                                        <input type="number" id="banner-duration-${i}" value="24" min="1" style="width: 100%; padding: 8px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                                    </div>
+                                    <div style="flex: 1; margin-top: 20px;">
+                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                            <input type="checkbox" id="banner-always-${i}" style="width: 18px; height: 18px;">
+                                            <strong style="font-size: 0.9rem;">Always Show</strong>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             `;
                         }
@@ -346,6 +436,7 @@
                     loadReports();
                     loadAdminAds();
                     loadMonetizationSettings();
+                    window.loadHeadlines();
                 } else {
                     authMessage.innerHTML = '<p style="color: red;">Access Denied. You are not an admin.</p>';
                     setTimeout(() => window.location.href = 'index.html', 2000);
@@ -362,6 +453,7 @@
                 const adDoc = await getDoc(doc(db, "settings", "ads"));
                 if (adDoc.exists()) {
                     const data = adDoc.data();
+                    currentAdConfig = data;
                     document.getElementById('ad-toggle').checked = data.showAds || false;
                     document.getElementById('ad-network-url').value = data.adNetworkUrl || '';
                     document.getElementById('vast-url').value = data.vastUrl || '';
@@ -370,11 +462,18 @@
                     document.getElementById('banner-frequency').value = data.bannerFrequency || 3;
                     document.getElementById('affiliate-frequency').value = data.affiliateFrequency || 5;
                     
+                    document.getElementById('video-ad-duration').value = data.videoAdDuration || 24;
+                    document.getElementById('video-ad-always').checked = data.videoAdAlwaysShow || false;
+                    document.getElementById('affiliate-duration').value = data.affiliateDuration || 24;
+                    document.getElementById('affiliate-always').checked = data.affiliateAlwaysShow || false;
+
                     if (data.banners && data.banners.length > 0) {
                         data.banners.forEach((b, idx) => {
                             if (idx < 10) {
                                 document.getElementById(`banner-img-${idx+1}`).value = b.img || '';
                                 document.getElementById(`banner-link-${idx+1}`).value = b.link || '';
+                                document.getElementById(`banner-duration-${idx+1}`).value = b.duration || 24;
+                                document.getElementById(`banner-always-${idx+1}`).checked = b.alwaysShow || false;
                                 if (b.img) {
                                     document.getElementById(`banner-preview-${idx+1}`).src = b.img;
                                     document.getElementById(`banner-preview-${idx+1}`).style.display = 'block';
@@ -413,11 +512,18 @@
             saveBtn.innerText = "Saving...";
             saveBtn.disabled = true;
             
+            const now = Date.now();
             const banners = [];
             for(let i=1; i<=10; i++) {
                 const img = document.getElementById(`banner-img-${i}`).value.trim();
                 const link = document.getElementById(`banner-link-${i}`).value.trim();
-                if (img) banners.push({ img, link });
+                const duration = parseInt(document.getElementById(`banner-duration-${i}`).value) || 24;
+                const alwaysShow = document.getElementById(`banner-always-${i}`).checked;
+                let startTime = now;
+                if (currentAdConfig.banners && currentAdConfig.banners[i-1] && currentAdConfig.banners[i-1].img === img) {
+                    startTime = currentAdConfig.banners[i-1].startTime || now;
+                }
+                if (img) banners.push({ img, link, duration, alwaysShow, startTime });
             }
 
             const adData = {
@@ -432,10 +538,19 @@
                 bannerLink: banners.length > 0 ? banners[0].link : '',
                 affiliateImg: document.getElementById('affiliate-img').value.trim(),
                 affiliateLink: document.getElementById('affiliate-link').value.trim(),
-                affiliateFrequency: parseInt(document.getElementById('affiliate-frequency').value) || 5
+                affiliateFrequency: parseInt(document.getElementById('affiliate-frequency').value) || 5,
+
+                videoAdDuration: parseInt(document.getElementById('video-ad-duration').value) || 24,
+                videoAdAlwaysShow: document.getElementById('video-ad-always').checked,
+                videoAdStartTime: (currentAdConfig.youtubeAdUrl === document.getElementById('youtube-ad-url').value.trim() && currentAdConfig.vastUrl === document.getElementById('vast-url').value.trim()) ? (currentAdConfig.videoAdStartTime || now) : now,
+
+                affiliateDuration: parseInt(document.getElementById('affiliate-duration').value) || 24,
+                affiliateAlwaysShow: document.getElementById('affiliate-always').checked,
+                affiliateStartTime: (currentAdConfig.affiliateImg === document.getElementById('affiliate-img').value.trim()) ? (currentAdConfig.affiliateStartTime || now) : now
             };
 
             try {
+                currentAdConfig = adData;
                 await setDoc(doc(db, "settings", "ads"), adData);
                 alert("Ads configuration updated successfully! Changes are now live on the site.");
                 // Update the earnings button visibility immediately after saving
@@ -459,6 +574,8 @@
             const imgInput = document.getElementById(`banner-img-${i}`);
             const linkInput = document.getElementById(`banner-link-${i}`);
             const preview = document.getElementById(`banner-preview-${i}`);
+            const durationInput = document.getElementById(`banner-duration-${i}`);
+            const alwaysInput = document.getElementById(`banner-always-${i}`);
             
             if (fileInput) fileInput.value = '';
             if (imgInput) imgInput.value = '';
@@ -467,6 +584,8 @@
                 preview.src = '';
                 preview.style.display = 'none';
             }
+            if (durationInput) durationInput.value = '24';
+            if (alwaysInput) alwaysInput.checked = false;
         };
 
         window.clearAllBanners = () => {
@@ -499,7 +618,14 @@
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to JPEG 70% quality
+                        
+                        let quality = 0.8;
+                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        while (dataUrl.length > 135000 && quality > 0.1) { // Compress to ~100KB
+                            quality -= 0.1;
+                            dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        }
+                        resolve(dataUrl);
                     };
                     img.onerror = error => reject(error);
                 };
@@ -772,6 +898,9 @@
                 if (settingsDoc.exists()) {
                     const data = settingsDoc.data();
                     document.getElementById('cpm-rate').value = data.cpmRate || 50;
+                    document.getElementById('cpc-rate').value = data.cpcRate || 200;
+                    document.getElementById('enable-cpm').checked = data.enableCpm !== false; // defaults to true
+                    document.getElementById('enable-cpc').checked = data.enableCpc === true;  // defaults to false
                 }
             } catch (e) {
                 console.error("Error loading monetization settings:", e);
@@ -780,11 +909,14 @@
 
         window.saveMonetizationSettings = async () => {
             const rate = parseFloat(document.getElementById('cpm-rate').value);
-            if (isNaN(rate) || rate < 0) {
-                alert("Please enter a valid, non-negative rate.");
+            const cpcRate = parseFloat(document.getElementById('cpc-rate').value);
+            const enableCpm = document.getElementById('enable-cpm').checked;
+            const enableCpc = document.getElementById('enable-cpc').checked;
+            if (isNaN(rate) || rate < 0 || isNaN(cpcRate) || cpcRate < 0) {
+                alert("Please enter valid, non-negative rates.");
                 return;
             }
-            const settingsData = { cpmRate: rate, currency: 'INR' };
+            const settingsData = { cpmRate: rate, cpcRate: cpcRate, enableCpm: enableCpm, enableCpc: enableCpc, currency: 'INR' };
             try {
                 await setDoc(doc(db, "settings", "monetization"), settingsData);
                 alert("Monetization settings saved successfully!");
@@ -894,12 +1026,12 @@
                     div.innerHTML = `
                         <div>
                             <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
-                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Requested Amount: <strong style="color: #198754;">₹${req.amount.toFixed(2)}</strong> <span style="font-size:0.8rem; color:#888;">(Calculated on ${req.viewsCalculated} views)</span></div>
+                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Requested Amount: <strong style="color: #198754;">₹${req.amount.toFixed(2)}</strong> <span style="font-size:0.8rem; color:#888;">(Calculated on ${req.viewsCalculated} views / ${req.clicksCalculated || 0} clicks)</span></div>
                             <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Payment Details:</strong> ${req.paymentInfo}</div>
                             <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Requested on: ${new Date(req.date).toLocaleString()}</div>
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${req.viewsCalculated}, ${req.amount})"><i class="fa-solid fa-check"></i> Paid</button>
+                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${req.viewsCalculated}, ${req.clicksCalculated || 0}, ${req.amount})"><i class="fa-solid fa-check"></i> Paid</button>
                             <button class="btn" style="background-color: #dc3545; height: fit-content; padding: 8px 12px;" onclick="window.rejectPayout('${reqDoc.id}', '${req.uid}', ${req.amount})"><i class="fa-solid fa-times"></i> Reject</button>
                         </div>
                     `;
@@ -911,7 +1043,7 @@
             }
         };
 
-        window.markAsPaid = async (reqId, uid, viewsCalculated, amount) => {
+        window.markAsPaid = async (reqId, uid, viewsCalculated, clicksCalculated, amount) => {
             if (!confirm("Are you sure you have transferred the money? This will mark the request as paid and reset their estimated earnings.")) return;
             try {
                 await updateDoc(doc(db, "withdrawals", reqId), { status: 'paid', paidDate: new Date().toISOString() });
@@ -919,8 +1051,9 @@
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists()) {
                     const currentPaid = userSnap.data().paidViews || 0;
+                    const currentPaidClicks = userSnap.data().paidClicks || 0;
                     // Add the views that were paid for in this specific transaction
-                    await updateDoc(userRef, { paidViews: currentPaid + viewsCalculated });
+                    await updateDoc(userRef, { paidViews: currentPaid + viewsCalculated, paidClicks: currentPaidClicks + clicksCalculated });
                 }
                 
                 // Send Automatic Notification to User
@@ -963,6 +1096,26 @@
                 alert("Payout request rejected.");
                 window.loadPayoutRequests();
             } catch (e) { console.error(e); alert("Error rejecting request."); }
+        };
+
+        // --- Headlines Management ---
+        window.loadHeadlines = async () => {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "headlines"));
+                if (docSnap.exists()) {
+                    document.getElementById('admin-main-headline').value = docSnap.data().mainHeadline || '';
+                    document.getElementById('admin-studio-headline').value = docSnap.data().studioHeadline || '';
+                }
+            } catch (e) { console.error("Error loading headlines:", e); }
+        };
+
+        window.saveHeadlines = async () => {
+            const mainH = document.getElementById('admin-main-headline').value.trim();
+            const studioH = document.getElementById('admin-studio-headline').value.trim();
+            try {
+                await setDoc(doc(db, "settings", "headlines"), { mainHeadline: mainH, studioHeadline: studioH }, { merge: true });
+                alert("Headlines saved successfully!");
+            } catch (e) { console.error("Error saving headlines:", e); alert("Failed to save headlines."); }
         };
 
         window.loadPaymentHistory = async () => {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with User - Cricket News & Chat</title>
+    <title>Chat with User - Viyou</title>
     <link rel="icon" href="game-logo.png" type="image/png">
     <style>
         body {
@@ -288,6 +288,8 @@
             color: #bbb;
         }
     </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="container">
@@ -795,7 +797,14 @@
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% quality
+                        
+                        let quality = 0.8;
+                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        while (dataUrl.length > 135000 && quality > 0.1) { // Compress to ~100KB
+                            quality -= 0.1;
+                            dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        }
+                        resolve(dataUrl);
                     };
                     img.onerror = reject;
                 };
@@ -1054,5 +1063,57 @@
             if (unsubscribeConv) unsubscribeConv();
         });
     </script>
+     <!-- // 1st ad script  -->
+    <script>
+(function(cahg){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = cahg || {};
+s.src = "\/\/webbedtrash.com\/bqX\/VIs.dpGpld0\/YVWhc_\/aegm\/9MuaZWUAlLkbPrTCY\/5\/NzTLYU0VNIDbU-trNdjNkO1qNdjvQh0kOaQr";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- //-- 2nd ad script -->
+<script>
+(function(jwo){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = jwo || {};
+s.src = "\/\/webbedtrash.com\/bVX.V_sDdvG-l\/0HYoWmcR\/AeOm\/9huTZVUElvkzPgTGYr5\/NJTmYY0ZNljSE\/tpNOjpkv1\/N\/j\/Qn2MNhQm";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- //-- 3rd ad script -->
+ <script>
+(function(yfduc){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = yfduc || {};
+s.src = "\/\/webbedtrash.com\/b.X\/V\/s\/dyGflV0PYfWccV\/xeqm_9pu\/Z-Uyl\/kSPkTUYL5BNDTYYP0RN\/zfcRtdNojtkz1GNGjaQZ4\/MaQc";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- //-- 4th ad script -->
+ <script>
+(function(twy){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = twy || {};
+s.src = "\/\/webbedtrash.com\/btX\/V.sOd\/Gul\/0KYpWocF\/benmm9guBZLUSlikrPnTlY-5wN\/Tuctw\/NvDYEwtaNIjWka1yNdzCA\/0yNpQo";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
 </body>
 </html>

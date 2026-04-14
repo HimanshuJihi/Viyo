@@ -94,17 +94,29 @@
         .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="container">
         <a href="profile.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to Profile</a>
         <h1><i class="fa-solid fa-chart-line"></i> Creator Studio</h1>
 
+        <!-- Studio Headline Box -->
+        <div id="studio-headline-container" style="display:none; background: linear-gradient(45deg, #198754, #ffc107); padding: 15px; margin-bottom: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+            <i class="fa-solid fa-bell" style="font-size: 1.5rem; margin-right: 10px; color: #fff; vertical-align: middle;"></i>
+            <span id="studio-headline-text" style="font-size: 1.2rem; color: #000; font-weight: bold; vertical-align: middle;"></span>
+        </div>
+
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Total Video Views</h3>
                 <p id="total-views">...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Ad Clicks</h3>
+                <p id="total-clicks">...</p>
             </div>
             <div class="stat-card">
                 <h3>Total Likes</h3>
@@ -195,8 +207,9 @@
         const MONETIZATION_VIEWS = 10000;
         const MONETIZATION_FOLLOWERS = 200;
         
-        let monetizationSettings = { cpmRate: 50, currency: 'INR' }; // Default values
+        let monetizationSettings = { enableCpm: true, enableCpc: false, cpmRate: 50, cpcRate: 200, currency: 'INR' }; // Default values
         let currentUnpaidViews = 0;
+        let currentUnpaidClicks = 0;
         let currentEarnings = 0;
         let currentUserTotalViews = 0;
 
@@ -212,10 +225,23 @@
             }
         }
 
+    async function loadStudioHeadline() {
+        try {
+            const docSnap = await getDoc(doc(db, "settings", "headlines"));
+            if (docSnap.exists() && docSnap.data().studioHeadline && docSnap.data().studioHeadline.trim() !== '') {
+                document.getElementById('studio-headline-text').innerText = docSnap.data().studioHeadline;
+                document.getElementById('studio-headline-container').style.display = 'block';
+            } else {
+                document.getElementById('studio-headline-container').style.display = 'none';
+            }
+        } catch(e) { console.error("Error loading headline:", e); }
+    }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 await loadMonetizationConfig(); // Wait for config to load first
                 loadCreatorData(user.uid);
+            loadStudioHeadline();
             } else {
                 alert("Please login to access the Creator Studio.");
                 window.location.href = 'index.html';
@@ -231,6 +257,7 @@
                 const followersCount = userData.followers ? userData.followers.length : 0;
                 const isMonetized = userData.isMonetized === true;
                 const paidViews = userData.paidViews || 0; // Views for which payment is already done
+                const paidClicks = userData.paidClicks || 0; // Clicks for which payment is already done
 
                 // Check for pending withdrawal requests
                 const pendingQuery = query(collection(db, "withdrawals"), where("uid", "==", uid), where("status", "==", "pending"));
@@ -242,6 +269,7 @@
                 const blogsSnapshot = await getDocs(blogsQuery);
 
                 let totalViews = 0;
+                let totalClicks = 0;
                 let totalLikes = 0;
                 let totalBlogs = 0;
 
@@ -250,15 +278,18 @@
                     if (blogData.status !== 'draft') {
                         totalBlogs++;
                         totalViews += blogData.views || 0;
+                        totalClicks += blogData.adClicks || 0;
                         totalLikes += Array.isArray(blogData.likes) ? blogData.likes.length : (blogData.likes || 0);
                     }
                 });
 
                 currentUserTotalViews = totalViews;
                 currentUnpaidViews = Math.max(0, totalViews - paidViews);
+                currentUnpaidClicks = Math.max(0, totalClicks - paidClicks);
 
                 // Update UI
                 document.getElementById('total-views').innerText = totalViews.toLocaleString();
+                document.getElementById('total-clicks').innerText = totalClicks.toLocaleString();
                 document.getElementById('total-likes').innerText = totalLikes.toLocaleString();
                 document.getElementById('total-followers').innerText = followersCount.toLocaleString();
                 document.getElementById('total-blogs').innerText = totalBlogs.toLocaleString();
@@ -268,10 +299,28 @@
 
                 // Update Earnings UI (placeholder logic)
                 if (isMonetized) {
-                    const rate = monetizationSettings.cpmRate || 50;
-                    currentEarnings = (currentUnpaidViews / 1000) * rate;
+                    let earnings = 0;
+                    let earningNotes = [];
+                    
+                    if (monetizationSettings.enableCpm !== false) {
+                        const rate = monetizationSettings.cpmRate || 50;
+                        earnings += (currentUnpaidViews / 1000) * rate;
+                        earningNotes.push(`₹${rate} per 1000 views (${currentUnpaidViews.toLocaleString()} unpaid)`);
+                    }
+                    
+                    if (monetizationSettings.enableCpc) {
+                        const cpcRate = monetizationSettings.cpcRate || 200;
+                        earnings += (currentUnpaidClicks / 1000) * cpcRate;
+                        earningNotes.push(`₹${cpcRate} per 1000 clicks on Long Video Ads (${currentUnpaidClicks.toLocaleString()} unpaid)`);
+                    }
+                    
+                    if (monetizationSettings.enableCpm === false && !monetizationSettings.enableCpc) {
+                        earningNotes.push("Monetization is currently paused by admin.");
+                    }
+
+                    currentEarnings = earnings;
                     document.getElementById('estimated-earnings').innerText = `₹${currentEarnings.toFixed(2)}`;
-                    document.getElementById('earning-note').innerText = `Based on a rate of ₹${rate} per 1000 views. (Unpaid Views: ${currentUnpaidViews.toLocaleString()})`;
+                    document.getElementById('earning-note').innerHTML = earningNotes.join("<br>");
                     const withdrawBtn = document.getElementById('withdraw-btn');
                     
                     if (hasPending) {
@@ -428,12 +477,15 @@
             submitBtn.innerText = "Processing...";
 
             try {
-                const rate = monetizationSettings.cpmRate || 50;
-                const viewsForAmount = Math.ceil((reqAmount / rate) * 1000);
+                const fraction = reqAmount / currentEarnings;
+                const viewsForAmount = Math.ceil(currentUnpaidViews * fraction);
+                const clicksForAmount = Math.ceil(currentUnpaidClicks * fraction);
+
                 await addDoc(collection(db, "withdrawals"), {
                     uid: auth.currentUser.uid,
                     amount: reqAmount,
                     viewsCalculated: viewsForAmount,
+                    clicksCalculated: clicksForAmount,
                     paymentInfo: paymentInfo,
                     status: 'pending',
                     date: new Date().toISOString()
@@ -453,5 +505,85 @@
         });
 
     </script>
+     <!-- // 1st ad script  -->
+    <script>
+(function(cahg){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = cahg || {};
+s.src = "\/\/webbedtrash.com\/bqX\/VIs.dpGpld0\/YVWhc_\/aegm\/9MuaZWUAlLkbPrTCY\/5\/NzTLYU0VNIDbU-trNdjNkO1qNdjvQh0kOaQr";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- //-- 2nd ad script -->
+<script>
+(function(jwo){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = jwo || {};
+s.src = "\/\/webbedtrash.com\/bVX.V_sDdvG-l\/0HYoWmcR\/AeOm\/9huTZVUElvkzPgTGYr5\/NJTmYY0ZNljSE\/tpNOjpkv1\/N\/j\/Qn2MNhQm";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- //-- 3rd ad script -->
+ <script>
+(function(yfduc){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = yfduc || {};
+s.src = "\/\/webbedtrash.com\/b.X\/V\/s\/dyGflV0PYfWccV\/xeqm_9pu\/Z-Uyl\/kSPkTUYL5BNDTYYP0RN\/zfcRtdNojtkz1GNGjaQZ4\/MaQc";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- //-- 4th ad script -->
+ <script>
+(function(twy){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = twy || {};
+s.src = "\/\/webbedtrash.com\/btX\/V.sOd\/Gul\/0KYpWocF\/benmm9guBZLUSlikrPnTlY-5wN\/Tuctw\/NvDYEwtaNIjWka1yNdzCA\/0yNpQo";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
 </body>
-</html>
+</html> 
+<!-- //-- 3rd ad script -->
+ <script>
+(function(yfduc){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = yfduc || {};
+s.src = "\/\/webbedtrash.com\/b.X\/V\/s\/dyGflV0PYfWccV\/xeqm_9pu\/Z-Uyl\/kSPkTUYL5BNDTYYP0RN\/zfcRtdNojtkz1GNGjaQZ4\/MaQc";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- //-- 4th ad script -->
+ <script>
+(function(twy){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = twy || {};
+s.src = "\/\/webbedtrash.com\/btX\/V.sOd\/Gul\/0KYpWocF\/benmm9guBZLUSlikrPnTlY-5wN\/Tuctw\/NvDYEwtaNIjWka1yNdzCA\/0yNpQo";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+</body>
+</html> 
