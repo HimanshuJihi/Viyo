@@ -41,6 +41,28 @@
         .double-tap-left { left: 10%; }
         .double-tap-right { right: 10%; }
         .double-tap-center { left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 5rem; color: #ff0050; background: transparent; padding: 0; border-radius: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        
+        /* Modern Comment Styles */
+        .comment-wrapper { display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start; }
+        .comment-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #333; cursor: pointer; }
+        .comment-body { flex: 1; }
+        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .comment-author { font-weight: bold; color: #f1f1f1; font-size: 0.9rem; text-decoration: none; cursor: pointer; }
+        .comment-date { font-size: 0.75rem; color: #888; }
+        .comment-text { font-size: 0.95rem; color: #ddd; margin: 0 0 6px 0; word-wrap: break-word; line-height: 1.4; }
+        .comment-actions { display: flex; gap: 16px; align-items: center; font-size: 0.8rem; color: #aaa; }
+        .comment-action-btn { background: transparent; border: none; color: #aaa; cursor: pointer; padding: 0; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 4px; }
+        .comment-action-btn:hover { color: #fff; }
+        .author-liked-badge { display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2); }
+        .author-liked-badge img { width: 14px; height: 14px; border-radius: 50%; }
+        .mention-link { color: #3ea6ff; text-decoration: none; font-weight: bold; }
+        .mention-link:hover { text-decoration: underline; }
+        .reply-list { margin-left: 48px; margin-top: 12px; position: relative; }
+        .reply-list::before { content: ''; position: absolute; left: -24px; top: 0; bottom: 0; width: 2px; background: #333; border-radius: 2px; }
+        .mention-dropdown { position: absolute; bottom: 100%; left: 0; right: 0; background: #222; border: 1px solid #444; border-radius: 8px; max-height: 150px; overflow-y: auto; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); display: none; }
+        .mention-item { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #fff; transition: background 0.2s; }
+        .mention-item:hover { background: #333; }
+        .reply-input-container { display: none; margin-top: 10px; gap: 10px; position: relative; }
         @media (max-width: 900px) {
             .container { flex-direction: column; padding: 10px; }
             .sidebar { width: 100%; }
@@ -66,7 +88,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { firebaseConfig } from "./firebase-config.js";
 
@@ -76,6 +98,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const blogId = urlParams.get('id');
+        let currentBlog = null;
 
         window.globalAdConfig = {};
         async function loadAdSettings() {
@@ -98,6 +121,7 @@
             if (!snap.exists()) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
 
             const blog = snap.data();
+            currentBlog = { id: blogId, ...blog };
             updateDoc(docRef, { views: increment(1) }).catch(e => {}); // Track View
 
             let mediaHtml = '';
@@ -157,6 +181,10 @@
                         <button id="show-more-btn" class="show-more-btn" onclick="toggleDescription()">Show more</button>
                     </div>
                 </div>
+                <!-- Comments Section -->
+                <div id="comments-section" style="margin-top: 30px;">
+                    <!-- Comments will be rendered here by JavaScript -->
+                </div>
             `;
 
             if (blog.video && !blog.youtubeUrl) {
@@ -172,6 +200,7 @@
                     }
                 });
             }
+            window.renderComments();
         }
 
         window.toggleDescription = function() {
@@ -315,6 +344,259 @@
             el.style.opacity = '1';
             setTimeout(() => { el.style.opacity = '0'; }, 800);
         };
+
+        // --- MODERN COMMENT SYSTEM ---
+
+        async function parseMentions(text) {
+            const mentionRegex = /@([\w_]+)/g;
+            const mentions = [...new Set([...text.matchAll(mentionRegex)].map(m => m[1].toLowerCase()))];
+            let mentionedUids = [];
+            let mentionMap = {};
+            if (mentions.length > 0) {
+                const q = query(collection(db, "users"), where("usernameLower", "in", mentions.slice(0, 30)));
+                const usersSnap = await getDocs(q);
+                usersSnap.forEach(d => {
+                    mentionedUids.push(d.id);
+                    mentionMap[d.data().usernameLower] = d.id;
+                });
+            }
+            return { mentionedUids, mentionMap };
+        }
+
+        const renderMentionsText = (text, mentionMap) => {
+            let safeText = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+            if (mentionMap) {
+                return safeText.replace(/@([\w_]+)/g, (match, username) => {
+                    const uid = mentionMap[username.toLowerCase()];
+                    if (uid) return `<a href="profile.html?uid=${uid}" class="mention-link" onclick="event.stopPropagation();">${match}</a>`;
+                    return match;
+                });
+            }
+            return safeText;
+        };
+
+        window.handleMentionInput = async function(e, dropdownId) {
+            const input = e.target;
+            const text = input.value;
+            const cursorPosition = input.selectionStart;
+            const currentWord = text.substring(0, cursorPosition).split(/\s+/).pop();
+            const dropdown = document.getElementById(dropdownId);
+            if (!dropdown) return;
+            
+            if (currentWord.startsWith('@') && currentWord.length > 1) {
+                const searchTerm = currentWord.substring(1).toLowerCase();
+                if (window.mentionTimer) clearTimeout(window.mentionTimer);
+                window.mentionTimer = setTimeout(async () => {
+                    const q = query(collection(db, "users"), where("usernameLower", ">=", searchTerm), where("usernameLower", "<=", searchTerm + "\uf8ff"), limit(5));
+                    const snap = await getDocs(q);
+                    if (snap.empty) { dropdown.style.display = 'none'; return; }
+                    dropdown.innerHTML = '';
+                    snap.forEach(docSnap => {
+                        const u = docSnap.data();
+                        const div = document.createElement('div');
+                        div.className = 'mention-item';
+                        div.innerHTML = `<img src="${u.photoURL || 'game-logo.png'}" style="width:25px;height:25px;border-radius:50%;"><div style="font-size:0.85rem;"><strong>${u.name||'User'}</strong> <span style="color:#aaa;">@${u.username}</span></div>`;
+                        div.onclick = (event) => {
+                            event.stopPropagation();
+                            const replaceText = `@${u.username} `;
+                            input.value = text.substring(0, cursorPosition - currentWord.length) + replaceText + text.substring(cursorPosition);
+                            dropdown.style.display = 'none';
+                            input.focus();
+                        };
+                        dropdown.appendChild(div);
+                    });
+                    dropdown.style.display = 'block';
+                }, 300);
+            } else {
+                dropdown.style.display = 'none';
+            }
+        };
+
+        window.renderComments = function() {
+            const commentsSection = document.getElementById('comments-section');
+            if (!commentsSection || !currentBlog) return;
+            const user = auth.currentUser;
+            const comments = currentBlog.comments || [];
+            const sortedComments = [...comments].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let commentsHtml = sortedComments.map(c => {
+                const isOwner = user && c.userUid === user.uid;
+                const isLiked = user && (c.likes || []).includes(user.uid);
+                const authorLiked = (c.likes || []).includes(currentBlog.authorUid);
+                const authorLikeBadge = authorLiked ? `<span class="author-liked-badge"><img src="${currentBlog.authorPhoto || 'game-logo.png'}"> Liked by author</span>` : '';
+                
+                const repliesHtml = (c.replies || []).map(r => {
+                    const rIsOwner = user && r.userUid === user.uid;
+                    const rIsLiked = user && (r.likes || []).includes(user.uid);
+                    const rAuthorLiked = (r.likes || []).includes(currentBlog.authorUid);
+                    const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge"><img src="${currentBlog.authorPhoto || 'game-logo.png'}"> Liked by author</span>` : '';
+                    return `
+                    <div class="comment-wrapper" style="margin-bottom: 12px;">
+                        <img src="${r.photo || 'game-logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
+                        <div class="comment-body">
+                            <div class="comment-header">
+                                <div>
+                                    <span class="comment-author" onclick="window.location.href='profile.html?uid=${r.userUid}'">${r.author}</span>
+                                    ${r.userUid === currentBlog.authorUid ? '<span style="background: #555; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 4px;">Author</span>' : ''}
+                                </div>
+                                <span class="comment-date">${new Date(r.date).toLocaleDateString()} ${r.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
+                            </div>
+                            <p class="comment-text">${renderMentionsText(r.text, r.mentionMap)}</p>
+                            <div class="comment-actions">
+                                <button class="comment-action-btn" onclick="window.toggleVideoCommentLike('${c.id}', '${r.id}')" style="color: ${rIsLiked ? '#ff0050' : '#aaa'}"><i class="${rIsLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> ${(r.likes || []).length || 0}</button>
+                                ${rAuthorLikeBadge}
+                                ${rIsOwner ? `<button class="comment-action-btn" onclick="window.editVideoReply('${c.id}', '${r.id}')">Edit</button> <button class="comment-action-btn" onclick="window.deleteVideoReply('${c.id}', '${r.id}')">Delete</button>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                return `
+                <div class="comment-wrapper">
+                    <img src="${c.photo || 'game-logo.png'}" class="comment-avatar" onclick="window.location.href='profile.html?uid=${c.userUid}'">
+                    <div class="comment-body">
+                        <div class="comment-header">
+                            <div>
+                                <span class="comment-author" onclick="window.location.href='profile.html?uid=${c.userUid}'">${c.author}</span>
+                                ${c.userUid === currentBlog.authorUid ? '<span style="background: #555; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 4px;">Author</span>' : ''}
+                            </div>
+                            <span class="comment-date">${new Date(c.date).toLocaleDateString()} ${c.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
+                        </div>
+                        <p class="comment-text">${renderMentionsText(c.text, c.mentionMap)}</p>
+                        <div class="comment-actions">
+                            <button class="comment-action-btn" onclick="window.toggleVideoCommentLike('${c.id}')" style="color: ${isLiked ? '#ff0050' : '#aaa'}"><i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> ${(c.likes || []).length || 0}</button>
+                            <button class="comment-action-btn" onclick="document.getElementById('reply-input-container-${c.id}').style.display='flex'">Reply</button>
+                            ${authorLikeBadge}
+                            ${isOwner ? `<button class="comment-action-btn" onclick="window.editVideoComment('${c.id}')">Edit</button> <button class="comment-action-btn" onclick="window.deleteVideoComment('${c.id}')">Delete</button>` : ''}
+                        </div>
+                        <div id="reply-input-container-${c.id}" class="reply-input-container">
+                            <div id="reply-mention-dropdown-${c.id}" class="mention-dropdown"></div>
+                            <input type="text" id="reply-input-${c.id}" placeholder="Add a reply..." style="flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #444; background: #222; color: white; font-size: 0.9rem;" oninput="window.handleMentionInput(event, 'reply-mention-dropdown-${c.id}')" autocomplete="off">
+                            <button onclick="window.submitVideoReply('${c.id}')" class="btn" style="background: #0d6efd; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;">Reply</button>
+                        </div>
+                        ${c.replies && c.replies.length > 0 ? `<div class="reply-list">${repliesHtml}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+
+            commentsSection.innerHTML = `
+                <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h3 style="font-size: 1.2rem; margin-top: 0; color: #ddd; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px;">Comments (${comments.length})</h3>
+                    ${user ? `
+                    <div style="position: relative; margin-bottom: 30px;">
+                        <div id="video-mention-dropdown" class="mention-dropdown"></div>
+                        <div style="display: flex; gap: 12px;">
+                            <img src="${user.photoURL || 'game-logo.png'}" class="comment-avatar">
+                            <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+                                <input type="text" id="comment-input" placeholder="Add a comment..." style="width: 100%; padding: 12px 16px; border-radius: 24px; border: 1px solid #444; background: #222; color: white; font-size: 0.95rem; box-sizing: border-box;" oninput="window.handleMentionInput(event, 'video-mention-dropdown')" autocomplete="off">
+                                <div style="display: flex; justify-content: flex-end;">
+                                    <button onclick="window.addVideoComment()" class="btn" style="background: #0d6efd; padding: 8px 20px; border-radius: 24px;">Comment</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : '<p style="text-align:center; color:#aaa; margin-bottom: 30px;">Please <a href="index.html" style="color:#0d6efd;">login</a> to comment.</p>'}
+                    <div id="comments-list" style="max-height: 600px; overflow-y: auto; padding-right: 10px;">
+                        ${commentsHtml || '<p style="color:#aaa; text-align: center;">No comments yet. Be the first to comment!</p>'}
+                    </div>
+                </div>
+            `;
+        };
+
+        window.addVideoComment = async function() {
+            if (!auth.currentUser) return;
+            const input = document.getElementById('comment-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const { mentionedUids, mentionMap } = await parseMentions(text);
+            const newComment = {
+                id: Date.now().toString(), author: auth.currentUser.displayName || "User", userUid: auth.currentUser.uid,
+                photo: auth.currentUser.photoURL || "game-logo.png", text, date: new Date().toISOString(),
+                likes: [], replies: [], mentionedUids, mentionMap
+            };
+
+            if (!currentBlog.comments) currentBlog.comments = [];
+            currentBlog.comments.push(newComment);
+            window.renderComments();
+            try { await updateDoc(doc(db, "blogs", blogId), { comments: arrayUnion(newComment) }); } catch(e) { console.error(e); }
+        };
+
+        window.submitVideoReply = async function(commentId) {
+            if (!auth.currentUser) return;
+            const input = document.getElementById(`reply-input-${commentId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const { mentionedUids, mentionMap } = await parseMentions(text);
+            const newReply = {
+                id: Date.now().toString(), author: auth.currentUser.displayName || "User", userUid: auth.currentUser.uid,
+                photo: auth.currentUser.photoURL || "game-logo.png", text, date: new Date().toISOString(),
+                likes: [], mentionedUids, mentionMap
+            };
+            const c = currentBlog.comments.find(x => x.id === commentId);
+            if (!c) return;
+            if (!c.replies) c.replies = [];
+            c.replies.push(newReply);
+            window.renderComments();
+            try { await updateDoc(doc(db, "blogs", blogId), { comments: currentBlog.comments }); } catch(e) { console.error(e); }
+        };
+
+        window.toggleVideoCommentLike = async function(commentId, replyId = null) {
+            if (!auth.currentUser) { alert("Please login to like"); return; }
+            const uid = auth.currentUser.uid;
+            const c = currentBlog.comments.find(x => x.id === commentId);
+            let target = replyId ? c?.replies?.find(x => x.id === replyId) : c;
+            if (!target) return;
+            
+            if (!target.likes) target.likes = [];
+            const idx = target.likes.indexOf(uid);
+            if (idx === -1) target.likes.push(uid); else target.likes.splice(idx, 1);
+            window.renderComments();
+            try { await updateDoc(doc(db, "blogs", blogId), { comments: currentBlog.comments }); } catch(e) { console.error(e); }
+        };
+
+        window.editVideoComment = async function(commentId) {
+            const c = currentBlog.comments.find(x => x.id === commentId);
+            if (!c || c.userUid !== auth.currentUser.uid) return;
+            const newText = prompt("Edit your comment:", c.text);
+            if (newText && newText.trim() !== c.text) {
+                c.text = newText.trim(); c.isEdited = true; window.renderComments();
+                try { await updateDoc(doc(db, "blogs", blogId), { comments: currentBlog.comments }); } catch(e) { console.error(e); }
+            }
+        };
+        window.deleteVideoComment = async function(commentId) {
+            if (!confirm("Delete this comment?")) return;
+            currentBlog.comments = currentBlog.comments.filter(x => x.id !== commentId); window.renderComments();
+            try { await updateDoc(doc(db, "blogs", blogId), { comments: currentBlog.comments }); } catch(e) { console.error(e); }
+        };
+        window.editVideoReply = async function(commentId, replyId) {
+            const c = currentBlog.comments.find(x => x.id === commentId);
+            const r = c?.replies?.find(x => x.id === replyId);
+            if (!r || r.userUid !== auth.currentUser.uid) return;
+            const newText = prompt("Edit your reply:", r.text);
+            if (newText && newText.trim() !== r.text) {
+                r.text = newText.trim(); r.isEdited = true; window.renderComments();
+                try { await updateDoc(doc(db, "blogs", blogId), { comments: currentBlog.comments }); } catch(e) { console.error(e); }
+            }
+        };
+        window.deleteVideoReply = async function(commentId, replyId) {
+            if (!confirm("Delete this reply?")) return;
+            const c = currentBlog.comments.find(x => x.id === commentId);
+            if (c) c.replies = c.replies.filter(x => x.id !== replyId); window.renderComments();
+            try { await updateDoc(doc(db, "blogs", blogId), { comments: currentBlog.comments }); } catch(e) { console.error(e); }
+        };
+
+        // Add a global click listener to close mention dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const isMentionInput = event.target.matches('input[oninput*="handleMentionInput"]');
+            const isMentionDropdown = event.target.closest('.mention-dropdown');
+
+            // If the click is not on a mention input or within a mention dropdown, hide all dropdowns
+            if (!isMentionInput && !isMentionDropdown) {
+                document.querySelectorAll('.mention-dropdown').forEach(d => d.style.display = 'none');
+            }
+        });
 
         onAuthStateChanged(auth, () => {
             loadAdSettings().then(() => {

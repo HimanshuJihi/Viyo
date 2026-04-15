@@ -699,11 +699,16 @@
                             }
                     }
                     
-                        alert(submissionStatus === 'draft' ? 'Draft Saved Successfully!' : (editId ? 'Blog Updated Successfully!' : 'Blog Published Successfully!'));
-                        window.location.href = 'index.html';
+                        setTimeout(() => {
+                            alert(submissionStatus === 'draft' ? 'Draft Saved Successfully!' : (editId ? 'Blog Updated Successfully!' : 'Blog Published Successfully!'));
+                            window.location.href = 'index.html';
+                        }, 500);
                     } catch (e) {
                         console.error("Error:", e);
                         alert('Error saving blog: ' + e.message + "\n\n(Check Firestore Rules in Firebase Console)");
+                        const submitBtn = document.querySelector('.btn');
+                        submitBtn.innerText = "Publish Blog";
+                        submitBtn.disabled = false;
                     }
                 };
 
@@ -712,6 +717,7 @@
                 const originalBtnText = submitBtn.innerText;
                 submitBtn.innerText = "Processing...";
                 submitBtn.disabled = true;
+
 
                 let imagePromises = [];
                 let youtubeUrl = '';
