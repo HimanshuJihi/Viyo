@@ -8,9 +8,7 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="Viyou - A modern social media platform for sharing posts, short videos, and connecting with creators worldwide.">
     <meta name="keywords" content="Social Media, Viyou, Creator Platform, Short Videos, Blogs, Networking">
-    
-<meta name="577422a13c1ba42becc0fe793487d68ccb2f2c6a" content="577422a13c1ba42becc0fe793487d68ccb2f2c6a" />    <!-- Open Graph -->
-    <meta property="og:title" content="Viyou - Social Media Platform">
+    <meta name="41dcd7a1beee3c2b292b718b5f826e86abdcd57b" content="41dcd7a1beee3c2b292b718b5f826e86abdcd57b" />    <meta property="og:title" content="Viyou - Social Media Platform">
     <meta property="og:description" content="Share your stories, short videos, and connect with a global community on Viyou.">
     <meta property="og:type" content="website">
 
@@ -928,6 +926,7 @@
         let currentStoryUserIdx = -1;
         let currentStoryIdx = -1;
         let globalAdConfig = { showAds: false, vastUrl: '', youtubeAdUrl: '', bannerImg: '', bannerLink: '', affiliateImg: '', affiliateLink: '' };
+        let vastAdConfig = {};
         let viewedBlogsInSession = new Set(); // For view tracking
 
         // View tracking observer
@@ -996,6 +995,11 @@
                     globalAdConfig = adDoc.data();
                 }
             } catch(e) { console.error("Error loading ad settings:", e); }
+
+            try {
+                const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
+                if (vastDoc.exists()) { vastAdConfig = vastDoc.data(); }
+            } catch(e) { console.error("Error loading vast ad settings:", e); }
         }
 
         // --- NEW: Function to delete expired stories ---
@@ -3601,7 +3605,7 @@
                 `;
 
                 currentFlicksAdPlayer = fluidPlayer(`flicks-ad-player-${currentFlickIdx}`, {
-                    vastOptions: { adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl || 'https://baggymaintenance.com/d/mjFLz.dlGYNGv/Z/GtUO/je/ml9LuiZ/UelXkcPdTXY/5pNtTdchwiNBTmcEtYN/jqkU1vNnzQAf2dMzSSZ/staFWV1Cp_dIDB0exV' }] },
+                    vastOptions: { adList: [{ roll: 'preRoll', vastTag: vastAdConfig.vastUrl || 'https://direct-league.com/dEmwF.zMdxGINLv_ZuGZUM/ReNmN9/uDZxUklFkYPHTPYt5/NAjvArwXMQDgUNtoNSj/ks2iM/DmAPw_O/QV' }] },
                     layoutControls: { controlBar: { autoHideTimeout: 1, animated: false }, playButtonShowing: true }
                 });
 
@@ -4712,46 +4716,7 @@
             declineBtn.addEventListener('click', () => handleConsent('declined'));
         });
     </script>
-    <!-- // 1st ad script  -->
-    <script>
-(function(cahg){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = cahg || {};
-s.src = "\/\/webbedtrash.com\/bqX\/VIs.dpGpld0\/YVWhc_\/aegm\/9MuaZWUAlLkbPrTCY\/5\/NzTLYU0VNIDbU-trNdjNkO1qNdjvQh0kOaQr";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
-
-<!-- //-- 3rd ad script -->
- <script>
-(function(yfduc){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = yfduc || {};
-s.src = "\/\/webbedtrash.com\/b.X\/V\/s\/dyGflV0PYfWccV\/xeqm_9pu\/Z-Uyl\/kSPkTUYL5BNDTYYP0RN\/zfcRtdNojtkz1GNGjaQZ4\/MaQc";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
-<!-- //-- 4th ad script -->
- <script>
-(function(twy){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = twy || {};
-s.src = "\/\/webbedtrash.com\/btX\/V.sOd\/Gul\/0KYpWocF\/benmm9guBZLUSlikrPnTlY-5wN\/Tuctw\/NvDYEwtaNIjWka1yNdzCA\/0yNpQo";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
+   
 </body>
 <footer>
    <p>&copy; 2026 Viyou. All Rights Reserved.</p>

@@ -88,6 +88,7 @@
             <button id="tab-monetization" class="admin-tab-btn">💎 Creator Monetization</button>
             <button id="tab-copyright" class="admin-tab-btn">© Copyright Claims</button>
             <button id="tab-headlines" class="admin-tab-btn">📢 Headlines</button>
+            <button id="tab-vast" class="admin-tab-btn">📺 VAST Ads</button>
         </div>
 
         <div id="admin-content" style="display: none;">
@@ -106,9 +107,6 @@
 
                 <label style="display: block; margin-bottom: 5px;">Ad Network Dashboard URL:</label>
                 <input type="text" id="ad-network-url" placeholder="e.g., https://monetag.com/dashboard" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                <label style="display: block; margin-bottom: 5px;">VAST Tag URL (Video Ads):</label>
-                <input type="text" id="vast-url" placeholder="Enter VAST XML URL..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
 
                 <label style="display: block; margin-bottom: 5px;">YouTube Video Ad URL (Embed):</label>
                 <input type="text" id="youtube-ad-url" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
@@ -253,6 +251,17 @@
                     <button class="btn" style="background-color: #0d6efd;" onclick="window.saveHeadlines()">Save Headlines</button>
                 </div>
             </div>
+
+            <!-- VAST Ads Section -->
+            <div id="section-vast" style="display: none;">
+                <div class="report-card" style="border-color: #ff0050;">
+                    <h2 style="color: #ff0050; margin-top: 0;">VAST Ad Management</h2>
+                    <p style="color: #aaa; font-size: 0.9rem;">This VAST Ad will run independently of other website ads before long videos and inside Flicks.</p>
+                    <label style="display: block; margin-bottom: 5px;">VAST Tag URL:</label>
+                    <input type="text" id="standalone-vast-url" placeholder="Enter VAST XML URL..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    <button id="save-vast-btn" class="btn" style="background-color: #ff0050; width: 100%;" onclick="window.saveVastSettings()">Save VAST Settings</button>
+                </div>
+            </div>
         </div>
 
         <div id="auth-message">
@@ -280,11 +289,13 @@
         const tabMonetization = document.getElementById('tab-monetization');
         const tabCopyright = document.getElementById('tab-copyright');
         const tabHeadlines = document.getElementById('tab-headlines');
+        const tabVast = document.getElementById('tab-vast');
         const sectionReported = document.getElementById('section-reported');
         const sectionAds = document.getElementById('section-ads');
         const sectionMonetization = document.getElementById('section-monetization');
         const sectionCopyright = document.getElementById('section-copyright');
         const sectionHeadlines = document.getElementById('section-headlines');
+        const sectionVast = document.getElementById('section-vast');
         let currentAdConfig = {};
 
         tabReported.addEventListener('click', () => {
@@ -293,11 +304,13 @@
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
+            tabVast.classList.remove('active');
             sectionReported.style.display = 'block';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
+            sectionVast.style.display = 'none';
         });
 
         tabAds.addEventListener('click', () => {
@@ -306,11 +319,13 @@
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
+            tabVast.classList.remove('active');
             sectionAds.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
+            sectionVast.style.display = 'none';
         });
 
         tabMonetization.addEventListener('click', () => {
@@ -319,11 +334,13 @@
             tabAds.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
+            tabVast.classList.remove('active');
             sectionMonetization.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
+            sectionVast.style.display = 'none';
             window.loadPayoutRequests();
             window.loadMonetizedUsers();
         });
@@ -334,11 +351,13 @@
             tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabHeadlines.classList.remove('active');
+            tabVast.classList.remove('active');
             sectionCopyright.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionHeadlines.style.display = 'none';
+            sectionVast.style.display = 'none';
             window.loadCopyrightClaims();
         });
 
@@ -348,12 +367,30 @@
             tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
+            tabVast.classList.remove('active');
             sectionHeadlines.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
+            sectionVast.style.display = 'none';
             window.loadHeadlines();
+        });
+
+        tabVast.addEventListener('click', () => {
+            tabVast.classList.add('active');
+            tabReported.classList.remove('active');
+            tabAds.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            tabHeadlines.classList.remove('active');
+            sectionVast.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionAds.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
+            window.loadVastSettings();
         });
 
         onAuthStateChanged(auth, async (user) => {
@@ -437,6 +474,7 @@
                     loadAdminAds();
                     loadMonetizationSettings();
                     window.loadHeadlines();
+                    window.loadVastSettings();
                 } else {
                     authMessage.innerHTML = '<p style="color: red;">Access Denied. You are not an admin.</p>';
                     setTimeout(() => window.location.href = 'index.html', 2000);
@@ -456,7 +494,6 @@
                     currentAdConfig = data;
                     document.getElementById('ad-toggle').checked = data.showAds || false;
                     document.getElementById('ad-network-url').value = data.adNetworkUrl || '';
-                    document.getElementById('vast-url').value = data.vastUrl || '';
                     document.getElementById('youtube-ad-url').value = data.youtubeAdUrl || '';
                     document.getElementById('video-frequency').value = data.videoFrequency || 4;
                     document.getElementById('banner-frequency').value = data.bannerFrequency || 3;
@@ -529,7 +566,6 @@
             const adData = {
                 showAds: document.getElementById('ad-toggle').checked,
                 adNetworkUrl: document.getElementById('ad-network-url').value.trim(),
-                vastUrl: document.getElementById('vast-url').value.trim(),
                 youtubeAdUrl: document.getElementById('youtube-ad-url').value.trim(),
                 videoFrequency: parseInt(document.getElementById('video-frequency').value) || 4,
                 bannerFrequency: parseInt(document.getElementById('banner-frequency').value) || 3,
@@ -542,7 +578,7 @@
 
                 videoAdDuration: parseInt(document.getElementById('video-ad-duration').value) || 24,
                 videoAdAlwaysShow: document.getElementById('video-ad-always').checked,
-                videoAdStartTime: (currentAdConfig.youtubeAdUrl === document.getElementById('youtube-ad-url').value.trim() && currentAdConfig.vastUrl === document.getElementById('vast-url').value.trim()) ? (currentAdConfig.videoAdStartTime || now) : now,
+                videoAdStartTime: (currentAdConfig.youtubeAdUrl === document.getElementById('youtube-ad-url').value.trim()) ? (currentAdConfig.videoAdStartTime || now) : now,
 
                 affiliateDuration: parseInt(document.getElementById('affiliate-duration').value) || 24,
                 affiliateAlwaysShow: document.getElementById('affiliate-always').checked,
@@ -566,6 +602,26 @@
                 saveBtn.innerText = "Save Ad Settings";
                 saveBtn.disabled = false;
             }
+        };
+
+        // VAST Settings Logic
+        window.loadVastSettings = async () => {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "vastAds"));
+                if (docSnap.exists()) { document.getElementById('standalone-vast-url').value = docSnap.data().vastUrl || ''; }
+            } catch(e) { console.error("Error loading VAST settings:", e); }
+        };
+
+        window.saveVastSettings = async () => {
+            const btn = document.getElementById('save-vast-btn');
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+            const vastUrl = document.getElementById('standalone-vast-url').value.trim();
+            try {
+                await setDoc(doc(db, "settings", "vastAds"), { vastUrl: vastUrl }, { merge: true });
+                alert("VAST Ad configuration saved successfully!");
+            } catch(e) { console.error(e); alert("Failed to save VAST settings."); }
+            finally { btn.innerText = "Save VAST Settings"; btn.disabled = false; }
         };
 
         // Clear Banner Functions

@@ -100,11 +100,11 @@
         const blogId = urlParams.get('id');
         let currentBlog = null;
 
-        window.globalAdConfig = {};
+        window.vastAdConfig = {};
         async function loadAdSettings() {
             try {
-                const adDoc = await getDoc(doc(db, "settings", "ads"));
-                if (adDoc.exists()) { window.globalAdConfig = adDoc.data(); }
+                const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
+                if (vastDoc.exists()) { window.vastAdConfig = vastDoc.data(); }
             } catch(e) { console.error(e); }
         }
 
@@ -188,17 +188,21 @@
             `;
 
             if (blog.video && !blog.youtubeUrl) {
-                let adList = [];
-                if (window.globalAdConfig && window.globalAdConfig.showAds) {
-                    const vastUrl = window.globalAdConfig.vastUrl || 'https://baggymaintenance.com/d/mjFLz.dlGYNGv/Z/GtUO/je/ml9LuiZ/UelXkcPdTXY/5pNtTdchwiNBTmcEtYN/jqkU1vNnzQAf2dMzSSZ/staFWV1Cp_dIDB0exV';
-                    adList = [{ roll: 'preRoll', vastTag: vastUrl }];
-                }
-                fluidPlayer("watch-video-player", {
-                    layoutControls: { autoPlay: true, playButtonShowing: true },
-                    vastOptions: {
-                        adList: adList
-                    }
-                });
+                // एडमिन पैनल के VAST Ads सेक्शन से URL लेगा
+                const vastUrl = (window.vastAdConfig && window.vastAdConfig.vastUrl) ? window.vastAdConfig.vastUrl : 'https://direct-league.com/dEmwF.zMdxGINLv_ZuGZUM/ReNmN9/uDZxUklFkYPHTPYt5/NAjvArwXMQDgUNtoNSj/ks2iM/DmAPw_O/QV';
+                
+                // DOM रेडी होने के लिए 100ms का समय दिया गया है ताकि प्लेयर क्रैश न हो
+                setTimeout(() => {
+                    try {
+                        fluidPlayer("watch-video-player", {
+                            layoutControls: { autoPlay: true, playButtonShowing: true },
+                            vastOptions: {
+                                allowAutoPlay: true,
+                                adList: [{ roll: 'preRoll', vastTag: vastUrl }]
+                            }
+                        });
+                    } catch(e) { console.error("Ad load error:", e); }
+                }, 100);
             }
             window.renderComments();
         }

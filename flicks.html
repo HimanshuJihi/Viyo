@@ -6,6 +6,9 @@
     <title>Flicks - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fluid Player for VAST Ads -->
+    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
+    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
         .navbar { position: absolute; top: 0; width: 100%; padding: 15px 20px; z-index: 100; display: flex; align-items: center; box-sizing: border-box; background: linear-gradient(rgba(0,0,0,0.6), transparent); }
@@ -78,6 +81,14 @@
         let flicks = [];
         let currentFlickId = null;
         let viewedFlicks = new Set();
+        let globalAdConfig = {};
+
+        async function loadAdSettings() {
+            try {
+                const adDoc = await getDoc(doc(db, "settings", "ads"));
+                if (adDoc.exists()) { globalAdConfig = adDoc.data(); }
+            } catch(e) { console.error(e); }
+        }
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -229,7 +240,9 @@
         }
 
         onAuthStateChanged(auth, () => {
-            loadFlicks();
+            loadAdSettings().then(() => {
+                loadFlicks();
+            });
         });
 
         window.openFlickComments = function() {
