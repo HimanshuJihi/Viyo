@@ -7,8 +7,8 @@
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Fluid Player for VAST Ads -->
-    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
-    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+    <link rel="stylesheet" href="libs/fluidplayer.min.css" type="text/css"/>
+    <script src="libs/fluidplayer.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
         .navbar { position: absolute; top: 0; width: 100%; padding: 15px 20px; z-index: 100; display: flex; align-items: center; box-sizing: border-box; background: linear-gradient(rgba(0,0,0,0.6), transparent); }
@@ -81,12 +81,12 @@
         let flicks = [];
         let currentFlickId = null;
         let viewedFlicks = new Set();
-        let globalAdConfig = {};
+        let vastAdConfig = {};
 
-        async function loadAdSettings() {
+        async function loadVastAdSettings() {
             try {
-                const adDoc = await getDoc(doc(db, "settings", "ads"));
-                if (adDoc.exists()) { globalAdConfig = adDoc.data(); }
+                const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
+                if (vastDoc.exists()) { vastAdConfig = vastDoc.data(); }
             } catch(e) { console.error(e); }
         }
 
@@ -240,7 +240,7 @@
         }
 
         onAuthStateChanged(auth, () => {
-            loadAdSettings().then(() => {
+            loadVastAdSettings().then(() => {
                 loadFlicks();
             });
         });
@@ -355,7 +355,7 @@
                             const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge"><img src="${flick.authorPhoto || 'game-logo.png'}"> Liked by author</span>` : '';
                             return `
                             <div class="comment-wrapper" style="margin-bottom: 12px;">
-                                <img src="${r.photo || 'game-logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
+                                <img src="${r.photo || 'logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
                                 <div class="comment-body">
                                     <div class="comment-header">
                                         <div>
@@ -376,7 +376,7 @@
 
                         return `
                         <div class="comment-wrapper">
-                            <img src="${c.photo || 'game-logo.png'}" class="comment-avatar" onclick="window.location.href='profile.html?uid=${c.userUid}'">
+                            <img src="${c.photo || 'logo.png'}" class="comment-avatar" onclick="window.location.href='profile.html?uid=${c.userUid}'">
                             <div class="comment-body">
                                 <div class="comment-header">
                                     <div>
@@ -404,12 +404,24 @@
                         </div>`;
                     }).join('') || '<p style="text-align:center; color:#aaa;">No comments yet.</p>'}
                 </div>
-                <div style="padding: 15px; border-top: 1px solid #333; display: flex; gap: 12px; position: relative;">
+                ${user ? `
+                <div style="padding: 15px; border-top: 1px solid #333; position: relative;">
                     <div id="flicks-main-mention-dropdown" class="mention-dropdown" style="bottom: 100%;"></div>
-                    <img src="${user ? user.photoURL || 'game-logo.png' : 'game-logo.png'}" class="comment-avatar">
-                    <input type="text" id="flicks-comment-input" placeholder="Add a comment..." style="flex: 1; padding: 12px 16px; border-radius: 24px; border: 1px solid #444; background: #222; color: white; font-size: 0.95rem; box-sizing: border-box;" oninput="window.handleFlickMentionInput(event, 'flicks-main-mention-dropdown')" autocomplete="off">
-                    <button onclick="window.addFlickComment()" style="background: transparent; border: none; color: #0d6efd; font-weight: bold; cursor: pointer; font-size: 1rem;">Post</button>
+                    <div style="display: flex; gap: 12px;">
+                        <img src="${user.photoURL || 'logo.png'}" class="comment-avatar">
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+                            <input type="text" id="flicks-comment-input" placeholder="Add a comment..." style="width: 100%; padding: 12px 16px; border-radius: 24px; border: 1px solid #444; background: #222; color: white; font-size: 0.95rem; box-sizing: border-box;" oninput="window.handleFlickMentionInput(event, 'flicks-main-mention-dropdown')" autocomplete="off">
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button onclick="window.addFlickComment()" style="background: #0d6efd; color: white; padding: 8px 20px; border-radius: 24px; border: none; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Comment</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                ` : `
+                <div style="padding: 15px; border-top: 1px solid #333; text-align: center;">
+                    <p style="color:#aaa; margin: 0;">Please <a href="index.html" style="color:#0d6efd; text-decoration: none;">login</a> to comment.</p>
+                </div>
+                `}
             `;
         }
 
@@ -424,7 +436,7 @@
             const { mentionedUids, mentionMap } = await parseMentions(text);
             const newComment = {
                 id: Date.now().toString(), author: auth.currentUser.displayName || "User", userUid: auth.currentUser.uid,
-                photo: auth.currentUser.photoURL || "game-logo.png", text, date: new Date().toISOString(),
+                photo: auth.currentUser.photoURL || "logo.png", text, date: new Date().toISOString(),
                 likes: [], replies: [], mentionedUids, mentionMap
             };
 
@@ -444,7 +456,7 @@
             const { mentionedUids, mentionMap } = await parseMentions(text);
             const newReply = {
                 id: Date.now().toString(), author: auth.currentUser.displayName || "User", userUid: auth.currentUser.uid,
-                photo: auth.currentUser.photoURL || "game-logo.png", text, date: new Date().toISOString(),
+                photo: auth.currentUser.photoURL || "logo.png", text, date: new Date().toISOString(),
                 likes: [], mentionedUids, mentionMap
             };
             const c = flick.comments.find(x => x.id === commentId);

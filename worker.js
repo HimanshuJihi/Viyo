@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Viyou-v5'; // Cache version ko update kiya gaya hai
+const CACHE_NAME = 'Viyou-v6'; // Cache version updated
 const urlsToCache = [
   '/',
   '/index.html',
@@ -10,13 +10,8 @@ const urlsToCache = [
   '/studio.html',
   '/story-editor.html',
   '/manifest.json',
-  // पुराना लोगो 'game-logo.png' हटा दिया गया है।
-  // कृपया सुनिश्चित करें कि नीचे दिए गए पाथ आपके नए लोगो और आइकॉन से मेल खाते हैं।
-  '/logo.png', // <-- अपना मुख्य लोगो यहां डालें
-  '/favicon.ico', // <-- अपना favicon यहां डालें
-  '/icons/icon-192x192.png', // <-- PWA के लिए आइकॉन
-  '/icons/icon-512x512.png'  // <-- PWA के लिए आइकॉन
-  // अगर और भी आइकॉन हैं, तो उन्हें भी यहां जोड़ें, जैसे: '/icons/icon-144x144.png'
+  '/logo.png', // Main App Logo & PWA Icon
+  '/favicon.ico' // Favicon
 ];
 
 self.addEventListener('install', event => {

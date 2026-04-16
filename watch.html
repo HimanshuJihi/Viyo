@@ -7,8 +7,8 @@
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Fluid Player for VAST Ads -->
-    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
-    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+    <link rel="stylesheet" href="libs/fluidplayer.min.css" type="text/css"/>
+    <script src="libs/fluidplayer.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #121212; color: #fff; margin: 0; padding: 0; }
         .navbar { padding: 15px 20px; background: #1e1e1e; display: flex; align-items: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
@@ -101,6 +101,33 @@
         let currentBlog = null;
 
         window.vastAdConfig = {};
+
+        window.trackAdClick = async function(blogIdForClick) {
+            if (!blogIdForClick) return;
+            // --- Daily Limit Logic for Click Fraud Prevention ---
+            const today = new Date().toDateString();
+            let clickData = JSON.parse(localStorage.getItem('ad_click_data') || '{"date":"","count":0}');
+            if (clickData.date !== today) {
+                clickData = { date: today, count: 0 };
+            }
+            
+            const MAX_CLICKS_PER_DAY = 3; // A reasonable limit
+            if (clickData.count >= MAX_CLICKS_PER_DAY) {
+                console.log("Daily ad click limit reached. Click ignored to prevent fraud.");
+                return;
+            }
+            
+            clickData.count++;
+            localStorage.setItem('ad_click_data', JSON.stringify(clickData));
+            // ----------------------------------------------------
+
+            try {
+                const blogRef = doc(db, "blogs", blogIdForClick);
+                await updateDoc(blogRef, { adClicks: increment(1) });
+                console.log("Ad click successfully tracked for video:", blogIdForClick);
+            } catch(e) { console.error("Error tracking ad click:", e); }
+        };
+        window.vastAdConfig = {};
         async function loadAdSettings() {
             try {
                 const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
@@ -188,21 +215,58 @@
             `;
 
             if (blog.video && !blog.youtubeUrl) {
-                // एडमिन पैनल के VAST Ads सेक्शन से URL लेगा
-                const vastUrl = (window.vastAdConfig && window.vastAdConfig.vastUrl) ? window.vastAdConfig.vastUrl : 'https://direct-league.com/dEmwF.zMdxGINLv_ZuGZUM/ReNmN9/uDZxUklFkYPHTPYt5/NAjvArwXMQDgUNtoNSj/ks2iM/DmAPw_O/QV';
+                // VAST ad logic starts here. The video element is now in the DOM.
+                const vastUrl = (window.vastAdConfig && window.vastAdConfig.vastUrl) ? window.vastAdConfig.vastUrl : 'https://bubbly-sound.com/d.mCFTzidTGoNYv/ZEGcUl/Fejmp9/u/Z/Uwlek-PBTMY/5MNWjrAPxPMQzxcLtLNRjwk/2SMaD/EP0cMTSYZts/aTW_1DpQdkD/0bxW';
                 
-                // DOM रेडी होने के लिए 100ms का समय दिया गया है ताकि प्लेयर क्रैश न हो
-                setTimeout(() => {
-                    try {
-                        fluidPlayer("watch-video-player", {
-                            layoutControls: { autoPlay: true, playButtonShowing: true },
-                            vastOptions: {
-                                allowAutoPlay: true,
-                                adList: [{ roll: 'preRoll', vastTag: vastUrl }]
+                try {
+                    if (typeof fluidPlayer !== 'undefined') {
+                        console.log("Initializing Fluid Player with VAST URL:", vastUrl);
+                        const playerInstance = fluidPlayer(
+                            'watch-video-player',
+                            {
+                                layoutControls: {
+                                    autoPlay: true,
+                                    mute: true, // Mute to ensure autoplay works for ads
+                                    playButtonShowing: true,
+                                    controlBar: {
+                                        autoHide: true,
+                                        autoHideTimeout: 3,
+                                        animated: true
+                                    }
+                                },
+                                vastOptions: {
+                                    allowAutoPlay: true,
+                                    adList: [{
+                                        roll: 'preRoll',
+                                        vastTag: vastUrl
+                                    }]
+                                }
                             }
+                        );
+
+                        // Professional Error Handling & Event Tracking
+                        playerInstance.on('vastError', (errorCode) => {
+                            console.error('VAST Error:', { code: errorCode, message: `A VAST error occurred (code: ${errorCode}). The main video will play.` });
+                            // The player should automatically play the main content on error.
                         });
-                    } catch(e) { console.error("Ad load error:", e); }
-                }, 100);
+
+                        playerInstance.on('preRollAdNotServed', () => {
+                            console.warn('VAST Warning: No pre-roll ad was served. This could be due to no-fill from the ad server or other issues.');
+                        });
+
+                        playerInstance.on('adClick', () => {
+                            console.log('Ad click detected. Tracking...');
+                            window.trackAdClick(blogId);
+                        });
+
+                        playerInstance.on('adStarted', () => { console.log('Pre-roll ad started.'); });
+                        playerInstance.on('adFinished', () => { console.log('Pre-roll ad finished. Main content will play.'); });
+
+                    } else {
+                        console.warn("fluidPlayer is not defined. Video will play without VAST ad. This might be due to an ad blocker.");
+                        // If fluid player is not there, the native controls will work.
+                    }
+                } catch(e) { console.error("Fluid Player initialization error:", e); }
             }
             window.renderComments();
         }
@@ -436,7 +500,7 @@
                     const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge"><img src="${currentBlog.authorPhoto || 'game-logo.png'}"> Liked by author</span>` : '';
                     return `
                     <div class="comment-wrapper" style="margin-bottom: 12px;">
-                        <img src="${r.photo || 'game-logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
+                        <img src="${r.photo || 'logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
                         <div class="comment-body">
                             <div class="comment-header">
                                 <div>
@@ -457,7 +521,7 @@
 
                 return `
                 <div class="comment-wrapper">
-                    <img src="${c.photo || 'game-logo.png'}" class="comment-avatar" onclick="window.location.href='profile.html?uid=${c.userUid}'">
+                    <img src="${c.photo || 'logo.png'}" class="comment-avatar" onclick="window.location.href='profile.html?uid=${c.userUid}'">
                     <div class="comment-body">
                         <div class="comment-header">
                             <div>
@@ -490,7 +554,7 @@
                     <div style="position: relative; margin-bottom: 30px;">
                         <div id="video-mention-dropdown" class="mention-dropdown"></div>
                         <div style="display: flex; gap: 12px;">
-                            <img src="${user.photoURL || 'game-logo.png'}" class="comment-avatar">
+                            <img src="${user.photoURL || 'logo.png'}" class="comment-avatar">
                             <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
                                 <input type="text" id="comment-input" placeholder="Add a comment..." style="width: 100%; padding: 12px 16px; border-radius: 24px; border: 1px solid #444; background: #222; color: white; font-size: 0.95rem; box-sizing: border-box;" oninput="window.handleMentionInput(event, 'video-mention-dropdown')" autocomplete="off">
                                 <div style="display: flex; justify-content: flex-end;">
@@ -516,7 +580,7 @@
             const { mentionedUids, mentionMap } = await parseMentions(text);
             const newComment = {
                 id: Date.now().toString(), author: auth.currentUser.displayName || "User", userUid: auth.currentUser.uid,
-                photo: auth.currentUser.photoURL || "game-logo.png", text, date: new Date().toISOString(),
+                photo: auth.currentUser.photoURL || "logo.png", text, date: new Date().toISOString(),
                 likes: [], replies: [], mentionedUids, mentionMap
             };
 
@@ -535,7 +599,7 @@
             const { mentionedUids, mentionMap } = await parseMentions(text);
             const newReply = {
                 id: Date.now().toString(), author: auth.currentUser.displayName || "User", userUid: auth.currentUser.uid,
-                photo: auth.currentUser.photoURL || "game-logo.png", text, date: new Date().toISOString(),
+                photo: auth.currentUser.photoURL || "logo.png", text, date: new Date().toISOString(),
                 likes: [], mentionedUids, mentionMap
             };
             const c = currentBlog.comments.find(x => x.id === commentId);
@@ -609,5 +673,44 @@
             });
         });
     </script>
+      <!-- 1st ad script -->
+   <script>
+(function(wdxwb){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = wdxwb || {};
+s.src = "\/\/webbedtrash.com\/b\/X.V\/swdkGrlC0\/YDWqcW\/Jevm\/9juoZxU\/l-kGP\/TtY\/5RN-jbALxoNIDoULtzNSjukT2LMtDOEC0MOjQx";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- 2nd ad script -->
+<script>
+(function(wdxwb){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = wdxwb || {};
+s.src = "\/\/webbedtrash.com\/biX.VdszdVGulD0MYXWlcL\/GesmZ9TukZwUklQk\/PbT\/Y\/5wNdj\/AcxhNcj-E\/t\/Ncjmkx2ZMEDbE\/2ONnQV";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- 3rd ad script -->
+ <script>
+(function(nsfaa){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = nsfaa || {};
+s.src = "\/\/webbedtrash.com\/bdX.V\/ssdQGblW0LYZWQcK\/je\/mC9sulZUUGlKkQPsTFY\/5mN_jHALx-OHT\/MMt\/NTjSko2tMzDgEf5iN\/wo";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
 </body>
 </html>

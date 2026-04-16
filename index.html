@@ -2002,7 +2002,7 @@
                     if (blog.video) {
                         mediaHtml += `
                             <div style="position: relative; width: 100%; height: 250px; border-radius: 8px; margin-bottom: 10px; background: #000; cursor: pointer; display: flex; justify-content: center; align-items: center; overflow: hidden;" onclick="window.location.href='watch.html?id=${blog.id}'">
-                                <img src="${blog.thumbnail || 'game-logo.png'}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+                                <img src="${blog.thumbnail || 'logo.png'}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
                                 <div style="position: absolute; font-size: 4rem; color: rgba(255,255,255,0.9); text-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i class="fa-solid fa-play-circle"></i></div>
                             </div>`;
                     }
@@ -2018,7 +2018,7 @@
                             ${arrows}
                             <div class="image-carousel">${imagesList}</div>
                         </div>`;
-                    } else if (blog.image && blog.image !== 'game-logo.png') {
+                    } else if (blog.image && blog.image !== 'logo.png') {
                         mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="" style="max-height: 300px; object-fit: cover; cursor: pointer;" onclick="window.openLightbox('${blog.image}')">`;
                     }
                     
@@ -2374,14 +2374,18 @@
                     `;
                     grid.appendChild(vastAdDiv);
                     
-                    const fpStandalone = fluidPlayer(uniqueVidId, {
-                        vastOptions: {
-                            adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl || 'https://baggymaintenance.com/d/mjFLz.dlGYNGv/Z/GtUO/je/ml9LuiZ/UelXkcPdTXY/5pNtTdchwiNBTmcEtYN/jqkU1vNnzQAf2dMzSSZ/staFWV1Cp_dIDB0exV' }]
-                        }
-                    });
-                    
-                    // Track click ONLY when the actual ad is clicked (new tab opens)
-                    fpStandalone.on('adClick', () => window.trackAdClick(blog.id));
+                    if (typeof fluidPlayer !== 'undefined') {
+                        const fpStandalone = fluidPlayer(uniqueVidId, {
+                            vastOptions: {
+                                adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl || 'https://bubbly-sound.com/d.mCFTzidTGoNYv/ZEGcUl/Fejmp9/u/Z/Uwlek-PBTMY/5MNWjrAPxPMQzxcLtLNRjwk/2SMaD/EP0cMTSYZts/aTW_1DpQdkD/0bxW' }]
+                            }
+                        });
+                        
+                        // Track click ONLY when the actual ad is clicked (new tab opens)
+                        fpStandalone.on('adClick', () => window.trackAdClick(blog.id));
+                    } else {
+                        console.warn("fluidPlayer is not defined. It may have been blocked by an ad blocker.");
+                    }
                 }
                 });
 
@@ -3315,7 +3319,7 @@
                         const div = document.createElement('div');
                         div.className = 'search-result-item';
                         div.innerHTML = `
-                            <img src="${u.photoURL || 'https://via.placeholder.com/30'}" style="width:30px; height:30px; border-radius:50%;">
+                            <img src="${u.photoURL || 'logo.png'}" style="width:30px; height:30px; border-radius:50%; object-fit: cover;">
                             <div>
                                 <div style="font-weight:bold; color:white;">${u.name}</div>
                                 <div style="font-size:0.8rem; color:#aaa;">@${u.username}</div>
@@ -3605,8 +3609,44 @@
                 `;
 
                 currentFlicksAdPlayer = fluidPlayer(`flicks-ad-player-${currentFlickIdx}`, {
-                    vastOptions: { adList: [{ roll: 'preRoll', vastTag: vastAdConfig.vastUrl || 'https://direct-league.com/dEmwF.zMdxGINLv_ZuGZUM/ReNmN9/uDZxUklFkYPHTPYt5/NAjvArwXMQDgUNtoNSj/ks2iM/DmAPw_O/QV' }] },
-                    layoutControls: { controlBar: { autoHideTimeout: 1, animated: false }, playButtonShowing: true }
+                    "layoutControls": {
+                        "controlBar": {
+                            "autoHideTimeout": 3,
+                            "animated": true,
+                            "autoHide": true
+                        },
+                        "htmlOnPauseBlock": {
+                            "html": null,
+                            "height": null,
+                            "width": null
+                        },
+                        "autoPlay": true,
+                        "mute": false,
+                        "allowTheatre": false,
+                        "playPauseAnimation": true,
+                        "playbackRateEnabled": true,
+                        "allowDownload": false,
+                        "playButtonShowing": false,
+                        "fillToContainer": true,
+                        "posterImage": ""
+                    },
+                    "vastOptions": {
+                        "adList": [
+                            {
+                                "roll": "preRoll",
+                                "vastTag": vastAdConfig.vastUrl || "https://bubbly-sound.com/d.mCFTzidTGoNYv/ZEGcUl/Fejmp9/u/Z/Uwlek-PBTMY/5MNWjrAPxPMQzxcLtLNRjwk/2SMaD/EP0cMTSYZts/aTW_1DpQdkD/0bxW",
+                                "adText": ""
+                            },
+                            {
+                                "roll": "midRoll",
+                                "timer": 50, // Mid-roll ad will play at 50 seconds
+                                "vastTag": vastAdConfig.vastUrl || "https://bubbly-sound.com/d.mCFTzidTGoNYv/ZEGcUl/Fejmp9/u/Z/Uwlek-PBTMY/5MNWjrAPxPMQzxcLtLNRjwk/2SMaD/EP0cMTSYZts/aTW_1DpQdkD/0bxW",
+                                "adText": ""
+                            }
+                        ],
+                        "adCTAText": false,
+                        "adCTATextPosition": ""
+                    }
                 });
 
                 const flick = window.globalFlicks[currentFlickIdx];
@@ -3662,7 +3702,7 @@
                 titleDisplay.innerText = flick.title;
             }
             document.getElementById('flicks-author-name').innerText = "@" + flick.author;
-            document.getElementById('flicks-author-pic').src = (flick.authorPhoto && flick.authorPhoto !== 'null' && flick.authorPhoto !== 'undefined' && flick.authorPhoto !== '') ? flick.authorPhoto : 'game-logo.png';
+            document.getElementById('flicks-author-pic').src = (flick.authorPhoto && flick.authorPhoto !== 'null' && flick.authorPhoto !== 'undefined' && flick.authorPhoto !== '') ? flick.authorPhoto : 'logo.png';
             
             document.getElementById('flicks-author-pic').onclick = () => { window.location.href = 'profile.html?uid=' + flick.authorUid; };
             document.getElementById('flicks-author-name').onclick = () => { window.location.href = 'profile.html?uid=' + flick.authorUid; };
@@ -3794,10 +3834,10 @@
                 userSnaps.forEach(snap => { if (snap.exists()) uidToUserMap.set(snap.id, snap.data()); });
             }
 
-            const flickAuthorPhoto = (flick.authorPhoto && flick.authorPhoto !== 'null' && flick.authorPhoto !== 'undefined' && flick.authorPhoto !== '') ? flick.authorPhoto : 'game-logo.png';
+            const flickAuthorPhoto = (flick.authorPhoto && flick.authorPhoto !== 'null' && flick.authorPhoto !== 'undefined' && flick.authorPhoto !== '') ? flick.authorPhoto : 'logo.png';
 
             list.innerHTML = sortedComments.length === 0 ? '<p style="text-align:center; color:#aaa;">No comments yet.</p>' : sortedComments.map(c => {
-                const cPhoto = (c.photo && c.photo !== 'null' && c.photo !== 'undefined' && c.photo !== '') ? c.photo : 'game-logo.png';
+                const cPhoto = (c.photo && c.photo !== 'null' && c.photo !== 'undefined' && c.photo !== '') ? c.photo : 'logo.png';
                 const isOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
                 const isLiked = user && (c.likes || []).includes(user.uid);
                 const authorLiked = (c.likes || []).includes(flick.authorUid);
@@ -3821,7 +3861,7 @@
 
                 const replies = c.replies || [];
                 const repliesHtml = replies.map(r => {
-                    const rPhoto = (r.photo && r.photo !== 'null' && r.photo !== 'undefined' && r.photo !== '') ? r.photo : 'game-logo.png';
+                    const rPhoto = (r.photo && r.photo !== 'null' && r.photo !== 'undefined' && r.photo !== '') ? r.photo : 'logo.png';
                     const rIsLiked = user && (r.likes || []).includes(user.uid);
                     const rLikeColor = rIsLiked ? '#ff0050' : 'inherit';
                     const rIsOwner = user && (r.userUid === user.uid || (!r.userUid && r.author === user.displayName));
@@ -3899,7 +3939,7 @@
             const user = auth.currentUser;
 
             let authorName = user.displayName || "User";
-            let authorPhoto = user.photoURL || "game-logo.png";
+            let authorPhoto = user.photoURL || "logo.png";
             let isVerified = false;
 
             try {
@@ -4092,7 +4132,7 @@
             const user = auth.currentUser;
 
             let authorName = user.displayName || "User";
-            let authorPhoto = user.photoURL || "game-logo.png";
+            let authorPhoto = user.photoURL || "logo.png";
             let isVerified = false;
             try {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -4252,7 +4292,7 @@
                             div.style.cssText = "padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; color: white;";
                             div.onmouseover = () => div.style.background = "#333";
                             div.onmouseout = () => div.style.background = "transparent";
-                            const photo = (u.photoURL && u.photoURL !== 'null') ? u.photoURL : 'game-logo.png';
+                            const photo = (u.photoURL && u.photoURL !== 'null') ? u.photoURL : 'logo.png';
                             div.innerHTML = `<img src="${photo}" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;">
                                              <div style="font-size: 0.85rem;"><strong>${u.name || 'User'}</strong> <span style="color:#aaa;">@${u.username}</span></div>`;
                             
@@ -4301,7 +4341,7 @@
                         div.style.cssText = "display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1);";
                         div.innerHTML = `
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <img src="${u.photoURL || 'game-logo.png'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <img src="${u.photoURL || 'logo.png'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                                 <div><strong style="color:#fff;">${u.name || 'User'}</strong><br><span style="font-size:0.8rem; color:#aaa;">@${u.username || ''}</span></div>
                             </div>
                             <button class="btn feed-btn" style="padding:5px 15px;" onclick="window.sendFlickToUser('${snap.id}', this)">Send</button>
@@ -4716,10 +4756,48 @@
             declineBtn.addEventListener('click', () => handleConsent('declined'));
         });
     </script>
-   
+   <!-- 1st ad script -->
+   <script>
+(function(wdxwb){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = wdxwb || {};
+s.src = "\/\/webbedtrash.com\/b\/X.V\/swdkGrlC0\/YDWqcW\/Jevm\/9juoZxU\/l-kGP\/TtY\/5RN-jbALxoNIDoULtzNSjukT2LMtDOEC0MOjQx";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- 2nd ad script -->
+<script>
+(function(wdxwb){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = wdxwb || {};
+s.src = "\/\/webbedtrash.com\/biX.VdszdVGulD0MYXWlcL\/GesmZ9TukZwUklQk\/PbT\/Y\/5wNdj\/AcxhNcj-E\/t\/Ncjmkx2ZMEDbE\/2ONnQV";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+<!-- 3rd ad script -->
+ <script>
+(function(nsfaa){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = nsfaa || {};
+s.src = "\/\/webbedtrash.com\/bdX.V\/ssdQGblW0LYZWQcK\/je\/mC9sulZUUGlKkQPsTFY\/5mN_jHALx-OHT\/MMt\/NTjSko2tMzDgEf5iN\/wo";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
 </body>
 <footer>
-   <p>&copy; 2026 Viyou. All Rights Reserved.</p>
+   <p>&copy;  Viyou. All Rights Reserved.</p>
    <div style="margin-top: 10px;">
        <a href="about-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">About Us</a>
        <a href="contact-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Contact Us</a>
