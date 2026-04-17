@@ -239,28 +239,28 @@
                                     adList: [{ // Pre-roll ad
                                         roll: 'preRoll',
                                         vastTag: vastUrl
-                                    }],
-                                },
-                                events: {
-                                    vastError: () => {
-                                        console.error('VAST Error: An error occurred while loading the VAST ad. The main video will play.');
-                                    },
-                                    preRollAdNotServed: () => {
-                                        console.warn('VAST Warning: No pre-roll ad was served. This could be due to no-fill from the ad server or other issues.');
-                                    },
-                                    adClick: () => {
-                                        console.log('Ad click detected. Tracking...');
-                                        window.trackAdClick(blogId);
-                                    },
-                                    adStarted: () => {
-                                        console.log('Pre-roll ad started.');
-                                    },
-                                    adFinished: () => {
-                                        console.log('Pre-roll ad finished. Main content will play.');
-                                    }
+                                    }]
                                 }
                             }
                         );
+
+                        // Event listeners for debugging and tracking
+                        playerInstance.on('vastError', (errorCode) => {
+                            console.error('VAST Error:', { code: errorCode, message: `A VAST error occurred (code: ${errorCode}). The main video will play.` });
+                        });
+
+                        // This event is useful to know if the ad server responded but had no ad to show.
+                        playerInstance.on('preRollAdNotServed', () => {
+                            console.warn('VAST Warning: No pre-roll ad was served. This could be due to no-fill from the ad server or other issues.');
+                        });
+
+                        playerInstance.on('adClick', () => {
+                            console.log('Ad click detected. Tracking...');
+                            window.trackAdClick(blogId);
+                        });
+
+                        playerInstance.on('adStarted', () => { console.log('Pre-roll ad started.'); });
+                        playerInstance.on('adFinished', () => { console.log('Pre-roll ad finished. Main content will play.'); });
 
                     } else {
                         console.warn("fluidPlayer is not defined. Video will play without VAST ad. This might be due to an ad blocker or the script not loading.");

@@ -160,8 +160,8 @@
 
             <input type="hidden" id="author" required>
             <div class="form-group">
-                <label for="content"><span id="content-label-text">सामग्री (Content)</span> <span id="char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 2000)</span></label>
-                <textarea id="content" required maxlength="2000" placeholder="यहाँ अपने विचार लिखें..."></textarea>
+                <label for="content"><span id="content-label-text">सामग्री (Content)</span> <span id="char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 5000)</span></label>
+                <textarea id="content" required maxlength="5000" placeholder="यहाँ अपने विचार लिखें..."></textarea>
             </div>
 
             <div id="blog-specific-fields">
@@ -258,7 +258,7 @@
         
         function updateCharCounter() {
             if (contentArea && charCounter) {
-                const maxLength = contentArea.getAttribute('maxlength') || 2000;
+                const maxLength = contentArea.getAttribute('maxlength') || 5000;
                 const currentLength = contentArea.value.length;
                 charCounter.textContent = `(${currentLength} / ${maxLength})`;
                 if (currentLength > maxLength * 0.9) {
@@ -335,7 +335,7 @@
                 document.getElementById('content-label-text').innerText = 'सामग्री (Content)';
                 document.getElementById('title').required = true;
                 document.getElementById('content').required = true;
-                document.getElementById('content').setAttribute('maxlength', '2000');
+                document.getElementById('content').setAttribute('maxlength', '5000');
                 document.getElementById('title').placeholder = 'Ex: भारत की शानदार जीत...';
                 document.getElementById('content').placeholder = 'यहाँ अपने विचार लिखें...';
             } else if (type === 'video') {
@@ -374,7 +374,7 @@
                     if (authorInput) {
                         authorInput.value = userDoc.data().username;
                         authorInput.readOnly = true; // Lock author name to Unique ID
-                        updateCharCounter(); // Set initial count to (0 / 2000)
+                        updateCharCounter(); // Set initial count to (0 / 5000)
                     }
                     if (userDoc.data().isVerified) isUserVerified = true;
                 } else {
@@ -682,6 +682,12 @@
             if(title && author && (content !== "" || currentPostType !== 'blog')) {
                 const processBlog = async (imagesData, youtubeUrl, pollData, videoBase64, thumbnailBase64) => {
                     try {
+                        // --- Smart Search: Create keywords from title and content ---
+                        const allTextForKeywords = (title + " " + content).toLowerCase();
+                        // Remove punctuation, split into words, filter short words, and get unique keywords
+                        const keywords = [...new Set(allTextForKeywords.replace(/[.,!?;:"'()]/g, "").split(/\s+/).filter(word => word.length > 2))];
+                        // --- End Smart Search ---
+
                         const mentionRegex = /@([\w_]+)/g;
                         const allText = title + " " + content;
                         const mentions = [...new Set([...allText.matchAll(mentionRegex)].map(m => m[1].toLowerCase()))];
@@ -707,7 +713,8 @@
                                 content: content,
                                 status: submissionStatus, // Allow saving draft on update
                                 mentionedUids: mentionedUids,
-                                mentionMap: mentionMap
+                                mentionMap: mentionMap,
+                                keywords: keywords // Add keywords for searching
                             };
                             updateData.authorVerified = isUserVerified;
                             updateData.isFlicker = isFlicks;
@@ -758,7 +765,8 @@
                                 likes: [],
                                 status: submissionStatus,
                                 mentionedUids: mentionedUids,
-                                mentionMap: mentionMap
+                                mentionMap: mentionMap,
+                                keywords: keywords // Add keywords for searching
                             });
 
                             if (submissionStatus === 'published' && mentionedUids.length > 0) {

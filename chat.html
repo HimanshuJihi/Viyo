@@ -312,9 +312,9 @@
         <div id="typing-indicator" style="height: 20px; color: #aaa; font-style: italic; padding-left: 10px; display: none; transition: opacity 0.3s;"></div>
 
         <div class="message-input-area">
-        <button id="attach-btn" class="btn-transparent" title="Send Image" style="padding: 5px; border-radius: 5px; display: flex; align-items: center; justify-content: center;"><img src="attach-icon.png" alt="Attach" style="width: 34px; height: 34px;"></button>
+        <button id="attach-btn" class="btn-transparent" title="Send Image" style="padding: 5px; border-radius: none; display: flex; align-items: center; justify-content: center;"><img src="attach-icon.png" alt="Attach" style="width: 34px; height: 34px;"></button>
             <input type="file" id="image-input-chat" style="display: none;" accept="image/*">
-            <input type="text" id="message-input" placeholder="Type your message...">
+            <input type="text" id="message-input" placeholder="Type your message..." width:300px; style="flex-grow: 1; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem;">
         <button id="send-message-btn" class="btn-transparent" style="padding: 5px; border-radius: 5px; display: flex; align-items: center; justify-content: center;"><img src="send-icon.png" alt="Send" style="width: 34px; height: 34px;"></button>
         </div>
     </div>
