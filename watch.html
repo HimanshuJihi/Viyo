@@ -7,8 +7,8 @@
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Fluid Player for VAST Ads -->
-    <link rel="stylesheet" href="libs/fluidplayer.min.css" type="text/css"/>
-    <script src="libs/fluidplayer.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
+    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js" defer></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #121212; color: #fff; margin: 0; padding: 0; }
         .navbar { padding: 15px 20px; background: #1e1e1e; display: flex; align-items: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
@@ -220,7 +220,7 @@
                 
                 try {
                     if (typeof fluidPlayer !== 'undefined') {
-                        console.log("Initializing Fluid Player with VAST URL:", vastUrl);
+                        console.log("Initializing Fluid Player with VAST URL:", vastUrl); // Log for debugging
                         const playerInstance = fluidPlayer(
                             'watch-video-player',
                             {
@@ -236,34 +236,34 @@
                                 },
                                 vastOptions: {
                                     allowAutoPlay: true,
-                                    adList: [{
+                                    adList: [{ // Pre-roll ad
                                         roll: 'preRoll',
                                         vastTag: vastUrl
-                                    }]
+                                    }],
+                                },
+                                events: {
+                                    vastError: () => {
+                                        console.error('VAST Error: An error occurred while loading the VAST ad. The main video will play.');
+                                    },
+                                    preRollAdNotServed: () => {
+                                        console.warn('VAST Warning: No pre-roll ad was served. This could be due to no-fill from the ad server or other issues.');
+                                    },
+                                    adClick: () => {
+                                        console.log('Ad click detected. Tracking...');
+                                        window.trackAdClick(blogId);
+                                    },
+                                    adStarted: () => {
+                                        console.log('Pre-roll ad started.');
+                                    },
+                                    adFinished: () => {
+                                        console.log('Pre-roll ad finished. Main content will play.');
+                                    }
                                 }
                             }
                         );
 
-                        // Professional Error Handling & Event Tracking
-                        playerInstance.on('vastError', (errorCode) => {
-                            console.error('VAST Error:', { code: errorCode, message: `A VAST error occurred (code: ${errorCode}). The main video will play.` });
-                            // The player should automatically play the main content on error.
-                        });
-
-                        playerInstance.on('preRollAdNotServed', () => {
-                            console.warn('VAST Warning: No pre-roll ad was served. This could be due to no-fill from the ad server or other issues.');
-                        });
-
-                        playerInstance.on('adClick', () => {
-                            console.log('Ad click detected. Tracking...');
-                            window.trackAdClick(blogId);
-                        });
-
-                        playerInstance.on('adStarted', () => { console.log('Pre-roll ad started.'); });
-                        playerInstance.on('adFinished', () => { console.log('Pre-roll ad finished. Main content will play.'); });
-
                     } else {
-                        console.warn("fluidPlayer is not defined. Video will play without VAST ad. This might be due to an ad blocker.");
+                        console.warn("fluidPlayer is not defined. Video will play without VAST ad. This might be due to an ad blocker or the script not loading.");
                         // If fluid player is not there, the native controls will work.
                     }
                 } catch(e) { console.error("Fluid Player initialization error:", e); }

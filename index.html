@@ -26,11 +26,17 @@
 
       gtag('config', 'G-6FBZXVMTR6');
     </script>
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com">
+    <link rel="preconnect" href="https://googleads.g.doubleclick.net">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Fluid Player for VAST Ads -->
     <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
-    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js" defer></script>
 
     <style>
         body {
@@ -548,15 +554,6 @@
         body.light-mode .search-box input { background: #fff; color: #333; border: 1px solid #ccc; }
         body.light-mode .search-results,
         body.light-mode .notif-dropdown,
-        body.light-mode #user-list-modal > div,
-        body.light-mode #edit-modal > div { background: #fff !important; border-color: #ddd !important; color: #333 !important; }
-        body.light-mode .search-result-item:hover { background: #f0f0f0; }
-        body.light-mode .notif-item { border-bottom-color: #eee; color: #555; }
-        body.light-mode #user-list-title { color: #0d6efd; }
-        body.light-mode #edit-modal h2 { color: #0d6efd !important; }
-        body.light-mode #edit-text-input { background: #f0f0f0 !important; color: #333 !important; border-color: #ccc !important; }
-        body.light-mode #user-list-content > div { border-bottom-color: #eee; }
-        body.light-mode #user-list-content strong { color: #000; }
         body.light-mode .btn-vertical { color: #333; }
         body.light-mode .theme-btn { color: #333 !important; }
         body.light-mode .btn-transparent { color: #333 !important; }
@@ -623,6 +620,17 @@
         .category-chip.active { background: #fff; color: #000; font-weight: bold; }
         body.light-mode .category-chip { background: #f0f0f0; border-color: #ccc; color: #555; }
         body.light-mode .category-chip.active { background: #333; color: #fff; }
+
+        /* Toast Notification */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #333; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); min-width: 250px; max-width: 350px; }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { border-left: 5px solid #28a745; }
+        .toast.error { border-left: 5px solid #dc3545; }
+        .toast.info { border-left: 5px solid #0d6efd; }
+        .toast-icon { font-size: 1.2rem; }
+        body.light-mode .toast { background: #fff; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
@@ -645,14 +653,11 @@
             <h1 style="background: linear-gradient(135deg, #ff007a, #7a00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 3rem; letter-spacing: 2px; margin: 0;"><img src="logo.png" alt="Viyou" style="width: 42px; height: 42px;"> Viyou </h1>
             <div class="header-actions">
                 <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px;">
-                    <div class="search-box" style="width: 100%;">
-                        <input type="text" id="user-search" placeholder="Search users (@id)..." style="width: 100%; box-sizing: border-box;">
+                    <form id="search-form" class="search-box" style="width: 100%; display: flex; position: relative;">
+                        <input type="text" id="user-search" placeholder="Search" autocomplete="off" style="flex-grow: 1; border-radius: 20px 0 0 20px; border-right: none; padding-right: 40px; width: 100%; box-sizing: border-box;">
+                        <button type="submit" style="padding: 8px 12px; border-radius: 0 20px 20px 0; border: 1px solid #ccc; background: rgba(255,255,255,0.2); color: rgb(155, 48, 48); cursor: pointer;"><i class="fa-solid fa-search"></i></button>
                         <div id="search-results" class="search-results"></div>
-                    </div>
-                    <div id="search-filter-container" style="display: flex; gap: 5px; background: rgba(255,255,255,0.1); padding: 5px; border-radius: 8px; width: 100%; box-sizing: border-box;">
-                        <button id="search-filter-content" class="btn feed-btn" style="flex: 1; padding: 5px;">Content</button>
-                        <button id="search-filter-account" class="btn feed-btn active" style="flex: 1; padding: 5px;">Account</button>
-                    </div>
+                    </form>
                 </div>
                 <div class="notif-box">
                     <button id="notif-btn" class="notif-btn"><img src="notif-icon.png" alt="Notifications" style="width: 70px; height: 70px;"> <span id="notif-badge" class="notif-badge">0</span></button>
@@ -777,7 +782,6 @@
     <div id="flicks-viewer-modal" class="lightbox-modal" style="padding: 0; align-items: center; justify-content: center; background: #000;" onclick="if(event.target === this) window.closeFlicksViewer()">
         <span class="close-lightbox" style="z-index: 3000; right: 20px; top: 20px;" onclick="window.closeFlicksViewer()">&times;</span>
         <div id="flicks-viewer-content" style="position: relative; width: 100%; max-width: 450px; height: 100vh; background: #111; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-            <video id="flicks-video-player" src="" loop playsinline style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" onclick="this.paused ? this.play() : this.pause()"></video>
             <video id="flicks-video-player" src="" loop playsinline style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" onclick="window.handleFlickVideoClick(event)"></video>
             
             <div id="flicks-heart-anim" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: #ff0050; font-size: 6rem; z-index: 25; pointer-events: none; opacity: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; text-shadow: 0 0 20px rgba(0,0,0,0.5);">
@@ -929,6 +933,33 @@
         let vastAdConfig = {};
         let viewedBlogsInSession = new Set(); // For view tracking
 
+        // --- Toast Notification Logic ---
+        function showToast(message, type = 'info') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let iconClass = 'fa-solid fa-circle-info';
+            if (type === 'success') iconClass = 'fa-solid fa-check-circle';
+            if (type === 'error') iconClass = 'fa-solid fa-times-circle';
+
+            toast.innerHTML = `<span class="toast-icon"><i class="${iconClass}"></i></span><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.classList.add('show'); }, 100);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => { if (toast.parentNode) toast.parentNode.removeChild(toast); });
+            }, 4000);
+        }
+
         // View tracking observer
         const viewObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -1073,6 +1104,7 @@
         window.deleteStory = async function(storyId) {
             if (!auth.currentUser) {
                 alert("Authentication error.");
+                showToast("Authentication error.", 'error');
                 return;
             }
 
@@ -1089,6 +1121,7 @@
                 } catch (e) {
                     console.error("Error deleting story:", e);
                     alert("Failed to delete story.");
+                    showToast("Failed to delete story.", 'error');
                 }
             }
         };
@@ -1146,6 +1179,7 @@
         window.likeStory = async function(storyId) {
             if (!auth.currentUser) {
                 alert("Please login to like stories.");
+                showToast("Please login to like stories.", 'info');
                 return;
             }
             const storyRef = doc(db, "stories", storyId);
@@ -1181,6 +1215,7 @@
         window.sendStoryReplyAsMessage = async function(storyId, authorUid, storyImage, storyMessage) {
             if (!auth.currentUser) {
                 alert("Please login to reply.");
+                showToast("Please login to reply.", 'info');
                 return;
             }
             const replyInput = document.getElementById(`story-reply-input-${storyId}`);
@@ -1232,6 +1267,7 @@
             } catch (e) {
                 console.error("Error sending story reply:", e);
                 alert("Failed to send reply.");
+                showToast("Failed to send reply.", 'error');
                 replyInput.value = text; // Put text back on error
             }
         };
@@ -1358,6 +1394,7 @@
                 .catch((error) => {
                     console.error("Login Error:", error);
                     alert(`Login Failed:\n${error.message}\n(Code: ${error.code})`);
+                    showToast(`Login Failed: ${error.message}`, 'error');
                 });
         });
 
@@ -1368,12 +1405,14 @@
 
             if (!email || !pass) {
                 alert("Please enter both email and password.");
+                showToast("Please enter both email and password.", 'error');
                 return;
             }
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 alert("Please enter a valid email address.");
+                showToast("Please enter a valid email address.", 'error');
                 return;
             }
 
@@ -1383,8 +1422,10 @@
             } catch(e) {
                 if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
                     alert("Invalid email or password. Please try again.");
+                    showToast("Invalid email or password. Please try again.", 'error');
                 } else {
                     alert("Login Error: " + e.message);
+                    showToast("Login Error: " + e.message, 'error');
                 }
             }
         });
@@ -1395,15 +1436,18 @@
 
             if (!email || !pass) {
                 alert("Please enter both email and password.");
+                showToast("Please enter both email and password.", 'error');
                 return;
             }
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 alert("Please enter a valid email address.");
+                showToast("Please enter a valid email address.", 'error');
                 return;
             }
             if (pass.length < 6) {
                 alert("Password must be at least 6 characters long.");
+                showToast("Password must be at least 6 characters long.", 'error');
                 return;
             }
 
@@ -1413,8 +1457,10 @@
             } catch(e) {
                 if (e.code === 'auth/email-already-in-use') {
                     alert("This email address is already in use. Please login or use a different email.");
+                    showToast("This email is already in use. Please login or use a different email.", 'error');
                 } else {
                     alert("Signup Error: " + e.message);
+                    showToast("Signup Error: " + e.message, 'error');
                 }
             }
         });
@@ -1429,8 +1475,10 @@
             }
             try {
                 await sendPasswordResetEmail(auth, email);
-                alert("Password reset email sent to " + email);
-            } catch(e) { alert("Error: " + e.message); }
+                showToast("Password reset email sent to " + email, 'success');
+            } catch(e) {
+                showToast("Error: " + e.message, 'error');
+            }
         });
 
         // --- Phone Auth Logic ---
@@ -1451,6 +1499,7 @@
             const phoneNumber = document.getElementById('phone-input').value.trim();
             if (!phoneNumber || !phoneNumber.startsWith('+')) {
                 alert("Please enter a valid phone number with country code (e.g., +919876543210).");
+                showToast("Please enter a valid phone number with country code (e.g., +91...).", 'error');
                 return;
             }
             
@@ -1466,9 +1515,11 @@
                 document.getElementById('otp-section').style.display = 'block';
                 btn.style.display = 'none';
                 alert("OTP sent successfully!");
+                showToast("OTP sent successfully!", 'success');
             } catch (error) {
                 console.error("Error sending OTP:", error);
                 alert("Failed to send OTP. Please check the phone number format or try again.");
+                showToast("Failed to send OTP. Please check the phone number and try again.", 'error');
                 btn.innerText = "Send OTP";
                 btn.disabled = false;
             }
@@ -1478,6 +1529,7 @@
             const otp = document.getElementById('otp-input').value.trim();
             if (!otp || otp.length !== 6) {
                 alert("Please enter the 6-digit OTP.");
+                showToast("Please enter the 6-digit OTP.", 'error');
                 return;
             }
 
@@ -1501,6 +1553,7 @@
             } catch (error) {
                 console.error("Error verifying OTP:", error);
                 alert("Invalid OTP. Please try again.");
+                showToast("Invalid OTP. Please try again.", 'error');
                 btn.innerText = "Verify OTP & Login";
                 btn.disabled = false;
             }
@@ -1605,6 +1658,7 @@
                 if (!auth.currentUser) {
                     e.preventDefault();
                     alert("Please login to write a blog!");
+                    showToast("Please login to write a blog!", 'info');
                 }
             });
         }
@@ -1644,6 +1698,12 @@
             loadFlicks(); // Reload flicks alongside feed
             loadBlogs(false); // Start loading from the beginning
             setupInfiniteScroll(); // Setup scroll observer after auth resolves
+
+            // Defer loading of non-critical sections to improve initial load time
+            setTimeout(() => {
+                loadTrending();
+                loadFlicks();
+            }, 1500); // Delay by 1.5 seconds
         }
 
         // Add event listeners for feed toggle
@@ -1656,6 +1716,7 @@
         document.getElementById('feed-following-btn').addEventListener('click', () => {
             if (currentFeedMode === 'following') return;
             if (!auth.currentUser) { alert("Please login to see posts from users you follow."); return; }
+            if (!auth.currentUser) { showToast("Please login to see posts from users you follow.", 'info'); return; }
             currentFeedMode = 'following';
             resetAndLoadBlogs();
         });
@@ -2009,7 +2070,7 @@
 
                     if (blog.images && blog.images.length > 0) {
                         const imagesList = blog.images.map(img => 
-                            `<img src="${img}" alt="Blog Image" onclick="window.openLightbox('${img}')" style="cursor: pointer;">`
+                            `<img src="${img}" alt="Blog Image" loading="lazy" onclick="window.openLightbox('${img}')" style="cursor: pointer;">`
                         ).join('');
                         const arrows = blog.images.length > 1 ? `
                             <button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button>
@@ -2019,7 +2080,7 @@
                             <div class="image-carousel">${imagesList}</div>
                         </div>`;
                     } else if (blog.image && blog.image !== 'logo.png') {
-                        mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="" style="max-height: 300px; object-fit: cover; cursor: pointer;" onclick="window.openLightbox('${blog.image}')">`;
+                        mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="" loading="lazy" style="max-height: 300px; object-fit: cover; cursor: pointer;" onclick="window.openLightbox('${blog.image}')">`;
                     }
                     
                     // Follow Button Logic
@@ -2455,44 +2516,55 @@
             }
         };
 
-        window.toggleFollow = async function(targetUid) {
+        window.toggleFollow = function(targetUid) {
             if (!auth.currentUser) { alert("Please login to follow!"); return; }
+            if (!auth.currentUser) { showToast("Please login to follow!", 'info'); return; }
             const myUid = auth.currentUser.uid;
             const userRef = doc(db, "users", myUid);
             const targetRef = doc(db, "users", targetUid);
             
-            try {
-                if (currentUserFollowing.includes(targetUid)) {
-                    // Unfollow
-                    await updateDoc(userRef, { following: arrayRemove(targetUid) });
-                    await updateDoc(targetRef, { followers: arrayRemove(myUid) });
-                    currentUserFollowing = currentUserFollowing.filter(id => id !== targetUid);
-                } else {
-                    // Follow
-                    await updateDoc(userRef, { following: arrayUnion(targetUid) });
-                    await updateDoc(targetRef, { followers: arrayUnion(myUid) });
-                    
-                    // Send Notification
-                    await addDoc(collection(db, "notifications"), {
-                        recipientUid: targetUid,
-                        senderUid: myUid,
-                        senderName: auth.currentUser.displayName || "Someone",
-                        type: "follow",
-                        date: new Date().toISOString(),
-                        read: false
-                    });
-                    currentUserFollowing.push(targetUid);
+            const isUnfollowing = currentUserFollowing.includes(targetUid);
+
+            // Optimistic UI update
+            if (isUnfollowing) {
+                currentUserFollowing = currentUserFollowing.filter(id => id !== targetUid);
+            } else {
+                currentUserFollowing.push(targetUid);
+            }
+            renderBlogs(auth.currentUser); // Re-render to update buttons
+            if (document.getElementById('flicks-viewer-modal') && document.getElementById('flicks-viewer-modal').style.display === 'flex') {
+                window.updateFlicksView();
+            }
+
+            // Background DB update
+            (async () => {
+                try {
+                    if (isUnfollowing) {
+                        await updateDoc(userRef, { following: arrayRemove(targetUid) });
+                        await updateDoc(targetRef, { followers: arrayRemove(myUid) });
+                    } else {
+                        await updateDoc(userRef, { following: arrayUnion(targetUid) });
+                        await updateDoc(targetRef, { followers: arrayUnion(myUid) });
+                        await addDoc(collection(db, "notifications"), { recipientUid: targetUid, senderUid: myUid, senderName: auth.currentUser.displayName || "Someone", type: "follow", date: new Date().toISOString(), read: false });
+                    }
+                } catch(e) {
+                    console.error("Follow error:", e);
+                    showToast("Error updating follow status.", 'error');
+                    if (isUnfollowing) {
+                        currentUserFollowing.push(targetUid);
+                    } else {
+                        currentUserFollowing = currentUserFollowing.filter(id => id !== targetUid);
+                    }
+                    renderBlogs(auth.currentUser);
+                    if (document.getElementById('flicks-viewer-modal') && document.getElementById('flicks-viewer-modal').style.display === 'flex') { window.updateFlicksView(); }
                 }
-                renderBlogs(auth.currentUser); // Re-render to update buttons
-                if (document.getElementById('flicks-viewer-modal') && document.getElementById('flicks-viewer-modal').style.display === 'flex') {
-                    window.updateFlicksView();
-                }
-            } catch(e) { console.error("Follow error:", e); alert("Error updating follow status."); }
+            })();
         };
 
         window.editUserBlog = function(id) {
             if (!auth.currentUser) {
                 alert("Please login to edit posts!");
+                showToast("Please login to edit posts!", 'info');
                 return;
             }
             window.location.href = `write-blog.html?id=${id}`;
@@ -2502,6 +2574,7 @@
         window.likeUserBlog = async function(id) {
             if (!auth.currentUser) {
                 alert("Please login to like posts!");
+                showToast("Please login to like posts!", 'info');
                 return;
             }
 
@@ -2513,34 +2586,14 @@
             const uid = auth.currentUser.uid;
             let isLiking = false;
 
-            const followBtn = document.getElementById('flicks-follow-btn');
-            if (user && flick.authorUid !== user.uid) {
-                followBtn.style.display = 'inline-block';
-                const isFollowing = currentUserFollowing.includes(flick.authorUid);
-                if (isFollowing) {
-                    followBtn.innerText = 'Following';
-                    followBtn.style.background = 'rgba(255,255,255,0.2)';
-                    followBtn.style.border = '1px solid transparent';
-                } else {
-                    followBtn.innerText = 'Follow';
-                    followBtn.style.background = 'transparent';
-                    followBtn.style.border = '1px solid white';
-                }
-                followBtn.onclick = (e) => { e.stopPropagation(); window.toggleFollow(flick.authorUid); };
-            } else {
-                followBtn.style.display = 'none';
-            }
-
             if (Array.isArray(blog.likes)) {
                 const likedIndex = blog.likes.indexOf(uid);
                 isLiking = likedIndex === -1;
 
                 if (isLiking) {
                     blog.likes.push(uid);
-                    await updateDoc(blogRef, { likes: arrayUnion(uid) });
                 } else {
                     blog.likes.splice(likedIndex, 1);
-                    await updateDoc(blogRef, { likes: arrayRemove(uid) });
                 }
             } else {
                 let likedPosts = JSON.parse(localStorage.getItem('viyou_user_liked_posts') || '[]');
@@ -2558,12 +2611,25 @@
 
                 blog.likes = currentLikes;
                 localStorage.setItem('viyou_user_liked_posts', JSON.stringify(likedPosts));
-                await updateDoc(blogRef, { likes: currentLikes });
             }
+
+            // Optimistic UI update (ताकि लाइक नंबर तुरंत स्क्रीन पर बदल जाए)
+            renderBlogs(auth.currentUser);
+
+            // Background Firestore Update
+            try {
+                if (Array.isArray(blog.likes)) {
+                    if (isLiking) {
+                        await updateDoc(blogRef, { likes: arrayUnion(uid) });
+                    } else {
+                        await updateDoc(blogRef, { likes: arrayRemove(uid) });
+                    }
+                } else {
+                    await updateDoc(blogRef, { likes: blog.likes });
+                }
 
                 // Send Notification on Like
                 if (isLiking) {
-                    try {
                         const blogSnap = await getDoc(blogRef);
                         if (blogSnap.exists()) {
                             const blogData = blogSnap.data();
@@ -2580,10 +2646,11 @@
                                 });
                             }
                         }
-                    } catch(e) { console.error("Notification error:", e); }
                 }
-
-                renderBlogs(auth.currentUser);
+            } catch (e) {
+                console.error("Error updating likes:", e);
+                showToast("Error updating like status.", 'error');
+            }
         };
 
         window.shareBlog = async function(id, title) {
@@ -2599,13 +2666,18 @@
             } else {
                 try {
                     await navigator.clipboard.writeText(url);
-                    alert("Link copied to clipboard!");
-                } catch (err) { alert("Could not copy link."); }
+                    showToast("Link copied to clipboard!", 'success');
+                } catch (err) {
+                    showToast("Could not copy link.", 'error');
+                }
             }
         };
 
         window.reportBlog = async function(id) {
-            if (!auth.currentUser) { alert("Please login to report!"); return; }
+            if (!auth.currentUser) {
+                showToast("Please login to report!", 'info');
+                return;
+            }
             const reason = prompt("Please provide a reason for reporting this post:");
             if (reason) {
                 try {
@@ -2615,13 +2687,19 @@
                         reason: reason,
                         date: new Date().toISOString()
                     });
-                    alert("Report submitted successfully. We will review it.");
-                } catch(e) { console.error(e); alert("Error submitting report."); }
+                    showToast("Report submitted successfully. We will review it.", 'success');
+                } catch(e) {
+                    console.error(e);
+                    showToast("Error submitting report.", 'error');
+                }
             }
         };
 
         window.submitCopyrightClaim = async function(id) {
-            if (!auth.currentUser) { alert("Please login to submit a copyright claim!"); return; }
+            if (!auth.currentUser) {
+                showToast("Please login to submit a copyright claim!", 'info');
+                return;
+            }
             const reason = prompt("Please provide a reason/region for the copyright strike:", "It's my content...");
             if (reason) {
                 try {
@@ -2631,8 +2709,11 @@
                         reason: reason,
                         date: new Date().toISOString()
                     });
-                    alert("Copyright claim submitted successfully. The admin will review it.");
-                } catch(e) { console.error(e); alert("Error submitting copyright claim."); }
+                    showToast("Copyright claim submitted successfully. The admin will review it.", 'success');
+                } catch(e) {
+                    console.error(e);
+                    showToast("Error submitting copyright claim.", 'error');
+                }
             }
         };
 
@@ -2691,12 +2772,14 @@
                 }, 10000);
             } else {
                 alert("Sorry, your browser does not support text-to-speech.");
+                showToast("Sorry, your browser does not support text-to-speech.", 'info');
             }
         };
 
         window.voteOnPoll = async function(blogId, optionIndex) {
             if (!auth.currentUser) {
                 alert("Please login to vote!");
+                showToast("Please login to vote!", 'info');
                 return;
             }
             const uid = auth.currentUser.uid;
@@ -2706,6 +2789,7 @@
                 const docSnap = await getDoc(blogRef);
                 if (!docSnap.exists()) {
                     alert("Blog not found!");
+                    showToast("Blog not found!", 'error');
                     return;
                 }
 
@@ -2716,6 +2800,7 @@
                 const hasVoted = poll.options.some(opt => opt.voters && opt.voters.includes(uid));
                 if (hasVoted) {
                     alert("You have already voted in this poll.");
+                    showToast("You have already voted in this poll.", 'info');
                     return;
                 }
 
@@ -2739,12 +2824,14 @@
             } catch (e) {
                 console.error("Error voting on poll:", e);
                 alert("An error occurred while casting your vote.");
+                showToast("An error occurred while casting your vote.", 'error');
             }
         };
 
         window.addComment = async function(id) {
             if (!auth.currentUser) {
                 alert("Please login to comment!");
+                showToast("Please login to comment!", 'info');
                 return;
             }
             const input = document.getElementById(`comment-input-${id}`);
@@ -2840,12 +2927,14 @@
             } catch (e) {
                 console.error("Error adding comment:", e);
                 alert("Failed to add comment. Please refresh and try again.");
+                showToast("Failed to add comment. Please refresh and try again.", 'error');
                 location.reload();
             }
         };
 
         window.toggleReplyBox = function(blogId, commentId) {
             if (!auth.currentUser) { alert("Please login to reply!"); return; }
+            if (!auth.currentUser) { showToast("Please login to reply!", 'info'); return; }
             const box = document.getElementById(`reply-box-${commentId}`);
             box.style.display = box.style.display === 'none' ? 'flex' : 'none';
         };
@@ -2981,12 +3070,14 @@
             } catch (e) {
                 console.error("Error submitting reply:", e);
                 alert("Failed to submit reply. Please refresh and try again.");
+                showToast("Failed to submit reply. Please refresh and try again.", 'error');
                 location.reload();
             }
         };
 
         window.toggleLike = async function(blogId, targetId, replyId = null) {
             if (!auth.currentUser) { alert("Please login to like!"); return; }
+            if (!auth.currentUser) { showToast("Please login to like!", 'info'); return; }
             const uid = auth.currentUser.uid;
 
             // Optimistic UI update
@@ -3045,6 +3136,7 @@
                 const blog = fetchedBlogs[blogIndex];
                 const isOwner = (blog.authorUid === auth.currentUser.uid);
                 if (!isOwner) { alert("Only the author can pin comments."); return; }
+                if (!isOwner) { showToast("Only the author can pin comments.", 'info'); return; }
                 const comment = blog.comments.find(c => c.id === commentId);
                 if (comment) {
                     comment.isPinned = !comment.isPinned;
@@ -3075,6 +3167,7 @@
         window.deleteComment = async function(blogId, commentId) {
             if (!auth.currentUser) {
                 alert("Please login to delete comments!");
+                showToast("Please login to delete comments!", 'info');
                 return;
             }
             
@@ -3087,6 +3180,7 @@
             const isAuthor = (comment.userUid === auth.currentUser.uid);
             if (!isAuthor) {
                 alert("You can only delete your own comments!");
+                showToast("You can only delete your own comments!", 'info');
                 return;
             }
 
@@ -3110,6 +3204,7 @@
         window.editComment = async function(blogId, commentId) {
             if (!auth.currentUser) {
                 alert("Please login to edit comments!");
+                showToast("Please login to edit comments!", 'info');
                 return;
             }
             
@@ -3126,6 +3221,7 @@
         window.deleteReply = async function(blogId, commentId, replyId) {
             if (!auth.currentUser) {
                 alert("Please login to delete replies!");
+                showToast("Please login to delete replies!", 'info');
                 return;
             }
             
@@ -3140,6 +3236,7 @@
             const isAuthor = (comment.replies[replyIndex].userUid === auth.currentUser.uid) || (!comment.replies[replyIndex].userUid && comment.replies[replyIndex].author === auth.currentUser.displayName);
             if (!isAuthor) {
                 alert("You can only delete your own replies!");
+                showToast("You can only delete your own replies!", 'info');
                 return;
             }
 
@@ -3169,6 +3266,7 @@
         window.editReply = async function(blogId, commentId, replyId) {
             if (!auth.currentUser) {
                 alert("Please login to edit replies!");
+                showToast("Please login to edit replies!", 'info');
                 return;
             }
             
@@ -3254,6 +3352,7 @@
             } catch (e) {
                 console.error("Error saving edit:", e);
                 alert("Failed to save edit.");
+                showToast("Failed to save edit.", 'error');
             }
 
             document.getElementById('edit-modal-btn-save').innerText = 'Save';
@@ -3263,36 +3362,16 @@
         };
 
         // Search Logic
+        const searchForm = document.getElementById('search-form');
         const searchInput = document.getElementById('user-search');
         const searchResults = document.getElementById('search-results');
 
-        const searchFilterContent = document.getElementById('search-filter-content');
-        const searchFilterAccount = document.getElementById('search-filter-account');
-        let searchMode = 'account'; // 'account' or 'content'
-
-        function updateSearchUI() {
-            if (searchMode === 'content') {
-                searchInput.placeholder = "Search blogs by title...";
-                searchFilterContent.classList.add('active');
-                searchFilterAccount.classList.remove('active');
-            } else {
-                searchInput.placeholder = "Search users (@id)...";
-                searchFilterContent.classList.remove('active');
-                searchFilterAccount.classList.add('active');
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevent page refresh
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                window.location.href = `search.html?q=${encodeURIComponent(searchTerm)}`;
             }
-            searchInput.value = '';
-            searchResults.style.display = 'none';
-        }
-        updateSearchUI(); // Initial setup
-
-        searchFilterContent.addEventListener('click', () => {
-            searchMode = 'content';
-            updateSearchUI();
-        });
-
-        searchFilterAccount.addEventListener('click', () => {
-            searchMode = 'account';
-            updateSearchUI();
         });
 
         searchInput.addEventListener('input', async (e) => {
@@ -3302,65 +3381,77 @@
                 return;
             }
 
-            if (searchMode === 'account') {
-                // Existing user search logic
-                const q = query(collection(db, "users"), 
-                    where("usernameLower", ">=", term), 
-                    where("usernameLower", "<=", term + "\uf8ff"),
-                    limit(5));
-                
-                const snap = await getDocs(q);
-                searchResults.innerHTML = '';
-                if (snap.empty) {
-                    searchResults.innerHTML = '<div style="padding:10px;">No users found</div>';
-                } else {
-                    snap.forEach(doc => {
-                        const u = doc.data();
-                        const div = document.createElement('div');
-                        div.className = 'search-result-item';
-                        div.innerHTML = `
-                            <img src="${u.photoURL || 'logo.png'}" style="width:30px; height:30px; border-radius:50%; object-fit: cover;">
-                            <div>
-                                <div style="font-weight:bold; color:white;">${u.name}</div>
-                                <div style="font-size:0.8rem; color:#aaa;">@${u.username}</div>
-                            </div>
-                        `;
-                        div.onclick = () => window.location.href = `profile.html?uid=${doc.id}`;
-                        searchResults.appendChild(div);
-                    });
-                }
-            } else { // searchMode === 'content'
-                // New blog search logic
-                // NOTE: This requires a Firestore index on 'titleLower' and 'status'.
-                // The console will provide a link to create it if it's missing.
-                const q = query(collection(db, "blogs"), 
-                    where("titleLower", ">=", term), 
-                    where("titleLower", "<=", term + "\uf8ff"),
-                    where("status", "==", "published"),
-                    limit(5));
+            searchResults.innerHTML = '';
+            let resultsFound = false;
 
-                const snap = await getDocs(q);
-                searchResults.innerHTML = '';
-                if (snap.empty) {
-                    searchResults.innerHTML = '<div style="padding:10px;">No blogs found</div>';
-                } else {
-                    snap.forEach(doc => {
-                        const blog = doc.data();
-                        const div = document.createElement('div');
-                        div.className = 'search-result-item';
-                        div.innerHTML = `
-                            <i class="fa-solid fa-newspaper" style="color:#ccc; font-size: 1.5rem; width: 30px; text-align: center;"></i>
-                            <div>
-                                <div style="font-weight:bold; color:white;">${blog.title}</div>
-                                <div style="font-size:0.8rem; color:#aaa;">by @${blog.author}</div>
-                            </div>
-                        `;
-                        div.onclick = () => window.location.href = `index.html?blogId=${doc.id}`;
-                        searchResults.appendChild(div);
-                    });
-                }
+            // Search users
+            const userQuery = query(collection(db, "users"), 
+                where("usernameLower", ">=", term), 
+                where("usernameLower", "<=", term + "\uf8ff"),
+                limit(3));
+            const userSnap = await getDocs(userQuery);
+            if (!userSnap.empty) {
+                resultsFound = true;
+                userSnap.forEach(doc => {
+                    const u = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.innerHTML = `
+                        <img src="${u.photoURL || 'logo.png'}" style="width:30px; height:30px; border-radius:50%; object-fit: cover;">
+                        <div>
+                            <div style="font-weight:bold; color:white;">${u.name}</div>
+                            <div style="font-size:0.8rem; color:#aaa;">@${u.username}</div>
+                        </div>
+                    `;
+                    div.onclick = () => window.location.href = `profile.html?uid=${doc.id}`;
+                    searchResults.appendChild(div);
+                });
             }
-            searchResults.style.display = 'block';
+
+            // Search content
+            const contentQuery = query(collection(db, "blogs"), 
+                where("titleLower", ">=", term), 
+                where("titleLower", "<=", term + "\uf8ff"),
+                where("status", "==", "published"),
+                limit(3));
+            const contentSnap = await getDocs(contentQuery);
+            if (!contentSnap.empty) {
+                resultsFound = true;
+                if(!userSnap.empty) {
+                    const hr = document.createElement('hr');
+                    hr.style.borderColor = '#444';
+                    hr.style.margin = '5px 0';
+                    searchResults.appendChild(hr);
+                }
+                contentSnap.forEach(doc => {
+                    const blog = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.innerHTML = `
+                        <i class="fa-solid fa-newspaper" style="color:#ccc; font-size: 1.5rem; width: 30px; text-align: center;"></i>
+                        <div>
+                            <div style="font-weight:bold; color:white;">${blog.title}</div>
+                            <div style="font-size:0.8rem; color:#aaa;">by @${blog.author}</div>
+                        </div>
+                    `;
+                    div.onclick = () => window.location.href = `search.html?q=${encodeURIComponent(blog.title)}`;
+                    searchResults.appendChild(div);
+                });
+            }
+
+            if (resultsFound) {
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInside = searchResults.contains(event.target) || searchInput.contains(event.target);
+            if (!isClickInside) {
+                searchResults.style.display = 'none';
+            }
         });
 
         // Notification Logic
@@ -3580,107 +3671,17 @@
             const adContainer = document.getElementById('flicks-ad-container');
             const uiOverlays = document.getElementById('flicks-ui-overlays');
 
-            // पिछले एड की ऑडियो/वीडियो को फ़ोर्स क्लीनअप करें
-            if (currentFlicksAdPlayer) {
-                const adVid = document.getElementById(`flicks-ad-player-${lastAdShownAtIdx}`);
-                if (adVid) {
-                    adVid.pause();
-                    adVid.removeAttribute('src');
-                    adVid.load();
-                }
-                try { currentFlicksAdPlayer.destroy(); } catch(e) {}
-                currentFlicksAdPlayer = null;
-            }
-
-            // Ad Logic: Show VAST ad every 4th flick, and ensure it's only shown once per index
-            if (currentFlickIdx > 0 && currentFlickIdx % 4 === 0 && lastAdShownAtIdx !== currentFlickIdx) {
-                lastAdShownAtIdx = currentFlickIdx;
-                
-                vid.pause();
-                vid.style.display = 'none';
-                uiOverlays.style.display = 'none';
-                adContainer.style.display = 'block';
-
-                adContainer.innerHTML = `
-                    <video id="flicks-ad-player-${currentFlickIdx}" style="width: 100%; height: 100%; object-fit: contain;">
-                        <source src="https://cdn.fluidplayer.com/static/blank.mp4" type="video/mp4" />
-                    </video>
-                    <div style="position: absolute; top: 15px; left: 15px; color: gold; font-weight: bold; z-index: 60; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 4px; font-size: 0.85rem;">Sponsored Ad</div>
-                `;
-
-                currentFlicksAdPlayer = fluidPlayer(`flicks-ad-player-${currentFlickIdx}`, {
-                    "layoutControls": {
-                        "controlBar": {
-                            "autoHideTimeout": 3,
-                            "animated": true,
-                            "autoHide": true
-                        },
-                        "htmlOnPauseBlock": {
-                            "html": null,
-                            "height": null,
-                            "width": null
-                        },
-                        "autoPlay": true,
-                        "mute": false,
-                        "allowTheatre": false,
-                        "playPauseAnimation": true,
-                        "playbackRateEnabled": true,
-                        "allowDownload": false,
-                        "playButtonShowing": false,
-                        "fillToContainer": true,
-                        "posterImage": ""
-                    },
-                    "vastOptions": {
-                        "adList": [
-                            {
-                                "roll": "preRoll",
-                                "vastTag": vastAdConfig.vastUrl || "https://bubbly-sound.com/d.mCFTzidTGoNYv/ZEGcUl/Fejmp9/u/Z/Uwlek-PBTMY/5MNWjrAPxPMQzxcLtLNRjwk/2SMaD/EP0cMTSYZts/aTW_1DpQdkD/0bxW",
-                                "adText": ""
-                            },
-                            {
-                                "roll": "midRoll",
-                                "timer": 50, // Mid-roll ad will play at 50 seconds
-                                "vastTag": vastAdConfig.vastUrl || "https://bubbly-sound.com/d.mCFTzidTGoNYv/ZEGcUl/Fejmp9/u/Z/Uwlek-PBTMY/5MNWjrAPxPMQzxcLtLNRjwk/2SMaD/EP0cMTSYZts/aTW_1DpQdkD/0bxW",
-                                "adText": ""
-                            }
-                        ],
-                        "adCTAText": false,
-                        "adCTATextPosition": ""
-                    }
-                });
-
-                const flick = window.globalFlicks[currentFlickIdx];
-                currentFlicksAdPlayer.on('adClick', () => window.trackAdClick(flick.id));
-
-                document.getElementById(`flicks-ad-player-${currentFlickIdx}`).addEventListener('ended', () => {
-                    const adVid = document.getElementById(`flicks-ad-player-${currentFlickIdx}`);
-                    if (adVid) {
-                        adVid.pause();
-                        adVid.removeAttribute('src');
-                        adVid.load();
-                    }
-                    if (currentFlicksAdPlayer) {
-                        currentFlicksAdPlayer.destroy();
-                        currentFlicksAdPlayer = null;
-                    }
-                    adContainer.style.display = 'none';
-                    adContainer.innerHTML = '';
-                    vid.style.display = 'block';
-                    uiOverlays.style.display = 'block';
-                    vid.play().catch(e => console.log("Autoplay prevented by browser", e));
-                });
-            } else {
-                adContainer.style.display = 'none';
-                adContainer.innerHTML = '';
-                vid.style.display = 'block';
-                uiOverlays.style.display = 'block';
-            }
+            // VAST ad logic removed as per request to only show ads on long videos.
+            adContainer.style.display = 'none';
+            adContainer.innerHTML = '';
+            vid.style.display = 'block';
+            uiOverlays.style.display = 'block';
 
             vid.src = flick.video;
             if (adContainer.style.display === 'none') {
                 vid.play().catch(e => console.log("Autoplay prevented by browser", e));
             }
-
+            
             document.getElementById('flicks-comment-count').innerText = flick.comments ? flick.comments.length : 0;
             document.getElementById('flicks-comment-btn').onclick = (e) => {
                 e.stopPropagation();
@@ -3710,6 +3711,24 @@
             const user = auth.currentUser;
             const likes = Array.isArray(flick.likes) ? flick.likes : [];
             
+            const followBtn = document.getElementById('flicks-follow-btn');
+            if (user && flick.authorUid !== user.uid) {
+                followBtn.style.display = 'inline-block';
+                const isFollowing = currentUserFollowing.includes(flick.authorUid);
+                if (isFollowing) {
+                    followBtn.innerText = 'Following';
+                    followBtn.style.background = 'rgba(255,255,255,0.2)';
+                    followBtn.style.border = '1px solid transparent';
+                } else {
+                    followBtn.innerText = 'Follow';
+                    followBtn.style.background = 'transparent';
+                    followBtn.style.border = '1px solid white';
+                }
+                followBtn.onclick = (e) => { e.stopPropagation(); window.toggleFollow(flick.authorUid); };
+            } else {
+                followBtn.style.display = 'none';
+            }
+
             let isLiked = user && likes.includes(user.uid);
             
             const likeBtn = document.getElementById('flicks-like-btn');
@@ -3723,6 +3742,7 @@
 
         window.likeFlickFromViewer = async function(id) {
             if (!auth.currentUser) { alert("Please login to like!"); return; }
+            if (!auth.currentUser) { showToast("Please login to like!", 'info'); return; }
             const flick = window.globalFlicks[currentFlickIdx];
             if (!Array.isArray(flick.likes)) flick.likes = [];
             
@@ -3929,6 +3949,7 @@
 
         window.addFlickComment = async function() {
             if (!auth.currentUser) { alert("Please login to comment!"); return; }
+            if (!auth.currentUser) { showToast("Please login to comment!", 'info'); return; }
             
             const dropdown = document.getElementById('flick-mention-dropdown');
             if (dropdown) dropdown.style.display = 'none';
@@ -4079,6 +4100,7 @@
 
         window.toggleFlickCommentLike = async function(commentId, replyId = null) {
             if (!auth.currentUser) { alert("Please login to like!"); return; }
+            if (!auth.currentUser) { showToast("Please login to like!", 'info'); return; }
             const flick = window.globalFlicks[currentFlickIdx];
             const uid = auth.currentUser.uid;
             
@@ -4320,6 +4342,7 @@
         // Flicks Internal Forwarding Logic
         window.openSendFlickModal = async function() {
             if (!auth.currentUser) { alert("Please login to send Flicks!"); return; }
+            if (!auth.currentUser) { showToast("Please login to send Flicks!", 'info'); return; }
             const modal = document.getElementById('send-flick-modal');
             const list = document.getElementById('send-flick-user-list');
             modal.style.display = 'flex';
@@ -4795,15 +4818,14 @@ s.referrerPolicy = 'no-referrer-when-downgrade';
 l.parentNode.insertBefore(s, l);
 })({})
 </script>
+    <footer>
+       <p>&copy;  Viyou. All Rights Reserved.</p>
+       <div style="margin-top: 10px;">
+           <a href="about-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">About Us</a>
+           <a href="contact-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Contact Us</a>
+           <a href="privacy.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+           <a href="terms.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+       </div>
+    </footer>
 </body>
-<footer>
-   <p>&copy;  Viyou. All Rights Reserved.</p>
-   <div style="margin-top: 10px;">
-       <a href="about-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">About Us</a>
-       <a href="contact-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Contact Us</a>
-       <a href="privacy.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
-       <a href="terms.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Terms of Service</a>
-   </div>
-</footer>
-
 </html>

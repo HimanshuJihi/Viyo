@@ -110,6 +110,17 @@
         body.light-mode .theme-btn { color: #333 !important; }
         body.light-mode .btn-transparent { color: #333 !important; }
     </style>
+    <style>
+        /* Toast Notification */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #333; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); min-width: 250px; max-width: 350px; }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { border-left: 5px solid #28a745; }
+        .toast.error { border-left: 5px solid #dc3545; }
+        .toast.info { border-left: 5px solid #0d6efd; }
+        .toast-icon { font-size: 1.2rem; }
+        body.light-mode .toast { background: #fff; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
 </head>
@@ -125,7 +136,7 @@
 
         <form id="blogForm">
             <div class="form-group">
-                <label for="title">शीर्षक (Title)</label>
+                <label for="title"><span id="title-label-text">शीर्षक (Title)</span> <span id="title-char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 100)</span></label>
                 <input type="text" id="title" required maxlength="100" placeholder="Ex: भारत की शानदार जीत...">
             </div>
 
@@ -149,8 +160,8 @@
 
             <input type="hidden" id="author" required>
             <div class="form-group">
-                <label id="content-label" for="content">सामग्री (Content)</label>
-                <textarea id="content" required maxlength="1000" placeholder="यहाँ अपने विचार लिखें..."></textarea>
+                <label for="content"><span id="content-label-text">सामग्री (Content)</span> <span id="char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 2000)</span></label>
+                <textarea id="content" required maxlength="2000" placeholder="यहाँ अपने विचार लिखें..."></textarea>
             </div>
 
             <div id="blog-specific-fields">
@@ -189,7 +200,7 @@
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="submit" class="btn btn-transparent"><img src="publish-icon.png" alt="Publish" style="width: 20px; height: 20px; margin-right: 5px;"> Publish Blog</button>
+                <button type="submit" id="publish-btn" class="btn btn-transparent"><img src="publish-icon.png" alt="Publish" style="width: 20px; height: 20px; margin-right: 5px;"> Publish Blog</button>
                 <button type="button" id="save-draft-btn" class="btn btn-transparent"><i class="fa-solid fa-save"></i> Save Draft</button>
                 <a href="index.html" class="btn btn-transparent"><i class="fa-solid fa-times"></i> Cancel</a>
             </div>
@@ -211,6 +222,69 @@
         const auth = getAuth(app);
         let isUserVerified = false;
         let currentPostType = 'blog';
+
+        // --- Toast Notification Logic ---
+        function showToast(message, type = 'info') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let iconClass = 'fa-solid fa-circle-info';
+            if (type === 'success') iconClass = 'fa-solid fa-check-circle';
+            if (type === 'error') iconClass = 'fa-solid fa-times-circle';
+
+            toast.innerHTML = `<span class="toast-icon"><i class="${iconClass}"></i></span><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.classList.add('show'); }, 100);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => { if (toast.parentNode) toast.parentNode.removeChild(toast); });
+            }, 4000);
+        }
+
+        // --- Character Counter Logic ---
+        const contentArea = document.getElementById('content');
+        const charCounter = document.getElementById('char-counter');
+        const titleInput = document.getElementById('title');
+        const titleCharCounter = document.getElementById('title-char-counter');
+        
+        function updateCharCounter() {
+            if (contentArea && charCounter) {
+                const maxLength = contentArea.getAttribute('maxlength') || 2000;
+                const currentLength = contentArea.value.length;
+                charCounter.textContent = `(${currentLength} / ${maxLength})`;
+                if (currentLength > maxLength * 0.9) {
+                    charCounter.style.color = '#ffc107'; // Yellow warning
+                } else {
+                    charCounter.style.color = '#aaa'; // Default
+                }
+            }
+            if (titleInput && titleCharCounter) {
+                const maxLength = titleInput.getAttribute('maxlength') || 100;
+                const currentLength = titleInput.value.length;
+                titleCharCounter.textContent = `(${currentLength} / ${maxLength})`;
+                if (currentLength > maxLength * 0.9) {
+                    titleCharCounter.style.color = '#ffc107';
+                } else {
+                    titleCharCounter.style.color = '#aaa';
+                }
+            }
+        }
+        
+        if (contentArea) {
+            contentArea.addEventListener('input', updateCharCounter);
+        }
+        if (titleInput) {
+            titleInput.addEventListener('input', updateCharCounter);
+        }
 
         // Theme Toggle Logic
         const themeToggleBtn = document.getElementById('theme-toggle');
@@ -258,32 +332,36 @@
             if (type === 'blog') {
                 blogFields.style.display = 'block';
                 videoFields.style.display = 'none';
-                document.getElementById('content-label').innerText = 'सामग्री (Content)';
+                document.getElementById('content-label-text').innerText = 'सामग्री (Content)';
                 document.getElementById('title').required = true;
                 document.getElementById('content').required = true;
+                document.getElementById('content').setAttribute('maxlength', '2000');
                 document.getElementById('title').placeholder = 'Ex: भारत की शानदार जीत...';
                 document.getElementById('content').placeholder = 'यहाँ अपने विचार लिखें...';
             } else if (type === 'video') {
                 blogFields.style.display = 'none';
                 videoFields.style.display = 'block';
                 thumbnailGroup.style.display = 'block';
-                document.getElementById('content-label').innerText = 'विवरण (Description) - Optional';
+                document.getElementById('content-label-text').innerText = 'विवरण (Description) - Optional';
                 document.getElementById('video-upload-label').innerText = 'Long Video अपलोड करें (Max 800KB)';
                 document.getElementById('title').required = false;
                 document.getElementById('content').required = false;
+                document.getElementById('content').setAttribute('maxlength', '1000');
                 document.getElementById('title').placeholder = 'Ex: My Long Video Title (Optional)';
                 document.getElementById('content').placeholder = 'Description for your video... (Optional 1000 characters max)';
             } else if (type === 'flick') {
                 blogFields.style.display = 'none';
                 videoFields.style.display = 'block';
                 thumbnailGroup.style.display = 'none';
-                document.getElementById('content-label').innerText = 'विवरण (Description) - Optional';
+                document.getElementById('content-label-text').innerText = 'विवरण (Description) - Optional';
                 document.getElementById('video-upload-label').innerText = 'Flick Video अपलोड करें (Max 800KB)';
                 document.getElementById('title').required = false;
                 document.getElementById('content').required = false;
+                document.getElementById('content').setAttribute('maxlength', '1000');
                 document.getElementById('title').placeholder = 'Ex: My Flick Title (Optional - Max 100 characters)';
                 document.getElementById('content').placeholder = 'Description for your flick... (Optional 1000 characters max)';
             }
+            updateCharCounter();
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -296,6 +374,7 @@
                     if (authorInput) {
                         authorInput.value = userDoc.data().username;
                         authorInput.readOnly = true; // Lock author name to Unique ID
+                        updateCharCounter(); // Set initial count to (0 / 2000)
                     }
                     if (userDoc.data().isVerified) isUserVerified = true;
                 } else {
@@ -418,7 +497,8 @@
                 if (blog.category) document.getElementById('category').value = blog.category;
                 document.getElementById('author').value = blog.author;
                 document.getElementById('content').value = blog.content;
-                document.querySelector('.btn').innerText = "Update Blog";
+                document.getElementById('publish-btn').innerHTML = '<img src="publish-icon.png" alt="Publish" style="width: 20px; height: 20px; margin-right: 5px;"> Update Blog';
+                updateCharCounter(); // Update counter after loading content
                 
                 if (blog.isFlicker) {
                     window.switchPostType('flick');
@@ -558,20 +638,20 @@
             }
 
             if (currentPostType === 'blog' && (!title || !content)) {
-                alert("Title and Content are required for a Blog Post.");
+                showToast("Title and Content are required for a Blog Post.", 'error');
                 return;
             }
 
             const urlParams = new URLSearchParams(window.location.search);
             const editId = urlParams.get('id');
             if ((currentPostType === 'video' || currentPostType === 'flick') && !editId && document.getElementById('video-upload').files.length === 0) {
-                alert("A video file is required for this post type!");
+                showToast("A video file is required for this post type!", 'error');
                 return;
             }
 
             // Validation for max 5 images
             if (currentPostType === 'blog' && imageInput.files.length > 5) {
-                alert("You can only upload a maximum of 5 images.");
+                showToast("You can only upload a maximum of 5 images.", 'error');
                 return;
             }
 
@@ -579,7 +659,7 @@
             if (currentPostType === 'blog') {
                 for (let i = 0; i < imageInput.files.length; i++) {
                     if (imageInput.files[i].size > 5 * 1024 * 1024) {
-                        alert(`Image "${imageInput.files[i].name}" is too large. Max 5MB allowed.`);
+                        showToast(`Image "${imageInput.files[i].name}" is too large. Max 5MB allowed.`, 'error');
                         return;
                     }
                 }
@@ -589,7 +669,7 @@
             let pollData = null;
             if (pollQuestion) {
                 if (pollOptions.length < 2) {
-                    alert("A poll must have at least 2 options.");
+                    showToast("A poll must have at least 2 options.", 'error');
                     return;
                 }
                 pollData = {
@@ -699,23 +779,24 @@
                             }
                     }
                     
+                        const successMessage = submissionStatus === 'draft' ? 'Draft Saved Successfully!' : (editId ? 'Blog Updated Successfully!' : 'Blog Published Successfully!');
+                        showToast(successMessage, 'success');
                         setTimeout(() => {
-                            alert(submissionStatus === 'draft' ? 'Draft Saved Successfully!' : (editId ? 'Blog Updated Successfully!' : 'Blog Published Successfully!'));
                             window.location.href = 'index.html';
-                        }, 500);
+                        }, 1500);
+
                     } catch (e) {
                         console.error("Error:", e);
-                        alert('Error saving blog: ' + e.message + "\n\n(Check Firestore Rules in Firebase Console)");
-                        const submitBtn = document.querySelector('.btn');
-                        submitBtn.innerText = "Publish Blog";
+                        showToast('Error saving blog: ' + e.message, 'error');
+                        submitBtn.innerHTML = originalBtnContent;
                         submitBtn.disabled = false;
                     }
                 };
 
                 // Show loading state
-                const submitBtn = document.querySelector('.btn');
-                const originalBtnText = submitBtn.innerText;
-                submitBtn.innerText = "Processing...";
+                const submitBtn = document.getElementById(submissionStatus === 'draft' ? 'save-draft-btn' : 'publish-btn');
+                const originalBtnContent = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + (submissionStatus === 'draft' ? 'Saving...' : 'Processing...');
                 submitBtn.disabled = true;
 
 
@@ -736,8 +817,8 @@
                     if (videoInput && videoInput.files.length > 0) {
                         const vFile = videoInput.files[0];
                         if (vFile.size > 800 * 1024) {
-                            alert("Video size is too large! Maximum allowed size is 800KB. For larger videos, please use the YouTube URL option in Blog Post tab.");
-                            submitBtn.innerText = originalBtnText;
+                            showToast("Video size is too large! Max 800KB.", 'error');
+                            submitBtn.innerHTML = originalBtnContent;
                             submitBtn.disabled = false;
                             return;
                         }
@@ -754,16 +835,16 @@
 
                     let totalSize = JSON.stringify(imageResults).length + content.length + (videoResult ? videoResult.length : 0) + (thumbnailResult ? thumbnailResult.length : 0) + 1000;
                     if (totalSize > 1024 * 1024) { // 1MB limit
-                        alert("Total data size (Images + Video + Text) is too large for Firestore (Max 1MB). Please reduce media size.");
-                        submitBtn.innerText = originalBtnText;
+                        showToast("Total data size is too large (Max 1MB).", 'error');
+                        submitBtn.innerHTML = originalBtnContent;
                         submitBtn.disabled = false;
                         return;
                     }
                     processBlog(imageResults.length > 0 ? imageResults : null, youtubeUrl, pollData, videoResult, thumbnailResult);
                 }).catch(err => {
                     console.error(err);
-                    alert("Error processing media: " + err.message);
-                    submitBtn.innerText = originalBtnText;
+                    showToast("Error processing media: " + err.message, 'error');
+                    submitBtn.innerHTML = originalBtnContent;
                     submitBtn.disabled = false;
                 });
             }

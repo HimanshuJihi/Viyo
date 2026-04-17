@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Viyou</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* I will copy some styles from index.html */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #121212;
+            color: #fff;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 15px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #444;
+            margin-bottom: 20px;
+        }
+        .header a {
+            color: white;
+            font-size: 1.5rem;
+        }
+        .search-box {
+            display: flex;
+            flex-grow: 1;
+        }
+        .search-box input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border-radius: 20px 0 0 20px;
+            border: 1px solid #555;
+            background: #222;
+            color: white;
+            border-right: none;
+        }
+        .search-box button {
+            padding: 10px 15px;
+            border-radius: 0 20px 20px 0;
+            border: 1px solid #555;
+            border-left: none;
+            background: #333;
+            color: white;
+            cursor: pointer;
+        }
+        .search-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+        }
+        .tab-btn {
+            padding: 10px 15px;
+            background: transparent;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            border-bottom: 3px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .tab-btn:hover {
+            color: #fff;
+        }
+        .tab-btn.active {
+            color: #fff;
+            border-bottom-color: gold;
+        }
+        #results-container h2 {
+            color: gold;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        .result-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .result-item:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+        .result-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .result-item .user-img {
+            border-radius: 50%;
+        }
+        .result-item-info h3 {
+            margin: 0 0 5px;
+            font-size: 1.2rem;
+        }
+        .result-item-info p {
+            margin: 0;
+            color: #aaa;
+            font-size: 0.9rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html"><i class="fa-solid fa-arrow-left"></i></a>
+            <form id="search-form" class="search-box">
+                <input type="text" id="search-input" placeholder="Search">
+                <button type="submit"><i class="fa-solid fa-search"></i></button>
+            </form>
+        </div>
+        <div class="search-tabs">
+            <button class="tab-btn active" data-tab="all">All</button>
+            <button class="tab-btn" data-tab="accounts">Accounts</button>
+            <button class="tab-btn" data-tab="content">Content</button>
+        </div>
+        <div id="results-container">
+            <div id="loading" style="text-align: center; padding: 40px; color: #aaa;">Searching...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const searchInput = document.getElementById('search-input');
+        const searchForm = document.getElementById('search-form');
+        const resultsContainer = document.getElementById('results-container');
+        const loadingEl = document.getElementById('loading');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                const tab = button.getAttribute('data-tab');
+                const usersSection = document.querySelector('.results-section-users');
+                const contentSection = document.querySelector('.results-section-content');
+
+                if (usersSection) {
+                    usersSection.style.display = (tab === 'all' || tab === 'accounts') ? 'block' : 'none';
+                }
+                if (contentSection) {
+                    contentSection.style.display = (tab === 'all' || tab === 'content') ? 'block' : 'none';
+                }
+            });
+        });
+
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const term = searchInput.value.trim();
+            if (term) {
+                // Update URL and reload to perform a new search
+                window.location.href = `search.html?q=${encodeURIComponent(term)}`;
+            }
+        });
+
+        async function performSearch() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchTerm = urlParams.get('q');
+
+            if (!searchTerm) {
+                loadingEl.innerText = 'Please enter a search term.';
+                return;
+            }
+
+            searchInput.value = searchTerm;
+            resultsContainer.innerHTML = '<div id="loading" style="text-align: center; padding: 40px; color: #aaa;">Searching...</div>';
+
+            const term = searchTerm.toLowerCase();
+            let resultsFound = false;
+
+            // --- Search Accounts ---
+            const userQuery = query(collection(db, "users"), 
+                where("usernameLower", ">=", term), 
+                where("usernameLower", "<=", term + "\uf8ff"),
+                limit(10));
+            const userSnap = await getDocs(userQuery);
+
+            // --- Search Content ---
+            const contentQuery = query(collection(db, "blogs"), 
+                where("titleLower", ">=", term), 
+                where("titleLower", "<=", term + "\uf8ff"),
+                where("status", "==", "published"),
+                limit(20));
+            const contentSnap = await getDocs(contentQuery);
+
+            // Clear loading
+            resultsContainer.innerHTML = '';
+
+            if (!userSnap.empty) {
+                resultsFound = true;
+                const usersSection = document.createElement('div');
+                usersSection.className = 'results-section-users';
+                usersSection.innerHTML = '<h2>Accounts</h2>';
+                userSnap.forEach(doc => {
+                    const u = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.onclick = () => window.location.href = `profile.html?uid=${doc.id}`;
+                    div.innerHTML = `
+                        <img src="${u.photoURL || 'logo.png'}" class="user-img" style="width: 60px; height: 60px;">
+                        <div class="result-item-info">
+                            <h3>${u.name || 'User'}</h3>
+                            <p>@${u.username}</p>
+                        </div>
+                    `;
+                    usersSection.appendChild(div);
+                });
+                resultsContainer.appendChild(usersSection);
+            }
+
+            if (!contentSnap.empty) {
+                resultsFound = true;
+                const contentSection = document.createElement('div');
+                contentSection.className = 'results-section-content';
+                contentSection.innerHTML = '<h2 style="margin-top: 30px;">Content</h2>';
+                contentSnap.forEach(doc => {
+                    const blog = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    
+                    let targetUrl = `index.html?blogId=${doc.id}`;
+                    if (blog.isFlicker) {
+                        targetUrl = `flicks.html?id=${doc.id}`;
+                    } else if (blog.video || blog.youtubeUrl) {
+                        targetUrl = `watch.html?id=${doc.id}`;
+                    }
+                    div.onclick = () => window.location.href = targetUrl;
+
+                    let thumb = blog.thumbnail || blog.image || 'logo.png';
+                    if (blog.youtubeUrl) {
+                        const videoId = blog.youtubeUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                        if(videoId) thumb = `https://img.youtube.com/vi/${videoId[1]}/mqdefault.jpg`;
+                    }
+
+                    div.innerHTML = `
+                        <img src="${thumb}">
+                        <div class="result-item-info">
+                            <h3>${blog.title}</h3>
+                            <p>by @${blog.author} &bull; ${new Date(blog.date).toLocaleDateString()}</p>
+                        </div>
+                    `;
+                    contentSection.appendChild(div);
+                });
+                resultsContainer.appendChild(contentSection);
+            }
+
+            if (!resultsFound) {
+                resultsContainer.innerHTML = `<div class="no-results" style="text-align: center; padding: 40px; color: #aaa;">No results found for "${searchTerm}".</div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', performSearch);
+    </script>
+</body>
+</html>

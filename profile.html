@@ -469,20 +469,20 @@
     btnCrop.addEventListener('click', () => {
         if(!cropper) return;
         
-        // Get cropped canvas (limit size to 600x600 for profile pic)
+        // Get cropped canvas (limit size to 200x200 for profile pic to save DB space)
         const canvas = cropper.getCroppedCanvas({
-            width: 600,
-            height: 600,
+            width: 200,
+            height: 200,
             imageSmoothingEnabled: true,
             imageSmoothingQuality: 'high',
         });
 
-        // Compress to under 100KB
-        let quality = 0.9;
+        // Compress to under 15KB to avoid 1MB document limit on comments
+        let quality = 0.8;
         let dataURL = canvas.toDataURL('image/jpeg', quality);
         
-        // 100KB approx 135,000 base64 chars
-        while (dataURL.length > 135000 && quality > 0.1) {
+        // 15KB approx 20,000 base64 chars
+        while (dataURL.length > 20000 && quality > 0.1) {
             quality -= 0.1;
             dataURL = canvas.toDataURL('image/jpeg', quality);
         }
@@ -667,51 +667,40 @@
         messageBtn.style.display = isBlocked ? 'none' : 'inline-block';
     }
 
-    async function toggleFollow(targetUid, isCurrentlyFollowing) {
+    function toggleFollow(targetUid, isCurrentlyFollowing) {
+        if (!currentUser) return;
         const myUid = currentUser.uid;
         const userRef = doc(db, 'users', myUid);
         const targetRef = doc(db, 'users', targetUid);
         
-        try {
-            if (isCurrentlyFollowing) {
-                await updateDoc(userRef, { following: arrayRemove(targetUid) });
-                await updateDoc(targetRef, { followers: arrayRemove(myUid) });
-                updateFollowButton(false);
-            } else {
-                await updateDoc(userRef, { following: arrayUnion(targetUid) });
-                await updateDoc(targetRef, { followers: arrayUnion(myUid) });
-                
-                // --- NEW: Check for verification after a new follow ---
-                const targetDocSnap = await getDoc(targetRef);
-                if (targetDocSnap.exists()) {
-                    const targetData = targetDocSnap.data();
-                    const followersCount = (targetData.followers || []).length;
-                    if (followersCount >= 9 && !targetData.isVerified) {
+        const isUnfollowing = isCurrentlyFollowing;
+
+        // --- Optimistic UI Update ---
+        updateFollowButton(!isUnfollowing);
+        document.getElementById('follow-btn').onclick = () => toggleFollow(targetUid, !isUnfollowing);
+        const followersCountEl = document.getElementById('followers-count');
+        const originalFollowers = parseInt(followersCountEl.innerText.replace(/,/g, ''));
+        followersCountEl.innerText = (isUnfollowing ? Math.max(0, originalFollowers - 1) : originalFollowers + 1).toLocaleString();
+
+        // --- Background DB Update ---
+        (async () => {
+            try {
+                if (isUnfollowing) {
+                    await updateDoc(userRef, { following: arrayRemove(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayRemove(myUid) });
+                } else {
+                    await updateDoc(userRef, { following: arrayUnion(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayUnion(myUid) });
+                    const targetDocSnap = await getDoc(targetRef);
+                    if (targetDocSnap.exists() && (targetDocSnap.data().followers || []).length >= 9 && !targetDocSnap.data().isVerified) {
                         await updateDoc(targetRef, { isVerified: true });
-                        // Send a notification to the newly verified user
-                        await addDoc(collection(db, "notifications"), { 
-                            recipientUid: targetUid, senderName: "Auction To Arena", type: "verification", date: new Date().toISOString(), read: false 
-                        });
+                        await addDoc(collection(db, "notifications"), { recipientUid: targetUid, senderName: "Auction To Arena", type: "verification", date: new Date().toISOString(), read: false });
                     }
+                    await addDoc(collection(db, "notifications"), { recipientUid: targetUid, senderUid: myUid, senderName: currentUser.displayName || "Someone", type: "follow", date: new Date().toISOString(), read: false });
                 }
-                // --- END NEW LOGIC ---
-
-                // Send Notification
-                await addDoc(collection(db, "notifications"), {
-                    recipientUid: targetUid,
-                    senderUid: myUid,
-                    senderName: currentUser.displayName || "Someone",
-                    type: "follow",
-                    date: new Date().toISOString(),
-                    read: false
-                });
-
-                updateFollowButton(true);
-                document.getElementById('follow-btn').onclick = () => toggleFollow(targetUid, true);
-            }
-            // Refresh counts
-            loadProfileData(targetUid);
-        } catch(e) { console.error("Follow error:", e); alert("Error updating follow status"); }
+                setTimeout(() => loadProfileData(targetUid, currentUser), 2000);
+            } catch(e) { console.error("Follow error:", e); alert("Error updating follow status"); updateFollowButton(isUnfollowing); document.getElementById('follow-btn').onclick = () => toggleFollow(targetUid, isUnfollowing); followersCountEl.innerText = originalFollowers.toLocaleString(); }
+        })();
     }
 
     async function toggleBlock(targetUid, isCurrentlyBlocked) {
@@ -1249,10 +1238,8 @@
 
             if (isLiking) {
                 blog.likes.push(uid);
-                await updateDoc(blogRef, { likes: arrayUnion(uid) });
             } else {
                 blog.likes.splice(likedIndex, 1);
-                await updateDoc(blogRef, { likes: arrayRemove(uid) });
             }
         } else {
             let likedPosts = JSON.parse(localStorage.getItem('viyou_user_liked_posts') || '[]');
@@ -1269,10 +1256,25 @@
             
             blog.likes = currentLikes;
             localStorage.setItem('viyou_user_liked_posts', JSON.stringify(likedPosts));
-            await updateDoc(blogRef, { likes: currentLikes });
         }
         
-        renderBlogsOnProfile(isProfileOwner); // Re-render to update UI
+        // Optimistic UI update (ताकि लाइक नंबर तुरंत स्क्रीन पर बदल जाए)
+        renderBlogsOnProfile(isProfileOwner);
+
+        // Background Firestore Update
+        try {
+            if (Array.isArray(blog.likes)) {
+                if (isLiking) {
+                    await updateDoc(blogRef, { likes: arrayUnion(uid) });
+                } else {
+                    await updateDoc(blogRef, { likes: arrayRemove(uid) });
+                }
+            } else {
+                await updateDoc(blogRef, { likes: blog.likes });
+            }
+        } catch(e) {
+            console.error("Error updating likes:", e);
+        }
     };
 
     window.shareBlog = async function(id, title) { /* ... (existing code) ... */ };
@@ -1507,6 +1509,13 @@
         const bio = document.getElementById('bio').value;
         const photoURL = base64Image || currentUser.photoURL;
         let isVerified = (currentProfileData.followers || []).length >= 9;
+        
+        const saveBtn = document.getElementById('save-btn');
+        const originalBtnContent = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.7';
+
         try {
             // 1. Update Firebase Auth Profile (for basic display)
             // Note: We don't update photoURL here because Firebase Auth has a small limit.
@@ -1622,6 +1631,10 @@
         } catch (error) {
             console.error("Error saving profile:", error);
             alert("Error saving profile: " + error.message);
+        } finally {
+            saveBtn.innerHTML = originalBtnContent;
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
         }
     });
 

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -146,6 +147,10 @@
         .message-sent:hover .edit-msg-btn {
             opacity: 1;
         }
+        .edited-indicator {
+            font-size: 0.7rem;
+            color: #bbb;
+        }
         .delete-msg-btn {
             background: none;
             border: none;
@@ -173,22 +178,6 @@
         .message-item:hover .forward-msg-btn { opacity: 1; }
         .message-input-area {
             display: flex;
-            gap: 10px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .message-input-area #attach-btn {
-            background: none;
-            border: none;
-            color: #aaa;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        .message-input-area input {
-            flex-grow: 1;
-            padding: 10px;
-            border-radius: 20px;
-            border: none;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             font-size: 1rem;
@@ -222,6 +211,7 @@
         body.light-mode .delete-msg-btn {
             color: #888;
         }
+        body.light-mode .edited-indicator { color: #666; }
         body.light-mode .forward-msg-btn { color: #888; }
     body.light-mode .btn-transparent { color: #333 !important; }
         body.light-mode #forward-modal > div { background: #fff; border-color: #ddd; color: #333; }
@@ -260,6 +250,16 @@
         body.light-mode .reaction-pill { background: #e9ecef; }
         body.light-mode .reaction-pill.user-reacted { background: #0d6efd; color: white; border-color: #0d6efd; }
         body.light-mode .edited-indicator { color: #666; }
+        /* Rich Link Preview Styles */
+        .link-preview { border-left: 3px solid #555; padding-left: 10px; margin-top: 8px; }
+        .link-preview a { text-decoration: none; color: inherit; display: block; }
+        .link-preview-image { width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px 8px 0 0; }
+        .link-preview-content { padding: 8px; background: rgba(0,0,0,0.2); border-radius: 0 0 8px 8px; }
+        .link-preview-title { font-weight: bold; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .link-preview-desc { font-size: 0.8rem; color: #ccc; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 4px 0; }
+        .link-preview-sitename { font-size: 0.75rem; color: #aaa; text-transform: uppercase; }
+        body.light-mode .link-preview { border-left-color: #ccc; }
+        body.light-mode .link-preview-content { background: rgba(0,0,0,0.05); }
 
         /* Story Reply Preview Styles */
         .story-reply-preview {
@@ -283,9 +283,11 @@
         .lightbox-content { margin: auto; display: block; max-width: 90%; max-height: 90vh; object-fit: contain; }
         .close-lightbox { position: absolute; top: 20px; right: 30px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer; z-index: 2001; }
         .close-lightbox:hover { color: #bbb; }
-        .edited-indicator {
+        .read-receipt {
             font-size: 0.7rem;
-            color: #bbb;
+        }
+        body.light-mode .read-receipt {
+            color: rgba(0,0,0,0.5) !important;
         }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
@@ -324,10 +326,10 @@
     </div>
 
     <!-- User List Modal (for forwarding message) -->
-    <div id=" forward-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
-    <div id="user-list-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
+    <div id="forward-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
         <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; max-height:70vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                
                 <h3 id="forward-modal-title" style="margin:0; color:gold;">Forward to...</h3>
                 <button onclick="document.getElementById('forward-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
@@ -337,7 +339,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs, limit, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs, limit, deleteField, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { firebaseConfig } from "./firebase-config.js";
 
@@ -352,6 +354,7 @@
         let unsubscribeConv = null; // To stop listening to conversation doc
         let typingTimeout = null;
         let messagesCache = new Map();
+        let unreadBatch = null;
         let messageToForward = null;
         let lastMessageDate = null;
         const TYPING_TIMEOUT_DURATION = 2000; // 2 seconds
@@ -451,12 +454,16 @@
             unsubscribeConv = onSnapshot(convRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const convData = docSnap.data();
-                    // Typing indicator logic
-                    const partnerIsTyping = convData.typingStatus && convData.typingStatus[partnerUid];
+                    // NEW: Reliable Typing indicator logic using timestamps
+                    const partnerTypingTimestamp = convData.typingStatus ? convData.typingStatus[partnerUid] : null;
                     const typingIndicator = document.getElementById('typing-indicator');
-                    if (partnerIsTyping) {
+
+                    // Check if the timestamp is recent (e.g., within the last 3 seconds)
+                    const isPartnerTyping = partnerTypingTimestamp && (Date.now() - partnerTypingTimestamp.toMillis() < 3000);
+
+                    if (isPartnerTyping) {
                         const partnerName = (document.getElementById('chat-partner-name').innerText || 'User').split(' ')[0];
-                        typingIndicator.innerText = `${partnerName} is typing...`;
+                        typingIndicator.innerText = `${partnerName} is typing...`; // Corrected template literal
                         typingIndicator.style.display = 'block';
                     } else {
                         typingIndicator.style.display = 'none';
@@ -473,27 +480,66 @@
             const q = query(messagesRef, orderBy("timestamp", "asc"));
 
             unsubscribe = onSnapshot(q, (snapshot) => {
+                if (document.hidden) return; // Don't process if tab is not visible
+
                 const loadingIndicator = document.getElementById('loading-messages');
                 if (loadingIndicator) {
                     loadingIndicator.style.display = 'none';
                 }
-                chatMessages.innerHTML = '';
-                messagesCache.clear(); // Clear cache on new snapshot
-                lastMessageDate = null; // Reset date tracker for fresh render
-                snapshot.forEach(doc => {
-                    messagesCache.set(doc.id, doc.data());
-                    renderMessage(doc.id, doc.data());
+
+                const batch = writeBatch(db);
+                let hasUnread = false;
+
+                snapshot.docChanges().forEach(change => {
+                    const messageId = change.doc.id;
+                    const messageData = change.doc.data();
+                    messagesCache.set(messageId, messageData);
+
+                    if (change.type === "added") {
+                        renderMessage(messageId, messageData);
+                        if (messageData.senderUid === partnerUid && !messageData.isRead) {
+                            batch.update(change.doc.ref, { isRead: true });
+                            hasUnread = true;
+                        }
+                    } else if (change.type === "modified") {
+                        // Re-render the specific message that was modified (e.g., reaction added, link preview)
+                        const existingMsgEl = document.getElementById(`msg-${messageId}`);
+                        if (existingMsgEl) {
+                            const scrollPos = chatMessages.scrollTop;
+                            const isAtBottom = chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 1;
+                            
+                            const newMsgEl = renderMessage(messageId, messageData, true); // Get new element
+                            existingMsgEl.replaceWith(newMsgEl); // Replace in DOM
+
+                            if (isAtBottom) {
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            } else {
+                                chatMessages.scrollTop = scrollPos;
+                            }
+                        }
+                    } else if (change.type === "removed") {
+                        const msgEl = document.getElementById(`msg-${messageId}`);
+                        if (msgEl) msgEl.remove();
+                    }
                 });
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                if (hasUnread) {
+                    batch.commit().catch(e => console.error("Error marking messages as read:", e));
+                }
+
+                // Only scroll if a new message was added
+                if (snapshot.docChanges().some(c => c.type === 'added')) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
             });
         }
 
-        function renderMessage(messageId, data) {
+        function renderMessage(messageId, data, returnElement = false) {
             const isSent = data.senderUid === currentUser.uid;
             const messageClass = isSent ? 'message-sent' : 'message-received';
-            const fifteenMinutes = 15 * 60 * 1000;
+            const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
             const messageTime = data.timestamp ? data.timestamp.toMillis() : 0;
-            const canEdit = isSent && (data.type === 'text' || data.type === 'story_reply') && (Date.now() - messageTime < fifteenMinutes);
+            const canEdit = isSent && (data.type === 'text' || data.type === 'story_reply') && (Date.now() - messageTime < fifteenMinutes); // Check if message is within 15 mins
             
             // Generate Message Date Separator & Time
             let timeHtml = '';
@@ -513,7 +559,16 @@
                 }
 
                 const timeString = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                timeHtml = `<span class="message-time">${timeString}</span>`;
+                let readReceiptHtml = '';
+                if (isSent) {
+                    if (data.isRead) {
+                        readReceiptHtml = ` <span class="read-receipt" style="color: #4fc3f7;"><i class="fa-solid fa-check-double"></i></span>`;
+                    } else {
+                        // Single grey tick for sent but not read
+                        readReceiptHtml = ` <span class="read-receipt" style="color: rgba(255,255,255,0.6);"><i class="fa-solid fa-check"></i></span>`;
+                    }
+                }
+                timeHtml = `<span class="message-time">${timeString}${readReceiptHtml}</span>`;
             }
 
             // --- Reaction Picker HTML ---
@@ -573,7 +628,9 @@
                     const tempDivStory = document.createElement('div');
                     tempDivStory.textContent = data.content;
                     let textContentStory = tempDivStory.innerHTML.replace(/\n/g, '<br>');
-                    if (data.edited) textContentStory += ' <span class="edited-indicator">(edited)</span>';
+                    if (data.edited) {
+                        textContentStory += ' <span class="edited-indicator">(edited)</span>';
+                    }
                     messageContent = forwardedIndicator + storyPreviewHtml + textContentStory;
                     break;
                 case 'flick':
@@ -591,10 +648,31 @@
                     const tempDiv = document.createElement('div');
                     tempDiv.textContent = data.content;
                     let textContent = tempDiv.innerHTML.replace(/\n/g, '<br>');
+
+                    // NEW: Regex to find and wrap URLs in anchor tags for a basic preview
+                    const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+                    textContent = textContent.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #87ceeb; text-decoration: underline;">$1</a>');
+
                     if (data.edited) {
                         textContent += ' <span class="edited-indicator">(edited)</span>';
                     }
                     messageContent = forwardedIndicator + textContent;
+
+                    // NEW: Render Rich Link Preview if available
+                    if (data.linkPreview && data.linkPreview.url) {
+                        const p = data.linkPreview;
+                        messageContent += `
+                            <div class="link-preview">
+                                <a href="${p.url}" target="_blank" rel="noopener noreferrer">
+                                    ${p.image ? `<img src="${p.image}" class="link-preview-image" alt="Preview">` : ''}
+                                    <div class="link-preview-content">
+                                        ${p.title ? `<div class="link-preview-title">${p.title}</div>` : ''}
+                                        ${p.description ? `<div class="link-preview-desc">${p.description}</div>` : ''}
+                                        ${p.siteName ? `<div class="link-preview-sitename">${p.siteName}</div>` : ''}
+                                    </div>
+                                </a>
+                            </div>`;
+                    }
                     break;
             }
 
@@ -606,14 +684,14 @@
             if (isSent) {
                 let editButton = '';
                 if (canEdit) {
-                    const rawContent = JSON.stringify(data.content);
-                    editButton = `<button class="edit-msg-btn" onclick='window.showEditUI("${messageId}", ${rawContent})' title="Edit Message"><i class="fa-solid fa-pen"></i></button>`;
+                    const rawContent = JSON.stringify(data.content); // Pass content as a string
+                    editButton = `<button class="edit-msg-btn" onclick='window.showEditUI("${messageId}", ${rawContent})' title="Edit Message"><i class="fa-solid fa-pen"></i></button>`; // Edit button
                 }
-                const deleteButton = `<button class="delete-msg-btn" onclick="window.confirmDeleteMessage('${messageId}')" title="Delete Message"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i></button>`;
+                const deleteButton = `<button class="delete-msg-btn" onclick="window.confirmDeleteMessage('${messageId}')" title="Delete Message"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i></button>`; // Delete button
                 actionButtons = editButton + deleteButton;
             }
 
-            const forwardButton = `<button class="forward-msg-btn" onclick='window.showForwardModal("${messageId}")' title="Forward Message">⤷</button>`;
+            const forwardButton = `<button class="forward-msg-btn" onclick='window.showForwardModal("${messageId}")' title="Forward Message">⤷</button>`; // Forward button
 
             if (isSent) {
                 div.innerHTML = `${pickerHTML}<div class="message-text">${messageContent}${reactionsHTML}${timeHtml}</div>${actionButtons}${forwardButton}`;
@@ -621,13 +699,53 @@
                 div.innerHTML = `${forwardButton}${pickerHTML}<div class="message-text">${messageContent}${reactionsHTML}${timeHtml}</div>`;
             }
 
-            chatMessages.appendChild(div);
+            if (returnElement) {
+                return div;
+            } else {
+                chatMessages.appendChild(div);
+            }
         }
 
         function getYoutubeVideoId(url) {
             const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
             const match = url.match(regex);
             return match ? match[1] : null;
+        }
+
+        window.confirmDeleteMessage = function(messageId) {
+            if (confirm("Are you sure you want to delete this message? This action cannot be undone.")) {
+                deleteMessage(messageId);
+            }
+        }
+
+        async function deleteMessage(messageId) {
+            if (!currentUser || !conversationId) return;
+            const msgRef = doc(db, "conversations", conversationId, "messages", messageId);
+            try {
+                await deleteDoc(msgRef);
+                // The UI will update automatically via the onSnapshot listener
+            } catch (e) {
+                console.error("Error deleting message:", e);
+                alert("Failed to delete message.");
+            }
+        }
+
+        window.showEditUI = async function(messageId, currentText) {
+            const newText = prompt("Edit your message:", currentText);
+
+            if (newText !== null && newText.trim() !== "" && newText.trim() !== currentText) {
+                const msgRef = doc(db, "conversations", conversationId, "messages", messageId);
+                try {
+                    await updateDoc(msgRef, {
+                        content: newText.trim(),
+                        edited: true
+                    });
+                    // UI will update via onSnapshot
+                } catch (e) {
+                    console.error("Error saving edit:", e);
+                    alert("Failed to save edit.");
+                }
+            }
         }
 
         async function sendMessage() {
@@ -657,6 +775,7 @@
             // Common properties
             messagePayload.senderUid = currentUser.uid;
             messagePayload.timestamp = serverTimestamp();
+            messagePayload.isRead = false; // NEW: Set read status
 
             messageInput.value = '';
 
@@ -729,7 +848,7 @@
                 // Using setDoc with merge is safer as it creates the doc if it doesn't exist
                 await setDoc(convRef, {
                     typingStatus: {
-                        [currentUser.uid]: isTyping
+                        [currentUser.uid]: isTyping ? serverTimestamp() : null
                     }
                 }, { merge: true });
             } catch (e) {
@@ -755,6 +874,7 @@
                     type: 'image',
                     content: compressedDataUrl,
                     senderUid: currentUser.uid,
+                    isRead: false, // NEW: Set read status
                     timestamp: serverTimestamp()
                 };
 
@@ -821,118 +941,6 @@
             document.getElementById('lightbox-modal').style.display = "none";
         };
 
-        window.confirmDeleteMessage = function(messageId) {
-            if (confirm("Are you sure you want to delete this message? This cannot be undone.")) {
-                deleteMessage(messageId);
-            }
-        }
-
-        async function deleteMessage(messageId) {
-            if (!currentUser || !conversationId || !messageId) return;
-
-            try {
-                const msgRef = doc(db, "conversations", conversationId, "messages", messageId);
-                await deleteDoc(msgRef);
-
-                // After deleting, we must update the `lastMessage` in the parent conversation document
-                // to reflect the new latest message.
-                const messagesRef = collection(db, "conversations", conversationId, "messages");
-                const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
-                const snapshot = await getDocs(q);
-
-                const convRef = doc(db, "conversations", conversationId);
-                if (snapshot.empty) {
-                    // No messages left, remove the lastMessage field
-                    await updateDoc(convRef, {
-                        lastMessage: deleteField()
-                    });
-                } else {
-                    // Update lastMessage to the new latest message
-                    const lastMsgDoc = snapshot.docs[0];
-                    const lastMsgData = lastMsgDoc.data();
-                    
-                    let lastMessageText = '[Message]'; // Default/fallback text
-                    if (lastMsgData.type === 'text' || lastMsgData.type === 'story_reply') lastMessageText = lastMsgData.content;
-                    else if (lastMsgData.type === 'image') lastMessageText = '[Image]';
-                    else if (lastMsgData.type === 'youtube') lastMessageText = '[Video]';
-                    else if (lastMsgData.type === 'flick') lastMessageText = 'Sent a Flick';
-
-                    await updateDoc(convRef, {
-                        lastMessage: {
-                            text: lastMessageText,
-                            senderUid: lastMsgData.senderUid,
-                            timestamp: lastMsgData.timestamp,
-                            isRead: false // Reset read status for simplicity
-                        }
-                    });
-                }
-            } catch (e) {
-                console.error("Error deleting message:", e);
-                alert("Failed to delete message.");
-            }
-        }
-
-        window.showEditUI = function(messageId, oldText) {
-            const textDiv = document.querySelector(`#msg-${messageId} .message-text`);
-            if (!textDiv || textDiv.querySelector('input')) return; // Already in edit mode
-
-            textDiv.dataset.original = textDiv.innerHTML;
-
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.id = `edit-input-${messageId}`;
-            input.value = oldText;
-            input.style.cssText = "width: calc(100% - 120px); background: #555; color: white; border: 1px solid #888; border-radius: 4px; padding: 5px;";
-            input.onkeydown = (e) => {
-                if (e.key === 'Enter') saveEdit(messageId);
-                if (e.key === 'Escape') cancelEdit(messageId);
-            };
-
-            const saveBtn = document.createElement('button');
-            saveBtn.innerText = 'Save';
-            saveBtn.style.cssText = "margin-left: 5px; padding: 5px 8px; font-size: 0.8rem; background: #198754; border: none; border-radius: 4px; color: white; cursor: pointer;";
-            saveBtn.onclick = () => saveEdit(messageId);
-
-            const cancelBtn = document.createElement('button');
-            cancelBtn.innerText = 'Cancel';
-            cancelBtn.style.cssText = "margin-left: 5px; padding: 5px 8px; font-size: 0.8rem; background: #6c757d; border: none; border-radius: 4px; color: white; cursor: pointer;";
-            cancelBtn.onclick = () => cancelEdit(messageId);
-
-            textDiv.innerHTML = '';
-            textDiv.appendChild(input);
-            textDiv.appendChild(saveBtn);
-            textDiv.appendChild(cancelBtn);
-            input.focus();
-            input.select();
-        }
-
-        window.cancelEdit = function(messageId) {
-            const textDiv = document.querySelector(`#msg-${messageId} .message-text`);
-            if (textDiv && textDiv.dataset.original) {
-                textDiv.innerHTML = textDiv.dataset.original;
-                delete textDiv.dataset.original;
-            }
-        }
-
-        window.saveEdit = async function(messageId) {
-            const input = document.getElementById(`edit-input-${messageId}`);
-            if (!input) return;
-            const newText = input.value.trim();
-            if (!newText) return;
-
-            const msgRef = doc(db, "conversations", conversationId, "messages", messageId);
-            await updateDoc(msgRef, { content: newText, edited: true });
-
-            // Check if it's the last message and update conversation preview
-            const messagesRef = collection(db, "conversations", conversationId, "messages");
-            const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty && snapshot.docs[0].id === messageId) {
-                await updateDoc(doc(db, "conversations", conversationId), { "lastMessage.text": newText });
-            }
-            // No need to manually update UI, onSnapshot will handle it.
-        }
-
         window.showForwardModal = async function(messageId) {
             const messageData = messagesCache.get(messageId);
             if (!messageData) {
@@ -992,23 +1000,35 @@
             const targetConvRef = doc(db, "conversations", targetConversationId);
 
             const forwardedPayload = {
-                type: messageToForward.type,
-                content: messageToForward.content,
+                ...messageToForward,
                 senderUid: currentUser.uid,
                 timestamp: serverTimestamp(),
-                forwarded: true
+                forwarded: true,
             };
-            
-            if (messageToForward.type === 'flick') {
-                forwardedPayload.flickId = messageToForward.flickId;
-                forwardedPayload.videoUrl = messageToForward.videoUrl;
-                forwardedPayload.title = messageToForward.title;
-            }
+            delete forwardedPayload.reactions; // Don't carry over reactions
 
             try {
                 await addDoc(targetMessagesRef, forwardedPayload);
 
-                let lastMessageText = messageToForward.type === 'text' ? messageToForward.content : (messageToForward.type === 'image' ? '[Image]' : (messageToForward.type === 'flick' ? 'Sent a Flick' : '[Video]'));
+                let lastMessageText;
+                switch(forwardedPayload.type) {
+                    case 'text':
+                    case 'story_reply':
+                        lastMessageText = forwardedPayload.content;
+                        break;
+                    case 'image':
+                        lastMessageText = '[Image]';
+                        break;
+                    case 'youtube':
+                        lastMessageText = '[Video]';
+                        break;
+                    case 'flick':
+                        lastMessageText = 'Sent a Flick';
+                        break;
+                    default:
+                        lastMessageText = '[Shared Content]';
+                }
+                
                 const partnerProfileSnap = await getDoc(doc(db, "users", targetUid));
                 const partnerName = partnerProfileSnap.exists() ? partnerProfileSnap.data().name : 'User';
 
