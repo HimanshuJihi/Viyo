@@ -402,6 +402,11 @@
                             loadPartnerProfile(); // Still load their name/pic
                             return; // Stop further execution (listening for messages)
                         }
+                    if (iHaveBlocked || iAmBlocked) {
+                        const message = iHaveBlocked ? 'You have blocked this user. Unblock them from their profile to send messages.' : 'You cannot reply to this conversation.';
+                        document.querySelector('.container').innerHTML = `<div class="chat-header"><button class="back-btn btn-transparent" style="padding: 5px 12px; border-radius: 5px;" onclick="window.history.back()">&#8592;</button></div><div style="text-align:center; color:#aaa; padding: 40px 20px;">${message}</div>`;
+                        return; // Stop further execution
+                    }
                     }
                 } catch (e) {
                     console.error("Error checking block status:", e);
@@ -1083,44 +1088,6 @@
             if (unsubscribeConv) unsubscribeConv();
         });
     </script>
-      <!-- 1st ad script -->
-  <script>
-(function(wqffj){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = wqffj || {};
-s.src = "\/\/webbedtrash.com\/b\/X\/V\/sDd.Gulp0yYDWmc_\/ne\/mF9DuxZ\/U\/lfkGPkTZYY5tNyj\/AixJOUT\/Mot\/N_jMk\/2\/M\/DVEx5cNrw-";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
-<!-- 2nd ad script -->
-<script>
-(function(wqffj){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = wqffj || {};
-s.src = "\/\/webbedtrash.com\/bQX.VtsDd\/GIln0IYMW\/cJ\/Jefm\/9TuyZVUBlJkVPqTuYO5TNgjeAwx\/NOjTEet\/Nvjukr2\/MDDPEh2CN\/Qs";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
-<!-- 3rd ad script -->
-<script>
-(function(wqffj){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = wqffj || {};
-s.src = "\/\/webbedtrash.com\/b.X\/VUs\/dfGNlQ0iYrWBcH\/SeRm\/9ougZqUGl\/kuPCTnYH5\/N\/j\/ADxkN\/DEUPtzNKj_k\/2xMWDREX0WOnQa";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
+      
 </body>
 </html>

@@ -99,10 +99,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const blogId = urlParams.get('id');
         let currentBlog = null;
-
-        window.vastAdConfig = {};
-
-        window.trackAdClick = async function(blogIdForClick) {
+        
+        async function trackAdClick(blogIdForClick) {
             if (!blogIdForClick) return;
             // --- Daily Limit Logic for Click Fraud Prevention ---
             const today = new Date().toDateString();
@@ -126,13 +124,6 @@
                 await updateDoc(blogRef, { adClicks: increment(1) });
                 console.log("Ad click successfully tracked for video:", blogIdForClick);
             } catch(e) { console.error("Error tracking ad click:", e); }
-        };
-        window.vastAdConfig = {};
-        async function loadAdSettings() {
-            try {
-                const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
-                if (vastDoc.exists()) { window.vastAdConfig = vastDoc.data(); }
-            } catch(e) { console.error(e); }
         }
 
         function getYoutubeVideoId(url) {
@@ -215,58 +206,7 @@
             `;
 
             if (blog.video && !blog.youtubeUrl) {
-                // VAST ad logic starts here. The video element is now in the DOM.
-                const vastUrl = (window.vastAdConfig && window.vastAdConfig.vastUrl) ? window.vastAdConfig.vastUrl : 'https://bubbly-sound.com/d.mCFTzidTGoNYv/ZEGcUl/Fejmp9/u/Z/Uwlek-PBTMY/5MNWjrAPxPMQzxcLtLNRjwk/2SMaD/EP0cMTSYZts/aTW_1DpQdkD/0bxW';
-                
-                try {
-                    if (typeof fluidPlayer !== 'undefined') {
-                        console.log("Initializing Fluid Player with VAST URL:", vastUrl); // Log for debugging
-                        const playerInstance = fluidPlayer(
-                            'watch-video-player',
-                            {
-                                layoutControls: {
-                                    autoPlay: true,
-                                    mute: true, // Mute to ensure autoplay works for ads
-                                    playButtonShowing: true,
-                                    controlBar: {
-                                        autoHide: true,
-                                        autoHideTimeout: 3,
-                                        animated: true
-                                    }
-                                },
-                                vastOptions: {
-                                    allowAutoPlay: true,
-                                    adList: [{ // Pre-roll ad
-                                        roll: 'preRoll',
-                                        vastTag: vastUrl
-                                    }]
-                                }
-                            }
-                        );
-
-                        // Event listeners for debugging and tracking
-                        playerInstance.on('vastError', (errorCode) => {
-                            console.error('VAST Error:', { code: errorCode, message: `A VAST error occurred (code: ${errorCode}). The main video will play.` });
-                        });
-
-                        // This event is useful to know if the ad server responded but had no ad to show.
-                        playerInstance.on('preRollAdNotServed', () => {
-                            console.warn('VAST Warning: No pre-roll ad was served. This could be due to no-fill from the ad server or other issues.');
-                        });
-
-                        playerInstance.on('adClick', () => {
-                            console.log('Ad click detected. Tracking...');
-                            window.trackAdClick(blogId);
-                        });
-
-                        playerInstance.on('adStarted', () => { console.log('Pre-roll ad started.'); });
-                        playerInstance.on('adFinished', () => { console.log('Pre-roll ad finished. Main content will play.'); });
-
-                    } else {
-                        console.warn("fluidPlayer is not defined. Video will play without VAST ad. This might be due to an ad blocker or the script not loading.");
-                        // If fluid player is not there, the native controls will work.
-                    }
-                } catch(e) { console.error("Fluid Player initialization error:", e); }
+                // Video will play with native controls without VAST ads.
             }
             window.renderComments();
         }
@@ -667,50 +607,9 @@
         });
 
         onAuthStateChanged(auth, () => {
-            loadAdSettings().then(() => {
-                loadVideo();
-                loadSuggestions();
-            });
+            loadVideo(); loadSuggestions();
         });
     </script>
-      <!-- 1st ad script -->
-   <script>
-(function(wdxwb){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = wdxwb || {};
-s.src = "\/\/webbedtrash.com\/b\/X.V\/swdkGrlC0\/YDWqcW\/Jevm\/9juoZxU\/l-kGP\/TtY\/5RN-jbALxoNIDoULtzNSjukT2LMtDOEC0MOjQx";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
-<!-- 2nd ad script -->
-<script>
-(function(wdxwb){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = wdxwb || {};
-s.src = "\/\/webbedtrash.com\/biX.VdszdVGulD0MYXWlcL\/GesmZ9TukZwUklQk\/PbT\/Y\/5wNdj\/AcxhNcj-E\/t\/Ncjmkx2ZMEDbE\/2ONnQV";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
-<!-- 3rd ad script -->
- <script>
-(function(nsfaa){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = nsfaa || {};
-s.src = "\/\/webbedtrash.com\/bdX.V\/ssdQGblW0LYZWQcK\/je\/mC9sulZUUGlKkQPsTFY\/5mN_jHALx-OHT\/MMt\/NTjSko2tMzDgEf5iN\/wo";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
+     
 </body>
 </html>

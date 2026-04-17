@@ -34,10 +34,6 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Fluid Player for VAST Ads -->
-    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
-    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js" defer></script>
-
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -920,7 +916,6 @@
         let lastVisibleBlog = null;
         let currentUserBlocked = [];
         const BLOGS_PER_PAGE = 5;
-        let viewedStories = JSON.parse(localStorage.getItem('viewed_stories') || '[]');
         let observer; // For infinite scroll
         let currentFeedMode = 'all'; // 'all' or 'following'
         let currentCategoryFilter = 'All';
@@ -929,7 +924,6 @@
         let globalGroupedStories = [];
         let currentStoryUserIdx = -1;
         let currentStoryIdx = -1;
-        let globalAdConfig = { showAds: false, vastUrl: '', youtubeAdUrl: '', bannerImg: '', bannerLink: '', affiliateImg: '', affiliateLink: '' };
         let vastAdConfig = {};
         let viewedBlogsInSession = new Set(); // For view tracking
 
@@ -1081,15 +1075,7 @@
             }
         }
 
-    // Call immediately to show for guests too
-    loadMainHeadline();
-
         // Login/Logout Logic
-
-        function getConversationId(uid1, uid2) {
-            return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
-        }
-
         function getYoutubeVideoId(url) {
             if (!url) return null;
             let videoId = null;
@@ -1693,7 +1679,7 @@
             fetchedBlogs = [];
             lastVisibleBlog = null;
             updateFeedToggleUI();
-            await loadAdSettings(); // Ensure ad config is loaded before showing feed
+            // await loadAdSettings(); // Ensure ad config is loaded before showing feed - Removed as per request
             loadTrending(); // Load trending section after auth resolves
             loadFlicks(); // Reload flicks alongside feed
             loadBlogs(false); // Start loading from the beginning
@@ -2313,7 +2299,6 @@
                     }
 
                 // --- बैनर ऐड (Banner Ad) लॉजिक ---
-                // एडमिन की सेट की हुई फ्रीक्वेंसी पर बैनर ऐड दिखाएं
                 if (globalAdConfig && globalAdConfig.showAds && (index + 1) % (globalAdConfig.bannerFrequency || 3) === 0) {
                     let bImg = globalAdConfig.bannerImg;
                     let bLink = globalAdConfig.bannerLink || '#';
@@ -2389,7 +2374,6 @@
                 }
 
                 // --- YouTube Video Ad लॉजिक ---
-                // एडमिन की सेट की हुई फ्रीक्वेंसी पर YouTube वीडियो ऐड दिखाएं
                 if (globalAdConfig && globalAdConfig.showAds && showVideoAd && globalAdConfig.youtubeAdUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
                     const videoId = getYoutubeVideoId(globalAdConfig.youtubeAdUrl);
                     if (videoId) {
@@ -2412,40 +2396,6 @@
                             </div>
                         `;
                         grid.appendChild(ytAdDiv);
-                    }
-                }
-
-                // --- Standalone VAST Video Ad लॉजिक ---
-                if (globalAdConfig && globalAdConfig.showAds && showVideoAd && globalAdConfig.vastUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
-                    const vastAdDiv = document.createElement('div');
-                    vastAdDiv.className = 'news-card';
-                    vastAdDiv.style.marginBottom = '20px';
-                    vastAdDiv.style.padding = '15px';
-                    vastAdDiv.style.textAlign = 'center';
-                    vastAdDiv.style.border = '2px solid #0d6efd'; 
-                    
-                    const uniqueVidId = `vast-video-${blog.id}-${index}`;
-                    vastAdDiv.innerHTML = `
-                        <span style="font-size: 0.85rem; color: #0d6efd; display: block; margin-bottom: 10px; font-weight: bold;">Sponsored Ad</span>
-                        <div>
-                            <video id="${uniqueVidId}" style="width: 100%; max-height: 300px; border-radius: 8px; background: #000;">
-                                <source src="https://cdn.fluidplayer.com/static/blank.mp4" type="video/mp4" />
-                            </video>
-                        </div>
-                    `;
-                    grid.appendChild(vastAdDiv);
-                    
-                    if (typeof fluidPlayer !== 'undefined') {
-                        const fpStandalone = fluidPlayer(uniqueVidId, {
-                            vastOptions: {
-                                adList: [{ roll: 'preRoll', vastTag: globalAdConfig.vastUrl || 'https://bubbly-sound.com/d.mCFTzidTGoNYv/ZEGcUl/Fejmp9/u/Z/Uwlek-PBTMY/5MNWjrAPxPMQzxcLtLNRjwk/2SMaD/EP0cMTSYZts/aTW_1DpQdkD/0bxW' }]
-                            }
-                        });
-                        
-                        // Track click ONLY when the actual ad is clicked (new tab opens)
-                        fpStandalone.on('adClick', () => window.trackAdClick(blog.id));
-                    } else {
-                        console.warn("fluidPlayer is not defined. It may have been blocked by an ad blocker.");
                     }
                 }
                 });
@@ -3609,7 +3559,7 @@
         let currentFlicksAdPlayer = null;
         let lastAdShownAtIdx = -1;
 
-        window.openFlicksViewer = function(idx) {
+        window.openFlicksViewer = async function(idx) {
             currentFlickIdx = idx;
             updateFlicksView();
             document.getElementById('flicks-viewer-modal').style.display = 'flex';
@@ -3671,7 +3621,6 @@
             const adContainer = document.getElementById('flicks-ad-container');
             const uiOverlays = document.getElementById('flicks-ui-overlays');
 
-            // VAST ad logic removed as per request to only show ads on long videos.
             adContainer.style.display = 'none';
             adContainer.innerHTML = '';
             vid.style.display = 'block';
@@ -4779,45 +4728,7 @@
             declineBtn.addEventListener('click', () => handleConsent('declined'));
         });
     </script>
-   <!-- 1st ad script -->
-   <script>
-(function(wdxwb){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = wdxwb || {};
-s.src = "\/\/webbedtrash.com\/b\/X.V\/swdkGrlC0\/YDWqcW\/Jevm\/9juoZxU\/l-kGP\/TtY\/5RN-jbALxoNIDoULtzNSjukT2LMtDOEC0MOjQx";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
-<!-- 2nd ad script -->
-<script>
-(function(wdxwb){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = wdxwb || {};
-s.src = "\/\/webbedtrash.com\/biX.VdszdVGulD0MYXWlcL\/GesmZ9TukZwUklQk\/PbT\/Y\/5wNdj\/AcxhNcj-E\/t\/Ncjmkx2ZMEDbE\/2ONnQV";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
-<!-- 3rd ad script -->
- <script>
-(function(nsfaa){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = nsfaa || {};
-s.src = "\/\/webbedtrash.com\/bdX.V\/ssdQGblW0LYZWQcK\/je\/mC9sulZUUGlKkQPsTFY\/5mN_jHALx-OHT\/MMt\/NTjSko2tMzDgEf5iN\/wo";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
+    
     <footer>
        <p>&copy;  Viyou. All Rights Reserved.</p>
        <div style="margin-top: 10px;">

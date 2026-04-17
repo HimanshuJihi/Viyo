@@ -103,15 +103,7 @@
         let flicks = [];
         let currentFlickId = null;
         let viewedFlicks = new Set();
-        let vastAdConfig = {};
         let currentUserFollowing = [];
-
-        async function loadVastAdSettings() {
-            try {
-                const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
-                if (vastDoc.exists()) { vastAdConfig = vastDoc.data(); }
-            } catch(e) { console.error(e); }
-        }
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -277,9 +269,7 @@
             } else {
                 currentUserFollowing = [];
             }
-            loadVastAdSettings().then(() => {
-                loadFlicks();
-            });
+            loadFlicks();
         });
 
         window.openFlickComments = function() {
