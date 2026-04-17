@@ -2308,6 +2308,7 @@
                     if (globalAdConfig.banners && globalAdConfig.banners.length > 0) {
                         const b = globalAdConfig.banners[bannerAdCount % globalAdConfig.banners.length];
                         bImg = b.img || bImg;
+                        const bText = b.text || ''; // Get custom text
                         bLink = b.link || bLink;
                         hasAd = true;
                     } else if (globalAdConfig.bannerImg) {
@@ -2322,7 +2323,8 @@
                         adDiv.style.textAlign = 'center';
                         adDiv.innerHTML = `
                             <span style="font-size: 0.75rem; color: #888; display: block; margin-bottom: 10px;">Advertisement</span>
-                            <a href="${bLink}" target="_blank" onclick="window.trackAdClick('${blog.id}')">
+                            <a href="${bLink}" target="_blank" onclick="window.trackAdClick('${blog.id}')" style="text-decoration: none; color: inherit;">
+                                ${bText ? `<p style="font-size: 1.1rem; font-weight: bold; color: #fff; margin-bottom: 10px;">${bText}</p>` : ''}
                                 <img src="${bImg}" alt="Advertisement" style="max-width: 100%; border-radius: 8px;">
                             </a>
                         `;

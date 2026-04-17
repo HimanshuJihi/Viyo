@@ -74,9 +74,34 @@
             background-color: rgba(255, 255, 255, 0.1);
             color: #fff;
         }
+        /* Custom Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { background-color: #198754; border-left: 5px solid #155724; }
+        .toast.error { background-color: #dc3545; border-left: 5px solid #8b1c27; }
     </style>
 </head>
 <body>
+    <div id="toast-container"></div>
     <div class="container">
         <h1>Admin Panel</h1>
         <a href="index.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to Viyou</a>
@@ -203,6 +228,9 @@
                         </label>
                         <label for="cpc-rate" style="display: block; margin-bottom: 5px;">Rate per 1000 Clicks (in ₹):</label>
                         <input type="number" id="cpc-rate" value="200" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        
+                        <label for="min-withdrawal" style="display: block; margin-bottom: 5px; margin-top: 15px;">Minimum Withdrawal Amount (in ₹):</label>
+                        <input type="number" id="min-withdrawal" value="500" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                     </div>
                     <button class="btn" style="background-color: #198754;" onclick="window.saveMonetizationSettings()">Save Monetization Settings</button>
                 </div>
@@ -257,8 +285,20 @@
                 <div class="report-card" style="border-color: #ff0050;">
                     <h2 style="color: #ff0050; margin-top: 0;">VAST Ad Management</h2>
                     <p style="color: #aaa; font-size: 0.9rem;">This VAST Ad will run independently of other website ads before long videos and inside Flicks.</p>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px;">
+                        <input type="checkbox" id="vast-ad-toggle" style="width: 20px; height: 20px;">
+                        <strong style="font-size: 1.1rem;">Enable VAST Ads</strong>
+                    </label>
                     <label style="display: block; margin-bottom: 5px;">VAST Tag URL:</label>
                     <input type="text" id="standalone-vast-url" placeholder="Enter VAST XML URL..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <div id="vast-history-section" style="margin-top: 10px; margin-bottom: 20px;">
+                        <h3 style="color: #aaa; font-size: 1rem; margin-bottom: 10px;">Recent VAST URLs</h3>
+                        <div id="vast-history-list">
+                            <!-- History items will be populated here -->
+                        </div>
+                    </div>
+
                     <button id="save-vast-btn" class="btn" style="background-color: #ff0050; width: 100%;" onclick="window.saveVastSettings()">Save VAST Settings</button>
                 </div>
             </div>
@@ -297,6 +337,27 @@
         const sectionHeadlines = document.getElementById('section-headlines');
         const sectionVast = document.getElementById('section-vast');
         let currentAdConfig = {};
+
+        // --- Custom Toast Notification ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+
+            // Show the toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+
+            // Hide and remove the toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        }
 
         tabReported.addEventListener('click', () => {
             tabReported.classList.add('active');
@@ -432,6 +493,8 @@
                                 <img id="banner-preview-${i}" src="" style="max-height: 80px; display: none; margin-bottom: 10px; border-radius: 4px; border: 1px solid #555;">
                                 <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Target Link:</label>
                                 <input type="text" id="banner-link-${i}" placeholder="Link to open on click..." style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Custom Text (Optional):</label>
+                                <input type="text" id="banner-text-${i}" placeholder="Custom text for banner..." style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                                 <div style="display: flex; gap: 15px; margin-top: 10px; align-items: center;">
                                     <div style="flex: 1;">
                                         <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Duration (Hours):</label>
@@ -462,7 +525,7 @@
                                             document.getElementById(`banner-img-${i}`).value = base64;
                                             document.getElementById(`banner-preview-${i}`).src = base64;
                                             document.getElementById(`banner-preview-${i}`).style.display = 'block';
-                                        } catch(err) { alert("Error processing image: " + err.message); }
+                                        } catch(err) { showToast("Error processing image: " + err.message, "error"); }
                                         saveBtn.innerText = "Save Ad Settings";
                                     }
                                 });
@@ -509,6 +572,7 @@
                             if (idx < 10) {
                                 document.getElementById(`banner-img-${idx+1}`).value = b.img || '';
                                 document.getElementById(`banner-link-${idx+1}`).value = b.link || '';
+                                document.getElementById(`banner-text-${idx+1}`).value = b.text || '';
                                 document.getElementById(`banner-duration-${idx+1}`).value = b.duration || 24;
                                 document.getElementById(`banner-always-${idx+1}`).checked = b.alwaysShow || false;
                                 if (b.img) {
@@ -554,11 +618,13 @@
             for(let i=1; i<=10; i++) {
                 const img = document.getElementById(`banner-img-${i}`).value.trim();
                 const link = document.getElementById(`banner-link-${i}`).value.trim();
+                const text = document.getElementById(`banner-text-${i}`).value.trim();
                 const duration = parseInt(document.getElementById(`banner-duration-${i}`).value) || 24;
                 const alwaysShow = document.getElementById(`banner-always-${i}`).checked;
                 let startTime = now;
                 if (currentAdConfig.banners && currentAdConfig.banners[i-1] && currentAdConfig.banners[i-1].img === img) {
                     startTime = currentAdConfig.banners[i-1].startTime || now;
+                    if (currentAdConfig.banners[i-1].text) startTime = currentAdConfig.banners[i-1].startTime || now; // Preserve start time if text is same
                 }
                 if (img) banners.push({ img, link, duration, alwaysShow, startTime });
             }
@@ -588,7 +654,7 @@
             try {
                 currentAdConfig = adData;
                 await setDoc(doc(db, "settings", "ads"), adData);
-                alert("Ads configuration updated successfully! Changes are now live on the site.");
+                showToast("Ads configuration updated successfully!");
                 // Update the earnings button visibility immediately after saving
                 const viewEarningsBtn = document.getElementById('view-earnings-btn');
                 if (adData.adNetworkUrl) {
@@ -597,7 +663,7 @@
                 } else { viewEarningsBtn.style.display = 'none'; }
             } catch(e) {
                 console.error("Error saving ads:", e);
-                alert("Failed to save ad settings.");
+                showToast("Failed to save ad settings.", "error");
             } finally {
                 saveBtn.innerText = "Save Ad Settings";
                 saveBtn.disabled = false;
@@ -608,8 +674,32 @@
         window.loadVastSettings = async () => {
             try {
                 const docSnap = await getDoc(doc(db, "settings", "vastAds"));
-                if (docSnap.exists()) { document.getElementById('standalone-vast-url').value = docSnap.data().vastUrl || ''; }
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('standalone-vast-url').value = data.vastUrl || '';
+                    document.getElementById('vast-ad-toggle').checked = data.enabled || false;
+
+                    const historyList = document.getElementById('vast-history-list');
+                    historyList.innerHTML = '';
+                    if (data.history && data.history.length > 0) {
+                        data.history.forEach(url => {
+                            const div = document.createElement('div');
+                            div.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; margin-bottom: 5px; font-size: 0.9rem;";
+                            div.innerHTML = `
+                                <span style="color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">${url}</span>
+                                <button class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.8rem; margin: 0;" onclick="window.reuseVastUrl('${url.replace(/'/g, "\\'")}')">Use</button>
+                            `;
+                            historyList.appendChild(div);
+                        });
+                    } else {
+                        historyList.innerHTML = '<p style="color: #888; font-size: 0.9rem;">No history yet.</p>';
+                    }
+                }
             } catch(e) { console.error("Error loading VAST settings:", e); }
+        };
+
+        window.reuseVastUrl = (url) => {
+            document.getElementById('standalone-vast-url').value = url;
         };
 
         window.saveVastSettings = async () => {
@@ -617,10 +707,24 @@
             btn.innerText = "Saving...";
             btn.disabled = true;
             const vastUrl = document.getElementById('standalone-vast-url').value.trim();
+            const isEnabled = document.getElementById('vast-ad-toggle').checked;
             try {
-                await setDoc(doc(db, "settings", "vastAds"), { vastUrl: vastUrl }, { merge: true });
-                alert("VAST Ad configuration saved successfully!");
-            } catch(e) { console.error(e); alert("Failed to save VAST settings."); }
+                const vastRef = doc(db, "settings", "vastAds");
+                const docSnap = await getDoc(vastRef);
+                let currentHistory = [];
+                let currentUrl = '';
+                if (docSnap.exists()) {
+                    currentHistory = docSnap.data().history || [];
+                    currentUrl = docSnap.data().vastUrl || '';
+                }
+                if (vastUrl && vastUrl !== currentUrl) {
+                    const newHistory = [vastUrl, ...currentHistory.filter(u => u !== vastUrl)];
+                    currentHistory = newHistory.slice(0, 5);
+                }
+                await setDoc(vastRef, { vastUrl: vastUrl, enabled: isEnabled, history: currentHistory }, { merge: true });
+                showToast("VAST Ad configuration saved successfully!");
+                loadVastSettings();
+            } catch(e) { console.error(e); showToast("Failed to save VAST settings.", "error"); }
             finally { btn.innerText = "Save VAST Settings"; btn.disabled = false; }
         };
 
@@ -629,6 +733,7 @@
             const fileInput = document.getElementById(`banner-file-${i}`);
             const imgInput = document.getElementById(`banner-img-${i}`);
             const linkInput = document.getElementById(`banner-link-${i}`);
+            const textInput = document.getElementById(`banner-text-${i}`);
             const preview = document.getElementById(`banner-preview-${i}`);
             const durationInput = document.getElementById(`banner-duration-${i}`);
             const alwaysInput = document.getElementById(`banner-always-${i}`);
@@ -636,6 +741,7 @@
             if (fileInput) fileInput.value = '';
             if (imgInput) imgInput.value = '';
             if (linkInput) linkInput.value = '';
+            if (textInput) textInput.value = '';
             if (preview) {
                 preview.src = '';
                 preview.style.display = 'none';
@@ -701,7 +807,7 @@
                     document.getElementById('affiliate-img').value = base64;
                     document.getElementById('affiliate-preview').src = base64;
                     document.getElementById('affiliate-preview').style.display = 'block';
-                } catch(err) { alert("Error processing image: " + err.message); }
+                } catch(err) { showToast("Error processing image: " + err.message, "error"); }
                 saveBtn.innerText = "Save Ad Settings";
             }
         });
@@ -779,10 +885,10 @@
             const countEl = document.getElementById('report-count');
             if (countEl) countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
             
-                alert("Report dismissed.");
+                showToast("Report dismissed.");
             } catch (e) {
                 console.error("Error dismissing report:", e);
-                alert("Failed to dismiss report.");
+                showToast("Failed to dismiss report.", "error");
             }
         };
 
@@ -796,10 +902,10 @@
                 await deleteDoc(doc(db, "reports", reportId));
 
                 document.getElementById(`report-${reportId}`).remove();
-                alert("Blog and report have been deleted.");
+                showToast("Blog and report have been deleted.");
             } catch (e) {
                 console.error("Error deleting blog:", e);
-                alert("Failed to delete blog.");
+                showToast("Failed to delete blog.", "error");
             }
         };
 
@@ -868,10 +974,10 @@
                 document.getElementById(`copyright-${claimId}`).remove();
                 const countEl = document.getElementById('copyright-count');
                 if (countEl) countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
-                alert("Copyright claim dismissed.");
+                showToast("Copyright claim dismissed.");
             } catch (e) {
                 console.error("Error dismissing claim:", e);
-                alert("Failed to dismiss claim.");
+                showToast("Failed to dismiss claim.", "error");
             }
         };
 
@@ -883,10 +989,10 @@
                 document.getElementById(`copyright-${claimId}`).remove();
                 const countEl = document.getElementById('copyright-count');
                 if (countEl) countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
-                alert("Blog and copyright claim have been deleted.");
+                showToast("Blog and copyright claim have been deleted.");
             } catch (e) {
                 console.error("Error deleting blog:", e);
-                alert("Failed to delete blog.");
+                showToast("Failed to delete blog.", "error");
             }
         };
 
@@ -895,10 +1001,10 @@
             try {
                 const userRef = doc(db, "users", uid);
                 await updateDoc(userRef, { isBanned: true });
-                alert(`User ${username} has been banned.`);
+                showToast(`User ${username} has been banned.`);
             } catch (e) {
                 console.error("Error banning user:", e);
-                alert("Failed to ban user.");
+                showToast("Failed to ban user.", "error");
             }
         };
 
@@ -907,10 +1013,10 @@
             try {
                 const userRef = doc(db, "users", uid);
                 await updateDoc(userRef, { isBanned: false });
-                alert(`User ${username} has been unbanned.`);
+                showToast(`User ${username} has been unbanned.`);
             } catch (e) {
                 console.error("Error unbanning user:", e);
-                alert("Failed to unban user.");
+                showToast("Failed to unban user.", "error");
             }
         };
 
@@ -934,13 +1040,13 @@
 
                 if (updatePromises.length > 0) {
                     await Promise.all(updatePromises);
-                    alert(`Successfully updated ${updatePromises.length} users!`);
+                    showToast(`Successfully updated ${updatePromises.length} users!`);
                 } else {
-                    alert("All users already have usernameLower or no username to update.");
+                    showToast("All users already have usernameLower or no username to update.");
                 }
             } catch (e) {
                 console.error("Migration error:", e);
-                alert("Failed to migrate usernames: " + e.message);
+                showToast("Failed to migrate usernames: " + e.message, "error");
             } finally {
                 btn.innerText = "⚙️ Migrate Usernames";
                 btn.disabled = false;
@@ -957,6 +1063,7 @@
                     document.getElementById('cpc-rate').value = data.cpcRate || 200;
                     document.getElementById('enable-cpm').checked = data.enableCpm !== false; // defaults to true
                     document.getElementById('enable-cpc').checked = data.enableCpc === true;  // defaults to false
+                    document.getElementById('min-withdrawal').value = data.minWithdrawal || 500;
                 }
             } catch (e) {
                 console.error("Error loading monetization settings:", e);
@@ -968,17 +1075,19 @@
             const cpcRate = parseFloat(document.getElementById('cpc-rate').value);
             const enableCpm = document.getElementById('enable-cpm').checked;
             const enableCpc = document.getElementById('enable-cpc').checked;
-            if (isNaN(rate) || rate < 0 || isNaN(cpcRate) || cpcRate < 0) {
-                alert("Please enter valid, non-negative rates.");
+            const minWithdrawal = parseFloat(document.getElementById('min-withdrawal').value);
+
+            if (isNaN(rate) || rate < 0 || isNaN(cpcRate) || cpcRate < 0 || isNaN(minWithdrawal) || minWithdrawal < 1) {
+                showToast("Please enter valid, non-negative values for all fields. Minimum withdrawal must be at least 1.", "error");
                 return;
             }
-            const settingsData = { cpmRate: rate, cpcRate: cpcRate, enableCpm: enableCpm, enableCpc: enableCpc, currency: 'INR' };
+            const settingsData = { cpmRate: rate, cpcRate: cpcRate, enableCpm: enableCpm, enableCpc: enableCpc, currency: 'INR', minWithdrawal: minWithdrawal };
             try {
                 await setDoc(doc(db, "settings", "monetization"), settingsData);
-                alert("Monetization settings saved successfully!");
+                showToast("Monetization settings saved successfully!");
             } catch (e) {
                 console.error("Error saving monetization settings:", e);
-                alert("Failed to save settings.");
+                showToast("Failed to save settings.", "error");
             }
         };
 
@@ -1052,12 +1161,12 @@
             if (!confirm(`Are you sure you want to ${makeMonetized ? 'MONETIZE' : 'REVOKE monetization for'} this user?`)) return;
             try {
                 await updateDoc(doc(db, "users", uid), { isMonetized: makeMonetized });
-                alert(`User status updated to ${makeMonetized ? 'Monetized' : 'Not Monetized'} successfully.`);
+                showToast(`User status updated to ${makeMonetized ? 'Monetized' : 'Not Monetized'} successfully.`);
                 window.loadMonetizedUsers();
                 document.getElementById('monetization-search-results').innerHTML = ''; 
             } catch (e) {
                 console.error(e);
-                alert("Failed to update monetization status.");
+                showToast("Failed to update monetization status.", "error");
             }
         };
 
@@ -1123,11 +1232,11 @@
                     read: false
                 });
                 
-                alert("User marked as paid successfully!");
+                showToast("User marked as paid successfully!");
                 window.loadPayoutRequests();
             } catch (e) {
                 console.error(e);
-                alert("Error marking as paid.");
+                showToast("Error marking as paid.", "error");
             }
         };
         
@@ -1149,9 +1258,9 @@
                     read: false
                 });
                 
-                alert("Payout request rejected.");
+                showToast("Payout request rejected.", "error");
                 window.loadPayoutRequests();
-            } catch (e) { console.error(e); alert("Error rejecting request."); }
+            } catch (e) { console.error(e); showToast("Error rejecting request.", "error"); }
         };
 
         // --- Headlines Management ---
@@ -1170,8 +1279,8 @@
             const studioH = document.getElementById('admin-studio-headline').value.trim();
             try {
                 await setDoc(doc(db, "settings", "headlines"), { mainHeadline: mainH, studioHeadline: studioH }, { merge: true });
-                alert("Headlines saved successfully!");
-            } catch (e) { console.error("Error saving headlines:", e); alert("Failed to save headlines."); }
+                showToast("Headlines saved successfully!");
+            } catch (e) { console.error("Error saving headlines:", e); showToast("Failed to save headlines.", "error"); }
         };
 
         window.loadPaymentHistory = async () => {

@@ -99,6 +99,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const blogId = urlParams.get('id');
         let currentBlog = null;
+        let vastAdConfig = {};
         
         async function trackAdClick(blogIdForClick) {
             if (!blogIdForClick) return;
@@ -132,6 +133,17 @@
             return match ? match[1] : null;
         }
 
+        async function loadVastAdConfig() {
+            try {
+                const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
+                if (vastDoc.exists()) {
+                    vastAdConfig = vastDoc.data();
+                }
+            } catch (e) {
+                console.error("Error loading VAST ad config:", e);
+            }
+        }
+
         async function loadVideo() {
             if (!blogId) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
             const docRef = doc(db, "blogs", blogId);
@@ -148,7 +160,7 @@
                 mediaHtml = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             } else if (blog.video) {
                 mediaHtml = `
-                    <video id="watch-video-player" controls playsinline>
+                    <video id="watch-video-player">
                         <source src="${blog.video}" type="video/mp4">
                     </video>`;
             } else {
@@ -206,8 +218,24 @@
             `;
 
             if (blog.video && !blog.youtubeUrl) {
-                // Video will play with native controls without VAST ads.
+                const adOptions = {
+                    vastOptions: {
+                        adList: [
+                            {
+                                roll: 'preRoll',
+                                vastTag: vastAdConfig.vastUrl
+                            }
+                        ],
+                        adClickCallback: () => {
+                            trackAdClick(blogId);
+                        }
+                    }
+                };
+
+                const playerOptions = (vastAdConfig.enabled && vastAdConfig.vastUrl) ? adOptions : { layoutControls: { playButtonShowing: true, playPauseAnimation: true } };
+                var player = fluidPlayer('watch-video-player', playerOptions);
             }
+
             window.renderComments();
         }
 
@@ -606,8 +634,10 @@
             }
         });
 
-        onAuthStateChanged(auth, () => {
-            loadVideo(); loadSuggestions();
+        onAuthStateChanged(auth, async () => {
+            await loadVastAdConfig();
+            loadVideo(); 
+            loadSuggestions();
         });
     </script>
      

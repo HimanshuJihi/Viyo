@@ -207,7 +207,7 @@
         const MONETIZATION_VIEWS = 10000;
         const MONETIZATION_FOLLOWERS = 200;
         
-        let monetizationSettings = { enableCpm: true, enableCpc: false, cpmRate: 50, cpcRate: 200, currency: 'INR' }; // Default values
+        let monetizationSettings = { enableCpm: true, enableCpc: false, cpmRate: 50, cpcRate: 200, currency: 'INR', minWithdrawal: 500 }; // Default values
         let currentUnpaidViews = 0;
         let currentUnpaidClicks = 0;
         let currentEarnings = 0;
@@ -326,14 +326,19 @@
                     if (hasPending) {
                         withdrawBtn.innerText = "Request Pending";
                         withdrawBtn.disabled = true;
-                    } else if (currentEarnings > 0) {
+                    } else if (currentEarnings >= monetizationSettings.minWithdrawal) {
                         withdrawBtn.disabled = false;
                         withdrawBtn.onclick = () => {
+                            const minAmount = monetizationSettings.minWithdrawal || 500;
                             document.getElementById('max-amount-label').innerText = `(Max: ₹${currentEarnings.toFixed(2)})`;
                             document.getElementById('withdraw-amount').value = currentEarnings.toFixed(2);
                             document.getElementById('withdraw-amount').max = currentEarnings.toFixed(2);
+                            document.getElementById('withdraw-amount').min = minAmount;
                             document.getElementById('withdraw-modal').style.display = 'flex';
                         };
+                    } else {
+                        withdrawBtn.innerText = `Need ₹${(monetizationSettings.minWithdrawal || 500).toFixed(2)} to withdraw`;
+                        withdrawBtn.disabled = true;
                     }
                 }
 
@@ -452,8 +457,9 @@
 
         document.getElementById('submit-withdraw-btn').addEventListener('click', async () => {
             const reqAmount = parseFloat(document.getElementById('withdraw-amount').value);
-            if (isNaN(reqAmount) || reqAmount <= 0 || reqAmount > currentEarnings) {
-                alert(`Invalid amount! Please enter a value between ₹1 and ₹${currentEarnings.toFixed(2)}.`);
+            const minAmount = monetizationSettings.minWithdrawal || 500;
+            if (isNaN(reqAmount) || reqAmount < minAmount || reqAmount > currentEarnings) {
+                alert(`Invalid amount! Please enter a value between ₹${minAmount.toFixed(2)} and ₹${currentEarnings.toFixed(2)}.`);
                 return;
             }
 
