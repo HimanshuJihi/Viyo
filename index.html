@@ -925,6 +925,7 @@
         let currentStoryUserIdx = -1;
         let currentStoryIdx = -1;
         let vastAdConfig = {};
+        let globalAdConfig = {};
         let viewedBlogsInSession = new Set(); // For view tracking
 
         // --- Toast Notification Logic ---
@@ -1679,7 +1680,7 @@
             fetchedBlogs = [];
             lastVisibleBlog = null;
             updateFeedToggleUI();
-            // await loadAdSettings(); // Ensure ad config is loaded before showing feed - Removed as per request
+            await loadAdSettings(); // Ensure ad config is loaded before showing feed
             loadTrending(); // Load trending section after auth resolves
             loadFlicks(); // Reload flicks alongside feed
             loadBlogs(false); // Start loading from the beginning
