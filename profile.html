@@ -14,7 +14,7 @@
         button:hover { background: #e68900; }
         .profile-pic { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid white; margin-bottom: 15px; cursor: pointer; }
         /* CropperJS CSS Fix */
-        .cropper-container { max-width: 100%; }
+        .cropper-container { max-width: 100%; max-height: 100%; }
 
         /* Styling for followed/blocked state of transparent buttons */
         .btn-transparent.following { color: #aaa !important; }
@@ -302,6 +302,11 @@
     <!-- Fluid Player for VAST Ads -->
     <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
     <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+
+    <!-- CropperJS for Profile Photo Edit -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
 </head>
@@ -401,13 +406,13 @@
     </div>
 
     <!-- Cropper Modal -->
-    <div id="cropper-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; flex-direction:column; align-items:center; justify-content:center;">
-        <div style="width:90%; max-width:500px; max-height:70vh; background:#000; overflow:hidden; border-radius:8px;">
+    <div id="cropper-modal" style="display:none; position:fixed; top:0px; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:1000; flex-direction:column; align-items:center; justify-content:center; padding: 15px; box-sizing: border-box;">
+        <div style="width:100%; max-width:350px; height:45vh; min-height:250px; background:#000; overflow:hidden; border-radius:8px; display:block;">
             <img id="cropper-image" style="max-width:100%; display:block;">
         </div>
-        <div style="margin-top:20px; display:flex; gap:15px;">
-            <button id="btn-crop" style="background:#28a745; color:white; padding:10px 25px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Crop & Save</button>
-            <button id="btn-cancel-crop" style="background:#dc3545; color:white; padding:10px 25px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Cancel</button>
+        <div style="margin-top:15px; display:flex; gap:15px; justify-content: center; width: 100%;">
+            <button id="btn-crop" style="background:#28a745; color:white; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:1rem; box-shadow: 0 4px 10px rgba(40,167,69,0.3);">Crop & Save</button>
+            <button id="btn-cancel-crop" style="background:#dc3545; color:white; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:1rem; box-shadow: 0 4px 10px rgba(220,53,69,0.3);">Cancel</button>
         </div>
     </div>
 
@@ -1013,6 +1018,12 @@
         return match ? match[1] : null;
     }
 
+    // Helper function to escape HTML for XSS prevention
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
     window.scrollCarousel = function(btn, direction) {
         const container = btn.parentElement.querySelector('.image-carousel');
         const scrollAmount = container.clientWidth;
@@ -1209,13 +1220,18 @@
                 <div style="position: relative;" onclick="${targetAction}">
                     ${thumbHtml}
                     <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.8rem;">
-                        ${icon}
+                        ${icon} 
                     </div>
                 </div>
-                <h4 onclick="${targetAction}">${blog.title || 'Untitled'}</h4>
+                <h4 onclick="${targetAction}"></h4>
                 <p>${category === 'blogs' ? `❤️ ${Array.isArray(blog.likes) ? blog.likes.length : (typeof blog.likes === 'number' && !isNaN(blog.likes) ? blog.likes : 0)}` : `${views} views`} • ${dateStr}</p>
                 ${editDelHtml}
             `;
+            
+            const titleElement = item.querySelector('h4');
+            if (titleElement) {
+                titleElement.textContent = blog.title || 'Untitled';
+            }
 
             if (category === 'flicks') {
                 flicksGrid.appendChild(item);
@@ -1956,12 +1972,7 @@
             await Promise.all(updatePromises);
 
             alert("Profile Saved Successfully!");
-            
-            // If came from forced redirect, go back to news
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('requireUsername') === 'true') {
-                window.location.href = 'index.html';
-            }
+            window.location.href = 'index.html';
         } catch (error) {
             console.error("Error saving profile:", error);
             alert("Error saving profile: " + error.message);

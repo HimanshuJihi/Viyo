@@ -118,6 +118,12 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // Helper function to escape HTML for XSS prevention
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
         let flicks = [];
         let currentFlickId = null;
         let viewedFlicks = new Set();
@@ -179,7 +185,7 @@
                                 <strong>@${flick.author}</strong>
                             </div>
                             <div style="pointer-events: auto;">
-                                <div class="title" id="flick-title-${flick.id}">${titleText}</div>
+                                <div class="title" id="flick-title-${flick.id}">${escapeHTML(titleText)}</div>
                                 ${showMoreHtml}
                             </div>
                         </div>

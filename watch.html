@@ -117,6 +117,12 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // Helper function to escape HTML/XML for XSS prevention
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
         const urlParams = new URLSearchParams(window.location.search);
         const blogId = urlParams.get('id');
         let currentBlog = null;
@@ -162,6 +168,14 @@
                 if (vastDoc.exists()) {
                     vastAdConfig = vastDoc.data();
                 }
+                // Fetch general ad settings to get enablePreRollAds
+                const adDoc = await getDoc(doc(db, "settings", "ads"));
+                if (adDoc.exists()) {
+                    const generalAdSettings = adDoc.data();
+                    vastAdConfig.enablePreRollAds = generalAdSettings.enablePreRollAds !== false;
+                    vastAdConfig.showAds = generalAdSettings.showAds || false; // Master switch
+                }
+
             } catch (e) {
                 console.error("Error loading VAST ad config:", e);
             }
@@ -172,14 +186,24 @@
                 const promoSettingsSnap = await getDoc(doc(db, "settings", "promotions"));
                 if (promoSettingsSnap.exists()) {
                     preRollAdConfig.frequency = promoSettingsSnap.data().prerollFrequency || 3;
+                } // Fetch general ad settings to get enablePreRollAds
+                const adDoc = await getDoc(doc(db, "settings", "ads"));
+                if (adDoc.exists()) {
+                    const generalAdSettings = adDoc.data();
+                    preRollAdConfig.enablePreRollAds = generalAdSettings.enablePreRollAds !== false;
+                    preRollAdConfig.showAds = generalAdSettings.showAds || false; // Master switch
+                } else {
+                    preRollAdConfig.enablePreRollAds = true; // Default to true if no settings found
+                    preRollAdConfig.showAds = false; // Default master switch to off
                 }
+
                 const q = query(collection(db, "promotions"), where("status", "==", "approved"), where("type", "==", "preroll"));
                 const adSnap = await getDocs(q);
                 preRollAdConfig.activeAds = [];
                 adSnap.forEach(adDoc => {
                     const adData = adDoc.data();
                     if ((adData.impressions_served || 0) < (adData.impressions_goal || 1)) {
-                        preRollAdConfig.activeAds.push({ id: adDoc.id, ...adData });
+                        preRollAdConfig.activeAds.push({ id: adDoc.id, ...adData }); // Only add if impressions goal not met
                     }
                 });
             } catch(e) { console.error("Error loading pre-roll config:", e); }
@@ -203,7 +227,7 @@
             let preRollAdToPlay = null;
             window.userAdImpressionTracked = false;
             
-            // Filter ads based on video category
+            // Filter ads based on video category and check if pre-roll ads are globally enabled
             let eligibleAds = preRollAdConfig.activeAds.filter(ad => {
                 if (!ad.targetCategories || ad.targetCategories.length === 0) return true; // Legacy ads target all
                 return ad.targetCategories.includes(blog.category || 'Others');
@@ -233,9 +257,9 @@
                 const preRollVastTag = `
                 <VAST version="3.0">
                   <Ad>
-                    <InLine>
+                    <InLine> 
                       <AdSystem>Viyou</AdSystem>
-                      <AdTitle>Sponsored: ${preRollAdToPlay.title}</AdTitle>
+                      <AdTitle>Sponsored: ${escapeHTML(preRollAdToPlay.title)}</AdTitle>
                       <Creatives>
                         <Creative>
                           <Linear${skipAttr}>
@@ -310,7 +334,7 @@
                             <button class="btn" onclick="shareVideo()"><i data-lucide="share-2"></i> Share</button>
                         </div>
                     </div>
-                    <div class="desc-box">
+                    <div class="desc-box"> 
                         <div id="video-description" class="desc-content">${(blog.content || '').replace(/\n/g, '<br>')}</div>
                         <button id="show-more-btn" class="show-more-btn" onclick="toggleDescription()">Show more</button>
                     </div>

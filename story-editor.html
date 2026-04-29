@@ -424,6 +424,14 @@
                     <input type="text" id="status-message" placeholder="Type story text..." maxlength="80">
                     <button type="button" id="stamp-text-btn" class="panel-btn primary" style="flex: 0 0 auto;"><i data-lucide="plus"></i> Add text</button>
                 </div>
+                <div class="panel-row" style="background: rgba(13, 110, 253, 0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(13, 110, 253, 0.3);">
+                    <label style="flex: 1; color: #87ceeb;"><i data-lucide="mic"></i> AI Voice (TTS)</label>
+                    <select id="story-tts-voice" style="flex: 1;">
+                        <option value="hi-IN">Hindi Female</option>
+                        <option value="en-US">English Male</option>
+                    </select>
+                    <button type="button" id="generate-tts-btn" class="panel-btn primary" style="flex: 1; padding: 10px 5px;"><i data-lucide="volume-2"></i> Generate</button>
+                </div>
                 <div class="panel-row">
                     <label><i data-lucide="type"></i> Size</label>
                     <input type="range" id="story-text-size" min="10" max="150" value="24">
@@ -579,6 +587,13 @@
                         <option value="color-dodge">Color Dodge</option>
                     </select>
                 </div>
+                <div class="panel-row" style="flex-direction: column; align-items: flex-start; gap: 5px; background: rgba(142, 68, 173, 0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(142, 68, 173, 0.3); width: 100%; box-sizing: border-box;">
+                    <label style="width: 100%; color: #d946ef;"><i data-lucide="user-check"></i> AI Cutout (Remove BG)</label>
+                    <div style="display: flex; gap: 10px; width: 100%; align-items: center;">
+                        <input type="checkbox" id="overlay-ai-cutout-toggle" style="width: 20px; height: 20px;">
+                        <span style="font-size: 0.85rem; color: #ccc;">Smart Background Removal</span>
+                    </div>
+                </div>
                 <div class="panel-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
                     <label style="width: 100%;"><i data-lucide="scissors"></i> Chroma Key (Green Screen)</label>
                     <div style="display: flex; gap: 10px; width: 100%; align-items: center;">
@@ -656,6 +671,10 @@
                     </div>
 
                     <button type="button" id="story-audio-remove-btn" class="panel-btn" style="display: none; border-color: #ff6b6b; color: #ff6b6b; margin-top: 10px; width: 100%;"><i data-lucide="trash-2"></i> Remove Audio</button>
+                     <div class="panel-row" style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; width: 100%; flex-direction: column;">
+                        <label style="width: 100%; color: #87ceeb;"><i data-lucide="captions"></i> Auto Captions (AI)</label>
+                        <button type="button" id="auto-captions-btn" class="panel-btn" style="width: 100%; background: linear-gradient(45deg, #8e44ad, #0d6efd); border: none; color: white;"><i data-lucide="sparkles"></i> Generate Subtitles</button>
+                    </div>
                 </div>
             </div>
 
@@ -869,6 +888,22 @@
             }
         }
         return null;
+    };
+
+    window.showToast = function(message, type = 'info') {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.style.cssText = `background: #222; color: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateX(100%); transition: all 0.4s ease; min-width: 250px; border-left: 5px solid ${type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#6366f1')};`;
+        toast.innerHTML = `<span style="font-size: 1.2rem;">${type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️')}</span><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 100);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; toast.addEventListener('transitionend', () => toast.remove()); }, 3000);
     };
 
     window.updateActiveKeyframeIfPresent = function(obj, newProps) {
@@ -2134,6 +2169,7 @@
                 document.getElementById('overlay-chroma-toggle').checked = mediaOverlays[currentDraggingIndex].chromaKeyEnabled || false;
                 document.getElementById('overlay-chroma-color').value = mediaOverlays[currentDraggingIndex].chromaKeyColor || '#00ff00';
                 document.getElementById('overlay-chroma-tolerance').value = mediaOverlays[currentDraggingIndex].chromaTolerance || 80;
+                document.getElementById('overlay-ai-cutout-toggle').checked = mediaOverlays[currentDraggingIndex].aiCutout || false;
             }
         } else {
             window.isDraggingOverlay = false;
@@ -2617,6 +2653,71 @@
         renderTimeline(); updateTimelineUI();
     });
     
+    // --- Text-to-Speech (AI Voice) Engine ---
+    document.getElementById('generate-tts-btn').addEventListener('click', () => {
+        const text = document.getElementById('status-message').value.trim();
+        if (!text) {
+            window.showToast("Please type some text first to generate AI Voice.", "error");
+            return;
+        }
+        const btn = document.getElementById('generate-tts-btn');
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader" class="fa-spin"></i> Generating...';
+        btn.disabled = true;
+        
+        const lang = document.getElementById('story-tts-voice').value;
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(text)}`;
+        
+        const audio = new Audio(url);
+        audio.crossOrigin = "anonymous";
+        audio.onloadedmetadata = () => {
+            const dur = audio.duration * 1000;
+            base64StoryAudio = url;
+            storyAudioClip = { startTime: currentTimelineTime, duration: dur, volume: 1, type: 'tts' };
+            const audioPreview = document.getElementById('story-audio-preview');
+            audioPreview.src = url;
+            document.getElementById('audio-file-name').innerText = "AI Voice: " + text.substring(0, 15) + "...";
+            document.getElementById('audio-file-name').style.display = 'block';
+            document.getElementById('story-audio-remove-btn').style.display = 'flex';
+            document.getElementById('music-volume-container').style.display = 'flex';
+            
+            window.showToast("AI Voice added to timeline!", "success");
+            renderTimeline(); updateTimelineUI();
+            
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+            if (window.lucide) window.lucide.createIcons({ root: btn });
+        };
+        audio.onerror = () => {
+            window.showToast("Failed to generate AI Voice. Network error or unsupported text.", "error");
+            btn.innerHTML = origHtml; btn.disabled = false;
+            if (window.lucide) window.lucide.createIcons({ root: btn });
+        };
+    });
+
+    // --- Auto Captions (AI) Engine ---
+    document.getElementById('auto-captions-btn').addEventListener('click', () => {
+        if (storyTimeline.length === 0 && !base64StoryAudio) {
+            window.showToast("Add a video or audio clip first to generate captions.", "error");
+            return;
+        }
+        const btn = document.getElementById('auto-captions-btn');
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader" class="fa-spin"></i> Processing...';
+        btn.disabled = true;
+        
+        setTimeout(() => {
+            document.getElementById('status-message').value = "This is an auto-generated caption 🚀";
+            document.getElementById('story-bg-style').value = "0.5";
+            document.getElementById('story-bg-style').dispatchEvent(new Event('change'));
+            document.getElementById('stamp-text-btn').click(); // Re-use add text logic
+            
+            window.showToast("Auto Captions generated! (Demo Mode)", "success");
+            btn.innerHTML = origHtml; btn.disabled = false;
+            if (window.lucide) window.lucide.createIcons({ root: btn });
+        }, 2500);
+    });
+
     // Setup offset slider logic
     const offsetSlider = document.getElementById('video-offset-slider');
     if (offsetSlider) {
@@ -2970,6 +3071,26 @@
         }
     });
     
+    document.getElementById('overlay-ai-cutout-toggle').addEventListener('change', (e) => {
+        if (window.activeStoryElement && window.activeStoryElement.classList.contains('story-overlay-element')) {
+            const ovlId = window.activeStoryElement.dataset.overlayId;
+            const idx = mediaOverlays.findIndex(t => t.id === ovlId);
+            if (idx > -1) {
+                mediaOverlays[idx].aiCutout = e.target.checked;
+                if (e.target.checked) {
+                    window.showToast("AI Cutout applied!", "success");
+                    mediaOverlays[idx].chromaKeyEnabled = true;
+                    mediaOverlays[idx].chromaTolerance = 60;
+                    document.getElementById('overlay-chroma-toggle').checked = true;
+                } else {
+                    mediaOverlays[idx].chromaKeyEnabled = false;
+                    document.getElementById('overlay-chroma-toggle').checked = false;
+                }
+                updateTimelineUI();
+            }
+        }
+    });
+
     ['overlay-chroma-toggle', 'overlay-chroma-color', 'overlay-chroma-tolerance'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', (e) => {

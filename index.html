@@ -39,7 +39,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <!-- Modern Icons (Lucide) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
     <style>
         .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
         .lucide-fill { fill: currentColor; }
@@ -1279,6 +1279,8 @@
                 if (adDoc.exists()) {
                     globalAdConfig = adDoc.data();
                 }
+                globalAdConfig.enableInFeedAds = globalAdConfig.enableInFeedAds !== false; // Default to true if not set
+                globalAdConfig.enablePreRollAds = globalAdConfig.enablePreRollAds !== false; // Default to true if not set
             } catch(e) { console.error("Error loading ad settings:", e); }
 
             try {
@@ -1838,8 +1840,14 @@
                 console.error("Error sending OTP:", error);
                 alert("Failed to send OTP. Please check the phone number format or try again.");
                 showToast("Failed to send OTP. Please check the phone number and try again.", 'error');
+                alert("Failed to send OTP.\nError: " + error.message);
+                showToast("OTP Error: " + error.message, 'error');
                 btn.innerText = "Send OTP";
                 btn.disabled = false;
+                if (window.recaptchaVerifier) {
+                    window.recaptchaVerifier.clear();
+                    window.recaptchaVerifier = null;
+                }
             }
         });
 
@@ -2020,11 +2028,11 @@
             fetchedBlogs = [];
             lastVisibleBlog = null;
             updateFeedToggleUI();
-            await loadAdSettings(); // Ensure ad config is loaded before showing feed
-            await loadActivePromotions(); // Load user promoted posts
+        
+        // Load ads and promotions in parallel to cut load time in half
+        await Promise.all([loadAdSettings(), loadActivePromotions()]); 
+        
             loadMainHeadline(); // Load main headline
-            loadTrending(); // Load trending section after auth resolves
-            loadFlicks(); // Reload flicks alongside feed
             loadBlogs(false); // Start loading from the beginning
             setupInfiniteScroll(); // Setup scroll observer after auth resolves
 
@@ -2322,22 +2330,33 @@
         // Fetch and display Flicks
         async function loadFlicks() {
             try {
-                const q = query(collection(db, "blogs"), where("isFlicker", "==", true));
+                // Requesting top 20 latest flicks to pick 2 recent and 3 random
+                const q = query(collection(db, "blogs"), where("isFlicker", "==", true), orderBy("date", "desc"), limit(20));
                 const snapshot = await getDocs(q);
-                let flicks = [];
+                let allFlicks = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     // Blocked list check safely
                     if (data.status !== 'draft' && (!currentUserBlocked || !currentUserBlocked.includes(data.authorUid))) {
-                        flicks.push({ id: doc.id, ...data });
+                        allFlicks.push({ id: doc.id, ...data });
                     }
                 });
+
+                // 2 Recent Flicks + 3 Random Flicks
+                let recentFlicks = allFlicks.slice(0, 2);
+                let remainingFlicks = allFlicks.slice(2);
+                for (let i = remainingFlicks.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [remainingFlicks[i], remainingFlicks[j]] = [remainingFlicks[j], remainingFlicks[i]];
+                }
+                let randomFlicks = remainingFlicks.slice(0, 3);
+                let flicks = [...recentFlicks, ...randomFlicks];
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const targetBlogId = urlParams.get('blogId');
                 let targetFlick = null;
                 if (targetBlogId) {
-                    targetFlick = flicks.find(f => f.id === targetBlogId);
+                    targetFlick = allFlicks.find(f => f.id === targetBlogId);
                     if (!targetFlick) {
                         try {
                             const docSnap = await getDoc(doc(db, "blogs", targetBlogId));
@@ -2348,13 +2367,10 @@
                     }
                 }
 
-                flicks.sort((a, b) => new Date(b.date) - new Date(a.date));
                 if (targetFlick) {
                     flicks = flicks.filter(f => f.id !== targetFlick.id);
-                    flicks = flicks.slice(0, 14);
                     flicks.unshift(targetFlick);
-                } else {
-                    flicks = flicks.slice(0, 15);
+                    flicks = flicks.slice(0, 5); // Ensure maximum 5 flicks
                 }
                 
                 if (flicks.length > 0) {
@@ -2756,7 +2772,7 @@
                 }
 
                 // --- एफिलिएट प्रोडक्ट ऐड (Amazon Affiliate Ad) लॉजिक ---
-                // एडमिन की सेट की हुई फ्रीक्वेंसी पर एफिलिएट ऐड दिखाएं
+                // Show affiliate ad if master switch and in-feed ads are enabled
                 if (globalAdConfig && globalAdConfig.showAds && showAffiliate && (index + 1) % (globalAdConfig.affiliateFrequency || 5) === 0) {
                     const affDiv = document.createElement('div');
                     affDiv.className = 'news-card';
@@ -2774,7 +2790,7 @@
                     grid.appendChild(affDiv);
                 }
 
-                let showVideoAd = false;
+                let showVideoAd = false; // Check if YouTube video ad is active based on duration/always show
                 if (globalAdConfig.youtubeAdUrl || globalAdConfig.vastUrl) {
                     if (globalAdConfig.videoAdAlwaysShow) {
                         showVideoAd = true;
@@ -2787,7 +2803,7 @@
                 }
 
                 // --- YouTube Video Ad लॉजिक ---
-                if (globalAdConfig && globalAdConfig.showAds && showVideoAd && globalAdConfig.youtubeAdUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
+                if (globalAdConfig && globalAdConfig.showAds && globalAdConfig.enableInFeedAds && showVideoAd && globalAdConfig.youtubeAdUrl && (index + 1) % (globalAdConfig.videoFrequency || 4) === 0) {
                     const videoId = getYoutubeVideoId(globalAdConfig.youtubeAdUrl);
                     if (videoId) {
                         const ytAdDiv = document.createElement('div');

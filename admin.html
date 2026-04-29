@@ -148,11 +148,23 @@
                     <h2 style="color: gold; margin-top: 0; border: none; padding: 0;">Ad Management</h2>
                     <a id="view-earnings-btn" href="#" target="_blank" class="btn" style="display: none; background-color: #198754;">View Earnings</a>
                 </div>
-                
+
                 <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px;">
                     <input type="checkbox" id="ad-toggle" style="width: 20px; height: 20px;"> 
-                    <strong style="font-size: 1.1rem;">Enable Ads across website</strong>
+                    <strong style="font-size: 1.1rem;">Enable Ads across website (Master Switch)</strong>
                 </label>
+
+                <div id="individual-ad-controls" style="margin-left: 20px; border-left: 2px solid #444; padding-left: 15px; margin-bottom: 20px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
+                        <input type="checkbox" id="enable-infeed-ads-toggle" style="width: 20px; height: 20px;">
+                        <strong style="font-size: 1rem;">Enable In-Feed Ads (Banners & Affiliate)</strong>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
+                        <input type="checkbox" id="enable-preroll-ads-toggle" style="width: 20px; height: 20px;">
+                        <strong style="font-size: 1rem;">Enable Pre-Roll Video Ads (YouTube & VAST)</strong>
+                    </label>
+                </label>
+                </div>
 
                 <label style="display: block; margin-bottom: 5px;">Ad Network Dashboard URL:</label>
                 <input type="text" id="ad-network-url" placeholder="e.g., https://monetag.com/dashboard" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
@@ -712,6 +724,8 @@
                 if (adDoc.exists()) {
                     const data = adDoc.data();
                     currentAdConfig = data;
+                    document.getElementById('enable-infeed-ads-toggle').checked = data.enableInFeedAds !== false; // Default to true if not set
+                    document.getElementById('enable-preroll-ads-toggle').checked = data.enablePreRollAds !== false; // Default to true if not set
                     document.getElementById('ad-toggle').checked = data.showAds || false;
                     document.getElementById('ad-network-url').value = data.adNetworkUrl || '';
                     document.getElementById('youtube-ad-url').value = data.youtubeAdUrl || '';
@@ -771,6 +785,8 @@
             saveBtn.disabled = true;
             
             const now = Date.now();
+            const showAdsMaster = document.getElementById('ad-toggle').checked;
+
             const banners = [];
             for(let i=1; i<=10; i++) {
                 const img = document.getElementById(`banner-img-${i}`).value.trim();
@@ -787,7 +803,10 @@
             }
 
             const adData = {
-                showAds: document.getElementById('ad-toggle').checked,
+                showAds: showAdsMaster,
+                // Individual toggles are only effective if the master switch is on
+                enableInFeedAds: showAdsMaster && document.getElementById('enable-infeed-ads-toggle').checked,
+                enablePreRollAds: showAdsMaster && document.getElementById('enable-preroll-ads-toggle').checked,
                 adNetworkUrl: document.getElementById('ad-network-url').value.trim(),
                 youtubeAdUrl: document.getElementById('youtube-ad-url').value.trim(),
                 videoFrequency: parseInt(document.getElementById('video-frequency').value) || 4,
