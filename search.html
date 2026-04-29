@@ -5,15 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Results - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* I will copy some styles from index.html */
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
+    <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 0;
-            background: #121212;
+            background: #050505;
             color: #fff;
         }
         .container {
@@ -26,7 +46,7 @@
             align-items: center;
             gap: 20px;
             padding-bottom: 20px;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             margin-bottom: 20px;
         }
         .header a {
@@ -36,30 +56,31 @@
         .search-box {
             display: flex;
             flex-grow: 1;
+            position: relative;
         }
         .search-box input {
             flex-grow: 1;
             padding: 10px 15px;
             border-radius: 20px 0 0 20px;
-            border: 1px solid #555;
-            background: #222;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             color: white;
             border-right: none;
         }
         .search-box button {
             padding: 10px 15px;
             border-radius: 0 20px 20px 0;
-            border: 1px solid #555;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-left: none;
-            background: #333;
-            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            color: #a855f7;
             cursor: pointer;
         }
         .search-tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         .tab-btn {
             padding: 10px 15px;
@@ -77,18 +98,18 @@
         }
         .tab-btn.active {
             color: #fff;
-            border-bottom-color: gold;
+            border-bottom-color: #f59e0b;
         }
         #results-container h2 {
-            color: gold;
-            border-bottom: 1px solid #444;
+            color: #f59e0b;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding-bottom: 10px;
         }
         .result-item {
             display: flex;
             gap: 15px;
             padding: 15px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -117,15 +138,60 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        
+        /* Dropdown Styles */
+        .search-results { position: absolute; top: 100%; left: 0; width: 100%; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; display: none; z-index: 1000; max-height: 300px; overflow-y: auto; margin-top: 5px; }
+        .search-result-item { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .search-result-item:hover { background: #333; }
+        
+        /* Light Mode updates for dropdown */
+        body.light-mode .search-results { background: #fff; border-color: #ccc; }
+        body.light-mode .search-result-item { border-bottom-color: #eee; color: #333; }
+        body.light-mode .search-result-item:hover { background: #f8f9fa; }
+
+        /* Custom Animated Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(245, 158, 11, 0.2);
+            border-top: 4px solid #f59e0b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        .loading-container { text-align: center; padding: 40px; color: #aaa; }
+        
+        /* Recent Searches Styles */
+        .recent-search-header { 
+            padding: 10px 15px; font-size: 0.85rem; color: #888; border-bottom: 1px solid #333; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+        .clear-recent { 
+            color: #ff6b6b; cursor: pointer; background: none; border: none; padding: 0; font-size: 0.85rem; 
+        }
+        .clear-recent:hover { text-decoration: underline; }
+        .recent-search-item { 
+            padding: 12px 15px; border-bottom: 1px solid #333; cursor: pointer; 
+            display: flex; align-items: center; gap: 15px; color: #ccc; transition: background 0.2s;
+        }
+        .recent-search-item:hover { background: rgba(255, 255, 255, 0.05); color: white; }
+        body.light-mode .recent-search-item { border-bottom-color: #eee; color: #555; }
+        body.light-mode .recent-search-item:hover { background: #f8f9fa; color: #000; }
+        body.light-mode .recent-search-header { border-bottom-color: #eee; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <a href="index.html"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="index.html"><i data-lucide="arrow-left"></i></a>
             <form id="search-form" class="search-box">
-                <input type="text" id="search-input" placeholder="Search">
-                <button type="submit"><i class="fa-solid fa-search"></i></button>
+                <input type="text" id="search-input" placeholder="Search" autocomplete="off">
+                <button type="submit"><i data-lucide="search"></i></button>
+                <div id="search-dropdown" class="search-results"></div>
             </form>
         </div>
         <div class="search-tabs">
@@ -134,7 +200,10 @@
             <button class="tab-btn" data-tab="content">Content</button>
         </div>
         <div id="results-container">
-            <div id="loading" style="text-align: center; padding: 40px; color: #aaa;">Searching...</div>
+            <div id="loading" class="loading-container">
+                <div class="spinner"></div>
+                <div>Searching...</div>
+            </div>
         </div>
     </div>
 
@@ -151,6 +220,168 @@
         const resultsContainer = document.getElementById('results-container');
         const loadingEl = document.getElementById('loading');
         const tabButtons = document.querySelectorAll('.tab-btn');
+        const searchDropdown = document.getElementById('search-dropdown');
+        let searchTimeout = null;
+        const searchCache = new Map();
+
+        // --- Recent Searches Logic ---
+        function getRecentSearches() {
+            return JSON.parse(localStorage.getItem('viyou_recent_searches') || '[]');
+        }
+        
+        function saveRecentSearch(term) {
+            if (!term) return;
+            let searches = getRecentSearches();
+            // Remove duplicate if it exists, to bring it to the top
+            searches = searches.filter(s => s.toLowerCase() !== term.toLowerCase());
+            searches.unshift(term);
+            // Keep only the last 10 searches
+            if (searches.length > 10) searches.pop();
+            localStorage.setItem('viyou_recent_searches', JSON.stringify(searches));
+        }
+        
+        window.clearRecentSearches = function(e) {
+            if(e) e.stopPropagation();
+            localStorage.removeItem('viyou_recent_searches');
+            searchDropdown.style.display = 'none';
+            searchInput.focus();
+        };
+        
+        function showRecentSearches() {
+            const searches = getRecentSearches();
+            if (searches.length === 0) {
+                searchDropdown.style.display = 'none';
+                return;
+            }
+            let html = `<div class="recent-search-header"><span>Recent Searches</span><button class="clear-recent" onclick="window.clearRecentSearches(event)">Clear All</button></div>`;
+            searches.forEach(s => {
+                html += `<div class="recent-search-item" onclick="window.location.href='search.html?q=${encodeURIComponent(s)}'"><i data-lucide="history" style="color:#888;"></i><span>${s}</span></div>`;
+            });
+            searchDropdown.innerHTML = html;
+            searchDropdown.style.display = 'block';
+        }
+
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.trim().length < 2) showRecentSearches();
+        });
+
+        // Real-time suggestions (Dropdown)
+        searchInput.addEventListener('input', async (e) => {
+            const term = e.target.value.trim().toLowerCase();
+            
+            if (searchTimeout) clearTimeout(searchTimeout);
+
+            if (term.length < 2) {
+                showRecentSearches();
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                if (searchCache.has(term)) {
+                    renderDropdown(searchCache.get(term), term);
+                    return;
+                }
+
+                searchDropdown.innerHTML = '<div class="loading-container" style="padding: 20px;"><i data-lucide="loader" class="fa-spin" style="width: 25px; height: 25px; color: #f59e0b;"></i><div style="font-size: 0.9rem; margin-top: 10px;">Searching...</div></div>';
+                searchDropdown.style.display = 'block';
+
+                let resultsFound = false;
+                let resultsHTML = '';
+
+                try {
+                    const highlight = (str) => str.replace(new RegExp(`(${term})`, 'gi'), '<span style="color: #f59e0b;">$1</span>');
+
+                    const userQuery = query(collection(db, "users"), 
+                        where("usernameLower", ">=", term), 
+                        where("usernameLower", "<=", term + "\uf8ff"), limit(3));
+                    
+                    const contentQuery = query(collection(db, "blogs"), 
+                        where("titleLower", ">=", term), 
+                        where("titleLower", "<=", term + "\uf8ff"),
+                        where("status", "==", "published"), limit(3));
+                    
+                    let keywordQuery = null;
+                    if (!term.includes(' ')) {
+                        keywordQuery = query(collection(db, "blogs"), 
+                            where("keywords", "array-contains", term),
+                            where("status", "==", "published"), limit(3));
+                    }
+
+                    const [userSnap, contentSnap, keywordSnap] = await Promise.all([
+                        getDocs(userQuery),
+                        getDocs(contentQuery),
+                        keywordQuery ? getDocs(keywordQuery) : Promise.resolve({ empty: true, forEach: () => {} })
+                    ]);
+
+                    if (!userSnap.empty) {
+                        resultsFound = true;
+                        userSnap.forEach(doc => {
+                            const u = doc.data();
+                            const photo = (u.photoURL && u.photoURL !== 'null') ? u.photoURL : 'logo.png';
+                            resultsHTML += `
+                                <div class="search-result-item" onclick="window.location.href='profile.html?uid=${doc.id}'">
+                                    <img src="${photo}" style="width:30px; height:30px; border-radius:50%; object-fit: cover;">
+                                    <div>
+                                        <div style="font-weight:bold; color:white;">${highlight(u.name || '')}</div>
+                                        <div style="font-size:0.8rem; color:#aaa;">@${highlight(u.username || '')}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    if (!contentSnap.empty || (keywordSnap && !keywordSnap.empty)) {
+                        if(resultsFound) resultsHTML += `<hr style="border-color: #444; margin: 5px 0;">`;
+                        resultsFound = true;
+                        const renderedDocs = new Set();
+                        
+                        const renderDropdownContent = (doc, isKeywordMatch) => {
+                            if (renderedDocs.has(doc.id)) return;
+                            renderedDocs.add(doc.id);
+                            const blog = doc.data();
+                            resultsHTML += `
+                                <div class="search-result-item" onclick="window.location.href='search.html?q=${encodeURIComponent(blog.title)}'">
+                                    <i data-lucide="newspaper" style="color:#ccc; width: 30px; text-align: center;"></i>
+                                            <i data-lucide="tag" style="color:#6366f1; width: 30px; text-align: center;"></i>
+                                    <div>
+                                        <div style="font-weight:bold; color:white;">${highlight(blog.title)}</div>
+                                        <div style="font-size:0.8rem; color:#aaa;">by @${highlight(blog.author || '')}</div>
+                                    </div>
+                                </div>
+                            `;
+                        };
+
+                        contentSnap.forEach(doc => renderDropdownContent(doc, false));
+                        if(keywordSnap) keywordSnap.forEach(doc => renderDropdownContent(doc, true));
+                    }
+
+                    searchCache.set(term, { found: resultsFound, html: resultsHTML });
+                    renderDropdown(searchCache.get(term), term);
+
+                } catch (error) {
+                    console.error("Search error:", error);
+                    searchDropdown.innerHTML = '<div style="padding: 10px; color: #ff6b6b; text-align: center;">Error performing search</div>';
+                }
+            }, 400);
+        });
+
+        function renderDropdown(resultData, term) {
+            searchDropdown.innerHTML = '';
+            if (resultData.found) {
+                searchDropdown.innerHTML = resultData.html;
+                searchDropdown.style.display = 'block';
+            } else {
+                searchDropdown.innerHTML = `<div style="padding: 10px; color: #aaa; text-align: center;">No results for "${term}"</div>`;
+                searchDropdown.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const isClickInside = searchDropdown.contains(event.target) || searchInput.contains(event.target);
+            if (!isClickInside) {
+                searchDropdown.style.display = 'none';
+            }
+        });
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -189,7 +420,8 @@
             }
 
             searchInput.value = searchTerm;
-            resultsContainer.innerHTML = '<div id="loading" style="text-align: center; padding: 40px; color: #aaa;">Searching...</div>';
+            saveRecentSearch(searchTerm); // Save to history
+            resultsContainer.innerHTML = '<div class="loading-container"><div class="spinner"></div><div>Searching...</div></div>';
 
             const term = searchTerm.toLowerCase();
             let resultsFound = false;
@@ -199,7 +431,6 @@
                 where("usernameLower", ">=", term), 
                 where("usernameLower", "<=", term + "\uf8ff"),
                 limit(10));
-            const userSnap = await getDocs(userQuery);
 
             // --- Search Content ---
             const contentQuery = query(collection(db, "blogs"), 
@@ -207,10 +438,26 @@
                 where("titleLower", "<=", term + "\uf8ff"),
                 where("status", "==", "published"),
                 limit(20));
-            const contentSnap = await getDocs(contentQuery);
+
+            // --- Smart Search by Keywords ---
+        let keywordQuery = null;
+            if (!term.includes(' ')) {
+            keywordQuery = query(collection(db, "blogs"), 
+                    where("keywords", "array-contains", term),
+                    where("status", "==", "published"),
+                    limit(20));
+            }
+
+            // Execute all queries concurrently for maximum speed
+        const [userSnap, contentSnap, keywordSnap] = await Promise.all([
+            getDocs(userQuery),
+            getDocs(contentQuery),
+            keywordQuery ? getDocs(keywordQuery) : Promise.resolve({ empty: true, forEach: () => {} })
+        ]);
 
             // Clear loading
             resultsContainer.innerHTML = '';
+            const highlight = (str) => str.replace(new RegExp(`(${term})`, 'gi'), '<span style="color: #f59e0b;">$1</span>');
 
             if (!userSnap.empty) {
                 resultsFound = true;
@@ -234,12 +481,18 @@
                 resultsContainer.appendChild(usersSection);
             }
 
-            if (!contentSnap.empty) {
+            if (!contentSnap.empty || (keywordSnap && !keywordSnap.empty)) {
                 resultsFound = true;
                 const contentSection = document.createElement('div');
                 contentSection.className = 'results-section-content';
                 contentSection.innerHTML = '<h2 style="margin-top: 30px;">Content</h2>';
-                contentSnap.forEach(doc => {
+                
+                const renderedDocs = new Set();
+                
+                const renderContent = (doc, isKeywordMatch) => {
+                    if (renderedDocs.has(doc.id)) return;
+                    renderedDocs.add(doc.id);
+                    
                     const blog = doc.data();
                     const div = document.createElement('div');
                     div.className = 'result-item';
@@ -261,12 +514,16 @@
                     div.innerHTML = `
                         <img src="${thumb}">
                         <div class="result-item-info">
-                            <h3>${blog.title}</h3>
-                            <p>by @${blog.author} &bull; ${new Date(blog.date).toLocaleDateString()}</p>
+                            <h3>${highlight(blog.title)} ${isKeywordMatch ? '<span style="font-size:0.7rem; background:#6366f1; padding:2px 6px; border-radius:10px; vertical-align:middle; margin-left:5px;">Tag Match</span>' : ''}</h3>
+                            <p>by @${highlight(blog.author || '')} &bull; ${new Date(blog.date).toLocaleDateString()}</p>
                         </div>
                     `;
                     contentSection.appendChild(div);
-                });
+                };
+
+                contentSnap.forEach(doc => renderContent(doc, false));
+                if (keywordSnap) keywordSnap.forEach(doc => renderContent(doc, true));
+
                 resultsContainer.appendChild(contentSection);
             }
 

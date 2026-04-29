@@ -11,6 +11,8 @@
     <meta name="41dcd7a1beee3c2b292b718b5f826e86abdcd57b" content="41dcd7a1beee3c2b292b718b5f826e86abdcd57b" />    <meta property="og:title" content="Viyou - Social Media Platform">
     <meta property="og:description" content="Share your stories, short videos, and connect with a global community on Viyou.">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://viyou.in/">
+    <link rel="canonical" href="https://viyou.in/">
 
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="apple-touch-icon" href="logo.png">
@@ -32,16 +34,38 @@
     <link rel="preconnect" href="https://pagead2.googlesyndication.com">
     <link rel="preconnect" href="https://googleads.g.doubleclick.net">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
 
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 0;
-            background: #121212; /* Default Dark Mode */
-            color: #fff;
+            background: #050505; /* Deep futuristic black */
+            color: #e2e8f0;
             transition: background 0.3s, color 0.3s;
         }
         #stories-reel::-webkit-scrollbar { display: none; }
@@ -56,8 +80,8 @@
         body.light-mode .story-item img { border-color: #f4f7f6; }
         
         .story-ring-container { position: relative; display: inline-block; width: 68px; height: 68px; }
-        .add-story-badge { position: absolute; bottom: 0px; right: 0px; background: #0d6efd; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 18px; line-height: 22px; font-weight: bold; display: flex; align-items: center; justify-content: center; border: 2px solid #121212; z-index: 2; cursor: pointer; transition: transform 0.2s; box-sizing: border-box; padding-bottom: 2px; }
-        .add-story-badge:hover { transform: scale(1.1); background: #0b5ed7; }
+        .add-story-badge { position: absolute; bottom: 0px; right: 0px; background: #6366f1; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 18px; line-height: 22px; font-weight: bold; display: flex; align-items: center; justify-content: center; border: 2px solid #121212; z-index: 2; cursor: pointer; transition: transform 0.2s; box-sizing: border-box; padding-bottom: 2px; }
+        .add-story-badge:hover { transform: scale(1.1); background: #4f46e5; }
         body.light-mode .add-story-badge { border-color: #f4f7f6; }
         .story-ring-empty { width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .story-item:hover .story-ring-empty { transform: scale(1.05); }
@@ -65,7 +89,7 @@
         /* Add Story Badge Click Animation */
         @keyframes badge-click-anim {
             0% { transform: scale(1); }
-            50% { transform: scale(1.5) rotate(90deg); background-color: #198754; border-color: #198754; }
+            50% { transform: scale(1.5) rotate(90deg); background-color: #10b981; border-color: #10b981; }
             100% { transform: scale(0); opacity: 0; }
         }
         .add-story-badge.badge-clicked {
@@ -108,7 +132,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             margin-bottom: 30px;
         }
         .header h1 {
@@ -117,19 +141,21 @@
         }
         .btn {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 1rem;
             font-weight: bold;
             color: #fff;
-            background-color: #0d6efd; /* A modern blue */
+            background: linear-gradient(135deg, #6366f1, #a855f7); /* Vibrant gradient */
             border: none;
-            border-radius: 5px;
+            border-radius: 30px; /* Pill shape */
             text-decoration: none;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
         .btn:hover {
-            background-color: #0b5ed7; /* Darker blue on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5);
         }
 
         .btn-read-more {
@@ -137,16 +163,16 @@
             padding: 8px 16px;
             font-size: 0.9rem;
             font-weight: bold;
-            color: #0d6efd;
+            color: #6366f1;
             background-color: transparent;
-            border: 1px solid #0d6efd;
+            border: 1px solid #6366f1;
             border-radius: 5px;
             text-decoration: none;
             margin-top: 15px;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
         .btn-read-more:hover {
-            background-color: #0d6efd;
+            background-color: #6366f1;
             color: #fff;
         }
 
@@ -204,9 +230,9 @@
             content: "";
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
-            border-radius: 5px;
+            border-radius: 30px;
             padding: 1.5px;
-            background: linear-gradient(45deg, #0d6efd, #ffc107);
+            background: linear-gradient(45deg, #00f3ff, #b5179e); /* Cyberpunk border */
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -215,23 +241,23 @@
         }
         .btn-transparent:hover {
             transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3);
         }
 
         .latest-news {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 20px 25px;
+            background: rgba(20, 20, 20, 0.6); /* Deeper glass */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05); /* Softer border */
+            padding: 25px 30px;
             margin-bottom: 30px;
-            border-radius: 8px;
+            border-radius: 20px; /* Modern roundness */
         }
 
         .latest-news h2 {
             margin-top: 0;
             font-size: 1.5rem;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding-bottom: 10px;
             margin-bottom: 15px;
             color: #fff;
@@ -260,19 +286,19 @@
         }
 
         .news-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            background: rgba(20, 20, 20, 0.5);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .news-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.1);
         }
 
         .news-card img.card-img-top {
@@ -343,6 +369,25 @@
             border-radius: 8px;
             margin: 20px 0;
             display: block;
+        }
+
+        /* Grid View Styles for Videos and Flicks (from profile.html) */
+        .yt-grid-item { cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .yt-grid-item { cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: transform 0.2s; min-width: 0; }
+        .yt-grid-item:hover { transform: scale(1.02); }
+        .video-thumbnail { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #222; border: 1px solid #444; }
+        .flick-thumbnail { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; background: #222; border: 1px solid #444; }
+        .yt-grid-item h4 { margin: 8px 0 4px 0; font-size: 0.95rem; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+        .yt-grid-item p { margin: 0; font-size: 0.8rem; color: #aaa; }
+        body.light-mode .yt-grid-item h4 { color: #333; }
+        body.light-mode .yt-grid-item p { color: #666; }
+        body.light-mode .video-thumbnail, body.light-mode .flick-thumbnail { border-color: #ddd; }
+
+        /* Responsive Grid for Trending Section */
+        .trending-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+            gap: 20px;
         }
 
         /* Responsive Design for Mobile Devices */
@@ -431,8 +476,8 @@
         .comment-action-btn:hover { color: #fff; }
         .replies-list { margin-left: 20px; margin-top: 10px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px; }
         .pinned-badge { background: #ffd700; color: #000; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: 8px; font-weight: bold; vertical-align: middle; }
-        .follow-btn { padding: 2px 8px; font-size: 0.7rem; border-radius: 10px; border: 1px solid #0d6efd; background: transparent; color: #0d6efd; cursor: pointer; margin-left: 10px; transition: all 0.2s; }
-        .follow-btn.following { background: #0d6efd; color: white; }
+        .follow-btn { padding: 2px 8px; font-size: 0.7rem; border-radius: 10px; border: 1px solid #6366f1; background: transparent; color: #6366f1; cursor: pointer; margin-left: 10px; transition: all 0.2s; }
+        .follow-btn.following { background: #6366f1; color: white; }
 
         /* Search & Notifications */
         .header-actions { display: flex; align-items: center; gap: 15px; }
@@ -516,6 +561,16 @@
         .story-anim-zoom { animation: story-anim-zoom 0.5s ease-out forwards; }
         .story-anim-slide { animation: story-anim-slide 0.5s ease-out forwards; }
 
+        /* Media Transitions */
+        @keyframes trans-fade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes trans-slide-left { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes trans-slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes trans-zoom-in { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .trans-fade { animation: trans-fade 0.5s ease-out forwards; }
+        .trans-slide-left { animation: trans-slide-left 0.5s ease-out forwards; }
+        .trans-slide-up { animation: trans-slide-up 0.5s ease-out forwards; }
+        .trans-zoom-in { animation: trans-zoom-in 0.5s ease-out forwards; }
+
         /* Carousel Arrows */
         .carousel-container { position: relative; }
         .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; z-index: 5; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s; }
@@ -553,6 +608,38 @@
         body.light-mode .btn-vertical { color: #333; }
         body.light-mode .theme-btn { color: #333 !important; }
         body.light-mode .btn-transparent { color: #333 !important; }
+
+        /* Theme Dropdown Styles */
+        .theme-dropdown-container { position: relative; display: inline-block; }
+        .theme-dropdown { position: absolute; top: 100%; right: 0; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px; display: none; flex-direction: column; gap: 8px; z-index: 1000; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 10px; }
+        .theme-dropdown.show { display: flex; animation: slideUp 0.2s ease; }
+        .theme-option { padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; text-align: left; display: flex; align-items: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; font-family: inherit; font-size: 0.9rem; }
+        .theme-option:hover { transform: scale(1.05); }
+        .theme-option.active { border: 2px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1.02); }
+
+        /* 5 New Futuristic Themes */
+        /* Cyberpunk Mode */
+        body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
+        body.cyberpunk-mode .latest-news h2 { color: #ff007c; border-bottom-color: rgba(255, 0, 124, 0.2); }
+        body.cyberpunk-mode .news-card, body.cyberpunk-mode .latest-news { border-color: rgba(255, 0, 124, 0.2); }
+        body.cyberpunk-mode .btn { background: linear-gradient(135deg, #f72585, #4361ee); box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3); }
+        /* Matrix Mode */
+        body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
+        body.matrix-mode .latest-news h2 { color: #00ff41; border-bottom-color: rgba(0, 255, 65, 0.2); }
+        body.matrix-mode .news-card, body.matrix-mode .latest-news { border-color: rgba(0, 255, 65, 0.2); }
+        body.matrix-mode .btn { background: linear-gradient(135deg, #00b4d8, #00ff41); box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3); color: #000; }
+        /* Ocean Mode */
+        body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
+        body.ocean-mode .latest-news h2 { color: #90e0ef; border-bottom-color: rgba(144, 224, 239, 0.2); }
+        body.ocean-mode .btn { background: linear-gradient(135deg, #0077b6, #00b4d8); box-shadow: 0 4px 15px rgba(0, 119, 182, 0.3); }
+        /* Dracula Mode */
+        body.dracula-mode { background: #282a36; color: #f8f8f2; }
+        body.dracula-mode .latest-news h2 { color: #ff79c6; border-bottom-color: rgba(255, 121, 198, 0.2); }
+        body.dracula-mode .btn { background: linear-gradient(135deg, #bd93f9, #ff79c6); box-shadow: 0 4px 15px rgba(189, 147, 249, 0.3); }
+        /* Solar Mode */
+        body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
+        body.solar-mode .latest-news h2 { color: #ffba08; border-bottom-color: rgba(255, 186, 8, 0.2); }
+        body.solar-mode .btn { background: linear-gradient(135deg, #dc2f02, #ffba08); box-shadow: 0 4px 15px rgba(220, 47, 2, 0.3); }
         
         /* Cookie Banner Light Mode */
         body.light-mode #cookie-consent-banner { background: rgba(255, 255, 255, 0.95) !important; border-top-color: #ddd !important; }
@@ -621,9 +708,9 @@
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { background: #333; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); min-width: 250px; max-width: 350px; }
         .toast.show { opacity: 1; transform: translateX(0); }
-        .toast.success { border-left: 5px solid #28a745; }
-        .toast.error { border-left: 5px solid #dc3545; }
-        .toast.info { border-left: 5px solid #0d6efd; }
+        .toast.success { border-left: 5px solid #10b981; }
+        .toast.error { border-left: 5px solid #ef4444; }
+        .toast.info { border-left: 5px solid #6366f1; }
         .toast-icon { font-size: 1.2rem; }
         body.light-mode .toast { background: #fff; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
@@ -639,7 +726,7 @@
             We use cookies and similar technologies to personalize content, tailor and measure ads (including Google AdSense), and provide a better experience. By clicking "Accept", you agree to this use of cookies. <a href="privacy.html" style="color: #0d6efd; text-decoration: underline;">Learn more</a>.
         </p>
         <div style="display: flex; gap: 15px;">
-            <button id="accept-cookies-btn" class="btn" style="background-color: #198754; padding: 8px 20px; font-size: 0.9rem;">Accept</button>
+            <button id="accept-cookies-btn" class="btn" style="background-color: #10b981; padding: 8px 20px; font-size: 0.9rem;">Accept</button>
             <button id="decline-cookies-btn" class="btn" style="background-color: #6c757d; padding: 8px 20px; font-size: 0.9rem;">Decline</button>
         </div>
     </div>
@@ -651,7 +738,7 @@
                 <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px;">
                     <form id="search-form" class="search-box" style="width: 100%; display: flex; position: relative;">
                         <input type="text" id="user-search" placeholder="Search" autocomplete="off" style="flex-grow: 1; border-radius: 20px 0 0 20px; border-right: none; padding-right: 40px; width: 100%; box-sizing: border-box;">
-                        <button type="submit" style="padding: 8px 12px; border-radius: 0 20px 20px 0; border: none; background: rgba(255,255,255,0.2); color: white; cursor: pointer;"><i class="fa-solid fa-search"></i></button>
+                    <button type="submit" style="padding: 8px 12px; border-radius: 0 20px 20px 0; border: none; background: rgba(255,255,255,0.2); color: rgb(153, 49, 194); cursor: pointer;"><i data-lucide="search"></i></button>
                         <div id="search-results" class="search-results"></div>
                     </form>
                 </div>
@@ -663,13 +750,24 @@
             <div class="nav-buttons">
                 <div class="nav-row">
                     <span id="user-info" style="font-weight: bold; display: none;"></span>
-                    <button id="theme-toggle" class="btn theme-btn" style="padding: 8px 12px;"><i class="fa-regular fa-sun"></i></button>
+                    <div class="theme-dropdown-container">
+                        <button id="theme-toggle" class="btn theme-btn" style="padding: 8px 12px;"><i data-lucide="palette"></i></button>
+                        <div id="theme-dropdown" class="theme-dropdown">
+                            <button class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
+                            <button class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
+                            <button class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
+                            <button class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
+                            <button class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
+                            <button class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
+                            <button class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+                        </div>
+                    </div>
                     <a href="admin.html" id="admin-btn" class="btn btn-transparent" style="display: none;">🛡️ Admin Panel</a>
-                    <button id="login-btn" class="btn btn-transparent"><i class="fa-solid fa-right-to-bracket"></i>  Login</button>
-                    <button id="logout-btn" class="btn btn-transparent" style="display: none;"><i class="fa-solid fa-right-from-bracket"></i>  Logout</button>
+                <button id="login-btn" class="btn btn-transparent"><i data-lucide="log-in"></i>  Login</button>
+                <button id="logout-btn" class="btn btn-transparent" style="display: none;"><i data-lucide="log-out"></i>  Logout</button>
                 </div>
                 <div class="nav-row">
-                    <a href="write-blog.html" id="write-blog-btn" class="btn btn-vertical">
+                    <a href="write-blog.html" id="write-blog-btn" class="btn btn-vertical" style="display: none;">
                         <img src="blog-icon.png" alt="Write Blog">
                         <span>Write Blog</span>
                     </a>
@@ -696,27 +794,48 @@
 
     <!-- Main Headline Box -->
     <div id="main-headline-container" class="latest-news" style="display:none; background: linear-gradient(45deg, #ff0050, #0d6efd); padding: 15px 25px; margin-bottom: 30px; border-radius: 8px; text-align: center; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-        <i class="fa-solid fa-bullhorn" style="font-size: 1.5rem; margin-right: 10px; color: gold; vertical-align: middle;"></i>
+        <i data-lucide="megaphone" class="lucide-fill" style="font-size: 1.5rem; margin-right: 10px; color: #f59e0b; vertical-align: middle;"></i>
         <span id="main-headline-text" style="font-size: 1.2rem; color: white; font-weight: bold; vertical-align: middle;"></span>
     </div>
 
         <!-- Trending Section -->
-        <div class="latest-news" id="trending-section" style="display:none; border-left: 4px solid #ffc107;">
-            <h2 style="color: #ffe600;"><i class="fa-solid fa-fire" style="color: #f09433;"></i>  Trending Now (Top Liked in 24h)</h2>
-            <div class="news-grid" id="trending-grid"></div>
+    <div class="latest-news" id="trending-section" style="display:none; border-left: 4px solid #f59e0b; padding-bottom: 10px;">
+        <h2 style="color: #f59e0b; border-bottom: 1px solid #444; margin-bottom: 15px; padding-bottom: 10px;"><i data-lucide="flame" class="lucide-fill" style="color: #f09433;"></i> Trending Now (Top Liked in 24h)</h2>
+            <div class="trending-carousel" id="trending-grid" style="display: flex; gap: 15px; overflow-x: auto; padding: 5px; scrollbar-width: none; -ms-overflow-style: none;">
+                <!-- JS will populate -->
+            </div>
         </div>
+
+        <!-- Trending Single Post Section -->
+    <div class="latest-news" id="trending-single-section" style="display:none; border-left: 4px solid #f59e0b;">
+        <button id="back-to-trending-btn" class="btn btn-transparent" style="margin-bottom: 20px;"><i data-lucide="arrow-left"></i> Back to Home</button>
+            <div id="trending-single-content"></div>
+        </div>
+
+        <script>
+            document.getElementById('trending-grid').addEventListener('click', function(e) {
+                if (e.target.closest('.yt-grid-item')) {
+                    document.getElementById('trending-section').style.display = 'none';
+                    document.getElementById('trending-single-section').style.display = 'block';
+                }
+            });
+            document.getElementById('back-to-trending-btn').addEventListener('click', function() {
+                document.getElementById('trending-single-section').style.display = 'none';
+                document.getElementById('trending-section').style.display = 'block';
+            });
+        </script>
 
         <!-- Flicks Section -->
         <div class="latest-news" id="flicks-section" style="display:none; border-left: 4px solid #ff0050; padding-bottom: 10px;">
-            <h2 style="color: #ff0050; border-bottom: 1px solid #444; margin-bottom: 15px; padding-bottom: 10px;"><i class="fa-solid fa-bolt"></i> Flicks</h2>
+        <h2 style="color: #ff0050; border-bottom: 1px solid #444; margin-bottom: 15px; padding-bottom: 10px;"><i data-lucide="zap" class="lucide-fill"></i> Flicks</h2>
             <div id="flicks-reel" style="display: flex; gap: 15px; overflow-x: auto; padding: 5px; scrollbar-width: none; -ms-overflow-style: none;">
                 <!-- Flicks items will be populated here -->
             </div>
         </div>
 
         <!-- User Blogs Section -->
-        <div class="latest-news" id="user-blogs-section" style="display:none; border-left: 4px solid #198754;">
-            <h2 style="color: #198754;">Community Blogs (User Posts)</h2>
+    <div class="latest-news" id="user-blogs-section" style="display:none; border-left: 4px solid #10b981;">
+        <h2 style="color: #10b981;">Community Blogs (User Posts)</h2>
             <div id="category-bar" class="category-bar" style="display: flex;">
                 <button class="category-chip active" data-category="All">All</button>
                 <button class="category-chip" data-category="Entertainment">Entertainment</button>
@@ -730,16 +849,18 @@
                 <button class="category-chip" data-category="Travel & Events">Travel & Events</button>
                 <button class="category-chip" data-category="Fashion & Beauty">Fashion & Beauty</button>
                 <button class="category-chip" data-category="Food">Food</button>
+                <button class="category-chip" data-category="Devotional">Devotional</button>
+                <button class="category-chip" data-category="Gym & Fitness">Gym & Fitness</button>
                 <button class="category-chip" data-category="Others">Others</button>
             </div>
             <div id="feed-toggle" style="margin-bottom: 15px; display: none; gap: 10px;">
                 <button id="feed-all-btn" class="btn feed-btn active">All Posts</button>
                 <button id="feed-following-btn" class="btn feed-btn">Following</button>
-                <button id="feed-verified-btn" class="btn feed-btn"> <i class="fa-solid fa-check"></i> Verified</button>
+            <button id="feed-verified-btn" class="btn feed-btn"> <i data-lucide="check"></i> Verified</button>
             </div>
             <div class="news-grid" id="user-blogs-grid"></div>
             <div id="load-more-container" style="text-align: center; margin-top: 20px; display: none;">
-                <div id="scroll-trigger" style="padding: 20px; color: #888;"><i class="fa-solid fa-spinner fa-spin"></i> Loading more...</div>
+            <div id="scroll-trigger" style="padding: 20px; color: #888;"><i data-lucide="loader" class="fa-spin"></i> Loading more...</div>
             </div>
         </div>
         
@@ -747,7 +868,7 @@
 
     
 
-    <a href="#" id="back-to-top" class="back-to-top-btn" title="Go to top"> <i class="fa-solid fa-arrow-up"></i></a>
+    <a href="#" id="back-to-top" class="back-to-top-btn" title="Go to top"> <i data-lucide="arrow-up"></i></a>
 
     <!-- Lightbox Modal -->
     <div id="lightbox-modal" class="lightbox-modal" onclick="if(event.target === this) window.closeLightbox()">
@@ -759,7 +880,7 @@
     <div id="user-list-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
         <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; max-height:70vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
-                <h3 id="user-list-title" style="margin:0; color:gold;">Users</h3>
+            <h3 id="user-list-title" style="margin:0; color:#f59e0b;">Users</h3>
                 <button onclick="document.getElementById('user-list-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             <div id="user-list-content" style="overflow-y:auto; flex:1;">Loading...</div>
@@ -781,7 +902,7 @@
             <video id="flicks-video-player" src="" loop playsinline style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" onclick="window.handleFlickVideoClick(event)"></video>
             
             <div id="flicks-heart-anim" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: #ff0050; font-size: 6rem; z-index: 25; pointer-events: none; opacity: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; text-shadow: 0 0 20px rgba(0,0,0,0.5);">
-                <i class="fa-solid fa-heart"></i>
+            <i data-lucide="heart" class="lucide-fill"></i>
             </div>
 
             <!-- Flicks Ad Container -->
@@ -801,26 +922,26 @@
             <!-- Action buttons -->
             <div style="position: absolute; bottom: 30px; right: 15px; display: flex; flex-direction: column; gap: 20px; z-index: 20; align-items: center;">
                 <div style="text-align: center;">
-                    <button id="flicks-like-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-heart"></i></button>
+                <button id="flicks-like-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i data-lucide="heart" class="lucide-fill"></i></button>
                     <span id="flicks-like-count" style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">0</span>
                 </div>
                 <div style="text-align: center;">
-                    <button id="flicks-comment-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-comment"></i></button>
+                <button id="flicks-comment-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i data-lucide="message-circle"></i></button>
                     <span id="flicks-comment-count" style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">0</span>
                 </div>
                 <div style="text-align: center;">
-                    <button id="flicks-share-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-share"></i></button>
+                <button id="flicks-share-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i data-lucide="share-2"></i></button>
                     <span style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">Share</span>
                 </div>
                 <div style="text-align: center;">
-                    <button id="flicks-send-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-paper-plane"></i></button>
+                <button id="flicks-send-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i data-lucide="send"></i></button>
                     <span style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">Send</span>
                 </div>
             </div>
 
             <!-- Swipe/Keyboard Navigation Hints -->
-            <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); z-index: 10; pointer-events: none; font-size: 1.5rem; animation: story-anim-bounce 2s infinite;"><i class="fa-solid fa-chevron-up"></i></div>
-            <div style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); z-index: 10; pointer-events: none; font-size: 1.5rem; animation: story-anim-bounce 2s infinite;"><i class="fa-solid fa-chevron-down"></i></div>
+        <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); z-index: 10; pointer-events: none; font-size: 1.5rem; animation: story-anim-bounce 2s infinite;"><i data-lucide="chevron-up"></i></div>
+        <div style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); z-index: 10; pointer-events: none; font-size: 1.5rem; animation: story-anim-bounce 2s infinite;"><i data-lucide="chevron-down"></i></div>
             </div>
 
             <!-- Flicks Comments Panel -->
@@ -843,7 +964,7 @@
     <div id="send-flick-modal" class="lightbox-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3005; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
         <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; max-height:70vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
-                <h3 style="margin:0; color:gold;">Send to...</h3>
+            <h3 style="margin:0; color:#f59e0b;">Send to...</h3>
                 <button onclick="document.getElementById('send-flick-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             <div id="send-flick-user-list" style="overflow-y:auto; flex:1; padding-right: 5px;">Loading...</div>
@@ -870,15 +991,15 @@
             <div id="content-email" class="auth-content" style="display: none;">
                 <input type="email" id="email-input" placeholder="Email" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
                 <input type="password" id="password-input" placeholder="Password" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
-                <div style="text-align: right; margin-bottom: 10px;"><a href="#" id="forgot-pwd-link" style="color: gold; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a></div>
+            <div style="text-align: right; margin-bottom: 10px;"><a href="#" id="forgot-pwd-link" style="color: #f59e0b; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a></div>
                 <button id="email-login-btn" class="btn" style="width: 100%; margin-bottom: 10px;">Login</button>
-                <button id="email-signup-btn" class="btn" style="width: 100%; background-color: #198754;">Sign Up</button>
+            <button id="email-signup-btn" class="btn" style="width: 100%; background-color: #10b981;">Sign Up</button>
             </div>
 
             <div id="content-phone" class="auth-content" style="display: none;">
                 <div id="recaptcha-container" style="margin-bottom: 10px;"></div>
                 <input type="tel" id="phone-input" placeholder="Phone Number (e.g. +919876543210)" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
-                <button id="send-otp-btn" class="btn" style="width: 100%; margin-bottom: 10px; background-color: #198754;">Send OTP</button>
+            <button id="send-otp-btn" class="btn" style="width: 100%; margin-bottom: 10px; background-color: #10b981;">Send OTP</button>
                 
                 <div id="otp-section" style="display: none;">
                     <input type="text" id="otp-input" placeholder="Enter 6-digit OTP" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
@@ -892,11 +1013,11 @@
     <div id="edit-modal" class="lightbox-modal" onclick="if(event.target === this) document.getElementById('edit-modal').style.display='none'">
         <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; color: white; position: relative; margin: auto; border: 1px solid #444;">
             <span class="close-lightbox" onclick="document.getElementById('edit-modal').style.display='none'" style="top: 10px; right: 15px; font-size: 24px; position: absolute; cursor: pointer;">&times;</span>
-            <h2 style="text-align: center; margin-bottom: 15px; margin-top: 0; color: gold; font-size: 1.5rem;">Edit</h2>
+        <h2 style="text-align: center; margin-bottom: 15px; margin-top: 0; color: #f59e0b; font-size: 1.5rem;">Edit</h2>
             <textarea id="edit-text-input" style="width: 100%; height: 100px; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; resize: vertical; box-sizing: border-box; font-family: inherit; font-size: 1rem;"></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button class="btn" style="background-color: #6c757d;" onclick="document.getElementById('edit-modal').style.display='none'">Cancel</button>
-                <button class="btn" id="edit-modal-btn-save" style="background-color: #198754;" onclick="window.saveEdit()">Save</button>
+            <button class="btn" id="edit-modal-btn-save" style="background-color: #10b981;" onclick="window.saveEdit()">Save</button>
             </div>
         </div>
     </div>
@@ -927,6 +1048,138 @@
         let vastAdConfig = {};
         let globalAdConfig = {};
         let viewedBlogsInSession = new Set(); // For view tracking
+        let viewedStories = JSON.parse(localStorage.getItem('viewed_stories') || '[]');
+        window.currentStoryAudio = null;
+        
+        // --- Story Viewer Playback Variables ---
+        window.viewerAnimationFrameId = null;
+        window.viewerLastFrameTime = null;
+        window.viewerTimelineTime = 0;
+        window.currentStoryTimeline = [];
+        window.currentStoryAudioSettings = null;
+        window.viewerLastActiveClipId = null;
+        window.currentStory = null;
+
+        window.viewerPlaybackLoop = function(now) {
+            if (!window.viewerLastFrameTime) window.viewerLastFrameTime = now;
+            const dt = now - window.viewerLastFrameTime;
+            window.viewerLastFrameTime = now;
+            
+            window.viewerTimelineTime += dt;
+            const totalDuration = window.currentStoryTimeline.reduce((sum, clip) => sum + clip.duration, 0);
+            
+            const progressEl = document.getElementById('viewer-progress-bar');
+            if (progressEl) {
+                progressEl.style.width = `${Math.min(100, (window.viewerTimelineTime / totalDuration) * 100)}%`;
+            }
+            
+            if (window.viewerTimelineTime >= totalDuration) {
+                // Timeline finished! Auto-advance to the next story
+                window.nextStory();
+                return;
+            }
+            
+            let accumulatedTime = 0;
+            let activeClip = null;
+            let localTime = 0;
+            
+            for (let clip of window.currentStoryTimeline) {
+                if (window.viewerTimelineTime >= accumulatedTime && window.viewerTimelineTime < accumulatedTime + clip.duration) {
+                    activeClip = clip;
+                    localTime = window.viewerTimelineTime - accumulatedTime;
+                    break;
+                }
+                accumulatedTime += clip.duration;
+            }
+            
+            if (activeClip) {
+                const imgEl = document.getElementById('viewer-media-img');
+                const vidEl = document.getElementById('viewer-media-vid');
+                
+                let changedClip = false;
+                if (activeClip.id !== window.viewerLastActiveClipId) {
+                    changedClip = true;
+                    window.viewerLastActiveClipId = activeClip.id;
+                }
+
+                const applyTransitionViewer = (el) => {
+                    if (changedClip && window.currentStory) {
+                        const transClass = window.currentStory.mediaTransition || 'none';
+                        el.classList.remove('trans-fade', 'trans-slide-left', 'trans-slide-up', 'trans-zoom-in');
+                        void el.offsetWidth; // Trigger CSS reflow
+                        if (transClass !== 'none') el.classList.add(transClass);
+                    }
+                };
+
+                if (imgEl && vidEl) {
+                    if (activeClip.type === 'image') {
+                        if (imgEl.src !== activeClip.src) { imgEl.src = activeClip.src; imgEl.style.display = 'block'; vidEl.style.display = 'none'; vidEl.pause(); }
+                        applyTransitionViewer(imgEl);
+                    } else if (activeClip.type === 'video') {
+                        if (vidEl.src !== activeClip.src) { vidEl.src = activeClip.src; imgEl.style.display = 'none'; vidEl.style.display = 'block'; vidEl.play().catch(e => {}); }
+                        applyTransitionViewer(vidEl);
+                        
+                        // Sync video timing with Start selection
+                        const expectedTime = (localTime / 1000) + (activeClip.mediaStart || 0);
+                        if (Math.abs(vidEl.currentTime - expectedTime) > 0.2) {
+                            vidEl.currentTime = expectedTime;
+                        }
+                        
+                        // Sync volume
+                        vidEl.volume = activeClip.volume !== undefined ? activeClip.volume : 1;
+                    }
+                }
+            
+            const wrapper = document.getElementById('viewer-media-wrapper');
+            if (wrapper) {
+                const scale = activeClip.scale || 1;
+                const px = activeClip.panX || 0;
+                const py = activeClip.panY || 0;
+                const rot = activeClip.rotation || 0;
+                wrapper.style.transform = `translate(${px}px, ${py}px) scale(${scale}) rotate(${rot}deg)`;
+            }
+            }
+        
+        // Sync Text Layers
+        const textLayers = document.getElementById('story-viewer-content').querySelectorAll('.story-viewer-text-layer');
+        textLayers.forEach(layer => {
+            const start = parseFloat(layer.dataset.start);
+            const duration = parseFloat(layer.dataset.duration);
+            if (window.viewerTimelineTime >= start && window.viewerTimelineTime <= start + duration) {
+                layer.style.display = 'block';
+            } else {
+                layer.style.display = 'none';
+            }
+        });
+        
+        // Sync Audio Track Playback
+        if (window.currentStoryAudio && window.currentStoryAudioSettings) {
+            const start = window.currentStoryAudioSettings.startTime || 0;
+            const dur = window.currentStoryAudioSettings.duration || 999999;
+            
+            window.currentStoryAudio.volume = window.currentStoryAudioSettings.volume !== undefined ? window.currentStoryAudioSettings.volume : 1;
+
+            if (window.viewerTimelineTime >= start && window.viewerTimelineTime < start + dur) {
+                const localAudioTime = (window.viewerTimelineTime - start) / 1000;
+                if (Math.abs(window.currentStoryAudio.currentTime - localAudioTime) > 0.2) { window.currentStoryAudio.currentTime = localAudioTime; }
+                if (window.currentStoryAudio.paused) window.currentStoryAudio.play().catch(e=>{});
+            } else {
+                if (!window.currentStoryAudio.paused) window.currentStoryAudio.pause();
+            }
+        }
+
+            window.viewerAnimationFrameId = requestAnimationFrame(window.viewerPlaybackLoop);
+        };
+
+        // --- Smart Feed: User Interests Tracking ---
+        let userInterests = JSON.parse(localStorage.getItem('viyou_user_interests') || '{}');
+
+        function updateUserInterest(category, weight) {
+            if (!category) return;
+            userInterests[category] = (userInterests[category] || 0) + weight;
+            if (userInterests[category] > 100) userInterests[category] = 100; // Cap at 100 to prevent runaway scores
+            localStorage.setItem('viyou_user_interests', JSON.stringify(userInterests));
+        }
 
         // --- Toast Notification Logic ---
         function showToast(message, type = 'info') {
@@ -942,9 +1195,9 @@
             
             let iconClass = 'fa-solid fa-circle-info';
             if (type === 'success') iconClass = 'fa-solid fa-check-circle';
-            if (type === 'error') iconClass = 'fa-solid fa-times-circle';
+        if (type === 'error') iconClass = 'fa-solid fa-x-circle';
 
-            toast.innerHTML = `<span class="toast-icon"><i class="${iconClass}"></i></span><span>${message}</span>`;
+        toast.innerHTML = `<span class="toast-icon"><i data-lucide="${iconClass.replace('fa-solid fa-', '')}"></i></span><span>${message}</span>`;
             container.appendChild(toast);
 
             setTimeout(() => { toast.classList.add('show'); }, 100);
@@ -966,6 +1219,11 @@
                         // Use server-side increment to avoid race conditions
                         updateDoc(blogRef, { views: increment(1) })
                             .catch(e => console.error("Error updating view count:", e));
+                            
+                        const viewedBlog = fetchedBlogs.find(b => b.id === blogId);
+                        if (viewedBlog && viewedBlog.category) {
+                            updateUserInterest(viewedBlog.category, 1); // 1 point for viewing
+                        }
                     }
                     viewObserver.unobserve(entry.target); // Only count once per session
                 }
@@ -973,8 +1231,8 @@
         }, { threshold: 0.5 }); // Trigger when 50% of the card is visible
 
     // Track Ad Clicks
-    window.trackAdClick = async function(blogId) {
-        if (!blogId) return;
+    window.trackAdClick = async function(id, isExternal = false) {
+        if (!id) return;
 
         // --- Daily Limit Logic for Click Fraud Prevention ---
         const today = new Date().toDateString();
@@ -994,9 +1252,10 @@
         // ----------------------------------------------------
 
         try {
-            const blogRef = doc(db, "blogs", blogId);
-            await updateDoc(blogRef, { adClicks: increment(1) });
-            console.log("Ad click tracked for blog:", blogId);
+            const collectionName = isExternal ? "promotions" : "blogs";
+            const docRef = doc(db, collectionName, id);
+            await updateDoc(docRef, { adClicks: increment(1) });
+            console.log(`Ad click tracked for ${collectionName}:`, id);
         } catch(e) { console.error("Error tracking ad click:", e); }
     };
 
@@ -1026,6 +1285,41 @@
                 const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
                 if (vastDoc.exists()) { vastAdConfig = vastDoc.data(); }
             } catch(e) { console.error("Error loading vast ad settings:", e); }
+        }
+
+        // Fetch Active Promotions
+        window.activePromotions = [];
+        async function loadActivePromotions() {
+            try {
+                const now = new Date().toISOString();
+                window.activePromotions = [];
+                
+                try {
+                    const q = query(collection(db, "blogs"), where("isPromoted", "==", true));
+                    const snap = await getDocs(q);
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.promoExpiry && data.promoExpiry > now) {
+                            window.activePromotions.push({ id: doc.id, ...data, promoType: 'content' });
+                        } else if (data.promoExpiry && data.promoExpiry <= now) {
+                            updateDoc(doc.ref, { isPromoted: false }).catch(e => console.error(e));
+                        }
+                    });
+                } catch(e) {}
+
+                try {
+                    const q2 = query(collection(db, "promotions"), where("status", "==", "approved"));
+                    const snap2 = await getDocs(q2);
+                    snap2.forEach(doc => {
+                        const data = doc.data();
+                        if (data.type === 'external' && data.promoExpiry && data.promoExpiry > now) {
+                            window.activePromotions.push({ id: doc.id, ...data, promoType: 'external' });
+                        } else if (data.type === 'external' && data.promoExpiry && data.promoExpiry <= now) {
+                            updateDoc(doc.ref, { status: 'expired' }).catch(e => console.error(e));
+                        }
+                    });
+                } catch(e) {}
+            } catch(e) { console.error("Error loading active promotions:", e); }
         }
 
         // --- NEW: Function to delete expired stories ---
@@ -1113,6 +1407,21 @@
             }
         };
 
+        window.toggleStoryMute = function(e) {
+            if (e) e.stopPropagation();
+            if (window.currentStoryAudio) {
+                const isMuted = window.currentStoryAudio.muted;
+                window.currentStoryAudio.muted = !isMuted;
+                const icon = e.currentTarget.querySelector('i');
+                if (window.currentStoryAudio.muted) {
+                icon.setAttribute('data-lucide', 'volume-x');
+                } else {
+                icon.setAttribute('data-lucide', 'volume-2');
+                }
+            if (window.lucide) lucide.createIcons({ root: e.currentTarget });
+            }
+        };
+
         window.showStoryLikers = async function(storyId) {
             const modal = document.getElementById('user-list-modal');
             const title = document.getElementById('user-list-title');
@@ -1191,7 +1500,7 @@
                 const likeCount = document.getElementById(`story-like-count-${storyId}`);
                 if (likeButton && likeCount) {
                     const newLikes = likes.length + (isLiking ? 1 : -1);
-                    likeButton.innerHTML = isLiking ? '<i class="fa-solid fa-heart" style="color: rgb(224, 109, 25);"></i>' : '<i class="fa-regular fa-heart" style="color: rgb(223, 229, 242);"></i>';
+                likeButton.innerHTML = isLiking ? '<i data-lucide="heart" class="lucide-fill" style="color: #ff0050;"></i>' : '<i data-lucide="heart" style="color: #ccc;"></i>';
                     likeCount.innerText = newLikes;
                 }
             } catch (e) {
@@ -1309,33 +1618,55 @@
 
         // Theme Toggle Logic
         const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeDropdown = document.getElementById('theme-dropdown');
         const body = document.body;
 
         function applyTheme(theme) {
-            if (theme === 'light') {
-                body.classList.add('light-mode');
-                themeToggleBtn.textContent = '🌙';
-            } else {
-                body.classList.remove('light-mode');
-                themeToggleBtn.textContent = '☀️';
+            body.classList.remove('light-mode', 'cyberpunk-mode', 'matrix-mode', 'ocean-mode', 'dracula-mode', 'solar-mode');
+            if (theme && theme !== 'dark') {
+                body.classList.add(theme + '-mode');
             }
             // Also update local storage for consistency when logged out
             localStorage.setItem('theme', theme || 'dark');
+            if (window.lucide) window.lucide.createIcons();
+
+            // Highlight the selected theme in the dropdown
+            document.querySelectorAll('.theme-option').forEach(btn => {
+                if (btn.getAttribute('data-theme') === (theme || 'dark')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         }
 
-        themeToggleBtn.addEventListener('click', async () => {
-            const newTheme = body.classList.contains('light-mode') ? 'dark' : 'light';
-            applyTheme(newTheme);
+        themeToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeDropdown.classList.toggle('show');
+        });
 
-            if (auth.currentUser) {
-                try {
-                    const userRef = doc(db, "users", auth.currentUser.uid);
-                    // Using setDoc with merge to create the field if it doesn't exist
-                    await setDoc(userRef, { theme: newTheme }, { merge: true });
-                } catch (e) {
-                    console.error("Error saving theme preference:", e);
-                }
+        document.addEventListener('click', (e) => {
+            if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                themeDropdown.classList.remove('show');
             }
+        });
+
+        document.querySelectorAll('.theme-option').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const newTheme = btn.getAttribute('data-theme');
+                applyTheme(newTheme);
+                themeDropdown.classList.remove('show');
+
+                if (auth.currentUser) {
+                    try {
+                        const userRef = doc(db, "users", auth.currentUser.uid);
+                        await setDoc(userRef, { theme: newTheme }, { merge: true });
+                    } catch (e) {
+                        console.error("Error saving theme preference:", e);
+                    }
+                }
+            });
         });
 
         // Open Login Modal
@@ -1350,13 +1681,13 @@
                 tabs.forEach(t => {
                     document.getElementById(`content-${t}`).style.display = 'none';
                     const btn = document.getElementById(`tab-${t}`);
-                    btn.style.color = '#aaa';
+                btn.style.color = '#888';
                     btn.style.borderBottom = 'none';
                 });
                 document.getElementById(`content-${tab}`).style.display = 'block';
                 const activeBtn = document.getElementById(`tab-${tab}`);
-                activeBtn.style.color = 'white';
-                activeBtn.style.borderBottom = '2px solid gold';
+            activeBtn.style.color = '#fff';
+            activeBtn.style.borderBottom = '2px solid #f59e0b';
                 
                 if (tab === 'phone') {
                     initRecaptcha();
@@ -1556,6 +1887,7 @@
                 logoutBtn.style.display = 'inline-block';
                 document.getElementById('profile-btn').style.display = 'inline-flex';
                 document.getElementById('messages-btn').style.display = 'inline-flex';
+                document.getElementById('write-blog-btn').style.display = 'inline-flex';
                 userInfo.style.display = 'inline-block';
                 document.getElementById('feed-toggle').style.display = 'flex'; // Show feed toggle
                 userInfo.textContent = `Hi, ${user.displayName ? user.displayName.split(' ')[0] : 'User'}`;
@@ -1605,6 +1937,13 @@
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
+                        // --- ENFORCE BAN LOGIC ---
+                        if (userDoc.data().isBanned) {
+                            alert("⛔ Your account has been permanently banned for violating community guidelines (Abusive/Sexual Content).");
+                            signOut(auth);
+                            return;
+                        }
+                        // -------------------------
                         window.currentUserData = userDoc.data();
                         currentUserFollowing = userDoc.data().following || [];
                         currentUserBlocked = userDoc.data().blockedUsers || [];
@@ -1629,6 +1968,7 @@
                 logoutBtn.style.display = 'none';
                 document.getElementById('profile-btn').style.display = 'none';
                 document.getElementById('messages-btn').style.display = 'none';
+                document.getElementById('write-blog-btn').style.display = 'none';
                 const adminBtn = document.getElementById('admin-btn');
                 if (adminBtn) adminBtn.style.display = 'none';
                 userInfo.style.display = 'none';
@@ -1681,6 +2021,8 @@
             lastVisibleBlog = null;
             updateFeedToggleUI();
             await loadAdSettings(); // Ensure ad config is loaded before showing feed
+            await loadActivePromotions(); // Load user promoted posts
+            loadMainHeadline(); // Load main headline
             loadTrending(); // Load trending section after auth resolves
             loadFlicks(); // Reload flicks alongside feed
             loadBlogs(false); // Start loading from the beginning
@@ -1741,30 +2083,75 @@
                     }
                 });
 
-                // Sort by likes descending
-                blogs.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-                const topBlogs = blogs.slice(0, 10);
+                // Sort by likes descending (accounting for array of UIDs or number)
+                blogs.sort((a, b) => {
+                    const aLikes = Array.isArray(a.likes) ? a.likes.length : (a.likes || 0);
+                    const bLikes = Array.isArray(b.likes) ? b.likes.length : (b.likes || 0);
+                    return bLikes - aLikes;
+                });
+                
+                // Only show posts that actually have at least 1 like
+                const topBlogs = blogs.filter(b => (Array.isArray(b.likes) ? b.likes.length : (b.likes || 0)) > 0).slice(0, 10);
 
                 if (topBlogs.length > 0) {
                     trendingSection.style.display = 'block';
                     trendingGrid.innerHTML = '';
                     topBlogs.forEach(blog => {
                         const div = document.createElement('div');
-                        div.className = 'news-card';
+                        div.className = 'yt-grid-item';
                         div.style.cursor = 'pointer';
                         div.onclick = () => window.location.href = `index.html?blogId=${blog.id}`;
+                        div.onclick = () => {
+                            const targetEl = document.getElementById(`blog-${blog.id}`);
+                            if (targetEl) {
+                                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                targetEl.style.transition = "box-shadow 0.5s ease-in-out";
+                            targetEl.style.boxShadow = "0 0 20px #f59e0b";
+                                setTimeout(() => targetEl.style.boxShadow = "none", 2000);
+                                const newUrl = new URL(window.location);
+                                newUrl.searchParams.set('blogId', blog.id);
+                                window.history.pushState({}, '', newUrl);
+                            } else {
+                                window.location.href = `index.html?blogId=${blog.id}`;
+                            }
+                        };
                         
-                        const img = blog.authorPhoto || 'https://via.placeholder.com/60';
-                        const imgHtml = `<img src="${img}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #87ceeb; cursor: pointer;" onclick="event.stopPropagation(); window.location.href='profile.html?uid=${blog.authorUid}'">`;
+                        let thumbHtml = '';
+                        let iconHtml = '<i class="fa-solid fa-newspaper"></i>';
+                        let thumbClass = blog.isFlicker ? 'flick-thumbnail' : 'video-thumbnail';
+                        
+                        if (blog.youtubeUrl) {
+                            const videoId = getYoutubeVideoId(blog.youtubeUrl);
+                            thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${thumbClass}" alt="Thumbnail">`;
+                            iconHtml = '<i class="fa-brands fa-youtube" style="color: #ff0000;"></i>';
+                        } else if (blog.video) {
+                            if (blog.thumbnail) {
+                                thumbHtml = `<img src="${blog.thumbnail}" class="${thumbClass}" alt="Thumbnail">`;
+                            } else {
+                                thumbHtml = `<video src="${blog.video}#t=0.1" class="${thumbClass}" muted playsinline preload="metadata"></video>`;
+                            }
+                            iconHtml = blog.isFlicker ? '<i class="fa-solid fa-bolt" style="color: #ff0050;"></i>' : '<i class="fa-solid fa-play"></i>';
+                        } else if (blog.images && blog.images.length > 0) {
+                            thumbHtml = `<img src="${blog.images[0]}" class="${thumbClass}" alt="Thumbnail">`;
+                        } else if (blog.image && blog.image !== 'logo.png') {
+                            thumbHtml = `<img src="${blog.image}" class="${thumbClass}" alt="Thumbnail">`;
+                        } else {
+                        thumbHtml = `<div class="${thumbClass}" style="display:flex; align-items:center; justify-content:center; background:#222; border: 1px solid #444;"><i data-lucide="newspaper" style="font-size:2rem; color:#555;"></i></div>`;
+                        }
+
+                        const dateStr = blog.date ? new Date(blog.date).toLocaleDateString() : '';
+                        const likesCount = Array.isArray(blog.likes) ? blog.likes.length : (blog.likes || 0);
 
                         div.innerHTML = `
-                            <div style="display: flex; gap: 15px; padding: 15px; align-items: center;">
-                                ${imgHtml}
-                                <div>
-                                    <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color: gold;">${blog.title}</h3>
-                                    <div style="font-size: 0.8rem; color: #aaa;">By ${blog.author} • ❤️ ${blog.likes || 0}</div>
+                            <div style="position: relative;">
+                                ${thumbHtml}
+                                <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.8rem;">
+                                    ${iconHtml}
                                 </div>
-                            </div>`;
+                            </div>
+                            <h4 style="margin: 8px 0 4px 0; font-size: 0.95rem; color: inherit; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;">${blog.title}</h4>
+                            <p style="margin: 0; font-size: 0.8rem; color: #aaa;">@${blog.author} • ❤️ ${likesCount} • ${dateStr}</p>
+                        `;
                         trendingGrid.appendChild(div);
                     });
                 } else {
@@ -1825,7 +2212,8 @@
                     if (useStartAfter && lastVisibleBlog) {
                         queryConstraints.push(startAfter(lastVisibleBlog));
                     }
-                    queryConstraints.push(limit(BLOGS_PER_PAGE));
+                    let fetchLimit = (currentFeedMode === 'all' && currentCategoryFilter === 'All') ? 10 : BLOGS_PER_PAGE;
+                    queryConstraints.push(limit(fetchLimit));
 
                     const q = query(blogsRef, ...queryConstraints);
 
@@ -1846,12 +2234,33 @@
                         }
                     });
 
-                    if (querySnapshot.docs.length < BLOGS_PER_PAGE) {
+                    if (querySnapshot.docs.length < fetchLimit) {
                         hasMoreDocs = false;
                     }
                     
                     // Force pagination on next iteration if loop continues
                     useStartAfter = true; 
+                }
+
+                // --- Smart Feed: Algorithm Logic ---
+                if (currentFeedMode === 'all' && currentCategoryFilter === 'All' && newBlogs.length > 0) {
+                    newBlogs.forEach(blog => {
+                        let score = 0;
+                        // 1. Personalization (User Interest Match)
+                        if (blog.category && userInterests[blog.category]) {
+                            score += userInterests[blog.category] * 2.5; 
+                        }
+                        // 2. Engagement (Popularity)
+                        const likesCount = Array.isArray(blog.likes) ? blog.likes.length : (blog.likes || 0);
+                        score += likesCount * 1.5;
+                        score += (blog.views || 0) * 0.1;
+                        // 3. Recency Penalty (Deduct points for older posts)
+                        const hoursOld = (Date.now() - new Date(blog.date).getTime()) / (1000 * 60 * 60);
+                        score -= Math.min(hoursOld * 0.5, 50); // Cap the penalty to 50
+
+                        blog._smartScore = score;
+                    });
+                    newBlogs.sort((a, b) => b._smartScore - a._smartScore);
                 }
 
                 if (hasMoreDocs) {
@@ -1963,7 +2372,7 @@
                         div.innerHTML = `
                             <video src="${flick.video}" style="width: 100%; height: 100%; object-fit: cover;" muted preload="metadata"></video>
                             <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px; font-size: 0.7rem; color: white;">
-                                <i class="fa-solid fa-play"></i>
+                        <i data-lucide="play" class="lucide-fill"></i>
                             </div>
                             <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 10px 5px 5px 5px; box-sizing: border-box;">
                                 <div style="color: white; font-size: 0.85rem; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${flick.title}</div>
@@ -2000,7 +2409,7 @@
                         let likedPosts = JSON.parse(localStorage.getItem('viyou_user_liked_posts') || '[]');
                         isLiked = likedPosts.includes(blog.id);
                     }
-                    const likeIcon = isLiked ? '<i class="fa-solid fa-heart" style="color: rgb(224, 109, 25);"></i>' : '<i class="fa-regular fa-heart" style="color: rgb(223, 229, 242);"></i>';
+                const likeIcon = isLiked ? '<i data-lucide="heart" class="lucide-fill" style="color: #ff0050;"></i>' : '<i data-lucide="heart" style="color: #ccc;"></i>';
                     const isBlogOwner = user && (blog.authorUid === user.uid);
 
                     const article = document.createElement('article');
@@ -2016,19 +2425,19 @@
                     }
 
                     let actionButtons = likeButtonHTML;
-                    actionButtons += `<button onclick="shareBlog('${blog.id}', '${blog.title.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#0d6efd; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i class="fa-solid fa-share-nodes"></i> Share</button>`;
-                    actionButtons += `<button onclick="readAloud('${blog.id}')" style="background:none; border:none; color:#87ceeb; cursor:pointer; font-size: 1.2rem; margin-left: 10px;" title="Read Aloud"> <i class="fa-solid fa-volume-up"></i></button>`;
-                    actionButtons += `<button onclick="stopReadAloud()" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 1.2rem; margin-left: 10px;" title="Stop Audio"> <i class="fa-solid fa-circle-stop"></i></button>`;
+                actionButtons += `<button onclick="shareBlog('${blog.id}', '${blog.title.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#6366f1; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i data-lucide="share-2"></i> Share</button>`;
+                actionButtons += `<button onclick="readAloud('${blog.id}')" style="background:none; border:none; color:#87ceeb; cursor:pointer; font-size: 1.2rem; margin-left: 10px;" title="Read Aloud"> <i data-lucide="volume-2"></i></button>`;
+                actionButtons += `<button onclick="stopReadAloud()" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 1.2rem; margin-left: 10px;" title="Stop Audio"> <i data-lucide="stop-circle"></i></button>`;
                     actionButtons += `<button onclick="reportBlog('${blog.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 1rem; margin-left: 10px;" title="Report">🚩</button>`;
 
                     if (blog.video || blog.youtubeUrl) {
-                        actionButtons += `<button onclick="submitCopyrightClaim('${blog.id}')" style="background:none; border:none; color:#dc3545; cursor:pointer; font-size: 1rem; margin-left: 10px;" title="Copyright Strike">© Claim</button>`;
+                    actionButtons += `<button onclick="submitCopyrightClaim('${blog.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size: 1rem; margin-left: 10px;" title="Copyright Strike">© Claim</button>`;
                     }
                     
                     if (isBlogOwner) {
                         actionButtons += `
-                            <button onclick="editUserBlog('${blog.id}')" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.9rem;"><i class="fa-solid fa-pen"></i> Edit</button>
-                            <button onclick="deleteUserBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.9rem;"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                        <button onclick="editUserBlog('${blog.id}')" style="background:none; border:none; color:#f59e0b; cursor:pointer; font-size: 0.9rem;"><i data-lucide="pen"></i> Edit</button>
+                        <button onclick="deleteUserBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.9rem;"><i data-lucide="trash-2"></i> Delete</button>
                         `;
                     }
 
@@ -2041,7 +2450,7 @@
                             mediaHtml += `
                                 <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 10px; cursor: pointer;" onclick="window.location.href='watch.html?id=${blog.id}'">
                                     <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; color: rgba(255,255,255,0.9);"><i class="fa-brands fa-youtube" style="color: #ff0000;"></i></div>
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; color: rgba(255,255,255,0.9);"><i data-lucide="youtube" style="color: #ff0000;"></i></div>
                                 </div>`;
                         }
                     }
@@ -2051,7 +2460,7 @@
                         mediaHtml += `
                             <div style="position: relative; width: 100%; height: 250px; border-radius: 8px; margin-bottom: 10px; background: #000; cursor: pointer; display: flex; justify-content: center; align-items: center; overflow: hidden;" onclick="window.location.href='watch.html?id=${blog.id}'">
                                 <img src="${blog.thumbnail || 'logo.png'}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
-                                <div style="position: absolute; font-size: 4rem; color: rgba(255,255,255,0.9); text-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i class="fa-solid fa-play-circle"></i></div>
+                            <div style="position: absolute; font-size: 4rem; color: rgba(255,255,255,0.9); text-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i data-lucide="play-circle" class="lucide-fill"></i></div>
                             </div>`;
                     }
 
@@ -2109,18 +2518,19 @@
                     `;
 
                     const categoryBadge = blog.category ? `<span style="background: rgba(128,128,128,0.2); color: inherit; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; margin-bottom: 10px; display: inline-block;">🏷️ ${blog.category}</span>` : '';
+                const recommendedBadge = blog.isRecommended ? `<span style="background: linear-gradient(45deg, #ff0050, #6366f1); color: white; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; margin-bottom: 10px; display: inline-block; margin-left: 8px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">✨ For You</span>` : '';
 
                     article.innerHTML = `
                         ${mediaHtml}
                         <div class="news-card-content">
                             ${authorHeader}
-                            ${categoryBadge}
+                            ${categoryBadge} ${recommendedBadge}
                             <h2 style="margin-top: 5px;"><a href="index.html?blogId=${blog.id}" style="text-decoration:none;">${renderTextWithMentions(blog.title)}</a></h2>
                             <p>${renderTextWithMentions(blog.content)}</p>
 
                             ${blog.poll ? `
-                                <div class="poll-container" style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                    <h4 style="margin: 0 0 10px 0; color: #ffc107;">Poll: ${blog.poll.question}</h4>
+                            <div class="poll-container" style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <h4 style="margin: 0 0 10px 0; color: #f59e0b;">Poll: ${blog.poll.question}</h4>
                                     <div id="poll-options-${blog.id}">
                                         ${(() => {
                                             const userHasVoted = user && blog.poll.options.some(opt => opt.voters && opt.voters.includes(user.uid));
@@ -2134,7 +2544,7 @@
                                                         <div style="margin-bottom: 8px;">
                                                             <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>${option.text}</span> <span style="color: #ccc;">${percentage}%</span></div>
                                                             <div style="background: #555; border-radius: 5px; overflow: hidden; height: 10px;">
-                                                                <div style="width: ${percentage}%; background: #0d6efd; height: 100%; border-radius: 5px;"></div>
+                                                            <div style="width: ${percentage}%; background: #6366f1; height: 100%; border-radius: 5px;"></div>
                                                             </div>
                                                         </div>`;
                                                 } else {
@@ -2194,8 +2604,8 @@
                                         const isCommentOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
                                         const commentActions = isCommentOwner ? `
                                             <div style="display: flex; gap: 15px; justify-content: flex-end;">
-                                                <button onclick="editComment('${blog.id}', '${c.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; padding: 0; transition: color 0.2s;" onmouseover="this.style.color='#ffc107'" onmouseout="this.style.color='#aaa'"><i class="fa-solid fa-pen"></i> Edit</button>
-                                                <button onclick="deleteComment('${blog.id}', '${c.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; padding: 0; transition: color 0.2s;" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='#aaa'"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                                            <button onclick="editComment('${blog.id}', '${c.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; padding: 0; transition: color 0.2s;" onmouseover="this.style.color='#f59e0b'" onmouseout="this.style.color='#aaa'"><i data-lucide="pen"></i> Edit</button>
+                                            <button onclick="deleteComment('${blog.id}', '${c.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; padding: 0; transition: color 0.2s;" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='#aaa'"><i data-lucide="trash-2"></i> Delete</button>
                                             </div>
                                         ` : '';
 
@@ -2218,8 +2628,8 @@
                                             // Ownership Check for Reply
                                             const isReplyOwner = user && (r.userUid === user.uid || (!r.userUid && r.author === user.displayName));
                                             const replyActions = isReplyOwner ? `
-                                                <button onclick="window.editReply('${blog.id}', '${c.id}', '${r.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; margin-left:10px; transition: color 0.2s;" onmouseover="this.style.color='#ffc107'" onmouseout="this.style.color='#aaa'"><i class="fa-solid fa-pen"></i> Edit</button>
-                                                <button onclick="window.deleteReply('${blog.id}', '${c.id}', '${r.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; margin-left:10px; transition: color 0.2s;" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='#aaa'"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                                            <button onclick="window.editReply('${blog.id}', '${c.id}', '${r.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; margin-left:10px; transition: color 0.2s;" onmouseover="this.style.color='#f59e0b'" onmouseout="this.style.color='#aaa'"><i data-lucide="pen"></i> Edit</button>
+                                            <button onclick="window.deleteReply('${blog.id}', '${c.id}', '${r.id}')" style="background:none; border:none; color:#aaa; cursor:pointer; font-size: 0.8rem; margin-left:10px; transition: color 0.2s;" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='#aaa'"><i data-lucide="trash-2"></i> Delete</button>
                                             ` : '';
                                             
                                             return `
@@ -2268,8 +2678,8 @@
                                                     </div>
 
                                                     <div id="reply-box-${c.id}" style="display: none; margin-top: 10px; gap: 5px;">
-                                                        <input type="text" id="reply-input-${c.id}" placeholder="Write a reply..." style="flex: 1; padding: 5px; border-radius: 4px; border: none; font-size: 0.85rem; width: 70%;">
-                                                        <button onclick="submitReply('${blog.id}', '${c.id}')" style="padding: 5px 10px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Send</button>
+                                                    <input type="text" id="reply-input-${c.id}" placeholder="Write a reply..." style="flex: 1; padding: 5px; border-radius: 4px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 0.85rem; width: 70%;">
+                                                    <button onclick="submitReply('${blog.id}', '${c.id}')" style="padding: 5px 10px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Send</button>
                                                     </div>
 
                                                     ${toggleBtnHtml}
@@ -2285,8 +2695,8 @@
                                     ${(!blog.comments || blog.comments.length === 0) ? '<p style="font-size: 0.8rem; color: #ccc;">No comments yet.</p>' : ''}
                                 </div>
                                 <div style="display: flex; gap: 10px;">
-                                    <input type="text" id="comment-input-${blog.id}" placeholder="Add a comment..." style="flex: 1; padding: 8px; border-radius: 4px; border: none;" onkeypress="if(event.key === 'Enter') addComment('${blog.id}')">
-                                    <button onclick="addComment('${blog.id}')" style="padding: 8px 15px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer;">Post</button>
+                                <input type="text" id="comment-input-${blog.id}" placeholder="Add a comment..." style="flex: 1; padding: 8px; border-radius: 4px; border: none; background: rgba(255,255,255,0.1); color: white;" onkeypress="if(event.key === 'Enter') addComment('${blog.id}')">
+                                <button onclick="addComment('${blog.id}')" style="padding: 8px 15px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">Post</button>
                                 </div>
                             </div>
                         </div>
@@ -2401,13 +2811,83 @@
                         grid.appendChild(ytAdDiv);
                     }
                 }
+
+                // --- User Promoted Content Logic ---
+                if (window.activePromotions && window.activePromotions.length > 0) {
+                    window.activePromotions.forEach(promo => {
+                        const freq = promo.promoFrequency || promo.frequency || 4;
+                        if ((index + 1) % freq === 0) {
+                            const promoDiv = document.createElement('div');
+                            promoDiv.className = 'news-card';
+                            promoDiv.style.marginBottom = '20px';
+                            promoDiv.style.padding = '20px';
+                            promoDiv.style.border = '2px solid #8e44ad';
+                            promoDiv.style.boxShadow = '0 0 15px rgba(142, 68, 173, 0.2)';
+                            
+                            if (promo.promoType === 'external') {
+                                const targetUrl = promo.targetUrl;
+                                const safeTitle = (promo.title || 'Sponsored Product').replace(/</g, '&lt;');
+                                let mediaHtml = '';
+                                if (promo.mediaType === 'video') {
+                                    mediaHtml = `<video src="${promo.mediaData}" autoplay muted loop playsinline style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;"></video>`;
+                                } else {
+                                    mediaHtml = `<img src="${promo.mediaData}" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">`;
+                                }
+                                promoDiv.innerHTML = `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <strong style="color: #87ceeb; font-size: 1.1rem;"><i data-lucide="store"></i> External Sponsor</strong>
+                                    <span style="font-size: 0.75rem; background: linear-gradient(45deg, #8e44ad, #ff0050); color: white; padding: 3px 10px; border-radius: 15px; font-weight: bold; letter-spacing: 1px;"><i data-lucide="megaphone" class="lucide-fill"></i> Ad</span>
+                                    </div>
+                                    <a href="${targetUrl}" target="_blank" onclick="window.trackAdClick('${promo.id}', true)" style="text-decoration: none; color: inherit; display: block; text-align: center;">
+                                        ${mediaHtml}
+                                        <h3 style="margin: 0 0 8px 0; font-size: 1.3rem; color: inherit;">${safeTitle}</h3>
+                                    </a>
+                                <button class="btn" style="width: 100%; margin-top: 15px; background: linear-gradient(45deg, #8e44ad, #6366f1); font-size: 1.05rem;" onclick="window.open('${targetUrl}', '_blank'); window.trackAdClick('${promo.id}', true);">Visit Link</button>
+                                `;
+                            } else {
+                            let targetUrl = 'index.html?blogId=' + promo.id;
+                            if (promo.isFlicker) targetUrl = 'flicks.html?id=' + promo.id;
+                            else if (promo.video || promo.youtubeUrl) targetUrl = 'watch.html?id=' + promo.id;
+
+                            let thumb = promo.thumbnail || promo.image || 'logo.png';
+                            if (promo.youtubeUrl) {
+                                const vidId = getYoutubeVideoId(promo.youtubeUrl);
+                                if (vidId) thumb = `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`;
+                            }
+
+                            const safeTitle = (promo.title || 'Promoted Content').replace(/</g, '&lt;');
+                            const safeContent = (promo.content || '').replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
+
+                            promoDiv.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="window.location.href='profile.html?uid=${promo.authorUid}'">
+                                        <img src="${promo.authorPhoto || 'https://via.placeholder.com/40'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #8e44ad;">
+                                        <strong style="color: #87ceeb; font-size: 1rem;">${promo.author}</strong>
+                                    </div>
+                                <span style="font-size: 0.75rem; background: linear-gradient(45deg, #8e44ad, #ff0050); color: white; padding: 3px 10px; border-radius: 15px; font-weight: bold; letter-spacing: 1px;"><i data-lucide="megaphone" class="lucide-fill"></i> Sponsored</span>
+                                </div>
+                                <a href="${targetUrl}" style="text-decoration: none; color: inherit; display: block;">
+                                    <div style="position: relative; width: 100%; height: 220px; border-radius: 8px; overflow: hidden; margin-bottom: 15px; background: #000;">
+                                        <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                    ${(promo.video || promo.youtubeUrl || promo.isFlicker) ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3.5rem; color: rgba(255,255,255,0.9); text-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none;"><i data-lucide="${promo.isFlicker ? 'zap' : 'play-circle'}" class="lucide-fill"></i></div>` : ''}
+                                    </div>
+                                    <h3 style="margin: 0 0 8px 0; font-size: 1.3rem; color: inherit;">${safeTitle}</h3>
+                                    <p style="margin: 0; color: inherit; font-size: 0.95rem; line-height: 1.5; opacity: 0.8;">${safeContent}</p>
+                                </a>
+                            <button class="btn" style="width: 100%; margin-top: 15px; background: linear-gradient(45deg, #8e44ad, #6366f1); font-size: 1.05rem;" onclick="window.location.href='${targetUrl}'">View Post</button>
+                            `;
+                            }
+                            grid.appendChild(promoDiv);
+                        }
+                    });
+                }
                 });
 
                 // Scroll to specific blog if URL has ?blogId=...
                 const hash = window.location.hash;
                 const urlParams = new URLSearchParams(window.location.search);
                 const blogId = urlParams.get('blogId');
-                if (blogId) {
+                if (blogId && !window.hasScrolledToBlog) {
                     setTimeout(() => {
                         const el = document.getElementById(`blog-${blogId}`);
                         if (el) {
@@ -2416,12 +2896,13 @@
                                 const commentEl = el.querySelector(hash);
                                 if (commentEl) {
                                     targetEl = commentEl;
-                                    commentEl.style.outline = "2px solid gold";
+                                commentEl.style.outline = "2px solid #f59e0b";
                                     commentEl.style.transition = "outline 1s ease-out";
                                     setTimeout(() => { commentEl.style.outline = 'none'; }, 3000);
                                 }
                             }
                             targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            window.hasScrolledToBlog = true;
                         }
                     }, 500);
                 }
@@ -2568,6 +3049,10 @@
 
             // Optimistic UI update (ताकि लाइक नंबर तुरंत स्क्रीन पर बदल जाए)
             renderBlogs(auth.currentUser);
+            
+            if (isLiking && blog.category) {
+                updateUserInterest(blog.category, 5); // 5 points for explicitly liking
+            }
 
             // Background Firestore Update
             try {
@@ -2790,6 +3275,22 @@
             const input = document.getElementById(`comment-input-${id}`);
             const text = input.value.trim();
             if (!text) return;
+            
+            // --- Abusive Comment Filter ---
+            let badWords = ['fuck', 'bitch', 'asshole', 'porn', 'nude', 'bastard', 'slut', 'madarchod', 'bhenchod', 'chutiya', 'bhosdike', 'randi', 'sex'];
+            try {
+                const modDoc = await getDoc(doc(db, "settings", "moderation"));
+                if (modDoc.exists() && modDoc.data().badWords) {
+                    badWords = modDoc.data().badWords;
+                }
+            } catch(e) { console.error("Error loading moderation words", e); }
+            
+            const containsAbuse = badWords.some(word => new RegExp('\\b' + word + '\\b', 'i').test(text.toLowerCase()));
+            if (containsAbuse) {
+                showToast("⚠️ Abusive language is not allowed in comments.", 'error');
+                return;
+            }
+            // ------------------------------
             
             let authorName = auth.currentUser.displayName || "User";
             let authorPhoto = "https://via.placeholder.com/40";
@@ -3327,77 +3828,148 @@
             }
         });
 
+        // Debounce timer and Cache for faster search
+        let searchTimeout = null;
+        const searchCache = new Map();
+
         searchInput.addEventListener('input', async (e) => {
             const term = e.target.value.trim().toLowerCase();
+            
+            // Clear the previous timeout if user is still typing
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
             if (term.length < 2) {
                 searchResults.style.display = 'none';
                 return;
             }
 
-            searchResults.innerHTML = '';
-            let resultsFound = false;
-
-            // Search users
-            const userQuery = query(collection(db, "users"), 
-                where("usernameLower", ">=", term), 
-                where("usernameLower", "<=", term + "\uf8ff"),
-                limit(3));
-            const userSnap = await getDocs(userQuery);
-            if (!userSnap.empty) {
-                resultsFound = true;
-                userSnap.forEach(doc => {
-                    const u = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'search-result-item';
-                    div.innerHTML = `
-                        <img src="${u.photoURL || 'logo.png'}" style="width:30px; height:30px; border-radius:50%; object-fit: cover;">
-                        <div>
-                            <div style="font-weight:bold; color:white;">${u.name}</div>
-                            <div style="font-size:0.8rem; color:#aaa;">@${u.username}</div>
-                        </div>
-                    `;
-                    div.onclick = () => window.location.href = `profile.html?uid=${doc.id}`;
-                    searchResults.appendChild(div);
-                });
-            }
-
-            // Search content
-            const contentQuery = query(collection(db, "blogs"), 
-                where("titleLower", ">=", term), 
-                where("titleLower", "<=", term + "\uf8ff"),
-                where("status", "==", "published"),
-                limit(3));
-            const contentSnap = await getDocs(contentQuery);
-            if (!contentSnap.empty) {
-                resultsFound = true;
-                if(!userSnap.empty) {
-                    const hr = document.createElement('hr');
-                    hr.style.borderColor = '#444';
-                    hr.style.margin = '5px 0';
-                    searchResults.appendChild(hr);
+            // Delay the search by 400ms (Debouncing)
+            searchTimeout = setTimeout(async () => {
+                // Check Cache
+                if (searchCache.has(term)) {
+                    renderSearchResults(searchCache.get(term), term);
+                    return;
                 }
-                contentSnap.forEach(doc => {
-                    const blog = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'search-result-item';
-                    div.innerHTML = `
-                        <i class="fa-solid fa-newspaper" style="color:#ccc; font-size: 1.5rem; width: 30px; text-align: center;"></i>
-                        <div>
-                            <div style="font-weight:bold; color:white;">${blog.title}</div>
-                            <div style="font-size:0.8rem; color:#aaa;">by @${blog.author}</div>
-                        </div>
-                    `;
-                    div.onclick = () => window.location.href = `search.html?q=${encodeURIComponent(blog.title)}`;
-                    searchResults.appendChild(div);
-                });
-            }
 
-            if (resultsFound) {
+                searchResults.innerHTML = '<div style="padding: 10px; color: #aaa; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Searching...</div>';
+                searchResults.style.display = 'block';
+
+                let resultsFound = false;
+                let resultsHTML = '';
+
+                try {
+                    const highlight = (str) => str.replace(new RegExp(`(${term})`, 'gi'), '<span style="color: gold;">$1</span>');
+
+                    // Search users
+                    const userQuery = query(collection(db, "users"), 
+                        where("usernameLower", ">=", term), 
+                        where("usernameLower", "<=", term + "\uf8ff"),
+                        limit(3));
+                    
+
+                    // Search content by Title Prefix
+                    const contentQuery = query(collection(db, "blogs"), 
+                        where("titleLower", ">=", term), 
+                        where("titleLower", "<=", term + "\uf8ff"),
+                        where("status", "==", "published"),
+                        limit(3));
+                    
+                    // Smart Search: Search content by Keywords (Words in the middle of title/content)
+                    let keywordQuery = null;
+                    if (!term.includes(' ')) {
+                        keywordQuery = query(collection(db, "blogs"), 
+                            where("keywords", "array-contains", term),
+                            where("status", "==", "published"),
+                            limit(3));
+                    }
+
+                    // RUN QUERIES IN PARALLEL FOR MAXIMUM SPEED
+                    const [userSnap, contentSnap, keywordSnap] = await Promise.all([
+                        getDocs(userQuery),
+                        getDocs(contentQuery),
+                        keywordQuery ? getDocs(keywordQuery) : Promise.resolve({ empty: true, forEach: () => {} })
+                    ]);
+
+                    if (!userSnap.empty) {
+                        resultsFound = true;
+                        userSnap.forEach(doc => {
+                            const u = doc.data();
+                            const photo = (u.photoURL && u.photoURL !== 'null') ? u.photoURL : 'logo.png';
+                            resultsHTML += `
+                                <div class="search-result-item" onclick="window.location.href='profile.html?uid=${doc.id}'">
+                                    <img src="${photo}" style="width:30px; height:30px; border-radius:50%; object-fit: cover;">
+                                    <div>
+                                        <div style="font-weight:bold; color:white;">${highlight(u.name || '')}</div>
+                                        <div style="font-size:0.8rem; color:#aaa;">@${highlight(u.username || '')}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    if (!contentSnap.empty) {
+                        if(resultsFound) resultsHTML += `<hr style="border-color: #444; margin: 5px 0;">`;
+                        resultsFound = true;
+                        contentSnap.forEach(doc => {
+                            const blog = doc.data();
+                            resultsHTML += `
+                                <div class="search-result-item" onclick="window.location.href='search.html?q=${encodeURIComponent(blog.title)}'">
+                                    <i class="fa-solid fa-newspaper" style="color:#ccc; font-size: 1.5rem; width: 30px; text-align: center;"></i>
+                                    <div>
+                                        <div style="font-weight:bold; color:white;">${highlight(blog.title)}</div>
+                                        <div style="font-size:0.8rem; color:#aaa;">by @${highlight(blog.author || '')}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                        if (!keywordSnap.empty) {
+                            let addedKeywords = false;
+                            keywordSnap.forEach(doc => {
+                                if (!resultsHTML.includes(encodeURIComponent(doc.data().title))) { // Avoid duplicates
+                                    if(resultsFound && !addedKeywords) {
+                                         resultsHTML += `<hr style="border-color: #444; margin: 5px 0;">`;
+                                         addedKeywords = true;
+                                    }
+                                    resultsFound = true;
+                                    const blog = doc.data();
+                                    resultsHTML += `
+                                        <div class="search-result-item" onclick="window.location.href='search.html?q=${encodeURIComponent(blog.title)}'">
+                                            <i class="fa-solid fa-tag" style="color:#0d6efd; font-size: 1.2rem; width: 30px; text-align: center;"></i>
+                                            <div>
+                                                <div style="font-weight:bold; color:white;">${highlight(blog.title)}</div>
+                                                <div style="font-size:0.8rem; color:#aaa;">by @${highlight(blog.author || '')}</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            });
+                        }
+
+                    // Save to Cache
+                    searchCache.set(term, { found: resultsFound, html: resultsHTML });
+                    renderSearchResults(searchCache.get(term), term);
+
+                } catch (error) {
+                    console.error("Search error:", error);
+                    searchResults.innerHTML = '<div style="padding: 10px; color: #ff6b6b; text-align: center;">Error performing search</div>';
+                }
+            }, 400); // Wait 400ms after user stops typing
+        });
+
+        function renderSearchResults(resultData, term) {
+            searchResults.innerHTML = '';
+            if (resultData.found) {
+                searchResults.innerHTML = resultData.html;
                 searchResults.style.display = 'block';
             } else {
-                searchResults.style.display = 'none';
+                searchResults.innerHTML = `<div style="padding: 10px; color: #aaa; text-align: center;">No results for "${term}"</div>`;
+                searchResults.style.display = 'block';
             }
-        });
+        }
 
         // Hide search results when clicking outside
         document.addEventListener('click', function(event) {
@@ -3482,6 +4054,11 @@
                             notifHtml = `<strong>${n.senderName}</strong> replied to your comment on <em>${n.blogTitle}</em>.`;
                             div.style.cursor = 'pointer';
                             div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}#comment-${n.commentId}`;
+                            break;
+                        case 'story_mention':
+                            notifHtml = `<strong>${n.senderName}</strong> mentioned you in their story.`;
+                            div.style.cursor = 'pointer';
+                            div.onclick = () => window.location.href = `profile.html?uid=${n.senderUid}`;
                             break;
                         case 'verification':
                             notifHtml = `🎉 Congratulations! You are now a <strong>Verified User</strong>.`;
@@ -4522,12 +5099,24 @@
             currentStoryUserIdx = userIdx;
             currentStoryIdx = storyIdx;
 
+            if (window.viewerAnimationFrameId) {
+                cancelAnimationFrame(window.viewerAnimationFrameId);
+                window.viewerAnimationFrameId = null;
+            }
+
+            if (window.currentStoryAudio) {
+                window.currentStoryAudio.pause();
+                window.currentStoryAudio = null;
+            }
+
             const modal = document.getElementById('story-viewer-modal');
             const content = document.getElementById('story-viewer-content');
             if (!modal || !content) return;
 
             const group = globalGroupedStories[userIdx];
             const story = group.stories[storyIdx];
+            window.currentStory = story;
+            window.viewerLastActiveClipId = null;
             const user = auth.currentUser;
             const isOwner = user && user.uid === story.authorUid;
 
@@ -4552,6 +5141,7 @@
             // --- UI Construction ---
             const hasPrev = userIdx > 0 || storyIdx > 0;
             const hasNext = userIdx < globalGroupedStories.length - 1 || storyIdx < group.stories.length - 1;
+            const hasTimeline = story.storyTimeline && story.storyTimeline.length > 0;
 
             let storyHTML = `
                 <!-- Tap Navigation Overlays (Left/Right Clicks) -->
@@ -4560,15 +5150,38 @@
 
                 ${hasPrev ? `<button class="story-nav-btn prev" onclick="window.prevStory(event)">&#10094;</button>` : ''}
                 ${hasNext ? `<button class="story-nav-btn next" onclick="window.nextStory(event)">&#10095;</button>` : ''}
+                ${hasTimeline ? `
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.3); z-index: 30; border-top-left-radius: 12px; border-top-right-radius: 12px; overflow: hidden;">
+                    <div id="viewer-progress-bar" style="width: 0%; height: 100%; background: #0d6efd; box-shadow: 0 0 10px #0d6efd;"></div>
+                </div>` : ''}
+                
                 <div class="story-header" style="z-index: 20;">
                     <img src="${story.authorPhoto || 'https://via.placeholder.com/40'}" style="cursor:pointer;" onclick="window.location.href='profile.html?uid=${story.authorUid}'">
                     <strong>${story.authorName}</strong>
                     <span style="color:#ddd; font-size:0.8rem; margin-left: 8px;">(${storyIdx + 1}/${group.stories.length})</span>
                 </div>`;
 
-        storyHTML += `<div style="position: relative; width: 100%; height: 80vh; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; border-radius: 8px; margin: 5px 0;">`;
-        if (story.statusImage) {
-            storyHTML += `<img src="${story.statusImage}" style="max-width: 100%; max-height: 100%; object-fit: contain; z-index: 1;">`;
+        if (story.audioData) {
+            storyHTML += `<button id="story-mute-btn" onclick="window.toggleStoryMute(event)" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; padding: 8px; border-radius: 50%; z-index: 25; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i data-lucide="volume-2"></i></button>`;
+            storyHTML += `<audio id="story-viewer-audio" src="${story.audioData}" loop style="display:none;"></audio>`;
+        }
+
+        const bgStyle = story.storyGradient && story.storyGradient !== 'none' ? story.storyGradient : '#000';
+        storyHTML += `<div style="position: relative; width: 100%; height: 80vh; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: ${bgStyle}; border-radius: 8px; margin: 5px 0;">`;
+        const filterStyle = story.imageFilter && story.imageFilter !== 'none' ? `filter: ${story.imageFilter};` : '';
+        
+        if (hasTimeline) {
+            storyHTML += `<div id="viewer-media-wrapper" style="width:100%; height:100%; position:absolute; top:0; left:0; transform-origin:center center; will-change:transform; display:flex; align-items:center; justify-content:center;">`;
+            storyHTML += `<img id="viewer-media-img" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; z-index: 1; display: none; ${filterStyle}">`;
+            storyHTML += `<video id="viewer-media-vid" autoplay muted playsinline style="max-width: 100%; max-height: 100%; object-fit: contain; z-index: 1; display: none; ${filterStyle}"></video>`;
+            storyHTML += `</div>`;
+        } else if (story.statusVideo) {
+            storyHTML += `<video src="${story.statusVideo}" autoplay muted loop playsinline style="max-width: 100%; max-height: 100%; object-fit: contain; z-index: 1; ${filterStyle}"></video>`;
+        } else if (story.statusImage) {
+            storyHTML += `<img src="${story.statusImage}" style="max-width: 100%; max-height: 100%; object-fit: contain; z-index: 1; ${filterStyle}">`;
+        }
+        if (story.storyDrawing) {
+            storyHTML += `<img src="${story.storyDrawing}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1.5; pointer-events: none;">`;
         }
         let textsToRender = [];
         if (story.texts && story.texts.length > 0) {
@@ -4617,12 +5230,20 @@
                 extraStyles += `-webkit-text-stroke: ${outlineSize}px ${outlineColor}; `;
             }
 
-            let posStyle = `position: absolute; left: ${posX}%; top: ${posY}%; transform: translate(-50%, -50%) rotate(${rotation}deg); z-index: 2; max-width: 90%; width: max-content; pointer-events: none;`;
+        let displayStyle = hasTimeline && txt.duration ? 'display: none;' : '';
+        let posStyle = `position: absolute; left: ${posX}%; top: ${posY}%; transform: translate(-50%, -50%) rotate(${rotation}deg); z-index: 6; max-width: 90%; width: max-content; pointer-events: none; ${displayStyle}`;
             let innerStyle = `color: ${color}; font-size: ${size}px; font-family: ${font}; font-weight: bold; text-shadow: 1px 1px 4px rgba(0,0,0,0.9); word-wrap: break-word; text-align: center; margin: 0; line-height: 1.2; box-sizing: border-box; ${extraStyles}`;
             let animClass = animation !== 'none' ? `story-anim-${animation}` : '';
 
-            const safeMsg = txt.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
-            storyHTML += `<div style="${posStyle}"><div class="${animClass}" style="${innerStyle}">${safeMsg}</div></div>`;
+            let safeMsg = txt.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+            if (story.mentionMap) {
+                safeMsg = safeMsg.replace(/@([\w_]+)/g, (match, username) => {
+                    const uid = story.mentionMap[username.toLowerCase()];
+                    if (uid) return `<a href="profile.html?uid=${uid}" style="color: #0d6efd; text-decoration: none; font-weight: bold; pointer-events: auto;" onclick="event.stopPropagation();">${match}</a>`;
+                    return match;
+                });
+            }
+        storyHTML += `<div class="story-viewer-text-layer" data-start="${txt.startTime || 0}" data-duration="${txt.duration || 999999}" style="${posStyle}"><div class="${animClass}" style="${innerStyle}">${safeMsg}</div></div>`;
         });
         storyHTML += `</div>`;
 
@@ -4673,6 +5294,22 @@
             content.innerHTML = storyHTML;
             modal.style.display = 'flex';
 
+            if (story.audioData) {
+                window.currentStoryAudio = document.getElementById('story-viewer-audio');
+                window.currentStoryAudioSettings = story.audioSettings || null;
+                if (window.currentStoryAudio && (!window.currentStoryAudioSettings || window.viewerTimelineTime >= (window.currentStoryAudioSettings.startTime || 0))) {
+                    window.currentStoryAudio.play().catch(e => console.log("Story audio autoplay blocked by browser", e));
+                }
+            }
+            
+            // Start Timeline Playback Engine
+            if (hasTimeline) {
+                window.currentStoryTimeline = story.storyTimeline;
+                window.viewerTimelineTime = 0;
+                window.viewerLastFrameTime = null;
+                window.viewerAnimationFrameId = requestAnimationFrame(window.viewerPlaybackLoop);
+            }
+
             if (!viewedStories.includes(story.id)) {
                 viewedStories.push(story.id);
                 localStorage.setItem('viewed_stories', JSON.stringify(viewedStories));
@@ -4707,6 +5344,14 @@
         };
 
         window.closeStoryViewer = function() {
+            if (window.currentStoryAudio) {
+                window.currentStoryAudio.pause();
+                window.currentStoryAudio = null;
+            }
+            if (window.viewerAnimationFrameId) {
+                cancelAnimationFrame(window.viewerAnimationFrameId);
+                window.viewerAnimationFrameId = null;
+            }
             document.getElementById('story-viewer-modal').style.display = 'none';
         };
 

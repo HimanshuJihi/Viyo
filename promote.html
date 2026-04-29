@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promote Content - Viyou</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #050505;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(20, 20, 20, 0.6);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            color: #f59e0b;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
+        }
+        .preview-box {
+            display: flex;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        .preview-box img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .preview-box div {
+            flex: 1;
+        }
+        .preview-box h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            color: #87ceeb;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ccc;
+        }
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        .price-display {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .price-display h2 {
+            margin: 0;
+            color: #10b981;
+            font-size: 2rem;
+        }
+        .payment-box {
+            background: rgba(245, 158, 11, 0.05);
+            border: 1px dashed #f59e0b;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5);
+        }
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        /* Toast Notification */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #222; color: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateX(100%); transition: all 0.4s ease; min-width: 250px; }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { border-left: 5px solid #10b981; }
+        .toast.error { border-left: 5px solid #ef4444; }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <div class="container">
+        <h1><i data-lucide="megaphone" class="lucide-fill"></i> Promote Content</h1>
+        <a href="javascript:history.back()" style="color: #aaa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 15px;"><i data-lucide="arrow-left"></i> Back</a>
+
+        <div id="content-preview" class="preview-box">
+            <p style="color: #aaa;">Loading content details...</p>
+        </div>
+
+        <div class="form-group">
+            <label for="promo-tier">Promotion Frequency</label>
+            <select id="promo-tier" onchange="window.calculatePrice()">
+                <option value="4">Show after every 4 posts (Base: ₹50 / 50 Hrs)</option>
+                <option value="3">Show after every 3 posts (Base: ₹70 / 50 Hrs)</option>
+                <option value="2">Show after every 2 posts (Base: ₹80 / 50 Hrs)</option>
+                <option value="1">Show after every 1 post (Base: ₹100 / 50 Hrs)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="promo-hours" id="duration-label">Duration (Hours) - Minimum 50</label>
+            <input type="number" id="promo-hours" value="50" min="50" step="50" oninput="window.calculatePrice()">
+            <small id="hours-note" style="color: #888; display: block; margin-top: 5px;">Increases in multiples of 50.</small>
+        </div>
+
+        <div class="price-display">
+            <span style="color: #aaa; font-size: 0.9rem; font-weight: bold; text-transform: uppercase;">Total Payable Amount</span>
+            <h2 id="calculated-price">₹50</h2>
+        </div>
+
+        <div class="payment-box">
+            <h3 style="margin-top: 0; color: #f59e0b;">Payment Instructions</h3>
+            <p style="font-size: 0.95rem; color: #ccc;">Please pay the exact amount shown above to the UPI ID below, then submit the transaction details.</p>
+            <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <strong style="font-size: 1.1rem; color: #87ceeb;" id="upi-display">himanshusainiaggarwal@okaxis</strong>
+            </div>
+            <img id="qr-display" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=himanshusainiaggarwal@okaxis" alt="Payment QR" style="max-height: 200px; border-radius: 8px; display: block; margin: 0 auto 15px auto; border: 2px solid white;">
+        </div>
+
+        <div class="form-group">
+            <label for="payment-utr">Transaction ID / UTR Number</label>
+            <input type="text" id="payment-utr" placeholder="Enter 12-digit UTR number" required>
+        </div>
+
+        <div class="form-group">
+            <label for="payment-screenshot">Payment Screenshot (Optional)</label>
+            <input type="file" id="payment-screenshot" accept="image/*" style="padding: 8px; background: rgba(0,0,0,0.3); width: 100%;">
+        </div>
+
+        <button id="submit-promo-btn" class="btn" onclick="window.submitPromotion()">Submit Request</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const blogId = urlParams.get('id');
+        let blogData = null;
+        let calculatedTotal = 50;
+        let paymentScreenshotBase64 = null;
+        let currentPromoPricing = { baseHours: 50, tier4: 50, tier3: 70, tier2: 80, tier1: 100 };
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'check-circle' : 'x-circle';
+            toast.innerHTML = `<span style="font-size: 1.2rem;"><i data-lucide="${icon}"></i></span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        }
+
+        window.calculatePrice = function() {
+            const tierStr = document.getElementById('promo-tier').value;
+            const hoursInput = document.getElementById('promo-hours');
+            let hours = parseInt(hoursInput.value) || currentPromoPricing.baseHours;
+            
+            if (hours < currentPromoPricing.baseHours) hours = currentPromoPricing.baseHours;
+
+            let basePrice = currentPromoPricing.tier4;
+            if(tierStr === '3') basePrice = currentPromoPricing.tier3;
+            if(tierStr === '2') basePrice = currentPromoPricing.tier2;
+            if(tierStr === '1') basePrice = currentPromoPricing.tier1;
+
+            const multiplier = Math.ceil(hours / currentPromoPricing.baseHours);
+            calculatedTotal = basePrice * multiplier;
+            
+            document.getElementById('calculated-price').innerText = `₹${calculatedTotal}`;
+        };
+
+        // Image Compression
+        document.getElementById('payment-screenshot').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    const maxW = 600, maxH = 600;
+                    if (width > height) { if (width > maxW) { height *= maxW / width; width = maxW; } }
+                    else { if (height > maxH) { width *= maxH / height; height = maxH; } }
+                    canvas.width = width; canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                    paymentScreenshotBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                alert("Please login to promote content.");
+                window.location.href = "index.html";
+                return;
+            }
+            
+            if (!blogId) {
+                document.getElementById('content-preview').innerHTML = '<p style="color:red;">Invalid content ID.</p>';
+                return;
+            }
+
+            // Load Promo Settings (UPI/QR)
+            try {
+                const promoSnap = await getDoc(doc(db, "settings", "promotions"));
+                if (promoSnap.exists()) {
+                    const promoSettings = promoSnap.data();
+                    if (promoSettings.upiId) document.getElementById('upi-display').innerText = promoSettings.upiId;
+                    if (promoSettings.qrCodeUrl) {
+                        document.getElementById('qr-display').src = promoSettings.qrCodeUrl;
+                        document.getElementById('qr-display').style.display = 'block';
+                    }
+                    if (promoSettings.pricing) {
+                        currentPromoPricing = promoSettings.pricing;
+                        document.getElementById('promo-hours').min = currentPromoPricing.baseHours;
+                        document.getElementById('promo-hours').step = currentPromoPricing.baseHours;
+                        if (document.getElementById('promo-hours').value == "50") {
+                            document.getElementById('promo-hours').value = currentPromoPricing.baseHours;
+                        }
+                        document.getElementById('duration-label').innerText = `Duration (Hours) - Minimum ${currentPromoPricing.baseHours}`;
+                        document.getElementById('hours-note').innerText = `Increases in multiples of ${currentPromoPricing.baseHours}.`;
+                        
+                        document.getElementById('promo-tier').innerHTML = `
+                            <option value="4">Show after every 4 posts (Base: ₹${currentPromoPricing.tier4} / ${currentPromoPricing.baseHours} Hrs)</option>
+                            <option value="3">Show after every 3 posts (Base: ₹${currentPromoPricing.tier3} / ${currentPromoPricing.baseHours} Hrs)</option>
+                            <option value="2">Show after every 2 posts (Base: ₹${currentPromoPricing.tier2} / ${currentPromoPricing.baseHours} Hrs)</option>
+                            <option value="1">Show after every 1 post (Base: ₹${currentPromoPricing.tier1} / ${currentPromoPricing.baseHours} Hrs)</option>
+                        `;
+                    }
+                }
+                window.calculatePrice();
+            } catch (e) { console.error("Error loading promo config:", e); }
+
+            // Load Blog Details
+            try {
+                const blogSnap = await getDoc(doc(db, "blogs", blogId));
+                if (blogSnap.exists()) {
+                    blogData = blogSnap.data();
+                    let thumb = blogData.thumbnail || blogData.image || 'logo.png';
+                    if (blogData.youtubeUrl) {
+                        const match = blogData.youtubeUrl.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
+                        if (match) thumb = `https://img.youtube.com/vi/${match[1]}/default.jpg`;
+                    }
+                    document.getElementById('content-preview').innerHTML = `
+                        <img src="${thumb}" alt="Content Thumbnail">
+                        <div>
+                            <h3>${blogData.title || 'Untitled Post'}</h3>
+                            <span style="font-size: 0.85rem; color: #888;">By @${blogData.author} • ${new Date(blogData.date).toLocaleDateString()}</span>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('content-preview').innerHTML = '<p style="color:red;">Content not found.</p>';
+                }
+            } catch (e) {
+                console.error("Error loading blog:", e);
+                document.getElementById('content-preview').innerHTML = '<p style="color:red;">Error loading content details.</p>';
+            }
+        });
+
+        window.submitPromotion = async function() {
+            if (!auth.currentUser || !blogId) return;
+            const utr = document.getElementById('payment-utr').value.trim();
+            if (!utr || utr.length < 5) {
+                showToast("Please enter a valid Transaction ID / UTR.", "error");
+                return;
+            }
+
+            const btn = document.getElementById('submit-promo-btn');
+            btn.innerText = "Submitting...";
+            btn.disabled = true;
+
+            const tierFreq = parseInt(document.getElementById('promo-tier').value);
+            let hours = parseInt(document.getElementById('promo-hours').value) || currentPromoPricing.baseHours;
+            if (hours < currentPromoPricing.baseHours) hours = currentPromoPricing.baseHours;
+
+            try {
+                await addDoc(collection(db, "promotions"), {
+                    uid: auth.currentUser.uid,
+                    blogId: blogId,
+                    frequency: tierFreq,
+                    hours: hours,
+                    price: calculatedTotal,
+                    utr: utr,
+                    paymentScreenshot: paymentScreenshotBase64 || null,
+                    status: "pending",
+                    timestamp: new Date().toISOString()
+                });
+                
+                showToast("Promotion request submitted successfully! Pending admin approval.", "success");
+                setTimeout(() => window.location.href = "profile.html", 2500);
+            } catch (e) {
+                console.error("Error submitting promotion:", e);
+                showToast("Error submitting request. Please try again.", "error");
+                btn.innerText = "Submit Request";
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

@@ -5,14 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 0;
-            background: #121212; /* Default Dark Mode */
+            background: #050505;
             color: #fff;
             transition: background 0.3s, color 0.3s;
         }
@@ -20,19 +41,21 @@
             max-width: 800px; /* Optimized for chat list */
             margin: 20px auto;
             padding: 20px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             margin-bottom: 30px;
+            position: relative;
+            z-index: 100;
         }
         .header h1 {
             font-size: 2rem;
@@ -44,19 +67,21 @@
         }
         .btn {
             display: inline-block;
-            padding: 8px 15px;
-            font-size: 0.9rem;
+            padding: 10px 20px;
+            font-size: 1rem;
             font-weight: bold;
             color: #fff;
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             text-decoration: none;
-            transition: background-color 0.2s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
         .btn:hover {
-            background-color: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5);
         }
 
         .btn-transparent {
@@ -64,16 +89,17 @@
             background: transparent !important;
             color: #fff !important;
             border: none !important;
+            border-radius: 30px !important;
             z-index: 1;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .btn-transparent::before {
+        .btn-transparent::before, .theme-btn::before {
             content: "";
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
-            border-radius: 5px;
+            border-radius: 30px;
             padding: 1.5px;
-            background: linear-gradient(45deg, #0d6efd, #ffc107);
+            background: linear-gradient(45deg, #00f3ff, #b5179e);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -81,8 +107,17 @@
             pointer-events: none;
         }
         .btn-transparent:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3);
+        }
+
+        .theme-btn {
+            position: relative;
+            z-index: 1;
+            border: none !important;
+            background: transparent !important;
+            color: #fff !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .conversation-list {
@@ -95,12 +130,12 @@
             align-items: center;
             gap: 15px;
             padding: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
         .conversation-item:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(255, 255, 255, 0.02);
         }
         .conversation-item:last-child {
             border-bottom: none;
@@ -149,10 +184,38 @@
         body.light-mode .btn-transparent { color: #333 !important; }
 
         /* Light Mode Gold Color Fix */
-        .gold-text { color: gold !important; }
+        .gold-text { color: #f59e0b !important; }
         body.light-mode .gold-text,
         body.light-mode [style*="color: gold"],
         body.light-mode [style*="color:gold"] { color: #000080 !important; }
+
+        /* Theme Dropdown Styles */
+        .theme-dropdown-container { position: relative; display: inline-block; }
+        .theme-dropdown { position: absolute; top: 100%; right: 0; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px; display: none; flex-direction: column; gap: 8px; z-index: 1000; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 10px; }
+        .theme-dropdown.show { display: flex; animation: slideUp 0.2s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .theme-option { padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; text-align: left; display: flex; align-items: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; font-family: inherit; font-size: 0.9rem; }
+        .theme-option:hover { transform: scale(1.05); }
+        .theme-option.active { border: 2px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1.02); }
+
+        /* 5 New Futuristic Themes */
+        body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
+        body.cyberpunk-mode .container { border-color: rgba(255, 0, 124, 0.2); }
+        body.cyberpunk-mode .btn { background: linear-gradient(135deg, #f72585, #4361ee); box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3); }
+        body.cyberpunk-mode .conversation-info h3 { color: #f72585; }
+        body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
+        body.matrix-mode .container { border-color: rgba(0, 255, 65, 0.2); }
+        body.matrix-mode .btn { background: linear-gradient(135deg, #00b4d8, #00ff41); box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3); color: #000; }
+        body.matrix-mode .conversation-info h3 { color: #00ff41; }
+        body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
+        body.ocean-mode .btn { background: linear-gradient(135deg, #0077b6, #00b4d8); box-shadow: 0 4px 15px rgba(0, 119, 182, 0.3); }
+        body.ocean-mode .conversation-info h3 { color: #00e5ff; }
+        body.dracula-mode { background: #282a36; color: #f8f8f2; }
+        body.dracula-mode .btn { background: linear-gradient(135deg, #bd93f9, #ff79c6); box-shadow: 0 4px 15px rgba(189, 147, 249, 0.3); }
+        body.dracula-mode .conversation-info h3 { color: #ff79c6; }
+        body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
+        body.solar-mode .btn { background: linear-gradient(135deg, #dc2f02, #ffba08); box-shadow: 0 4px 15px rgba(220, 47, 2, 0.3); }
+        body.solar-mode .conversation-info h3 { color: #ffb703; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
@@ -162,8 +225,20 @@
         <div class="header">
             <h1>My Messages</h1>
             <div class="header-actions">
-                <button id="new-message-btn" class="btn btn-transparent"><i class="fa-brands fa-rocketchat"></i> New Message</button>
-                <a href="index.html" class="btn btn-transparent">← Back to Viyou</a>
+                <div class="theme-dropdown-container">
+                    <button type="button" id="theme-toggle" class="btn theme-btn" style="padding: 8px 12px; width: auto;"><i data-lucide="palette"></i></button>
+                    <div id="theme-dropdown" class="theme-dropdown">
+                        <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
+                        <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
+                        <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
+                        <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
+                        <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
+                        <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
+                        <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+                    </div>
+                </div>
+                <button id="new-message-btn" class="btn btn-transparent"><i data-lucide="message-square"></i> New Message</button>
+                <a href="index.html" class="btn btn-transparent"><i data-lucide="arrow-left"></i> Back to Home</a>
             </div>
         </div>
 
@@ -201,16 +276,56 @@
         const newMessageBtn = document.getElementById('new-message-btn');
 
         // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeDropdown = document.getElementById('theme-dropdown');
         const body = document.body;
+
         function applyTheme(theme) {
-            if (theme === 'light') {
-                body.classList.add('light-mode');
-            } else {
-                body.classList.remove('light-mode');
+            body.classList.remove('light-mode', 'cyberpunk-mode', 'matrix-mode', 'ocean-mode', 'dracula-mode', 'solar-mode');
+            if (theme && theme !== 'dark') {
+                body.classList.add(theme + '-mode');
             }
             localStorage.setItem('theme', theme || 'dark');
+            if (window.lucide) window.lucide.createIcons();
+
+            document.querySelectorAll('.theme-option').forEach(btn => {
+                if (btn.getAttribute('data-theme') === (theme || 'dark')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         }
         applyTheme(localStorage.getItem('theme') || 'dark');
+
+        themeToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                themeDropdown.classList.remove('show');
+            }
+        });
+
+        document.querySelectorAll('.theme-option').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const newTheme = btn.getAttribute('data-theme');
+                applyTheme(newTheme);
+                themeDropdown.classList.remove('show');
+
+                if (auth.currentUser) {
+                    try {
+                        const userRef = doc(db, "users", auth.currentUser.uid);
+                        await setDoc(userRef, { theme: newTheme }, { merge: true });
+                    } catch (e) {
+                        console.error("Error saving theme preference:", e);
+                    }
+                }
+            });
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -295,6 +410,25 @@
             });
         }
 
+        function formatMessageTime(timestamp) {
+            if (!timestamp) return '';
+            const msgDate = new Date(timestamp.seconds * 1000);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const msgDay = new Date(msgDate);
+            msgDay.setHours(0, 0, 0, 0);
+            
+            const diffDays = Math.round((today - msgDay) / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                return msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else if (diffDays === 1) {
+                return 'Yesterday';
+            } else {
+                return msgDate.toLocaleDateString([], { day: 'numeric', month: 'short' });
+            }
+        }
+
         function listenForConversations(blockedUsers = []) {
             const q = query(
                 collection(db, "conversations"),
@@ -354,7 +488,7 @@
                     li.id = `conv-${conversationId}`;
                     li.className = 'conversation-item';
                     li.style.fontWeight = isUnread ? 'bold' : 'normal';
-                    if (isUnread) li.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
+                    if (isUnread) li.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
 
                     li.innerHTML = `
                         <img src="${otherUser.photoURL || 'https://via.placeholder.com/50'}" class="profile-pic">
@@ -362,7 +496,7 @@
                             <h3>${otherUser.name || 'Unknown User'}</h3>
                             <p style="color: ${isUnread ? '#fff' : '#ccc'};">${lastMessageText}</p>
                         </div>
-                        <span class="last-message-time">${lastMessage && lastMessage.timestamp ? new Date(lastMessage.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                        <span class="last-message-time">${lastMessage ? formatMessageTime(lastMessage.timestamp) : ''}</span>
                     `;
                     li.onclick = () => {
                         window.location.href = `chat.html?uid=${otherParticipantUid}`;

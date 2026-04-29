@@ -5,12 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creator Studio - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #121212;
-            color: white;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #050505;
+            color: #e2e8f0;
             margin: 0;
             padding: 20px;
         }
@@ -19,8 +40,8 @@
             margin: 0 auto;
         }
         h1, h2 {
-            color: gold;
-            border-bottom: 1px solid #444;
+            color: #f59e0b;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding-bottom: 10px;
         }
         .stats-grid {
@@ -30,11 +51,13 @@
             margin-bottom: 30px;
         }
         .stat-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 16px;
             text-align: center;
-            border: 1px solid #444;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .stat-card h3 {
             margin: 0 0 10px 0;
@@ -47,10 +70,10 @@
             font-weight: bold;
         }
         .monetization-card {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(245, 158, 11, 0.05);
             padding: 20px;
-            border-radius: 8px;
-            border: 1px solid gold;
+            border-radius: 16px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
             margin-bottom: 30px;
         }
         .monetization-card h2 {
@@ -65,33 +88,42 @@
             margin-top: 5px;
         }
         .progress-bar-inner {
-            background: #198754;
+            background: #10b981;
             height: 100%;
             width: 0%;
             transition: width 0.5s ease;
         }
         .btn {
-            display: inline-block; padding: 10px 20px; font-size: 1rem; font-weight: bold; color: #fff; background-color: #0d6efd; border: none; border-radius: 5px; text-decoration: none; cursor: pointer; transition: background-color 0.2s ease;
+            display: inline-block; padding: 10px 20px; font-size: 1rem; font-weight: bold; color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 30px; text-decoration: none; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5); }
         .btn:disabled {
             background-color: #555;
             cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
-        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary { background: #64748b; box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3); }
+        .btn-secondary:hover { box-shadow: 0 8px 25px rgba(100, 116, 139, 0.5); }
 
         /* Modal Styles */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: #1e1e1e; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .modal-content h2 { margin-top: 0; color: gold; border-bottom: 1px solid #444; padding-bottom: 15px; font-size: 1.5rem; text-align: center; }
+        .modal-content { background: rgba(20, 20, 20, 0.9); padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-content h2 { margin-top: 0; color: #f59e0b; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 15px; font-size: 1.5rem; text-align: center; }
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; margin-bottom: 5px; color: #aaa; font-size: 0.9rem; font-weight: bold; }
-        .form-group input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #555; background: #333; color: white; box-sizing: border-box; font-size: 1rem; }
-        .form-group input:focus { border-color: #0d6efd; outline: none; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; box-sizing: border-box; font-size: 1rem; }
+        .form-group input:focus, .form-group select:focus { border-color: #6366f1; outline: none; }
         .tabs { display: flex; border-bottom: 1px solid #444; margin-bottom: 20px; }
         .tab-btn { background: none; border: none; color: #888; padding: 10px 15px; cursor: pointer; font-size: 1rem; border-bottom: 3px solid transparent; flex: 1; transition: all 0.3s; }
-        .tab-btn.active { color: white; border-bottom-color: #0d6efd; font-weight: bold; background: rgba(13, 110, 253, 0.1); }
+        .tab-btn.active { color: white; border-bottom-color: #6366f1; font-weight: bold; background: rgba(99, 102, 241, 0.1); }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        /* Category Chips for Ad Targeting */
+        .cat-chip { background: #333; padding: 6px 14px; border-radius: 20px; cursor: pointer; border: 1px solid #555; display: inline-block; font-size: 0.85rem; user-select: none; transition: 0.2s; }
+        .cat-chip:hover { background: #444; }
+        .cat-chip.selected { background: #6366f1; border-color: #6366f1; color: white; font-weight: bold; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
@@ -99,12 +131,12 @@
 </head>
 <body>
     <div class="container">
-        <a href="profile.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to Profile</a>
-        <h1><i class="fa-solid fa-chart-line"></i> Creator Studio</h1>
+        <a href="profile.html" class="btn btn-secondary" style="margin-bottom: 20px; display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="arrow-left"></i> Back to Profile</a>
+        <h1><i data-lucide="line-chart"></i> Creator Studio</h1>
 
         <!-- Studio Headline Box -->
-        <div id="studio-headline-container" style="display:none; background: linear-gradient(45deg, #198754, #ffc107); padding: 15px; margin-bottom: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-            <i class="fa-solid fa-bell" style="font-size: 1.5rem; margin-right: 10px; color: #fff; vertical-align: middle;"></i>
+        <div id="studio-headline-container" style="display:none; background: linear-gradient(45deg, #10b981, #f59e0b); padding: 15px; margin-bottom: 30px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+            <i data-lucide="bell" style="font-size: 1.5rem; margin-right: 10px; color: #fff; vertical-align: middle;"></i>
             <span id="studio-headline-text" style="font-size: 1.2rem; color: #000; font-weight: bold; vertical-align: middle;"></span>
         </div>
 
@@ -140,10 +172,21 @@
             </div>
         </div>
 
+        <!-- Active Promotions -->
+        <div class="monetization-card" style="border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.05); margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="color: #a855f7; margin: 0;"><i data-lucide="megaphone" class="lucide-fill"></i> Active Promotions</h2>
+                <button class="btn" style="background: #ef4444; padding: 8px 15px; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onclick="window.openPromoteProductModal()"><i data-lucide="rocket"></i> Promote Product</button>
+            </div>
+            <div id="active-promotions-list">
+                <p style="color: #aaa;">Loading active promotions...</p>
+            </div>
+        </div>
+
         <!-- Earnings -->
         <div class="stat-card" style="text-align: left; margin-bottom: 30px;">
             <h3>Estimated Earnings</h3>
-            <p id="estimated-earnings" style="color: #198754;">₹0.00</p>
+            <p id="estimated-earnings" style="color: #10b981;">₹0.00</p>
             <small id="earning-note">Earnings are calculated for monetized users based on views on their videos.</small>
             <button id="withdraw-btn" class="btn" disabled style="margin-top: 15px;">Withdraw Funds</button>
         </div>
@@ -161,17 +204,17 @@
     <!-- Withdrawal Modal -->
     <div id="withdraw-modal" class="modal-overlay" onclick="if(event.target === this) window.closeWithdrawModal()">
         <div class="modal-content">
-            <h2><i class="fa-solid fa-money-bill-transfer"></i> Request Withdrawal</h2>
+            <h2><i data-lucide="wallet"></i> Request Withdrawal</h2>
             
             <div class="form-group">
-                <label>Amount to Withdraw (₹) <span id="max-amount-label" style="color:#198754; float:right;"></span></label>
+                <label>Amount to Withdraw (₹) <span id="max-amount-label" style="color:#10b981; float:right;"></span></label>
                 <input type="number" id="withdraw-amount" placeholder="Enter amount..." min="1" step="0.01">
             </div>
             
             <label style="color:#aaa; font-size:0.9rem; display:block; margin-bottom:8px; font-weight:bold; text-align:left;">Select Payment Method</label>
             <div class="tabs">
-                <button class="tab-btn active" onclick="window.switchTab('upi', this)"><i class="fa-solid fa-mobile-screen"></i> UPI ID</button>
-                <button class="tab-btn" onclick="window.switchTab('bank', this)"><i class="fa-solid fa-building-columns"></i> Bank Details</button>
+                <button class="tab-btn active" onclick="window.switchTab('upi', this)"><i data-lucide="smartphone"></i> UPI ID</button>
+                <button class="tab-btn" onclick="window.switchTab('bank', this)"><i data-lucide="landmark"></i> Bank Details</button>
             </div>
 
             <div id="tab-upi" class="tab-pane active">
@@ -188,8 +231,87 @@
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 25px;">
-                <button class="btn" style="flex: 1; background-color: #198754; font-size: 1.1rem; padding: 12px;" id="submit-withdraw-btn">Submit Request</button>
+                <button class="btn" style="flex: 1; background: #10b981; font-size: 1.1rem; padding: 12px;" id="submit-withdraw-btn">Submit Request</button>
                 <button class="btn btn-secondary" style="flex: 1; font-size: 1.1rem; padding: 12px;" onclick="window.closeWithdrawModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promote Product Modal -->
+    <div id="promote-product-modal" class="modal-overlay" onclick="if(event.target === this) window.closePromoteProductModal()">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+            <h2 style="margin-top: 0;"><i data-lucide="rocket"></i> Promote Product Ad</h2>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="window.switchPromoTab('infeed', this)"><i data-lucide="list"></i> In-Feed Ad</button>
+                <button class="tab-btn" onclick="window.switchPromoTab('preroll', this)"><i data-lucide="play-circle"></i> Pre-Roll Video Ad</button>
+            </div>
+
+            <!-- In-Feed Ad Pane -->
+            <div id="promo-tab-infeed" class="tab-pane active">
+                <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="ext-ad-title" placeholder="e.g., Buy the new Smartwatch..."></div>
+                <div class="form-group"><label>Media (Image or Video - Max 800KB)</label><input type="file" id="ext-ad-media" accept="image/*,video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Target URL (External Link)</label><input type="text" id="ext-ad-url" placeholder="https://yourwebsite.com/product"></div>
+                <div class="form-group"><label>Promotion Frequency</label><select id="ext-promo-tier" onchange="window.calculateExtPrice()"><option value="4">Show after every 4 posts (Base: ₹50 / 50 Hrs)</option><option value="3">Show after every 3 posts (Base: ₹70 / 50 Hrs)</option><option value="2">Show after every 2 posts (Base: ₹80 / 50 Hrs)</option><option value="1">Show after every 1 post (Base: ₹100 / 50 Hrs)</option></select></div>
+                <div class="form-group"><label id="ext-duration-label">Duration (Hours) - Minimum 50</label><input type="number" id="ext-promo-hours" value="50" min="50" step="50" oninput="window.calculateExtPrice()"></div>
+            </div>
+
+            <!-- Pre-Roll Video Ad Pane -->
+            <div id="promo-tab-preroll" class="tab-pane">
+                <p style="font-size: 0.85rem; color: #aaa; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">This ad will play before a long video starts. Pricing is based on impressions.</p>
+                <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="preroll-ad-title" placeholder="e.g., Viyou Pre-Roll Ad"></div>
+                <div class="form-group"><label>Ad Video (Max 800KB, Recommended 10-15s)</label><input type="file" id="preroll-ad-video" accept="video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Target URL (External Link)</label><input type="text" id="preroll-ad-url" placeholder="https://yourwebsite.com/product"></div>
+                
+                <div class="form-group">
+                    <label>Target Categories (Select up to 3) <small style="color: #aaa; font-weight: normal; display: block; margin-top: 3px;">Ads will only show on videos of these categories.</small></label>
+                    <div id="preroll-categories" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Entertainment</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Music</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Gaming</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Education</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Sports</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">News & Politics</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Science & Technology</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Fashion & Beauty</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Comedy</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Travel & Events</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Food</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Devotional</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Gym & Fitness</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Enter Budget Amount (₹)</label>
+                    <input type="number" id="preroll-budget" value="100" min="10" step="10" oninput="window.calculateExtPrice()">
+                    <small style="color: #aaa;">Rate: ₹<span id="preroll-rate-display">100</span> per 1,000 impressions. Estimated Impressions: <strong id="preroll-est-impressions" style="color: #87ceeb;">1,000</strong></small>
+                </div>
+            </div>
+
+            <!-- Common Fields -->
+            <div id="price-and-payment-section">
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+                    <span style="color: #aaa; font-size: 0.9rem; font-weight: bold;">Total Payable Amount</span>
+                    <h2 id="ext-calculated-price" style="margin: 0; color: #10b981; font-size: 2rem;">₹50</h2>
+                </div>
+                <div style="background: rgba(245, 158, 11, 0.05); border: 1px dashed #f59e0b; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                    <h4 style="margin-top: 0; color: #f59e0b;">Payment Instructions</h4>
+                    <strong style="font-size: 1.1rem; color: #87ceeb;" id="ext-upi-display">himanshusainiaggarwal@okaxis</strong>
+                    <img id="ext-qr-display" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=himanshusainiaggarwal@okaxis" style="max-height: 150px; border-radius: 8px; display: block; margin: 10px auto 0 auto; border: 2px solid white;">
+                </div>
+                <div class="form-group">
+                    <label>Transaction ID / UTR Number</label>
+                    <input type="text" id="ext-payment-utr" placeholder="Enter 12-digit UTR number" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Screenshot (Optional)</label>
+                    <input type="file" id="ext-payment-screenshot" accept="image/*" style="padding: 8px; background: #222;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn" style="flex: 1; background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" id="submit-ext-promo-btn" onclick="window.submitExtPromotion()">Submit Request</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="window.closePromoteProductModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -272,6 +394,8 @@
                 let totalClicks = 0;
                 let totalLikes = 0;
                 let totalBlogs = 0;
+                let activePromotions = [];
+                const now = new Date();
 
                 blogsSnapshot.forEach(blogDoc => {
                     const blogData = blogDoc.data();
@@ -280,6 +404,24 @@
                         totalViews += blogData.views || 0;
                         totalClicks += blogData.adClicks || 0;
                         totalLikes += Array.isArray(blogData.likes) ? blogData.likes.length : (blogData.likes || 0);
+                        
+                        if (blogData.isPromoted && blogData.promoExpiry) {
+                            if (new Date(blogData.promoExpiry) > now) {
+                                activePromotions.push({ id: blogDoc.id, ...blogData });
+                            }
+                        }
+                    }
+                });
+
+                // Get External Active Promotions
+                const extPromoQuery = query(collection(db, "promotions"), where("uid", "==", uid), where("status", "==", "approved"));
+                const extPromoSnap = await getDocs(extPromoQuery);
+                extPromoSnap.forEach(docSnap => {
+                    const pData = docSnap.data();
+                    if (pData.type === 'external' && pData.promoExpiry && new Date(pData.promoExpiry) > now) {
+                        activePromotions.push({ id: docSnap.id, ...pData, promoFrequency: pData.frequency });
+                    } else if (pData.type === 'preroll' && (pData.impressions_served || 0) < (pData.impressions_goal || 1)) {
+                        activePromotions.push({ id: docSnap.id, ...pData });
                     }
                 });
 
@@ -296,6 +438,55 @@
 
                 // Update Monetization UI
                 updateMonetizationUI(isMonetized, totalViews, followersCount);
+
+                // Update Active Promotions UI
+                const promoListContainer = document.getElementById('active-promotions-list');
+                if (activePromotions.length === 0) {
+                    promoListContainer.innerHTML = '<p style="color: #aaa;">No active promotions running.</p>';
+                } else {
+                    promoListContainer.innerHTML = '';
+                    activePromotions.forEach(promo => {
+                        let timeStr = '';
+                        let expiryLabel = 'Expires in:';
+                        let freqText = '';
+                        let typeLabel = '';
+                        
+                        if (promo.type === 'preroll') {
+                            const served = promo.impressions_served || 0;
+                            const goal = promo.impressions_goal || 1;
+                            const remaining = Math.max(0, goal - served);
+                            timeStr = `${remaining.toLocaleString()} left`;
+                            expiryLabel = 'Impressions:';
+                            freqText = `Goal: <strong>${goal.toLocaleString()} Impressions</strong> | Served: <strong style="color: #10b981;">${served.toLocaleString()}</strong>`;
+                            typeLabel = '(Pre-Roll Ad)';
+                        } else {
+                            const expiry = new Date(promo.promoExpiry);
+                            const diffMs = expiry - now;
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                            timeStr = diffHours > 0 ? `${diffHours}h ${diffMins}m` : `${diffMins}m`;
+                            freqText = `Shows every <strong>${promo.promoFrequency} posts</strong>`;
+                            if (promo.type === 'external') {
+                                freqText += ` | Clicks: <strong style="color: #10b981;">${promo.adClicks || 0}</strong>`;
+                            }
+                            typeLabel = promo.type === 'external' ? '(In-Feed Ad)' : '';
+                        }
+                        
+                        const div = document.createElement('div');
+                        div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;";
+                        div.innerHTML = `
+                            <div>
+                                <strong style="color: #87ceeb; font-size: 1.1rem;">${promo.title || 'Untitled Post'} ${typeLabel}</strong>
+                                <div style="font-size: 0.9rem; color: #ccc; margin-top: 5px;">${freqText}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">LIVE</span>
+                                <div style="font-size: 0.85rem; color: #ffc107; margin-top: 5px;">${expiryLabel} ${timeStr}</div>
+                            </div>
+                        `;
+                        promoListContainer.appendChild(div);
+                    });
+                }
 
                 // Update Earnings UI (placeholder logic)
                 if (isMonetized) {
@@ -355,7 +546,7 @@
             const container = document.getElementById('monetization-status');
             if (isMonetized) {
                 container.innerHTML = `
-                    <p style="color: #198754; font-weight: bold;"><i class="fa-solid fa-check-circle"></i> Congratulations! Your account is monetized.</p>
+                    <p style="color: #10b981; font-weight: bold;"><i data-lucide="check-circle" class="lucide-fill"></i> Congratulations! Your account is monetized.</p>
                     <p>You are now earning from views on your uploaded videos.</p>
                 `;
             } else {
@@ -377,7 +568,7 @@
                             <div class="progress-bar-inner" style="width: ${viewsProgress}%;"></div>
                         </div>
                     </div>
-                    <button id="apply-btn" class="btn" ${canApply ? '' : 'disabled'} style="margin-top: 20px; background-color: #198754;">
+                    <button id="apply-btn" class="btn" ${canApply ? '' : 'disabled'} style="margin-top: 20px; background: #10b981;">
                         ${canApply ? 'Apply for Monetization' : 'Keep Growing!'}
                     </button>
                 `;
@@ -411,10 +602,10 @@
                 records.forEach(req => {
                     const isPaid = req.status === 'paid';
                     const isRejected = req.status === 'rejected';
-                    let statusColor = '#ffc107'; // pending
+                    let statusColor = '#f59e0b'; // pending
                     let statusText = 'PENDING';
-                    if (isPaid) { statusColor = '#198754'; statusText = 'PAID'; }
-                    if (isRejected) { statusColor = '#dc3545'; statusText = 'REJECTED'; }
+                    if (isPaid) { statusColor = '#10b981'; statusText = 'PAID'; }
+                    if (isRejected) { statusColor = '#ef4444'; statusText = 'REJECTED'; }
                     
                     const dateText = new Date(req.paidDate || req.rejectDate || req.date).toLocaleString();
                     
@@ -444,11 +635,14 @@
         }
 
         // --- Modal Logic ---
-        window.switchTab = function(tabId, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        window.switchTab = function(tabId, btn, prefix = 'tab-') {
+            const modal = btn.closest('.modal-content');
+            if (modal) {
+                modal.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                modal.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            }
             btn.classList.add('active');
-            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById(prefix + tabId).classList.add('active');
         };
 
         window.closeWithdrawModal = function() {
@@ -510,6 +704,211 @@
             }
         });
 
+        // --- External Product Promotion Logic ---
+        let extMediaBase64 = null;
+        let extMediaType = null;
+        let extPaymentScreenshotBase64 = null;
+        let prerollVideoBase64 = null;
+        let extCalculatedTotal = 50;
+        let currentPromoTab = 'infeed';
+        let currentPrerollRate = 100;
+        let extPromoPricing = { baseHours: 50, tier4: 50, tier3: 70, tier2: 80, tier1: 100 };
+
+        window.switchPromoTab = function(tabId, btn) {
+            currentPromoTab = tabId;
+            window.switchTab(tabId, btn, 'promo-tab-');
+            window.calculateExtPrice();
+        };
+
+        window.openPromoteProductModal = async function() {
+            document.getElementById('promote-product-modal').style.display = 'flex';
+            try {
+                const promoSnap = await getDoc(doc(db, "settings", "promotions"));
+                if (promoSnap.exists()) {
+                    const promoSettings = promoSnap.data();
+                    if (promoSettings.upiId) document.getElementById('ext-upi-display').innerText = promoSettings.upiId;
+                    if (promoSettings.qrCodeUrl) {
+                        document.getElementById('ext-qr-display').src = promoSettings.qrCodeUrl;
+                        document.getElementById('ext-qr-display').style.display = 'block';
+                    }
+                    if (promoSettings.prerollRate) {
+                        currentPrerollRate = promoSettings.prerollRate;
+                        document.getElementById('preroll-rate-display').innerText = currentPrerollRate;
+                        if (document.getElementById('preroll-budget').value === "100") {
+                            document.getElementById('preroll-budget').value = currentPrerollRate;
+                        }
+                    }
+                    if (promoSettings.pricing) {
+                        extPromoPricing = promoSettings.pricing;
+                        document.getElementById('ext-promo-hours').min = extPromoPricing.baseHours;
+                        document.getElementById('ext-promo-hours').step = extPromoPricing.baseHours;
+                        if (document.getElementById('ext-promo-hours').value == "50") {
+                            document.getElementById('ext-promo-hours').value = extPromoPricing.baseHours;
+                        }
+                        document.getElementById('ext-duration-label').innerText = `Duration (Hours) - Minimum ${extPromoPricing.baseHours}`;
+                        
+                        document.getElementById('ext-promo-tier').innerHTML = `
+                            <option value="4">Show after every 4 posts (Base: ₹${extPromoPricing.tier4} / ${extPromoPricing.baseHours} Hrs)</option>
+                            <option value="3">Show after every 3 posts (Base: ₹${extPromoPricing.tier3} / ${extPromoPricing.baseHours} Hrs)</option>
+                            <option value="2">Show after every 2 posts (Base: ₹${extPromoPricing.tier2} / ${extPromoPricing.baseHours} Hrs)</option>
+                            <option value="1">Show after every 1 post (Base: ₹${extPromoPricing.tier1} / ${extPromoPricing.baseHours} Hrs)</option>
+                        `;
+                    }
+                }
+            } catch (e) { console.error(e); }
+            window.calculateExtPrice();
+        };
+
+        window.closePromoteProductModal = function() {
+            document.getElementById('promote-product-modal').style.display = 'none';
+        };
+
+        window.calculateExtPrice = function() {
+            if (currentPromoTab === 'infeed') {
+                const tierStr = document.getElementById('ext-promo-tier').value;
+                const hoursInput = document.getElementById('ext-promo-hours');
+                let hours = parseInt(hoursInput.value) || extPromoPricing.baseHours;
+                if (hours < extPromoPricing.baseHours) hours = extPromoPricing.baseHours;
+                let basePrice = extPromoPricing.tier4;
+                if(tierStr === '3') basePrice = extPromoPricing.tier3;
+                if(tierStr === '2') basePrice = extPromoPricing.tier2;
+                if(tierStr === '1') basePrice = extPromoPricing.tier1;
+                extCalculatedTotal = basePrice * Math.ceil(hours / extPromoPricing.baseHours);
+            } else { // preroll
+                let budget = parseInt(document.getElementById('preroll-budget').value) || 0;
+                extCalculatedTotal = budget;
+                let estImp = Math.floor((budget / currentPrerollRate) * 1000);
+                document.getElementById('preroll-est-impressions').innerText = estImp.toLocaleString();
+            }
+            document.getElementById('ext-calculated-price').innerText = `₹${extCalculatedTotal}`;
+        };
+        window.calculateExtPrice(); // Initial calculation
+        
+        window.selectedPromoCats = [];
+        window.togglePromoCat = function(el) {
+            const cat = el.innerText;
+            if (window.selectedPromoCats.includes(cat)) {
+                window.selectedPromoCats = window.selectedPromoCats.filter(c => c !== cat);
+                el.classList.remove('selected');
+            } else {
+                if (window.selectedPromoCats.length >= 3) {
+                    alert("You can select a maximum of 3 categories for targeting."); return;
+                }
+                window.selectedPromoCats.push(cat); el.classList.add('selected');
+            }
+        };
+
+        document.getElementById('ext-ad-media').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.type.startsWith('image/')) {
+                extMediaType = 'image';
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width, height = img.height;
+                        const maxW = 800, maxH = 800;
+                        if (width > height) { if (width > maxW) { height *= maxW / width; width = maxW; } }
+                        else { if (height > maxH) { width *= maxH / height; height = maxH; } }
+                        canvas.width = width; canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        let quality = 0.8;
+                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        while (dataUrl.length > 200000 && quality > 0.1) { quality -= 0.1; dataUrl = canvas.toDataURL('image/jpeg', quality); }
+                        extMediaBase64 = dataUrl;
+                    };
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('video/')) {
+                if (file.size > 800 * 1024) { alert("Video must be under 800KB."); e.target.value = ''; return; }
+                extMediaType = 'video';
+                const reader = new FileReader();
+                reader.onload = (event) => { extMediaBase64 = event.target.result; };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('preroll-ad-video').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 800 * 1024) { alert("Video must be under 800KB."); e.target.value = ''; return; }
+            const reader = new FileReader();
+            reader.onload = (event) => { prerollVideoBase64 = event.target.result; };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('ext-payment-screenshot').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    const maxW = 600, maxH = 600;
+                    if (width > height) { if (width > maxW) { height *= maxW / width; width = maxW; } }
+                    else { if (height > maxH) { width *= maxH / height; height = maxH; } }
+                    canvas.width = width; canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                    extPaymentScreenshotBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+
+        window.submitExtPromotion = async function() {
+            if (!auth.currentUser) return;
+            const utr = document.getElementById('ext-payment-utr').value.trim();
+            if (!utr || utr.length < 5) { alert("Please enter a valid UTR."); return; }
+
+            let payload = {};
+            if (currentPromoTab === 'infeed') {
+                const title = document.getElementById('ext-ad-title').value.trim();
+                const targetUrl = document.getElementById('ext-ad-url').value.trim();
+                if (!title || !extMediaBase64 || !targetUrl) { alert("Please fill all In-Feed Ad fields (Title, Media, URL)."); return; }
+                payload = {
+                    type: "external", mediaType: extMediaType, mediaData: extMediaBase64, targetUrl: targetUrl,
+                    frequency: parseInt(document.getElementById('ext-promo-tier').value),
+                    hours: parseInt(document.getElementById('ext-promo-hours').value) || extPromoPricing.baseHours,
+                };
+            } else { // preroll
+                const title = document.getElementById('preroll-ad-title').value.trim();
+                const targetUrl = document.getElementById('preroll-ad-url').value.trim();
+                if (!title || !prerollVideoBase64 || !targetUrl) { alert("Please fill all Pre-Roll Ad fields (Title, Video, URL)."); return; }
+                let budget = parseInt(document.getElementById('preroll-budget').value) || 0;
+                if (budget < 10) { alert("Please enter a valid budget amount (Min ₹10)."); return; }
+                if (window.selectedPromoCats.length === 0) { alert("Please select at least 1 Target Category."); return; }
+                payload = {
+                    type: "preroll", mediaData: prerollVideoBase64, targetUrl: targetUrl,
+                    targetCategories: window.selectedPromoCats,
+                    impressions_goal: Math.floor((budget / currentPrerollRate) * 1000),
+                    impressions_served: 0
+                };
+            }
+
+            const btn = document.getElementById('submit-ext-promo-btn');
+            btn.innerText = "Submitting..."; btn.disabled = true;
+            
+            try {
+                const finalPayload = { ...payload, uid: auth.currentUser.uid, title: document.getElementById(currentPromoTab === 'infeed' ? 'ext-ad-title' : 'preroll-ad-title').value.trim(), price: extCalculatedTotal, utr: utr, paymentScreenshot: extPaymentScreenshotBase64 || null, status: "pending", timestamp: new Date().toISOString() };
+                await addDoc(collection(db, "promotions"), finalPayload);
+
+                alert("External Product Promotion requested successfully! Pending admin approval.");
+                window.closePromoteProductModal();
+                // Reset all form fields
+                document.getElementById('ext-ad-title').value = ''; document.getElementById('ext-ad-media').value = ''; document.getElementById('ext-ad-url').value = ''; document.getElementById('preroll-ad-title').value = ''; document.getElementById('preroll-ad-video').value = ''; document.getElementById('preroll-ad-url').value = ''; document.getElementById('ext-payment-utr').value = ''; document.getElementById('ext-payment-screenshot').value = '';
+                if(document.getElementById('preroll-budget')) document.getElementById('preroll-budget').value = currentPrerollRate;
+                extMediaBase64 = null; extPaymentScreenshotBase64 = null; prerollVideoBase64 = null;
+                window.selectedPromoCats = [];
+                document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('selected'));
+            } catch (e) { console.error(e); alert("Error submitting request."); } 
+            finally { btn.innerText = "Submit Request"; btn.disabled = false; }
+        };
     </script>
      
 </body>

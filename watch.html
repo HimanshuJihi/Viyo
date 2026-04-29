@@ -5,20 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watch - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
     <!-- Fluid Player for VAST Ads -->
     <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
     <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js" defer></script>
+    <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #121212; color: #fff; margin: 0; padding: 0; }
-        .navbar { padding: 15px 20px; background: #1e1e1e; display: flex; align-items: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
+        body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; background: #050505; color: #e2e8f0; margin: 0; padding: 0; }
+        .navbar { padding: 15px 20px; background: rgba(20,20,20,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100; }
         .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; font-weight: bold; }
         .container { display: flex; flex-wrap: wrap; padding: 20px; gap: 20px; max-width: 1400px; margin: auto; }
         .main-content { flex: 1 1 65%; max-width: 100%; }
         .sidebar { flex: 1 1 30%; display: flex; flex-direction: column; gap: 15px; }
-        .video-container { width: 100%; background: #000; border-radius: 12px; overflow: hidden; position: relative; padding-bottom: 56.25%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .video-container { width: 100%; background: #000; border-radius: 16px; overflow: hidden; position: relative; padding-bottom: 56.25%; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(99, 102, 241, 0.1); border: 1px solid rgba(255,255,255,0.05); }
         .video-container iframe, .video-container video, .fluid_video_wrapper { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; outline: none; }
-        .info { padding: 20px 0; border-bottom: 1px solid #333; }
+        .info { padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .title { font-size: 1.5rem; margin: 0 0 15px 0; font-weight: bold; }
         .author-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
         .author-info { display: flex; align-items: center; gap: 12px; }
@@ -26,9 +47,9 @@
         .actions { display: flex; gap: 10px; }
         .btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
         .btn:hover { background: rgba(255,255,255,0.2); }
-        .desc-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; color: #ddd; }
-        .suggestion-card { display: flex; gap: 10px; cursor: pointer; border-radius: 8px; padding: 5px; transition: background 0.2s; }
-        .suggestion-card:hover { background: rgba(255,255,255,0.05); }
+        .desc-box { background: rgba(20,20,20,0.6); padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; line-height: 1.5; color: #ddd; }
+        .suggestion-card { display: flex; gap: 10px; cursor: pointer; border-radius: 12px; padding: 8px; transition: all 0.2s; background: rgba(20,20,20,0.4); border: 1px solid rgba(255,255,255,0.02); }
+        .suggestion-card:hover { background: rgba(20,20,20,0.8); border-color: rgba(255,255,255,0.1); transform: translateX(4px); }
         .suggestion-card img { width: 168px; height: 94px; border-radius: 8px; object-fit: cover; }
         .suggestion-info h4 { margin: 0 0 5px 0; font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
         .suggestion-info p { margin: 0; font-size: 0.85rem; color: #aaa; }
@@ -74,7 +95,7 @@
 </head>
 <body>
     <div class="navbar">
-        <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Viyou</a>
+            <a href="index.html"><i data-lucide="arrow-left"></i> Viyou</a>
     </div>
     <div class="container">
         <div class="main-content" id="main-content">
@@ -100,8 +121,9 @@
         const blogId = urlParams.get('id');
         let currentBlog = null;
         let vastAdConfig = {};
+        let preRollAdConfig = { frequency: 3, activeAds: [] };
         
-        async function trackAdClick(blogIdForClick) {
+        async function trackAdClick(blogIdForClick, isExternal = false) {
             if (!blogIdForClick) return;
             // --- Daily Limit Logic for Click Fraud Prevention ---
             const today = new Date().toDateString();
@@ -121,9 +143,10 @@
             // ----------------------------------------------------
 
             try {
-                const blogRef = doc(db, "blogs", blogIdForClick);
-                await updateDoc(blogRef, { adClicks: increment(1) });
-                console.log("Ad click successfully tracked for video:", blogIdForClick);
+                const collectionName = isExternal ? "promotions" : "blogs";
+                const docRef = doc(db, collectionName, blogIdForClick);
+                await updateDoc(docRef, { adClicks: increment(1) });
+                console.log(`Ad click tracked for ${collectionName}:`, blogIdForClick);
             } catch(e) { console.error("Error tracking ad click:", e); }
         }
 
@@ -144,6 +167,24 @@
             }
         }
 
+        async function loadPreRollAdConfig() {
+            try {
+                const promoSettingsSnap = await getDoc(doc(db, "settings", "promotions"));
+                if (promoSettingsSnap.exists()) {
+                    preRollAdConfig.frequency = promoSettingsSnap.data().prerollFrequency || 3;
+                }
+                const q = query(collection(db, "promotions"), where("status", "==", "approved"), where("type", "==", "preroll"));
+                const adSnap = await getDocs(q);
+                preRollAdConfig.activeAds = [];
+                adSnap.forEach(adDoc => {
+                    const adData = adDoc.data();
+                    if ((adData.impressions_served || 0) < (adData.impressions_goal || 1)) {
+                        preRollAdConfig.activeAds.push({ id: adDoc.id, ...adData });
+                    }
+                });
+            } catch(e) { console.error("Error loading pre-roll config:", e); }
+        }
+
         async function loadVideo() {
             if (!blogId) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
             const docRef = doc(db, "blogs", blogId);
@@ -153,6 +194,69 @@
             const blog = snap.data();
             currentBlog = { id: blogId, ...blog };
             updateDoc(docRef, { views: increment(1) }).catch(e => {}); // Track View
+
+            // --- Pre-Roll Ad Logic ---
+            let sessionViews = parseInt(sessionStorage.getItem('viyou_video_views') || '0');
+            sessionViews++;
+            sessionStorage.setItem('viyou_video_views', sessionViews);
+
+            let preRollAdToPlay = null;
+            window.userAdImpressionTracked = false;
+            
+            // Filter ads based on video category
+            let eligibleAds = preRollAdConfig.activeAds.filter(ad => {
+                if (!ad.targetCategories || ad.targetCategories.length === 0) return true; // Legacy ads target all
+                return ad.targetCategories.includes(blog.category || 'Others');
+            });
+
+            if (eligibleAds.length > 0 && (sessionViews % preRollAdConfig.frequency === 0)) {
+                // Select a random pre-roll ad to play
+                preRollAdToPlay = eligibleAds[Math.floor(Math.random() * eligibleAds.length)];
+            }
+
+            // Construct VAST XML for the pre-roll ad
+            let preRollVastUrl = null;
+            if (preRollAdToPlay) {
+                // Dynamically calculate video duration to apply skip logic
+                let duration = await new Promise((resolve) => {
+                    const v = document.createElement('video');
+                    v.preload = 'metadata';
+                    v.onloadedmetadata = () => resolve(v.duration && v.duration !== Infinity ? v.duration : 15);
+                    v.onerror = () => resolve(15);
+                    v.src = preRollAdToPlay.mediaData;
+                });
+                
+                const formattedDuration = new Date(duration * 1000).toISOString().substring(11, 19); // Output format: HH:MM:SS
+                const skipAttr = duration > 20 ? ' skipoffset="00:00:07"' : '';
+
+                // Using a Data URL for the video content
+                const preRollVastTag = `
+                <VAST version="3.0">
+                  <Ad>
+                    <InLine>
+                      <AdSystem>Viyou</AdSystem>
+                      <AdTitle>Sponsored: ${preRollAdToPlay.title}</AdTitle>
+                      <Creatives>
+                        <Creative>
+                          <Linear${skipAttr}>
+                            <Duration>${formattedDuration}</Duration>
+                            <VideoClicks>
+                              <ClickThrough><![CDATA[${preRollAdToPlay.targetUrl}]]></ClickThrough>
+                            </VideoClicks>
+                            <MediaFiles>
+                              <MediaFile delivery="progressive" type="video/mp4" width="640" height="360"><![CDATA[${preRollAdToPlay.mediaData}]]></MediaFile>
+                            </MediaFiles>
+                          </Linear>
+                        </Creative>
+                      </Creatives>
+                    </InLine>
+                  </Ad>
+                </VAST>`;
+                
+                // Convert XML string to a Blob URL so Fluid Player can fetch it properly
+                const blob = new Blob([preRollVastTag], { type: 'application/xml' });
+                preRollVastUrl = URL.createObjectURL(blob);
+            }
 
             let mediaHtml = '';
             if (blog.youtubeUrl) {
@@ -183,7 +287,7 @@
                     ${mediaHtml}
                     <div id="dt-left" class="double-tap-anim double-tap-left">⏪ ${window.skipDuration}s</div>
                     <div id="dt-right" class="double-tap-anim double-tap-right">⏩ ${window.skipDuration}s</div>
-                    <div id="dt-center" class="double-tap-anim double-tap-center"><i class="fa-solid fa-heart"></i></div>
+                    <div id="dt-center" class="double-tap-anim double-tap-center"><i data-lucide="heart" class="lucide-fill"></i></div>
                 </div>
                 <div class="info">
                     ${categoryBadge}
@@ -201,9 +305,9 @@
                                 ${skipSelectOptions}
                             </select>
                             <button class="btn" id="like-btn-${blogId}" onclick="likeVideo('${blogId}')">
-                                <i class="fa-solid fa-heart" style="color: ${isLiked ? '#ff0050' : 'inherit'};"></i> <span id="like-count-display">${likesCount}</span>
+                                <i data-lucide="heart" class="${isLiked ? 'lucide-fill' : ''}" style="color: ${isLiked ? '#ff0050' : 'inherit'};"></i> <span id="like-count-display">${likesCount}</span>
                             </button>
-                            <button class="btn" onclick="shareVideo()"><i class="fa-solid fa-share"></i> Share</button>
+                            <button class="btn" onclick="shareVideo()"><i data-lucide="share-2"></i> Share</button>
                         </div>
                     </div>
                     <div class="desc-box">
@@ -218,21 +322,35 @@
             `;
 
             if (blog.video && !blog.youtubeUrl) {
+                const systemVastAd = (vastAdConfig.enabled && vastAdConfig.vastUrl) ? { roll: 'preRoll', vastTag: vastAdConfig.vastUrl } : null;
+                const userPreRollAd = preRollVastUrl ? { roll: 'preRoll', vastTag: preRollVastUrl } : null;
+                
+                // 🔥 Track Impression immediately when the VAST ad is initialized for the player
+                if (preRollAdToPlay && !window.userAdImpressionTracked) {
+                    window.userAdImpressionTracked = true;
+                    const adRef = doc(db, "promotions", preRollAdToPlay.id);
+                    updateDoc(adRef, { impressions_served: increment(1) })
+                        .catch(e => console.error("Impression tracking failed:", e));
+                }
+
+                const adList = [systemVastAd, userPreRollAd].filter(Boolean); // Filter out nulls
+
                 const adOptions = {
                     vastOptions: {
-                        adList: [
-                            {
-                                roll: 'preRoll',
-                                vastTag: vastAdConfig.vastUrl
+                        adList: adList,
+                        adText: 'Sponsored', // Changes the default "Ad" tag to "Sponsored"
+                        adCTAText: 'Visit Sponsor', // Optional: Adds a CTA text for better clicks
+                        adClickCallback: (adItem) => {
+                            if (preRollAdToPlay) {
+                                trackAdClick(preRollAdToPlay.id, true); // Track Ad Click
+                            } else {
+                                trackAdClick(blogId); // Track Video Click
                             }
-                        ],
-                        adClickCallback: () => {
-                            trackAdClick(blogId);
                         }
                     }
                 };
 
-                const playerOptions = (vastAdConfig.enabled && vastAdConfig.vastUrl) ? adOptions : { layoutControls: { playButtonShowing: true, playPauseAnimation: true } };
+                const playerOptions = adList.length > 0 ? adOptions : { layoutControls: { playButtonShowing: true, playPauseAnimation: true } };
                 var player = fluidPlayer('watch-video-player', playerOptions);
             }
 
@@ -282,37 +400,63 @@
         window.shareVideo = () => { navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard!'); };
 
         async function loadSuggestions() {
-            const q = query(collection(db, "blogs"), orderBy("date", "desc"), limit(20));
-            const snap = await getDocs(q);
             const container = document.getElementById('suggestions');
-            container.innerHTML = '';
+            container.innerHTML = '<div style="color: #aaa;">Loading suggestions...</div>';
             
-            let count = 0;
-            snap.forEach(doc => {
-                const blog = doc.data();
-                if (doc.id === blogId || blog.isFlicker || (!blog.video && !blog.youtubeUrl)) return;
-                if (count >= 10) return;
-                count++;
+            try {
+                // 50 recent videos मंगा रहे हैं ताकि लोकल लेवल पर फ़िल्टर कर सकें बिना Index Error के
+                const q = query(collection(db, "blogs"), orderBy("date", "desc"), limit(50));
+                const snap = await getDocs(q);
+                
+                let relatedBlogs = [];
+                let otherBlogs = [];
 
-                let thumb = blog.thumbnail || 'game-logo.png';
-                if (blog.youtubeUrl) {
-                    const vidId = getYoutubeVideoId(blog.youtubeUrl);
-                    if (vidId) thumb = `https://img.youtube.com/vi/${vidId}/mqdefault.jpg`;
+                snap.forEach(doc => {
+                    const blog = doc.data();
+                    if (doc.id === blogId || blog.isFlicker || (!blog.video && !blog.youtubeUrl)) return;
+                    
+                    // अगर केटेगरी मैच करती है, तो उसे Related लिस्ट में डालें
+                    if (currentBlog && currentBlog.category && blog.category === currentBlog.category) {
+                        relatedBlogs.push({ id: doc.id, ...blog });
+                    } else {
+                        otherBlogs.push({ id: doc.id, ...blog });
+                    }
+                });
+
+                // पहले 10 related content, फिर बचे हुए को random/recent से भरें (कुल 20 वीडियो)
+                const finalSuggestions = [...relatedBlogs.slice(0, 10), ...otherBlogs].slice(0, 20);
+
+                container.innerHTML = '';
+                
+                if (finalSuggestions.length === 0) {
+                    container.innerHTML = '<div style="color: #aaa;">No suggestions found.</div>';
+                    return;
                 }
 
-                const div = document.createElement('div');
-                div.className = 'suggestion-card';
-                div.onclick = () => window.location.href = `watch.html?id=${doc.id}`;
-                div.innerHTML = `
-                    <img src="${thumb}">
-                    <div class="suggestion-info">
-                        <h4>${blog.title}</h4>
-                        <p>${blog.author}</p>
-                        <p>${(blog.views || 0).toLocaleString()} views</p>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
+                finalSuggestions.forEach(blog => {
+                    let thumb = blog.thumbnail || 'game-logo.png';
+                    if (blog.youtubeUrl) {
+                        const vidId = getYoutubeVideoId(blog.youtubeUrl);
+                        if (vidId) thumb = `https://img.youtube.com/vi/${vidId}/mqdefault.jpg`;
+                    }
+
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-card';
+                    div.onclick = () => window.location.href = `watch.html?id=${blog.id}`;
+                    div.innerHTML = `
+                        <img src="${thumb}">
+                        <div class="suggestion-info">
+                            <h4>${blog.title}</h4>
+                            <p>${blog.author}</p>
+                            <p>${(blog.views || 0).toLocaleString()} views</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) {
+                console.error("Error loading suggestions:", e);
+                container.innerHTML = '<div style="color: #aaa;">Error loading suggestions.</div>';
+            }
         }
 
         window.skipDuration = parseInt(localStorage.getItem('viyou_skip_duration') || '12', 10);
@@ -479,7 +623,7 @@
                             </div>
                             <p class="comment-text">${renderMentionsText(r.text, r.mentionMap)}</p>
                             <div class="comment-actions">
-                                <button class="comment-action-btn" onclick="window.toggleVideoCommentLike('${c.id}', '${r.id}')" style="color: ${rIsLiked ? '#ff0050' : '#aaa'}"><i class="${rIsLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> ${(r.likes || []).length || 0}</button>
+                                <button class="comment-action-btn" onclick="window.toggleVideoCommentLike('${c.id}', '${r.id}')" style="color: ${rIsLiked ? '#ff0050' : '#aaa'}"><i data-lucide="heart" class="${rIsLiked ? 'lucide-fill' : ''}"></i> ${(r.likes || []).length || 0}</button>
                                 ${rAuthorLikeBadge}
                                 ${rIsOwner ? `<button class="comment-action-btn" onclick="window.editVideoReply('${c.id}', '${r.id}')">Edit</button> <button class="comment-action-btn" onclick="window.deleteVideoReply('${c.id}', '${r.id}')">Delete</button>` : ''}
                             </div>
@@ -500,15 +644,15 @@
                         </div>
                         <p class="comment-text">${renderMentionsText(c.text, c.mentionMap)}</p>
                         <div class="comment-actions">
-                            <button class="comment-action-btn" onclick="window.toggleVideoCommentLike('${c.id}')" style="color: ${isLiked ? '#ff0050' : '#aaa'}"><i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> ${(c.likes || []).length || 0}</button>
+                            <button class="comment-action-btn" onclick="window.toggleVideoCommentLike('${c.id}')" style="color: ${isLiked ? '#ff0050' : '#aaa'}"><i data-lucide="heart" class="${isLiked ? 'lucide-fill' : ''}"></i> ${(c.likes || []).length || 0}</button>
                             <button class="comment-action-btn" onclick="document.getElementById('reply-input-container-${c.id}').style.display='flex'">Reply</button>
                             ${authorLikeBadge}
                             ${isOwner ? `<button class="comment-action-btn" onclick="window.editVideoComment('${c.id}')">Edit</button> <button class="comment-action-btn" onclick="window.deleteVideoComment('${c.id}')">Delete</button>` : ''}
                         </div>
                         <div id="reply-input-container-${c.id}" class="reply-input-container">
                             <div id="reply-mention-dropdown-${c.id}" class="mention-dropdown"></div>
-                            <input type="text" id="reply-input-${c.id}" placeholder="Add a reply..." style="flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #444; background: #222; color: white; font-size: 0.9rem;" oninput="window.handleMentionInput(event, 'reply-mention-dropdown-${c.id}')" autocomplete="off">
-                            <button onclick="window.submitVideoReply('${c.id}')" class="btn" style="background: #0d6efd; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;">Reply</button>
+                            <input type="text" id="reply-input-${c.id}" placeholder="Add a reply..." style="flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); color: white; font-size: 0.9rem;" oninput="window.handleMentionInput(event, 'reply-mention-dropdown-${c.id}')" autocomplete="off">
+                            <button onclick="window.submitVideoReply('${c.id}')" class="btn" style="background: linear-gradient(135deg, #6366f1, #a855f7); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">Reply</button>
                         </div>
                         ${c.replies && c.replies.length > 0 ? `<div class="reply-list">${repliesHtml}</div>` : ''}
                     </div>
@@ -516,17 +660,17 @@
             }).join('');
 
             commentsSection.innerHTML = `
-                <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                    <h3 style="font-size: 1.2rem; margin-top: 0; color: #ddd; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px;">Comments (${comments.length})</h3>
+                <div style="background: rgba(20,20,20,0.6); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h3 style="font-size: 1.2rem; margin-top: 0; color: #ddd; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 20px;">Comments (${comments.length})</h3>
                     ${user ? `
                     <div style="position: relative; margin-bottom: 30px;">
                         <div id="video-mention-dropdown" class="mention-dropdown"></div>
                         <div style="display: flex; gap: 12px;">
                             <img src="${user.photoURL || 'logo.png'}" class="comment-avatar">
                             <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
-                                <input type="text" id="comment-input" placeholder="Add a comment..." style="width: 100%; padding: 12px 16px; border-radius: 24px; border: 1px solid #444; background: #222; color: white; font-size: 0.95rem; box-sizing: border-box;" oninput="window.handleMentionInput(event, 'video-mention-dropdown')" autocomplete="off">
+                                <input type="text" id="comment-input" placeholder="Add a comment..." style="width: 100%; padding: 12px 16px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); color: white; font-size: 0.95rem; box-sizing: border-box;" oninput="window.handleMentionInput(event, 'video-mention-dropdown')" autocomplete="off">
                                 <div style="display: flex; justify-content: flex-end;">
-                                    <button onclick="window.addVideoComment()" class="btn" style="background: #0d6efd; padding: 8px 20px; border-radius: 24px;">Comment</button>
+                                    <button onclick="window.addVideoComment()" class="btn" style="background: linear-gradient(135deg, #6366f1, #a855f7); padding: 8px 20px; border-radius: 24px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">Comment</button>
                                 </div>
                             </div>
                         </div>
@@ -636,6 +780,7 @@
 
         onAuthStateChanged(auth, async () => {
             await loadVastAdConfig();
+            await loadPreRollAdConfig();
             loadVideo(); 
             loadSuggestions();
         });

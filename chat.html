@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 0;
@@ -16,14 +17,33 @@
             color: #fff;
             transition: background 0.3s, color 0.3s;
         }
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
         .container {
             max-width: 600px; /* Optimized for chat screen */
             margin: 20px auto;
             padding: 20px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 8px;
             height: calc(100vh - 40px); /* Full viewport height minus margin */
             display: flex;
@@ -34,8 +54,10 @@
             align-items: center;
             gap: 15px;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             margin-bottom: 15px;
+            position: relative;
+            z-index: 100;
         }
         .chat-header .profile-pic {
             width: 40px;
@@ -102,7 +124,7 @@
             justify-content: flex-end;
         }
         .message-sent .message-text {
-            background-color: #0d6efd; /* Blue for sent messages */
+            background-color: #6366f1; /* Modern Indigo for sent messages */
             color: white;
             border-bottom-right-radius: 2px;
         }
@@ -218,6 +240,8 @@
         body.light-mode #forward-modal-title { color: #0d6efd; }
         body.light-mode #forward-user-list > div { border-bottom-color: #eee; }
         body.light-mode #forward-user-list strong { color: #000; }
+        body.light-mode #edit-message-modal > div { background: #fff !important; border-color: #ddd !important; }
+        body.light-mode #edit-message-input { background: #f4f7f6 !important; color: #333 !important; border-color: #ccc !important; }
         /* Reaction Styles */
         .reaction-picker {
             position: absolute;
@@ -242,8 +266,8 @@
         .reaction-picker span:hover { transform: scale(1.3); }
 
         .reactions-display { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; }
-        .reaction-pill { background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; }
-        .reaction-pill.user-reacted { background: #0d6efd; border: 1px solid #87ceeb; }
+        .reaction-pill { background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; transition: background 0.2s; }
+        .reaction-pill.user-reacted { background: #6366f1; border: 1px solid #a855f7; }
         
         /* Light mode reactions */
         body.light-mode .reaction-picker { background: #fff; border: 1px solid #ccc; }
@@ -289,6 +313,43 @@
         body.light-mode .read-receipt {
             color: rgba(0,0,0,0.5) !important;
         }
+
+        /* Theme Dropdown Styles */
+        .theme-dropdown-container { position: relative; display: inline-block; }
+        .theme-dropdown { position: absolute; top: 100%; right: 0; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px; display: none; flex-direction: column; gap: 8px; z-index: 1000; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 10px; }
+        .theme-dropdown.show { display: flex; animation: slideUp 0.2s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .theme-option { padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; text-align: left; display: flex; align-items: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; font-family: inherit; font-size: 0.9rem; }
+        .theme-option:hover { transform: scale(1.05); }
+        .theme-option.active { border: 2px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1.02); }
+
+        .btn-transparent { position: relative; z-index: 1; border: none !important; background: transparent !important; color: #fff !important; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .theme-btn { position: relative; z-index: 1; border: none !important; background: transparent !important; color: #fff !important; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .btn-transparent::before, .theme-btn::before { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 30px; padding: 1.5px; background: linear-gradient(45deg, #00f3ff, #b5179e); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none; }
+        .btn-transparent:hover { transform: scale(1.05); box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3); }
+
+        /* 5 New Futuristic Themes */
+        body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
+        body.cyberpunk-mode .container { border-color: rgba(255, 0, 124, 0.2); }
+        body.cyberpunk-mode .message-sent .message-text { background-color: #f72585; }
+        body.cyberpunk-mode .chat-header h2 { color: #ff007c; }
+        
+        body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
+        body.matrix-mode .container { border-color: rgba(0, 255, 65, 0.2); }
+        body.matrix-mode .message-sent .message-text { background-color: #008f11; color: #00ff41; }
+        body.matrix-mode .chat-header h2 { color: #00ff41; }
+        
+        body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
+        body.ocean-mode .message-sent .message-text { background-color: #0077b6; }
+        body.ocean-mode .chat-header h2 { color: #00e5ff; }
+        
+        body.dracula-mode { background: #282a36; color: #f8f8f2; }
+        body.dracula-mode .message-sent .message-text { background-color: #bd93f9; }
+        body.dracula-mode .chat-header h2 { color: #ff79c6; }
+        
+        body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
+        body.solar-mode .message-sent .message-text { background-color: #dc2f02; }
+        body.solar-mode .chat-header h2 { color: #ffb703; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
@@ -296,11 +357,23 @@
 <body>
     <div class="container">
         <div class="chat-header">
-        <button class="back-btn btn-transparent" style="padding: 5px 12px; border-radius: 5px;" onclick="window.history.back()">&#8592;</button>
+        <button class="back-btn btn-transparent" style="padding: 5px 12px; border-radius: 5px;" onclick="window.history.back()"><i data-lucide="arrow-left"></i></button>
             <img id="chat-partner-pic" src="https://via.placeholder.com/40" class="profile-pic" onclick="window.viewPartnerProfile()">
             <div style="flex-grow: 1;">
                 <h2 id="chat-partner-name">Loading User...</h2>
                 <p id="chat-partner-status" style="font-size: 0.8rem; color: #aaa; margin: 0; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></p>
+            </div>
+            <div class="theme-dropdown-container">
+                <button type="button" id="theme-toggle" class="btn theme-btn" style="padding: 8px 12px; width: auto;"><i data-lucide="palette"></i></button>
+                <div id="theme-dropdown" class="theme-dropdown">
+                    <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
+                    <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
+                    <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
+                    <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
+                    <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
+                    <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
+                    <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+                </div>
             </div>
         </div>
 
@@ -312,9 +385,9 @@
         <div id="typing-indicator" style="height: 20px; color: #aaa; font-style: italic; padding-left: 10px; display: none; transition: opacity 0.3s;"></div>
 
         <div class="message-input-area">
-        <button id="attach-btn" class="btn-transparent" title="Send Image" style="padding: 5px; border-radius: none; display: flex; align-items: center; justify-content: center;"><img src="attach-icon.png" alt="Attach" style="width: 34px; height: 34px;"></button>
-            <input type="file" id="image-input-chat" style="display: none;" accept="image/*">
-            <input type="text" id="message-input" placeholder="Type your message..." width:300px; style="flex-grow: 1; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem;">
+        <button id="attach-btn" class="btn-transparent" title="Send Image or PDF" style="padding: 5px; border-radius: none; display: flex; align-items: center; justify-content: center;"><img src="attach-icon.png" alt="Attach" style="width: 34px; height: 34px;"></button>
+            <input type="file" id="image-input-chat" style="display: none;" accept="image/*,application/pdf">
+            <input type="text" id="message-input" placeholder="Type your message..." style="flex-grow: 1; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem;">
         <button id="send-message-btn" class="btn-transparent" style="padding: 5px; border-radius: 5px; display: flex; align-items: center; justify-content: center;"><img src="send-icon.png" alt="Send" style="width: 34px; height: 34px;"></button>
         </div>
     </div>
@@ -334,6 +407,21 @@
                 <button onclick="document.getElementById('forward-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             <div id="forward-user-list" style="overflow-y:auto; flex:1;">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Edit Message Modal -->
+    <div id="edit-message-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
+        <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; display:flex; flex-direction:column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                <h3 style="margin:0; color:#87ceeb;"><i data-lucide="pen"></i> Edit Message</h3>
+                <button onclick="document.getElementById('edit-message-modal').style.display='none'" style="background:none; border:none; color:#aaa; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <textarea id="edit-message-input" rows="4" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #555; background: #222; color: white; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+                <button class="btn btn-transparent" style="padding: 8px 15px;" onclick="document.getElementById('edit-message-modal').style.display='none'">Cancel</button>
+                <button class="btn" id="save-edit-btn" style="padding: 8px 15px; background: #0d6efd;">Save Changes</button>
+            </div>
         </div>
     </div>
 
@@ -357,6 +445,7 @@
         let unreadBatch = null;
         let messageToForward = null;
         let lastMessageDate = null;
+        let currentEditMessageId = null;
         const TYPING_TIMEOUT_DURATION = 2000; // 2 seconds
 
         const chatMessages = document.getElementById('chat-messages');
@@ -366,13 +455,56 @@
         const imageInput = document.getElementById('image-input-chat');
 
         // Theme Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeDropdown = document.getElementById('theme-dropdown');
         const body = document.body;
+
         function applyTheme(theme) {
-            if (theme === 'light') body.classList.add('light-mode');
-            else body.classList.remove('light-mode');
+            body.classList.remove('light-mode', 'cyberpunk-mode', 'matrix-mode', 'ocean-mode', 'dracula-mode', 'solar-mode');
+            if (theme && theme !== 'dark') {
+                body.classList.add(theme + '-mode');
+            }
             localStorage.setItem('theme', theme || 'dark');
+            if (window.lucide) window.lucide.createIcons();
+
+            document.querySelectorAll('.theme-option').forEach(btn => {
+                if (btn.getAttribute('data-theme') === (theme || 'dark')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         }
         applyTheme(localStorage.getItem('theme') || 'dark');
+
+        themeToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                themeDropdown.classList.remove('show');
+            }
+        });
+
+        document.querySelectorAll('.theme-option').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const newTheme = btn.getAttribute('data-theme');
+                applyTheme(newTheme);
+                themeDropdown.classList.remove('show');
+
+                if (auth.currentUser) {
+                    try {
+                        const userRef = doc(db, "users", auth.currentUser.uid);
+                        await setDoc(userRef, { theme: newTheme }, { merge: true });
+                    } catch (e) {
+                        console.error("Error saving theme preference:", e);
+                    }
+                }
+            });
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -567,10 +699,10 @@
                 let readReceiptHtml = '';
                 if (isSent) {
                     if (data.isRead) {
-                        readReceiptHtml = ` <span class="read-receipt" style="color: #4fc3f7;"><i class="fa-solid fa-check-double"></i></span>`;
+                        readReceiptHtml = ` <span class="read-receipt" style="color: #4fc3f7;"><i data-lucide="check-check"></i></span>`;
                     } else {
                         // Single grey tick for sent but not read
-                        readReceiptHtml = ` <span class="read-receipt" style="color: rgba(255,255,255,0.6);"><i class="fa-solid fa-check"></i></span>`;
+                        readReceiptHtml = ` <span class="read-receipt" style="color: rgba(255,255,255,0.6);"><i data-lucide="check"></i></span>`;
                     }
                 }
                 timeHtml = `<span class="message-time">${timeString}${readReceiptHtml}</span>`;
@@ -605,6 +737,13 @@
             switch(data.type) {
                 case 'image':
                     messageContent = `<img src="${data.content}" alt="Image" onclick="window.openLightbox('${data.content}')">`;
+                    break;
+                case 'pdf':
+                    messageContent = `${forwardedIndicator}
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                            <i data-lucide="file-text" style="color: #ff4757;"></i>
+                            <a href="${data.content}" download="document.pdf" target="_blank" style="color: white; text-decoration: none; font-weight: bold;">📄 Download / View PDF</a>
+                        </div>`;
                     break;
                 case 'youtube':
                     messageContent = `${forwardedIndicator}
@@ -689,14 +828,13 @@
             if (isSent) {
                 let editButton = '';
                 if (canEdit) {
-                    const rawContent = JSON.stringify(data.content); // Pass content as a string
-                    editButton = `<button class="edit-msg-btn" onclick='window.showEditUI("${messageId}", ${rawContent})' title="Edit Message"><i class="fa-solid fa-pen"></i></button>`; // Edit button
+                    editButton = `<button class="edit-msg-btn" onclick="window.showEditUI('${messageId}')" title="Edit Message"><i data-lucide="pen"></i></button>`; // Edit button
                 }
-                const deleteButton = `<button class="delete-msg-btn" onclick="window.confirmDeleteMessage('${messageId}')" title="Delete Message"><i class="fa-regular fa-trash-can" style="color: rgb(220, 37, 23);"></i></button>`; // Delete button
+                const deleteButton = `<button class="delete-msg-btn" onclick="window.confirmDeleteMessage('${messageId}')" title="Delete Message"><i data-lucide="trash-2" style="color: rgb(220, 37, 23);"></i></button>`; // Delete button
                 actionButtons = editButton + deleteButton;
             }
 
-            const forwardButton = `<button class="forward-msg-btn" onclick='window.showForwardModal("${messageId}")' title="Forward Message">⤷</button>`; // Forward button
+            const forwardButton = `<button class="forward-msg-btn" onclick='window.showForwardModal("${messageId}")' title="Forward Message"><i data-lucide="corner-up-right"></i></button>`; // Forward button
 
             if (isSent) {
                 div.innerHTML = `${pickerHTML}<div class="message-text">${messageContent}${reactionsHTML}${timeHtml}</div>${actionButtons}${forwardButton}`;
@@ -735,23 +873,49 @@
             }
         }
 
-        window.showEditUI = async function(messageId, currentText) {
-            const newText = prompt("Edit your message:", currentText);
+        window.showEditUI = function(messageId) {
+            const messageData = messagesCache.get(messageId);
+            if (!messageData) return;
+            
+            currentEditMessageId = messageId;
+            document.getElementById('edit-message-input').value = messageData.content;
+            document.getElementById('edit-message-modal').style.display = 'flex';
+            document.getElementById('edit-message-input').focus();
+        }
 
-            if (newText !== null && newText.trim() !== "" && newText.trim() !== currentText) {
-                const msgRef = doc(db, "conversations", conversationId, "messages", messageId);
+        document.getElementById('save-edit-btn').addEventListener('click', async () => {
+            if (!currentEditMessageId || !conversationId) return;
+            
+            const messageData = messagesCache.get(currentEditMessageId);
+            if (!messageData) return;
+            
+            const currentText = messageData.content;
+            const newText = document.getElementById('edit-message-input').value.trim();
+
+            if (newText !== "" && newText !== currentText) {
+                const btn = document.getElementById('save-edit-btn');
+                const origText = btn.innerText;
+                btn.innerText = 'Saving...';
+                btn.disabled = true;
+
+                const msgRef = doc(db, "conversations", conversationId, "messages", currentEditMessageId);
                 try {
                     await updateDoc(msgRef, {
-                        content: newText.trim(),
+                        content: newText,
                         edited: true
                     });
-                    // UI will update via onSnapshot
+                    document.getElementById('edit-message-modal').style.display = 'none';
                 } catch (e) {
                     console.error("Error saving edit:", e);
                     alert("Failed to save edit.");
+                } finally {
+                    btn.innerText = origText;
+                    btn.disabled = false;
                 }
+            } else {
+                document.getElementById('edit-message-modal').style.display = 'none';
             }
-        }
+        });
 
         async function sendMessage() {
             const text = messageInput.value.trim();
@@ -873,11 +1037,33 @@
             sendBtn.innerText = 'Sending...';
 
             try {
-                const compressedDataUrl = await compressImage(file);
+                let fileDataUrl;
+                let messageType = 'image';
+                let lastMessageText = '[Image]';
+
+                if (file.type === 'application/pdf') {
+                    if (file.size > 800 * 1024) { // 800KB limit for PDFs
+                        alert("PDF file is too large! Maximum allowed size is 800KB.");
+                        sendBtn.disabled = false;
+                        sendBtn.innerHTML = '<img src="send-icon.png" alt="Send" style="width: 34px; height: 34px;">';
+                        imageInput.value = '';
+                        return;
+                    }
+                    fileDataUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                    messageType = 'pdf';
+                    lastMessageText = '[PDF Document]';
+                } else {
+                    fileDataUrl = await compressImage(file);
+                }
                 
                 const messagePayload = {
-                    type: 'image',
-                    content: compressedDataUrl,
+                    type: messageType,
+                    content: fileDataUrl,
                     senderUid: currentUser.uid,
                     isRead: false, // NEW: Set read status
                     timestamp: serverTimestamp()
@@ -888,12 +1074,12 @@
                 
                 await addDoc(messagesRef, messagePayload);
                 await updateDoc(convRef, {
-                    lastMessage: { text: '[Image]', senderUid: currentUser.uid, timestamp: serverTimestamp(), isRead: false }
+                    lastMessage: { text: lastMessageText, senderUid: currentUser.uid, timestamp: serverTimestamp(), isRead: false }
                 });
 
             } catch (err) {
                 console.error("Error sending image:", err);
-                alert("Failed to send image.");
+                alert("Failed to send file.");
             } finally {
                 sendBtn.disabled = false;
             sendBtn.innerHTML = '<img src="send-icon.png" alt="Send" style="width: 34px; height: 34px;">';
@@ -1023,6 +1209,9 @@
                         break;
                     case 'image':
                         lastMessageText = '[Image]';
+                        break;
+                    case 'pdf':
+                        lastMessageText = '[PDF Document]';
                         break;
                     case 'youtube':
                         lastMessageText = '[Video]';

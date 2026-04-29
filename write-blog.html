@@ -5,16 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Publish - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
 
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #292628, #030708, #000000);
-            background: #121212;
+            background: #050505;
             color: #fff;
             transition: background-color .3s ease, color .3s ease;
         }
@@ -22,23 +42,23 @@
             max-width: 800px;
             margin: 40px auto;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
             transition: background-color .3s ease, border-color .3s ease;
         }
-        h1 { text-align: center; color: #fff; }
+        h1 { text-align: center; color: #f59e0b; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, textarea, select {
             width: 100%;
             padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            border: 1px solid #444; background: #333; color: white;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
             font-size: 1rem;
             box-sizing: border-box;
         }
@@ -49,11 +69,13 @@
             font-size: 1rem;
             font-weight: bold;
             color: #fff;
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
         
         .btn-transparent {
@@ -68,9 +90,9 @@
             content: "";
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
-            border-radius: 5px;
+            border-radius: 30px;
             padding: 1.5px;
-            background: linear-gradient(45deg, #0d6efd, #ffc107);
+            background: linear-gradient(45deg, #00f3ff, #b5179e);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -78,8 +100,8 @@
             pointer-events: none;
         }
         .btn-transparent:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3);
         }
 
         .theme-btn {
@@ -109,15 +131,37 @@
         body.light-mode input, body.light-mode textarea, body.light-mode select { background: #f0f0f0; color: #333; border: 1px solid #ccc; }
         body.light-mode .theme-btn { color: #333 !important; }
         body.light-mode .btn-transparent { color: #333 !important; }
+
+        /* Theme Dropdown Styles */
+        .theme-dropdown-container { position: relative; display: inline-block; }
+        .theme-dropdown { position: absolute; bottom: 100%; right: 0; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px; display: none; flex-direction: column; gap: 8px; z-index: 1000; min-width: 160px; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); margin-bottom: 10px; }
+        .theme-dropdown.show { display: flex; animation: slideUp 0.2s ease; }
+        .theme-option { padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; text-align: left; display: flex; align-items: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; font-family: inherit; font-size: 0.9rem; }
+        .theme-option:hover { transform: scale(1.05); }
+        .theme-option.active { border: 2px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1.02); }
+
+        /* 5 New Futuristic Themes */
+        body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
+        body.cyberpunk-mode .container { border-color: rgba(255, 0, 124, 0.2); }
+        body.cyberpunk-mode .btn { background: linear-gradient(135deg, #f72585, #4361ee); box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3); }
+        body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
+        body.matrix-mode .container { border-color: rgba(0, 255, 65, 0.2); }
+        body.matrix-mode .btn { background: linear-gradient(135deg, #00b4d8, #00ff41); box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3); color: #000; }
+        body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
+        body.ocean-mode .btn { background: linear-gradient(135deg, #0077b6, #00b4d8); box-shadow: 0 4px 15px rgba(0, 119, 182, 0.3); }
+        body.dracula-mode { background: #282a36; color: #f8f8f2; }
+        body.dracula-mode .btn { background: linear-gradient(135deg, #bd93f9, #ff79c6); box-shadow: 0 4px 15px rgba(189, 147, 249, 0.3); }
+        body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
+        body.solar-mode .btn { background: linear-gradient(135deg, #dc2f02, #ffba08); box-shadow: 0 4px 15px rgba(220, 47, 2, 0.3); }
     </style>
     <style>
         /* Toast Notification */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #333; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); min-width: 250px; max-width: 350px; }
+        .toast { background: #222; color: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); min-width: 250px; max-width: 350px; }
         .toast.show { opacity: 1; transform: translateX(0); }
-        .toast.success { border-left: 5px solid #28a745; }
-        .toast.error { border-left: 5px solid #dc3545; }
-        .toast.info { border-left: 5px solid #0d6efd; }
+        .toast.success { border-left: 5px solid #10b981; }
+        .toast.error { border-left: 5px solid #ef4444; }
+        .toast.info { border-left: 5px solid #6366f1; }
         .toast-icon { font-size: 1.2rem; }
         body.light-mode .toast { background: #fff; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     </style>
@@ -129,9 +173,9 @@
         <h1>Add Your Post</h1>
         
         <div class="tabs-container" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #df1616; padding-bottom: 10px;">
-            <button type="button" id="tab-blog" onclick="window.switchPostType('blog')" style="flex: 1; padding: 12px; background: transparent; color: #a70000; border: none; border-bottom: 2px solid #0d6efd; cursor: pointer; font-weight: bold; transition: 0.3s;"><i class="fa-solid fa-pen-to-square"></i> Blog Post</button>
-            <button type="button" id="tab-video" onclick="window.switchPostType('video')" style="flex: 1; padding: 12px; background: transparent; color: #af0404; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i class="fa-solid fa-play"></i> Long Video</button>
-            <button type="button" id="tab-flick" onclick="window.switchPostType('flick')" style="flex: 1; padding: 12px; background: transparent; color: #af0303; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i class="fa-solid fa-bolt"></i> Flick</button>
+            <button type="button" id="tab-blog" onclick="window.switchPostType('blog')" style="flex: 1; padding: 12px; background: transparent; color: #a70000; border: none; border-bottom: 2px solid #6366f1; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="edit-3"></i> Blog Post</button>
+            <button type="button" id="tab-video" onclick="window.switchPostType('video')" style="flex: 1; padding: 12px; background: transparent; color: #af0404; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="play-circle"></i> Long Video</button>
+            <button type="button" id="tab-flick" onclick="window.switchPostType('flick')" style="flex: 1; padding: 12px; background: transparent; color: #af0303; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="zap"></i> Flick</button>
         </div>
 
         <form id="blogForm">
@@ -154,6 +198,8 @@
                     <option value="Travel & Events">Travel & Events (यात्रा और घटनाक्रम)</option>
                     <option value="Fashion & Beauty">Fashion & Beauty (फैशन और सौंदर्य)</option>
                     <option value="Food">Food (भोजन)</option>
+                    <option value="Devotional">Devotional (भक्ति)</option>
+                    <option value="Gym & Fitness">Gym & Fitness (जिम और फिटनेस)</option>
                     <option value="Others" selected>Others (अन्य)</option>
                 </select>
             </div>
@@ -170,11 +216,11 @@
                     <input type="file" id="image" accept="image/*" multiple>
                 </div>
                 <div class="form-group">
-                    <label for="youtube-url">YouTube वीडियो URL (वैकल्पिक)</label>
+                    <label for="youtube-url">YouTube वीडियो URL (Optional)</label>
                     <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
                 </div>
                 <div class="form-group">
-                    <button type="button" id="add-poll-btn" class="btn btn-transparent"><i class="fa-solid fa-chart-simple"></i> Add Poll</button>
+                    <button type="button" id="add-poll-btn" class="btn btn-transparent"><i data-lucide="bar-chart-2"></i> Add Poll</button>
                     <div id="poll-creator" style="display: none; margin-top: 15px; padding: 15px; border: 1px dashed #555; border-radius: 5px;">
                         <label for="poll-question">Poll Question</label>
                         <input type="text" id="poll-question" placeholder="e.g., Who will win today?">
@@ -191,6 +237,7 @@
                 <div class="form-group">
                     <label id="video-upload-label" for="video-upload">वीडियो अपलोड करें (Video - Max 800KB)</label>
                     <input type="file" id="video-upload" accept="video/mp4,video/webm,video/ogg">
+                    <video id="video-preview" controls style="width: 100%; max-height: 250px; display: none; margin-top: 10px; border-radius: 8px; border: 1px solid #555; background: #000;"></video>
                 </div>
                 <div class="form-group" id="thumbnail-group" style="display: none;">
                     <label for="thumbnail-upload">थंबनेल (Thumbnail - Auto Compress &lt; 500KB)</label>
@@ -200,12 +247,23 @@
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="submit" id="publish-btn" class="btn btn-transparent"><img src="publish-icon.png" alt="Publish" style="width: 20px; height: 20px; margin-right: 5px;"> Publish Blog</button>
-                <button type="button" id="save-draft-btn" class="btn btn-transparent"><i class="fa-solid fa-save"></i> Save Draft</button>
-                <a href="index.html" class="btn btn-transparent"><i class="fa-solid fa-times"></i> Cancel</a>
+                <button type="submit" id="publish-btn" class="btn btn-transparent"><img src="publish-icon.png" alt="Publish" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"> Publish Blog</button>
+                <button type="button" id="save-draft-btn" class="btn btn-transparent"><i data-lucide="save"></i> Save Draft</button>
+                <a href="index.html" class="btn btn-transparent"><i data-lucide="x"></i> Cancel</a>
             </div>
             <div style="text-align: center; margin-top: 15px;">
-                <button type="button" id="theme-toggle" class="btn theme-btn" style="padding: 8px 12px; width: auto;">☀️</button>
+                <div class="theme-dropdown-container">
+                    <button type="button" id="theme-toggle" class="btn theme-btn" style="padding: 8px 12px; width: auto;"><i data-lucide="palette"></i></button>
+                    <div id="theme-dropdown" class="theme-dropdown">
+                        <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
+                        <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
+                        <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
+                        <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
+                        <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
+                        <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
+                        <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -235,11 +293,11 @@
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             
-            let iconClass = 'fa-solid fa-circle-info';
-            if (type === 'success') iconClass = 'fa-solid fa-check-circle';
-            if (type === 'error') iconClass = 'fa-solid fa-times-circle';
+            let iconClass = 'info';
+            if (type === 'success') iconClass = 'check-circle';
+            if (type === 'error') iconClass = 'x-circle';
 
-            toast.innerHTML = `<span class="toast-icon"><i class="${iconClass}"></i></span><span>${message}</span>`;
+            toast.innerHTML = `<span class="toast-icon"><i data-lucide="${iconClass}"></i></span><span>${message}</span>`;
             container.appendChild(toast);
 
             setTimeout(() => { toast.classList.add('show'); }, 100);
@@ -285,45 +343,94 @@
         if (titleInput) {
             titleInput.addEventListener('input', updateCharCounter);
         }
+            
+        // Helper function to get video from IndexedDB
+        function retrieveVideoFromIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("ViyouMediaDB", 1);
+                request.onsuccess = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains("videos")) {
+                        resolve(null); return;
+                    }
+                    const tx = db.transaction("videos", "readwrite");
+                    const store = tx.objectStore("videos");
+                    const getReq = store.get("exported_video");
+                    getReq.onsuccess = () => {
+                        // Clean up database after taking the video so it doesn't take space
+                        store.delete("exported_video");
+                        resolve(getReq.result);
+                    };
+                    getReq.onerror = () => reject(getReq.error);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
 
         // Theme Toggle Logic
         const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeDropdown = document.getElementById('theme-dropdown');
         const body = document.body;
 
         function applyTheme(theme) {
-            if (theme === 'light') {
-                body.classList.add('light-mode');
-                themeToggleBtn.textContent = '🌙';
-            } else {
-                body.classList.remove('light-mode');
-                themeToggleBtn.textContent = '☀️';
+            body.classList.remove('light-mode', 'cyberpunk-mode', 'matrix-mode', 'ocean-mode', 'dracula-mode', 'solar-mode');
+            if (theme && theme !== 'dark') {
+                body.classList.add(theme + '-mode');
             }
             localStorage.setItem('theme', theme || 'dark');
+            if (window.lucide) window.lucide.createIcons();
+
+            document.querySelectorAll('.theme-option').forEach(btn => {
+                if (btn.getAttribute('data-theme') === (theme || 'dark')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         }
 
-        themeToggleBtn.addEventListener('click', async () => {
-            const newTheme = body.classList.contains('light-mode') ? 'dark' : 'light';
-            applyTheme(newTheme);
-            if (auth.currentUser) {
-                try {
-                    const userRef = doc(db, "users", auth.currentUser.uid);
-                    await setDoc(userRef, { theme: newTheme }, { merge: true });
-                } catch (e) {
-                    console.error("Error saving theme preference:", e);
-                }
+        themeToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                themeDropdown.classList.remove('show');
             }
+        });
+
+        document.querySelectorAll('.theme-option').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const newTheme = btn.getAttribute('data-theme');
+                applyTheme(newTheme);
+                themeDropdown.classList.remove('show');
+
+                if (auth.currentUser) {
+                    try {
+                        const userRef = doc(db, "users", auth.currentUser.uid);
+                        await setDoc(userRef, { theme: newTheme }, { merge: true });
+                    } catch (e) {
+                        console.error("Error saving theme preference:", e);
+                    }
+                }
+            });
         });
 
         window.switchPostType = function(type) {
             currentPostType = type;
             document.getElementById('video-upload').value = ''; // Clear video input to enforce new ratio validation
             
+            document.getElementById('video-preview').style.display = 'none';
+            document.getElementById('video-preview').src = '';
+            
             document.getElementById('tab-blog').style.color = type === 'blog' ? 'red' : '#888';
-            document.getElementById('tab-blog').style.borderBottomColor = type === 'blog' ? '#0d6efd' : 'transparent';
+            document.getElementById('tab-blog').style.borderBottomColor = type === 'blog' ? '#6366f1' : 'transparent';
             document.getElementById('tab-video').style.color = type === 'video' ? 'red' : '#888';
-            document.getElementById('tab-video').style.borderBottomColor = type === 'video' ? '#0d6efd' : 'transparent';
+            document.getElementById('tab-video').style.borderBottomColor = type === 'video' ? '#6366f1' : 'transparent';
             document.getElementById('tab-flick').style.color = type === 'flick' ? 'red' : '#888';
-            document.getElementById('tab-flick').style.borderBottomColor = type === 'flick' ? '#0d6efd' : 'transparent';
+            document.getElementById('tab-flick').style.borderBottomColor = type === 'flick' ? '#6366f1' : 'transparent';
 
             const blogFields = document.getElementById('blog-specific-fields');
             const videoFields = document.getElementById('video-specific-fields');
@@ -387,6 +494,33 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const editId = urlParams.get('id');
                 if (editId) loadBlogForEdit(editId, user);
+                
+                // --- Step 4: Import Rendered Video from Editor ---
+                const importVideo = urlParams.get('importVideo');
+                const importType = urlParams.get('type');
+
+                if (importVideo === 'true') {
+                    window.switchPostType(importType || 'video');
+                    try {
+                        const blob = await retrieveVideoFromIndexedDB();
+                        if (blob) {
+                            const file = new File([blob], "Viyou_Edited_Video.webm", { type: blob.type });
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            const videoInput = document.getElementById('video-upload');
+                            videoInput.files = dataTransfer.files;
+                            
+                            // Trigger change event to run validations if any
+                            const event = new Event('change');
+                            videoInput.dispatchEvent(event);
+                            
+                            showToast("Your edited video has been attached successfully!", "success");
+                        }
+                    } catch(err) {
+                        console.error("Failed to retrieve imported video", err);
+                        showToast("Failed to load the edited video.", "error");
+                    }
+                }
                 // Load theme preference
                 try {
                     const userDocRef = doc(db, "users", user.uid);
@@ -438,13 +572,17 @@
         // Aspect Ratio Validation for Video Uploads
         document.getElementById('video-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (!file) return;
+            const preview = document.getElementById('video-preview');
+            if (!file) {
+                preview.style.display = 'none';
+                preview.src = '';
+                return;
+            }
 
             const video = document.createElement('video');
             video.preload = 'metadata';
 
             video.onloadedmetadata = function() {
-                window.URL.revokeObjectURL(video.src);
                 const ratio = video.videoWidth / video.videoHeight;
                 let isValid = true;
                 let expectedRatioText = "";
@@ -468,6 +606,12 @@
                 if (!isValid) {
                     alert(`Invalid video aspect ratio for ${currentPostType === 'flick' ? 'Flick' : 'Long Video'}.\nExpected: ${expectedRatioText}\nSelected video ratio is approx: ${(ratio).toFixed(2)}:1`);
                     document.getElementById('video-upload').value = '';
+                    preview.style.display = 'none';
+                    preview.src = '';
+                    window.URL.revokeObjectURL(video.src);
+                } else {
+                    preview.src = video.src;
+                    preview.style.display = 'block';
                 }
             };
 
@@ -614,7 +758,7 @@
             document.getElementById('blogForm').requestSubmit();
         });
 
-        document.getElementById('blogForm').addEventListener('submit', function(e) {
+        document.getElementById('blogForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (e.submitter && e.submitter.id !== 'save-draft-btn') submissionStatus = 'published';
             
@@ -631,6 +775,28 @@
             
             let isFlicks = currentPostType === 'flick';
             
+            // --- Abusive & Sexual Content Filter (Client-Side) ---
+            let badWords = ['fuck', 'bitch', 'asshole', 'porn', 'nude', 'bastard', 'slut', 'madarchod', 'bhenchod', 'chutiya', 'bhosdike', 'randi', 'sex'];
+            try {
+                const modDoc = await getDoc(doc(db, "settings", "moderation"));
+                if (modDoc.exists() && modDoc.data().badWords) {
+                    badWords = modDoc.data().badWords;
+                }
+            } catch(e) { console.error("Error loading bad words filter", e); }
+            
+            const textToCheck = (title + " " + content + " " + pollQuestion + " " + pollOptions.join(' ')).toLowerCase();
+            
+            const containsAbuse = badWords.some(word => {
+                const regex = new RegExp('\\b' + word + '\\b', 'i');
+                return regex.test(textToCheck);
+            });
+
+            if (containsAbuse) {
+                showToast("⚠️ Abusive or explicit language detected! Your content cannot be published.", 'error');
+                return;
+            }
+            // -----------------------------------------------------
+
             if (currentPostType === 'video' && !title) {
                 title = "Viyou " + new Date().toLocaleDateString('en-IN');
             } else if (currentPostType === 'flick' && !title) {

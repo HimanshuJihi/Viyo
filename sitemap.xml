@@ -8,54 +8,59 @@
 
 
 <url>
-  <loc>https://viyou.netlify.app/</loc>
+  <loc>https://viyou.in/</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
-  <loc>https://viyou.netlify.app/privacy</loc>
+  <loc>https://viyou.in/privacy.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 
 <url>
-  <loc>https://viyou.netlify.app/write-blog</loc>
+  <loc>https://viyou.in/write-blog.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://viyou.netlify.app/profile</loc>
+  <loc>https://viyou.in/profile.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 
 <url>
-  <loc>https://viyou.netlify.app/about-us</loc>
+  <loc>https://viyou.in/about-us.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://viyou.netlify.app/story-editor</loc>
+  <loc>https://viyou.in/story-editor.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://viyou.netlify.app/watch</loc>
+  <loc>https://viyou.in/watch.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://viyou.netlify.app/flicks</loc>
+  <loc>https://viyou.in/flicks.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://viyou.netlify.app/contact-us</loc>
+  <loc>https://viyou.in/promote.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://viyou.netlify.app/terms</loc>
+  <loc>https://viyou.in/contact-us.html</loc>
+  <lastmod>2026-04-17T10:08:03+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://viyou.in/terms.html</loc>
   <lastmod>2026-04-17T10:08:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>

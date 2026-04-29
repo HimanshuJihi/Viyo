@@ -5,12 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Flicks - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fluid Player for VAST Ads -->
-    <link rel="stylesheet" href="libs/fluidplayer.min.css" type="text/css"/>
-    <script src="libs/fluidplayer.min.js"></script>
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
+    <!-- Fluid Player for VAST Ads -->
+    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
+    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: 'Outfit', -apple-system, sans-serif; overflow: hidden; }
         .navbar { position: absolute; top: 0; width: 100%; padding: 15px 20px; z-index: 100; display: flex; align-items: center; box-sizing: border-box; background: linear-gradient(rgba(0,0,0,0.6), transparent); }
         .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .navbar span { margin-left: 15px; font-weight: bold; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
@@ -69,7 +87,7 @@
 </head>
 <body>
     <div class="navbar">
-        <a href="index.html"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="index.html"><i data-lucide="arrow-left"></i></a>
         <span>Flicks</span>
     </div>
     <div id="flicks-comments-panel" style="display:none; position: fixed; bottom: 0; left: 0; width: 100%; height: 60%; background: #1e1e1e; border-top-left-radius: 15px; border-top-right-radius: 15px; z-index: 101; flex-direction: column; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); transform: translateY(100%); transition: transform 0.3s ease-out;">
@@ -167,19 +185,19 @@
                         </div>
                         <div class="sidebar">
                             <div class="action-wrapper">
-                                <button class="action-btn" onclick="likeFlick('${flick.id}', this)"><i class="fa-solid fa-heart"></i></button>
+                                <button class="action-btn" onclick="likeFlick('${flick.id}', this)"><i data-lucide="heart" class="lucide-fill"></i></button>
                                 <span id="like-count-${flick.id}">${likesCount}</span>
                             </div>
                             <div class="action-wrapper">
-                                <button class="action-btn" onclick="window.openFlickComments()"><i class="fa-solid fa-comment"></i></button>
+                                <button class="action-btn" onclick="window.openFlickComments()"><i data-lucide="message-circle"></i></button>
                                 <span id="comment-count-${flick.id}">${(flick.comments || []).length}</span>
                             </div>
                             <div class="action-wrapper">
-                                <button class="action-btn" onclick="shareFlick('${flick.id}')"><i class="fa-solid fa-share"></i></button>
+                                <button class="action-btn" onclick="shareFlick('${flick.id}')"><i data-lucide="share-2"></i></button>
                                 <span>Share</span>
                             </div>
                             <div class="action-wrapper">
-                                <button class="action-btn" onclick="window.openSendFlickModal('${flick.id}')"><i class="fa-solid fa-paper-plane"></i></button>
+                                <button class="action-btn" onclick="window.openSendFlickModal('${flick.id}')"><i data-lucide="send"></i></button>
                                 <span>Send</span>
                             </div>
                         </div>
@@ -393,9 +411,9 @@
                                     </div>
                                     <p class="comment-text">${renderMentionsText(r.text, r.mentionMap)}</p>
                                     <div class="comment-actions">
-                                        <button class="comment-action-btn" onclick="window.toggleFlickCommentLike('${c.id}', '${r.id}')" style="color: ${rIsLiked ? '#ff0050' : '#aaa'}"><i class="${rIsLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> ${(r.likes || []).length || 0}</button>
+                                        <button class="comment-action-btn" onclick="window.toggleFlickCommentLike('${c.id}', '${r.id}')" style="color: ${rIsLiked ? '#ff0050' : '#aaa'}"><i data-lucide="heart" class="${rIsLiked ? 'lucide-fill' : ''}"></i> ${(r.likes || []).length || 0}</button>
                                         ${rAuthorLikeBadge}
-                                        ${rIsOwner ? `<button class="comment-action-btn" onclick="window.editFlickReply('${c.id}', '${r.id}')">Edit</button> <button class="comment-action-btn" onclick="window.deleteFlickReply('${c.id}', '${r.id}')">Delete</button>` : ''}
+                                        ${rIsOwner ? `<button class="comment-action-btn" onclick="window.editFlickReply('${c.id}', '${r.id}')"><i data-lucide="pen" style="width:1em;height:1em;"></i> Edit</button> <button class="comment-action-btn" onclick="window.deleteFlickReply('${c.id}', '${r.id}')"><i data-lucide="trash-2" style="width:1em;height:1em;"></i> Delete</button>` : ''}
                                     </div>
                                 </div>
                             </div>`;

@@ -7,11 +7,11 @@
     <link rel="icon" href="logo.png" type="image/png">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background: #1e1e1e;
+            background: #050505;
             color: #fff;
         }
         .container {
@@ -19,14 +19,16 @@
             margin: 0 auto;
         }
         h1, h2 {
-            color: gold;
+            color: #f59e0b;
             border-bottom: 1px solid #444;
             padding-bottom: 10px;
         }
         .report-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #444;
-            border-radius: 8px;
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
             padding: 15px;
             margin-bottom: 15px;
         }
@@ -38,22 +40,24 @@
             margin: 5px 0;
         }
         .btn {
-            display: inline-block;
-            padding: 8px 15px;
-            font-size: 0.9rem;
+            display: inline-block; padding: 10px 20px; font-size: 1rem;
             font-weight: bold;
             color: #fff;
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             text-decoration: none;
             margin-right: 10px;
-            transition: background-color 0.2s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
-        .btn-danger { background-color: #dc3545; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn:hover { opacity: 0.8; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5); }
+        .btn-danger { background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5); }
+        .btn-secondary { background: #64748b; box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3); }
+        .btn-secondary:hover { box-shadow: 0 8px 25px rgba(100, 116, 139, 0.5); }
+
         .admin-tab-btn {
             background-color: transparent;
             border: 1px solid #6c757d;
@@ -66,8 +70,8 @@
             transition: all 0.3s ease;
         }
         .admin-tab-btn.active {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #6366f1;
+            border-color: #6366f1;
             color: white;
         }
         .admin-tab-btn:hover:not(.active) {
@@ -100,6 +104,25 @@
         .toast.error { background-color: #dc3545; border-left: 5px solid #8b1c27; }
     </style>
 </head>
+    <!-- Modern Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        .lucide-fill { fill: currentColor; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const observer = new MutationObserver((mutations) => {
+                if (mutations.some(m => m.addedNodes.length > 0)) {
+                    observer.disconnect();
+                    lucide.createIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
 <body>
     <div id="toast-container"></div>
     <div class="container">
@@ -114,6 +137,7 @@
             <button id="tab-copyright" class="admin-tab-btn">© Copyright Claims</button>
             <button id="tab-headlines" class="admin-tab-btn">📢 Headlines</button>
             <button id="tab-vast" class="admin-tab-btn">📺 VAST Ads</button>
+            <button id="tab-promotions" class="admin-tab-btn">🚀 Promotions</button>
         </div>
 
         <div id="admin-content" style="display: none;">
@@ -154,7 +178,7 @@
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 10px;">
                     <h3 style="color: #87ceeb; margin: 0; font-size: 1.1rem;">Rotating Banner Ads (Up to 10)</h3>
-                    <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.85rem; margin: 0;" onclick="window.clearAllBanners()"><i class="fa-solid fa-trash-can"></i> Delete All Banners</button>
+                    <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.85rem; margin: 0;" onclick="window.clearAllBanners()"><i data-lucide="trash-2"></i> Delete All Banners</button>
                 </div>
                 <label style="display: block; margin-bottom: 5px;">Banner Ad Frequency (Show after every X blogs):</label>
                 <input type="number" id="banner-frequency" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
@@ -195,6 +219,15 @@
             <!-- Reported Blogs Section -->
             <div id="section-reported">
                 <h2>Reported Blogs <span style="float: right; background: #dc3545; color: #fff; padding: 2px 12px; border-radius: 20px; font-size: 1rem;">Total: <span id="report-count">0</span></span></h2>
+                
+                <!-- Content Moderation Card -->
+                <div class="report-card" style="border-color: #ff0050; margin-bottom: 20px;">
+                    <h3 style="color: #ff0050;"><i data-lucide="ban"></i> Content Moderation (Blocked Words)</h3>
+                    <p style="color: #aaa; font-size: 0.9rem;">Add abusive words separated by commas. Posts and comments containing these will be automatically blocked.</p>
+                    <textarea id="admin-bad-words" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;" placeholder="fuck, bitch, asshole..."></textarea>
+                    <button class="btn" style="background-color: #ff0050; margin-top: 10px;" onclick="window.saveBadWords()">Save Blocked Words</button>
+                </div>
+
                 <div id="reports-list">
                     <p>Loading reports...</p>
                 </div>
@@ -236,15 +269,15 @@
                 </div>
                 
                 <div class="report-card" style="border-color: #198754;">
-                    <h3 style="color: #198754;"><i class="fa-solid fa-money-bill-wave"></i> Pending Payout Requests</h3>
-                    <button class="btn btn-secondary" onclick="window.loadPayoutRequests()" style="margin-bottom: 15px;"><i class="fa-solid fa-arrows-rotate"></i> Refresh Requests</button>
+                    <h3 style="color: #198754;"><i data-lucide="wallet"></i> Pending Payout Requests</h3>
+                    <button class="btn btn-secondary" onclick="window.loadPayoutRequests()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh Requests</button>
                     <div id="payout-requests-list">Click refresh to load pending requests...</div>
                 </div>
 
                 <!-- Payment History Section -->
                 <div class="report-card" style="border-color: #6c757d;">
-                    <h3 style="color: #6c757d;"><i class="fa-solid fa-clock-rotate-left"></i> Payment History</h3>
-                    <button class="btn btn-secondary" onclick="window.loadPaymentHistory()" style="margin-bottom: 15px;"><i class="fa-solid fa-arrows-rotate"></i> Load History</button>
+                    <h3 style="color: #6c757d;"><i data-lucide="history"></i> Payment History</h3>
+                    <button class="btn btn-secondary" onclick="window.loadPaymentHistory()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Load History</button>
                     <div id="payment-history-list" style="max-height: 400px; overflow-y: auto;">Click load to view past payments...</div>
                 </div>
 
@@ -259,7 +292,7 @@
                 </div>
                 <div class="report-card">
                     <h3>Currently Monetized Creators</h3>
-                    <button class="btn btn-secondary" onclick="window.loadMonetizedUsers()" style="margin-bottom: 15px;"><i class="fa-solid fa-arrows-rotate"></i> Refresh List</button>
+                    <button class="btn btn-secondary" onclick="window.loadMonetizedUsers()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh List</button>
                     <div id="monetized-users-list">Click refresh to load...</div>
                 </div>
             </div>
@@ -302,6 +335,81 @@
                     <button id="save-vast-btn" class="btn" style="background-color: #ff0050; width: 100%;" onclick="window.saveVastSettings()">Save VAST Settings</button>
                 </div>
             </div>
+
+            <!-- Promotions Section -->
+            <div id="section-promotions" style="display: none;">
+                <div class="report-card" style="border-color: #8e44ad; margin-bottom: 20px;">
+                    <h2 style="color: #8e44ad; margin-top: 0;">Promotions Management</h2>
+                    <p style="color: #aaa; font-size: 0.9rem;">Set your payment receiving details and manage user-promoted content.</p>
+                    
+                    <label style="display: block; margin-bottom: 5px; margin-top: 15px;">Your UPI ID (For receiving payments):</label>
+                    <input type="text" id="promo-upi-id" placeholder="e.g. himanshusainiaggarwal@okaxis" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    
+                    <label style="display: block; margin-bottom: 5px;">QR Code Image (Upload or URL):</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                        <input type="file" id="promo-qr-file" accept="image/*" style="width: 40%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                        <input type="text" id="promo-qr-url" placeholder="QR Image URL..." style="width: 60%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    </div>
+                    <img id="promo-qr-preview" src="" style="max-height: 150px; display: none; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555;">
+                    
+                    <h3 style="color: #87ceeb; margin-top: 15px; margin-bottom: 10px; font-size: 1.1rem;">In-Feed Promotion Pricing</h3>
+                    <label style="display: block; margin-bottom: 5px;">Base Duration (Hours):</label>
+                    <input type="number" id="promo-base-hours" value="50" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px;">Tier 4 (Every 4 posts) ₹:</label>
+                            <input type="number" id="promo-price-tier4" value="50" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px;">Tier 3 (Every 3 posts) ₹:</label>
+                            <input type="number" id="promo-price-tier3" value="70" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px;">Tier 2 (Every 2 posts) ₹:</label>
+                            <input type="number" id="promo-price-tier2" value="80" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px;">Tier 1 (Every 1 post) ₹:</label>
+                            <input type="number" id="promo-price-tier1" value="100" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        </div>
+                    </div>
+
+                    <h3 style="color: #87ceeb; margin-top: 15px; margin-bottom: 10px; font-size: 1.1rem;">Other Ad Settings</h3>
+                    <label style="display: block; margin-bottom: 5px;">Max Daily External Ads Per User:</label>
+                    <input type="number" id="promo-daily-limit" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <label style="display: block; margin-bottom: 5px;">Pre-Roll Ad Frequency (Show every X videos):</label>
+                    <input type="number" id="promo-preroll-frequency" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <label style="display: block; margin-bottom: 5px;">Pre-Roll Ad Rate (₹ per 1000 impressions):</label>
+                    <input type="number" id="promo-preroll-rate" value="100" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <button class="btn" style="background-color: #8e44ad; width: 100%;" onclick="window.savePromoSettings()">Save Settings</button>
+                </div>
+
+                <div class="report-card" style="border-color: #0d6efd; margin-bottom: 20px;">
+                    <h3 style="color: #0d6efd;"><i data-lucide="satellite-dish"></i> Live Promotions</h3>
+                    <button class="btn btn-secondary" onclick="window.loadLivePromotions()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh Live</button>
+                    <div id="live-promotions-list">Click refresh to load live promotions...</div>
+                </div>
+
+                <div class="report-card" style="border-color: gold;">
+                    <h3 style="color: gold;"><i data-lucide="history"></i> Pending Promotion Requests</h3>
+                    <button class="btn btn-secondary" onclick="window.loadPromoRequests()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh Requests</button>
+                    <div id="promo-requests-list">Click refresh to load pending requests...</div>
+                </div>
+
+                <div class="report-card" style="border-color: #6c757d;">
+                    <h3 style="color: #6c757d;"><i data-lucide="history"></i> Promotion History</h3>
+                    <button class="btn btn-secondary" onclick="window.loadPromoHistory()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh History</button>
+                    <div id="promo-history-list">Click refresh to load history...</div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button id="load-more-promo-history-btn" class="btn btn-secondary" style="display: none;" onclick="window.loadMorePromoHistory()">Load More</button>
+                    </div>
+                </div>
+            </div>
+            
         </div>
 
         <div id="auth-message">
@@ -311,7 +419,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { firebaseConfig } from "./firebase-config.js";
 
@@ -336,6 +444,8 @@
         const sectionCopyright = document.getElementById('section-copyright');
         const sectionHeadlines = document.getElementById('section-headlines');
         const sectionVast = document.getElementById('section-vast');
+        const tabPromotions = document.getElementById('tab-promotions');
+        const sectionPromotions = document.getElementById('section-promotions');
         let currentAdConfig = {};
 
         // --- Custom Toast Notification ---
@@ -366,12 +476,14 @@
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
+            tabPromotions.classList.remove('active');
             sectionReported.style.display = 'block';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
+            sectionPromotions.style.display = 'none';
         });
 
         tabAds.addEventListener('click', () => {
@@ -381,12 +493,14 @@
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
+            tabPromotions.classList.remove('active');
             sectionAds.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
+            sectionPromotions.style.display = 'none';
         });
 
         tabMonetization.addEventListener('click', () => {
@@ -396,12 +510,14 @@
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
+            tabPromotions.classList.remove('active');
             sectionMonetization.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
+            sectionPromotions.style.display = 'none';
             window.loadPayoutRequests();
             window.loadMonetizedUsers();
         });
@@ -413,12 +529,14 @@
             tabMonetization.classList.remove('active');
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
+            tabPromotions.classList.remove('active');
             sectionCopyright.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
+            sectionPromotions.style.display = 'none';
             window.loadCopyrightClaims();
         });
 
@@ -429,12 +547,14 @@
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabVast.classList.remove('active');
+            tabPromotions.classList.remove('active');
             sectionHeadlines.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionVast.style.display = 'none';
+            sectionPromotions.style.display = 'none';
             window.loadHeadlines();
         });
 
@@ -445,13 +565,36 @@
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
+            tabPromotions.classList.remove('active');
             sectionVast.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
+            sectionPromotions.style.display = 'none';
             window.loadVastSettings();
+        });
+
+        tabPromotions.addEventListener('click', () => {
+            tabPromotions.classList.add('active');
+            tabReported.classList.remove('active');
+            tabAds.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            tabHeadlines.classList.remove('active');
+            tabVast.classList.remove('active');
+            sectionPromotions.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionAds.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
+            sectionVast.style.display = 'none';
+            window.loadPromoSettings();
+            window.loadPromoRequests();
+            window.loadPromoHistory();
+            window.loadLivePromotions();
         });
 
         onAuthStateChanged(auth, async (user) => {
@@ -483,7 +626,7 @@
                             <div style="background: rgba(0,0,0,0.2); border: 1px solid #444; padding: 10px; margin-bottom: 15px; border-radius: 4px;" id="banner-container-${i}">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                                     <label style="font-weight: bold; color: gold; margin: 0;">Banner ${i}</label>
-                                    <button type="button" class="btn btn-danger" style="padding: 2px 8px; font-size: 0.8rem; margin: 0;" onclick="window.clearBanner(${i})"><i class="fa-solid fa-trash"></i> Delete</button>
+                                    <button type="button" class="btn btn-danger" style="padding: 2px 8px; font-size: 0.8rem; margin: 0;" onclick="window.clearBanner(${i})"><i data-lucide="trash-2"></i> Delete</button>
                                 </div>
                                 <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Image (Upload or URL):</label>
                                 <div style="display: flex; gap: 10px; margin-bottom: 5px;">
@@ -531,6 +674,19 @@
                                 });
                             }
                         }
+                        
+                        const promoQrFile = document.getElementById('promo-qr-file');
+                        if (promoQrFile) {
+                            promoQrFile.addEventListener('change', async (e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    const base64 = await compressImage(file);
+                                    document.getElementById('promo-qr-url').value = base64;
+                                    document.getElementById('promo-qr-preview').src = base64;
+                                    document.getElementById('promo-qr-preview').style.display = 'block';
+                                }
+                            });
+                        }
                     }
 
                     loadReports();
@@ -538,6 +694,7 @@
                     loadMonetizationSettings();
                     window.loadHeadlines();
                     window.loadVastSettings();
+                    window.loadBadWords();
                 } else {
                     authMessage.innerHTML = '<p style="color: red;">Access Denied. You are not an admin.</p>';
                     setTimeout(() => window.location.href = 'index.html', 2000);
@@ -846,8 +1003,8 @@
                         const safeAuthor = blog.author ? blog.author.replace(/'/g, "\\'") : 'Unknown';
                         card.innerHTML = `
                             <h3>${blog.title}</h3>
-                            <p><strong>Author:</strong> ${blog.author}</p>
-                            <p><strong>Report Reason:</strong> ${report.reason}</p>
+                            <p><strong>Author:</strong> ${blog.author} ${blog.authorVerified ? '<span style="color: #1da1f2;" title="Verified">✔</span>' : ''}</p>
+                            <p><strong>Report Reason:</strong> ${report.reason.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
                             <p><strong>Reported by UID:</strong> ${report.reporterUid}</p>
                             <p><strong>Date:</strong> ${new Date(report.date).toLocaleString()}</p>
                             <div>
@@ -939,7 +1096,7 @@
                         card.innerHTML = `
                             <h3>${blog.title}</h3>
                             <p><strong>Author:</strong> ${blog.author}</p>
-                            <p><strong>Claim Reason/Region:</strong> ${claim.reason}</p>
+                            <p><strong>Claim Reason/Region:</strong> ${claim.reason.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
                             <p><strong>Claimed by UID:</strong> ${claim.claimerUid}</p>
                             <p><strong>Date:</strong> ${new Date(claim.date).toLocaleString()}</p>
                             <div>
@@ -997,11 +1154,22 @@
         };
 
         window.banUser = async (uid, username) => {
-            if (!confirm(`Are you sure you want to BAN the user "${username}"? They will not be able to log in.`)) return;
+            if (!confirm(`Are you sure you want to BAN the user "${username}" AND delete all their posts? They will not be able to log in.`)) return;
             try {
+                // 1. Ban the user
                 const userRef = doc(db, "users", uid);
                 await updateDoc(userRef, { isBanned: true });
-                showToast(`User ${username} has been banned.`);
+                
+                // 2. Delete all their posts to clean the platform
+                const q = query(collection(db, "blogs"), where("authorUid", "==", uid));
+                const snap = await getDocs(q);
+                const batch = writeBatch(db);
+                snap.forEach(docSnap => {
+                    batch.delete(docSnap.ref);
+                });
+                await batch.commit();
+
+                showToast(`User ${username} has been banned and all their content removed.`);
             } catch (e) {
                 console.error("Error banning user:", e);
                 showToast("Failed to ban user.", "error");
@@ -1149,8 +1317,8 @@
                     </div>
                 </div>
                 <div>
-                    <button class="btn" style="background-color: ${isMonetized ? '#dc3545' : '#198754'}; margin: 0;" onclick="window.toggleMonetization('${uid}', ${!isMonetized})">
-                        ${isMonetized ? '<i class="fa-solid fa-ban"></i> Revoke Monetization' : '<i class="fa-solid fa-check"></i> Monetize User'}
+                    <button class="btn" style="background-color: ${isMonetized ? '#dc3545' : '#198754'}; margin: 0; display: flex; align-items: center; gap: 5px;" onclick="window.toggleMonetization('${uid}', ${!isMonetized})">
+                        ${isMonetized ? '<i data-lucide="ban"></i> Revoke Monetization' : '<i data-lucide="check"></i> Monetize User'}
                     </button>
                 </div>
             `;
@@ -1196,8 +1364,8 @@
                             <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Requested on: ${new Date(req.date).toLocaleString()}</div>
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${req.viewsCalculated}, ${req.clicksCalculated || 0}, ${req.amount})"><i class="fa-solid fa-check"></i> Paid</button>
-                            <button class="btn" style="background-color: #dc3545; height: fit-content; padding: 8px 12px;" onclick="window.rejectPayout('${reqDoc.id}', '${req.uid}', ${req.amount})"><i class="fa-solid fa-times"></i> Reject</button>
+                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${req.viewsCalculated}, ${req.clicksCalculated || 0}, ${req.amount})"><i data-lucide="check"></i> Paid</button>
+                            <button class="btn" style="background-color: #dc3545; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPayout('${reqDoc.id}', '${req.uid}', ${req.amount})"><i data-lucide="x"></i> Reject</button>
                         </div>
                     `;
                     listDiv.appendChild(div);
@@ -1323,6 +1491,339 @@
             }
         };
 
+        // --- Promotions Settings & Approval Logic ---
+        window.loadPromoSettings = async () => {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "promotions"));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('promo-upi-id').value = data.upiId || 'himanshusainiaggarwal@okaxis';
+                    document.getElementById('promo-qr-url').value = data.qrCodeUrl || '';
+                    if (data.qrCodeUrl) {
+                        document.getElementById('promo-qr-preview').src = data.qrCodeUrl;
+                        document.getElementById('promo-qr-preview').style.display = 'block';
+                    }
+                    document.getElementById('promo-daily-limit').value = data.dailyLimit || 3;
+                    document.getElementById('promo-preroll-frequency').value = data.prerollFrequency || 3;
+                    document.getElementById('promo-preroll-rate').value = data.prerollRate || 100;
+                    if (data.pricing) {
+                        document.getElementById('promo-base-hours').value = data.pricing.baseHours || 50;
+                        document.getElementById('promo-price-tier4').value = data.pricing.tier4 || 50;
+                        document.getElementById('promo-price-tier3').value = data.pricing.tier3 || 70;
+                        document.getElementById('promo-price-tier2').value = data.pricing.tier2 || 80;
+                        document.getElementById('promo-price-tier1').value = data.pricing.tier1 || 100;
+                    }
+                } else {
+                    document.getElementById('promo-upi-id').value = 'himanshusainiaggarwal@okaxis';
+                    document.getElementById('promo-daily-limit').value = 3;
+                    document.getElementById('promo-preroll-frequency').value = 3;
+                    document.getElementById('promo-preroll-rate').value = 100;
+                    document.getElementById('promo-base-hours').value = 50;
+                    document.getElementById('promo-price-tier4').value = 50;
+                    document.getElementById('promo-price-tier3').value = 70;
+                    document.getElementById('promo-price-tier2').value = 80;
+                    document.getElementById('promo-price-tier1').value = 100;
+                }
+            } catch (e) { console.error("Error loading promo settings:", e); }
+        };
+
+        window.savePromoSettings = async () => {
+            const upiId = document.getElementById('promo-upi-id').value.trim();
+            const qrCodeUrl = document.getElementById('promo-qr-url').value.trim();
+            const dailyLimit = parseInt(document.getElementById('promo-daily-limit').value) || 3;
+            const prerollFrequency = parseInt(document.getElementById('promo-preroll-frequency').value) || 3;
+            const prerollRate = parseInt(document.getElementById('promo-preroll-rate').value) || 100;
+            
+            const pricing = {
+                baseHours: parseInt(document.getElementById('promo-base-hours').value) || 50,
+                tier4: parseInt(document.getElementById('promo-price-tier4').value) || 50,
+                tier3: parseInt(document.getElementById('promo-price-tier3').value) || 70,
+                tier2: parseInt(document.getElementById('promo-price-tier2').value) || 80,
+                tier1: parseInt(document.getElementById('promo-price-tier1').value) || 100
+            };
+            try {
+                await setDoc(doc(db, "settings", "promotions"), { upiId, qrCodeUrl, dailyLimit, prerollFrequency, prerollRate, pricing }, { merge: true });
+                showToast("Promotion settings saved successfully!");
+            } catch (e) { console.error("Error saving promo settings:", e); showToast("Failed to save settings.", "error"); }
+        };
+
+        let lastVisiblePromoHistory = null;
+
+        window.loadPromoHistory = async () => {
+            const listDiv = document.getElementById('promo-history-list');
+            const loadMoreBtn = document.getElementById('load-more-promo-history-btn');
+            listDiv.innerHTML = '<p style="color:#aaa;">Loading history...</p>';
+            loadMoreBtn.style.display = 'none';
+            lastVisiblePromoHistory = null;
+            
+            try {
+                const q = query(
+                    collection(db, "promotions"), 
+                    where("status", "in", ["approved", "rejected"]), 
+                    orderBy("timestamp", "desc"), 
+                    limit(50)
+                );
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    listDiv.innerHTML = '<p style="color: #aaa;">No promotion history found.</p>';
+                    return;
+                }
+                
+                listDiv.innerHTML = '';
+                lastVisiblePromoHistory = snap.docs[snap.docs.length - 1];
+                await window.renderPromoHistoryDocs(snap.docs, listDiv);
+                
+                if (snap.docs.length === 50) {
+                    loadMoreBtn.style.display = 'inline-block';
+                }
+            } catch (e) {
+                console.error(e);
+                listDiv.innerHTML = '<p style="color: #ff6b6b;">Error loading history. (A composite index on status and timestamp may be required)</p>';
+            }
+        };
+
+        window.loadMorePromoHistory = async () => {
+            const listDiv = document.getElementById('promo-history-list');
+            const loadMoreBtn = document.getElementById('load-more-promo-history-btn');
+            const originalText = loadMoreBtn.innerText;
+            loadMoreBtn.innerText = 'Loading...';
+            loadMoreBtn.disabled = true;
+            
+            try {
+                const q = query(
+                    collection(db, "promotions"), 
+                    where("status", "in", ["approved", "rejected"]), 
+                    orderBy("timestamp", "desc"), 
+                    startAfter(lastVisiblePromoHistory),
+                    limit(20)
+                );
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    loadMoreBtn.style.display = 'none';
+                    return;
+                }
+                
+                lastVisiblePromoHistory = snap.docs[snap.docs.length - 1];
+                await window.renderPromoHistoryDocs(snap.docs, listDiv);
+                
+                if (snap.docs.length < 20) {
+                    loadMoreBtn.style.display = 'none';
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("Error loading more history.", "error");
+            } finally {
+                loadMoreBtn.innerText = originalText;
+                loadMoreBtn.disabled = false;
+            }
+        };
+
+        window.loadPromoRequests = async () => {
+            const listDiv = document.getElementById('promo-requests-list');
+            listDiv.innerHTML = '<p style="color:#aaa;">Loading requests...</p>';
+            try {
+                const q = query(collection(db, "promotions"), where("status", "==", "pending"));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    listDiv.innerHTML = '<p style="color: #aaa;">No pending promotion requests.</p>';
+                    return;
+                }
+                listDiv.innerHTML = '';
+                for (const reqDoc of snap.docs) {
+                    const req = reqDoc.data();
+                    const userSnap = await getDoc(doc(db, "users", req.uid));
+                    const userData = userSnap.exists() ? userSnap.data() : {};
+                    
+                    let imageHtml = '';
+                    if (req.paymentScreenshot) {
+                        imageHtml = `<img src="${req.paymentScreenshot}" style="max-height: 100px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 10px;" onclick="window.open('${req.paymentScreenshot}', '_blank')">`;
+                    }
+                    
+                    const div = document.createElement('div');
+                    div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: flex-start;";
+                    div.innerHTML = `
+                        <div>
+                            <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
+                        <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
+                            req.type === 'preroll' ? `<strong>Pre-Roll Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
+                            req.type === 'external' ? `<strong>In-Feed Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a>` : 
+                            `Content ID: <a href="index.html?blogId=${req.blogId}" target="_blank" style="color: gold;">${req.blogId}</a>`
+                        }</div>
+                        <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
+                            req.type === 'preroll' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
+                            `Requested: <strong style="color: #198754;">${req.hours} Hours</strong> | Show every <strong style="color: #ff9900;">${req.frequency} posts</strong>`
+                        }</div>
+                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount paid: <strong style="color: #198754;">₹${req.price}</strong></div>
+                            <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>UTR / Txn ID:</strong> ${req.utr}</div>
+                            ${imageHtml}
+                            <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Requested on: ${new Date(req.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn" style="background-color: #198754; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.approvePromotion('${reqDoc.id}', '${req.blogId}', ${req.frequency}, ${req.hours})"><i data-lucide="check"></i> Approve</button>
+                            <button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPromotion('${reqDoc.id}')"><i data-lucide="x"></i> Reject</button>
+                        </div>
+                    `;
+                    listDiv.appendChild(div);
+                }
+            } catch (e) {
+                console.error(e);
+                listDiv.innerHTML = '<p style="color: #ff6b6b;">Error loading requests.</p>';
+            }
+        };
+
+        window.renderPromoHistoryDocs = async (docs, container) => {
+            for (const reqDoc of docs) {
+                const req = reqDoc.data();
+                const userSnap = await getDoc(doc(db, "users", req.uid));
+                const userData = userSnap.exists() ? userSnap.data() : {};
+                
+                const isApproved = req.status === 'approved';
+                const statusColor = isApproved ? '#198754' : '#dc3545';
+                const statusText = isApproved ? 'APPROVED' : 'REJECTED';
+                const dateText = new Date(req.approvedAt || req.rejectedAt || req.timestamp).toLocaleString();
+                
+                const div = document.createElement('div');
+                div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: flex-start;";
+                div.innerHTML = `
+                    <div>
+                        <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
+                        <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
+                            req.type === 'preroll' ? `<strong>Pre-Roll Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
+                            req.type === 'external' ? `<strong>In-Feed Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a>` : 
+                            `Content ID: <a href="index.html?blogId=${req.blogId}" target="_blank" style="color: gold;">${req.blogId}</a>`
+                        }</div>
+                        <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
+                            req.type === 'preroll' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
+                            `Requested: <strong style="color: #198754;">${req.hours} Hours</strong> | Show every <strong style="color: #ff9900;">${req.frequency} posts</strong>`
+                        }</div>
+                        <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount paid: <strong style="color: #198754;">₹${req.price}</strong></div>
+                        <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>UTR / Txn ID:</strong> ${req.utr}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: ${statusColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">${statusText}</span>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">${dateText}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        };
+
+        window.approvePromotion = async (reqId, blogId, freq, hours) => {
+            if (!confirm("Are you sure you want to approve this promotion? It will go live immediately.")) return;
+            try {
+                if (blogId && blogId !== 'undefined') {
+                    const expiryTime = new Date(Date.now() + (hours * 60 * 60 * 1000)).toISOString();
+                    await updateDoc(doc(db, "promotions", reqId), { status: 'approved', approvedAt: new Date().toISOString() });
+                    await updateDoc(doc(db, "blogs", blogId), { isPromoted: true, promoFrequency: freq, promoExpiry: expiryTime });
+                } else {
+                    // This handles both 'external' (in-feed) and 'preroll' ads
+                    const promoDoc = await getDoc(doc(db, "promotions", reqId));
+                    const expiryTime = promoDoc.data().type === 'preroll' ? null : new Date(Date.now() + (hours * 60 * 60 * 1000)).toISOString();
+                    await updateDoc(doc(db, "promotions", reqId), { status: 'approved', approvedAt: new Date().toISOString(), promoExpiry: expiryTime });
+                }
+                showToast("Promotion approved and goes live!");
+                window.loadPromoRequests();
+                window.loadPromoHistory();
+                window.loadLivePromotions();
+            } catch (e) { console.error(e); showToast("Error approving promotion.", "error"); }
+        };
+        
+        window.rejectPromotion = async (reqId) => {
+            if (!confirm("Reject this promotion request?")) return;
+            try {
+                await updateDoc(doc(db, "promotions", reqId), { status: 'rejected', rejectedAt: new Date().toISOString() });
+                showToast("Promotion rejected.", "error");
+                window.loadPromoRequests();
+                window.loadPromoHistory();
+            } catch (e) { console.error(e); showToast("Error rejecting.", "error"); }
+        };
+
+        // --- Live Promotions Logic ---
+        window.loadLivePromotions = async () => {
+            const listDiv = document.getElementById('live-promotions-list');
+            listDiv.innerHTML = '<p style="color:#aaa;">Loading live promotions...</p>';
+            try {
+                const q = query(collection(db, "blogs"), where("isPromoted", "==", true));
+                const snap = await getDocs(q);
+                const now = new Date().toISOString();
+                let liveCount = 0;
+                listDiv.innerHTML = '';
+                
+                snap.forEach(docSnap => {
+                    const blog = docSnap.data();
+                    if (blog.promoExpiry && blog.promoExpiry > now) {
+                        liveCount++;
+                        const div = document.createElement('div');
+                        div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;";
+                        div.innerHTML = `
+                            <div>
+                                <strong style="color: #87ceeb; font-size: 1.1rem;">${blog.title || 'Untitled Content'} (Content Post)</strong>
+                                <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Content ID: <a href="index.html?blogId=${docSnap.id}" target="_blank" style="color: gold;">${docSnap.id}</a> | Author: @${blog.author}</div>
+                                <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Shows every <strong style="color: #ff9900;">${blog.promoFrequency} posts</strong></div>
+                                <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Expires at:</strong> ${new Date(blog.promoExpiry).toLocaleString()}</div>
+                            </div>
+                            <div>
+                                <button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.removeLivePromotion('${docSnap.id}', false)"><i data-lucide="trash-2"></i> Remove</button>
+                            </div>
+                        `;
+                        listDiv.appendChild(div);
+                    }
+                });
+
+                const qExt = query(collection(db, "promotions"), where("status", "==", "approved"));
+                const snapExt = await getDocs(qExt);
+                snapExt.forEach(docSnap => {
+                    const ext = docSnap.data();
+                    if (ext.type === 'external' && ext.promoExpiry && ext.promoExpiry > now) {
+                        liveCount++;
+                        const div = document.createElement('div'); div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;";
+                        div.innerHTML = `
+                            <div>
+                                <strong style="color: #87ceeb; font-size: 1.1rem;">${ext.title} <span style="color: #ff0050;">(In-Feed Ad)</span></strong>
+                                <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Link: <a href="${ext.targetUrl}" target="_blank" style="color: gold;">${ext.targetUrl}</a> | <strong style="color: #198754;">Clicks: ${ext.adClicks || 0}</strong></div>
+                                <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Shows every <strong style="color: #ff9900;">${ext.frequency} posts</strong></div>
+                                <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Expires at:</strong> ${new Date(ext.promoExpiry).toLocaleString()}</div>
+                            </div>
+                            <div><button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.removeLivePromotion('${docSnap.id}', true)"><i data-lucide="trash-2"></i> Remove</button></div>
+                        `;
+                        listDiv.appendChild(div);
+                    } else if (ext.type === 'preroll' && (ext.impressions_served || 0) < (ext.impressions_goal || 1)) {
+                        liveCount++;
+                        const div = document.createElement('div'); div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;";
+                        div.innerHTML = `
+                            <div>
+                                <strong style="color: #87ceeb; font-size: 1.1rem;">${ext.title} <span style="color: #ff0050;">(External Ad)</span></strong>
+                                <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Link: <a href="${ext.targetUrl}" target="_blank" style="color: gold;">${ext.targetUrl}</a> | <strong style="color: #198754;">Clicks: ${ext.adClicks || 0}</strong></div>
+                                <div style="font-size: 0.95rem; color: #ffc107; margin-top: 5px;">Target: <strong>${ext.targetCategories ? ext.targetCategories.join(', ') : 'All'}</strong></div>
+                                <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Shows every <strong style="color: #ff9900;">${ext.frequency} posts</strong></div>
+                                <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Expires at:</strong> ${new Date(ext.promoExpiry).toLocaleString()}</div>
+                            </div>
+                            <div>
+                                <button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.removeLivePromotion('${docSnap.id}', true)"><i data-lucide="trash-2"></i> Remove</button>
+                            </div>
+                        `;
+                        listDiv.appendChild(div);
+                    }
+                });
+
+                if (liveCount === 0) listDiv.innerHTML = '<p style="color: #aaa;">No active live promotions.</p>';
+            } catch (e) { console.error(e); listDiv.innerHTML = '<p style="color: #ff6b6b;">Error loading live promotions.</p>'; }
+        };
+
+        window.removeLivePromotion = async (id, isExternal) => {
+            if (!confirm("Are you sure you want to stop this promotion? It will be removed from the feed immediately.")) return;
+            try {
+                if (isExternal) {
+                    await updateDoc(doc(db, "promotions", id), { status: 'expired', promoExpiry: null });
+                } else {
+                    await updateDoc(doc(db, "blogs", id), { isPromoted: false, promoExpiry: null });
+                }
+                showToast("Promotion removed successfully.");
+                window.loadLivePromotions();
+            } catch (e) { console.error(e); showToast("Error removing promotion.", "error"); }
+        };
     </script>
 </body>
 </html>
