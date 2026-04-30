@@ -8,6 +8,7 @@ const urlsToCache = [
   '/terms.html',
   '/monetization-policy.html',
   '/about-us.html',
+  '/advertise.html',
   '/studio.html',
   '/story-editor.html',
   '/manifest.json',

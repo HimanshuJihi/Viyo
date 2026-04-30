@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advertise with Us - Viyou</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; background: #121212; color: #fff; line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 20px auto; background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 12px; border: 1px solid #333; }
+        h1, h2 { color: #f59e0b; }
+        h1 { border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 0;}
+        p, li { font-size: 1.05rem; color: #ddd; }
+        .btn { display: inline-block; padding: 10px 20px; font-weight: bold; color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 5px; text-decoration: none; margin-top: 20px; transition: 0.2s; border: none; cursor: pointer; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
+        .lang-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; }
+        .lang-tab-btn { background-color: transparent; border: 1px solid #6c757d; color: #aaa; padding: 8px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .lang-tab-btn.active { background-color: #6366f1; border-color: #6366f1; color: white; }
+        .lang-tab-btn:hover:not(.active) { background-color: rgba(255, 255, 255, 0.1); color: #fff; }
+        
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+        .pricing-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; text-align: center; }
+        .pricing-card h3 { margin: 0; color: #87ceeb; font-size: 1.2rem; }
+        .pricing-card .price { font-size: 2rem; font-weight: bold; color: #10b981; margin: 10px 0; }
+        .pricing-card p { font-size: 0.85rem; color: #aaa; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-tabs">
+            <button id="tab-en" class="lang-tab-btn active" onclick="switchLang('en')">English</button>
+            <button id="tab-hi" class="lang-tab-btn" onclick="switchLang('hi')">हिंदी (Hindi)</button>
+        </div>
+
+        <!-- English Section -->
+        <div id="english-section">
+            <h1><i data-lucide="megaphone" style="width: 28px; height: 28px;"></i> Advertise on Viyou</h1>
+            <p>Reach a highly engaged, global audience with Viyou's dynamic advertising platform. Whether you are a brand looking for massive reach or a creator wanting to boost your content, we have tailored solutions for you.</p>
+
+            <h2>1. For Brands & Advertisers</h2>
+            <p>Promote your products directly to our users through highly visible ad placements.</p>
+            
+            <h3>Pre-Roll Video Ads</h3>
+            <p>Your video ad will play before premium long-form user videos. You can target specific categories (like Gaming, Music, Tech) to reach your exact audience.</p>
+            <div class="pricing-card" style="max-width: 300px;">
+                <h3>Rate per 1,000 Impressions</h3>
+                <div class="price">₹<span class="dyn-preroll">...</span></div>
+                <p>Pay only for guaranteed views</p>
+            </div>
+
+            <h3>In-Feed Product Ads</h3>
+            <p>Showcase your product banners and links directly in the user's home feed and Flicks feed. These ads blend seamlessly with organic content.</p>
+
+            <h2>2. For Creators (Content Promotion)</h2>
+            <p>Boost your own blogs, long videos, or Flicks to get more views, likes, and followers. Promoted content appears with a 'Sponsored' badge in the feed.</p>
+            <p style="color: #f59e0b; font-weight: bold;">Base Duration: <span class="dyn-base-hours">...</span> Hours</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Tier 4</h3>
+                    <div class="price">₹<span class="dyn-t4">...</span></div>
+                    <p>Shows every 4th post</p>
+                </div>
+                <div class="pricing-card">
+                    <h3>Tier 3</h3>
+                    <div class="price">₹<span class="dyn-t3">...</span></div>
+                    <p>Shows every 3rd post</p>
+                </div>
+                <div class="pricing-card">
+                    <h3>Tier 2</h3>
+                    <div class="price">₹<span class="dyn-t2">...</span></div>
+                    <p>Shows every 2nd post</p>
+                </div>
+                <div class="pricing-card" style="border-color: #f59e0b; background: rgba(245, 158, 11, 0.05);">
+                    <h3 style="color: #f59e0b;">Tier 1 (Max Reach)</h3>
+                    <div class="price">₹<span class="dyn-t1">...</span></div>
+                    <p>Shows every 1st post</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hindi Section -->
+        <div id="hindi-section" style="display: none;">
+            <h1><i data-lucide="megaphone" style="width: 28px; height: 28px;"></i> Viyou पर विज्ञापन दें</h1>
+            <p>Viyou के डायनामिक विज्ञापन प्लेटफ़ॉर्म के साथ एक सक्रिय और वैश्विक दर्शकों तक पहुँचें। चाहे आप एक ब्रांड हों जो बड़ी पहुँच की तलाश में हैं या एक क्रिएटर जो अपने कंटेंट को बढ़ावा देना चाहता है, हमारे पास आपके लिए सही समाधान हैं।</p>
+
+            <h2>1. ब्रांड्स और विज्ञापनदाताओं के लिए</h2>
+            <p>उच्च दृश्यता वाले विज्ञापन स्थानों के माध्यम से सीधे हमारे उपयोगकर्ताओं को अपने उत्पादों का प्रचार करें।</p>
+            
+            <h3>प्री-रोल वीडियो विज्ञापन (Pre-Roll Video Ads)</h3>
+            <p>आपका वीडियो विज्ञापन प्रीमियम लॉन्ग-फॉर्म वीडियो से पहले चलेगा। आप अपने लक्षित दर्शकों तक पहुंचने के लिए विशिष्ट श्रेणियों (जैसे गेमिंग, संगीत, तकनीक) को चुन सकते हैं।</p>
+            <div class="pricing-card" style="max-width: 300px;">
+                <h3>प्रति 1,000 इंप्रेशन की दर</h3>
+                <div class="price">₹<span class="dyn-preroll">...</span></div>
+                <p>केवल गारंटीकृत व्यूज के लिए भुगतान करें</p>
+            </div>
+
+            <h3>इन-फ़ीड उत्पाद विज्ञापन (In-Feed Ads)</h3>
+            <p>अपने उत्पाद बैनर और लिंक को सीधे उपयोगकर्ता के होम फ़ीड और फ्लिक्स फ़ीड में प्रदर्शित करें। ये विज्ञापन ऑर्गेनिक कंटेंट के साथ सहजता से मिल जाते हैं।</p>
+
+            <h2>2. क्रिएटर्स के लिए (कंटेंट प्रमोशन)</h2>
+            <p>अधिक व्यूज, लाइक और फ़ॉलोअर्स पाने के लिए अपने स्वयं के ब्लॉग, लॉन्ग वीडियो या फ्लिक्स को बूस्ट करें। प्रमोट किया गया कंटेंट फ़ीड में 'प्रायोजित (Sponsored)' बैज के साथ दिखाई देता है।</p>
+            <p style="color: #f59e0b; font-weight: bold;">मूल अवधि (Base Duration): <span class="dyn-base-hours">...</span> घंटे</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>टियर 4</h3>
+                    <div class="price">₹<span class="dyn-t4">...</span></div>
+                    <p>हर 4थी पोस्ट के बाद दिखेगा</p>
+                </div>
+                <div class="pricing-card">
+                    <h3>टियर 3</h3>
+                    <div class="price">₹<span class="dyn-t3">...</span></div>
+                    <p>हर 3री पोस्ट के बाद दिखेगा</p>
+                </div>
+                <div class="pricing-card">
+                    <h3>टियर 2</h3>
+                    <div class="price">₹<span class="dyn-t2">...</span></div>
+                    <p>हर 2री पोस्ट के बाद दिखेगा</p>
+                </div>
+                <div class="pricing-card" style="border-color: #f59e0b; background: rgba(245, 158, 11, 0.05);">
+                    <h3 style="color: #f59e0b;">टियर 1 (अधिकतम पहुँच)</h3>
+                    <div class="price">₹<span class="dyn-t1">...</span></div>
+                    <p>हर 1ली पोस्ट के बाद दिखेगा</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
+            <p style="color: #aaa;">To start promoting your own content, go to your <strong>Profile</strong>, click the <strong>Promote</strong> button under any post, and follow the instructions.</p>
+            <a href="index.html" class="btn">← Back to Home</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.switchLang = function(lang) {
+            document.getElementById('tab-en').classList.remove('active');
+            document.getElementById('tab-hi').classList.remove('active');
+            document.getElementById('english-section').style.display = 'none';
+            document.getElementById('hindi-section').style.display = 'none';
+            document.getElementById('tab-' + lang).classList.add('active');
+            document.getElementById(lang === 'en' ? 'english-section' : 'hindi-section').style.display = 'block';
+        };
+
+        async function loadPricing() {
+            try {
+                const promoSnap = await getDoc(doc(db, "settings", "promotions"));
+                if (promoSnap.exists()) {
+                    const data = promoSnap.data();
+                    document.querySelectorAll('.dyn-preroll').forEach(el => el.innerText = data.prerollRate || 100);
+                    if (data.pricing) {
+                        document.querySelectorAll('.dyn-base-hours').forEach(el => el.innerText = data.pricing.baseHours || 50);
+                        document.querySelectorAll('.dyn-t1').forEach(el => el.innerText = data.pricing.tier1 || 100);
+                        document.querySelectorAll('.dyn-t2').forEach(el => el.innerText = data.pricing.tier2 || 80);
+                        document.querySelectorAll('.dyn-t3').forEach(el => el.innerText = data.pricing.tier3 || 70);
+                        document.querySelectorAll('.dyn-t4').forEach(el => el.innerText = data.pricing.tier4 || 50);
+                    }
+                }
+            } catch (e) { console.error("Error loading pricing:", e); }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadPricing();
+        });
+    </script>
+</body>
+</html>

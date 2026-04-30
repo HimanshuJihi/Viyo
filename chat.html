@@ -183,7 +183,7 @@
             opacity: 0; /* Hide by default */
             transition: opacity 0.2s;
         }
-        .message-sent:hover .delete-msg-btn {
+        .message-item:hover .delete-msg-btn {
             opacity: 1; /* Show on hover */
         }
         .forward-msg-btn {
@@ -819,22 +819,19 @@
             div.className = `message-item ${messageClass}`;
             div.id = `msg-${messageId}`;
             
-            let actionButtons = '';
-            if (isSent) {
-                let editButton = '';
-                if (canEdit) {
-                    editButton = `<button class="edit-msg-btn" onclick="window.showEditUI('${messageId}')" title="Edit Message"><i data-lucide="pen"></i></button>`; // Edit button
-                }
-                const deleteButton = `<button class="delete-msg-btn" onclick="window.confirmDeleteMessage('${messageId}')" title="Delete Message"><i data-lucide="trash-2" style="color: rgb(220, 37, 23);"></i></button>`; // Delete button
-                actionButtons = editButton + deleteButton;
+            let editButton = '';
+            if (isSent && canEdit) {
+                editButton = `<button class="edit-msg-btn" onclick="window.showEditUI('${messageId}')" title="Edit Message"><i data-lucide="pen"></i></button>`;
             }
+            
+            const deleteButton = `<button class="delete-msg-btn" onclick="window.confirmDeleteMessage('${messageId}')" title="Delete Message"><i data-lucide="trash-2" style="color: rgb(220, 37, 23);"></i></button>`;
 
             const forwardButton = `<button class="forward-msg-btn" onclick='window.showForwardModal("${messageId}")' title="Forward Message"><i data-lucide="corner-up-right"></i></button>`; // Forward button
 
             if (isSent) {
-                div.innerHTML = `${pickerHTML}<div class="message-text">${messageContent}${reactionsHTML}${timeHtml}</div>${actionButtons}${forwardButton}`;
+                div.innerHTML = `${pickerHTML}<div class="message-text">${messageContent}${reactionsHTML}${timeHtml}</div>${editButton}${deleteButton}${forwardButton}`;
             } else {
-                div.innerHTML = `${forwardButton}${pickerHTML}<div class="message-text">${messageContent}${reactionsHTML}${timeHtml}</div>`;
+                div.innerHTML = `${forwardButton}${deleteButton}${pickerHTML}<div class="message-text">${messageContent}${reactionsHTML}${timeHtml}</div>`;
             }
 
             if (returnElement) {
