@@ -11,34 +11,213 @@
         .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
         .lucide-fill { fill: currentColor; }
     </style>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            const observer = new MutationObserver((mutations) => {
-                if (mutations.some(m => m.addedNodes.length > 0)) {
-                    observer.disconnect();
-                    lucide.createIcons();
-                    observer.observe(document.body, { childList: true, subtree: true });
-                }
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    </script>
-    <!-- Fluid Player for VAST Ads -->
-    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
-    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js" defer></script>
     <!-- Modern Futuristic Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; background: #050505; color: #e2e8f0; margin: 0; padding: 0; }
         .navbar { padding: 15px 20px; background: rgba(20,20,20,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100; }
-        .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; font-weight: bold; }
-        .container { display: flex; flex-wrap: wrap; padding: 20px; gap: 20px; max-width: 1400px; margin: auto; }
+        .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .container { display: flex; flex-wrap: wrap; padding: 20px; gap: 20px; max-width: 1400px; margin: auto; } /* Existing container style */
+
+        /* Custom Video Player Styles from example_player.html */
+        .video-container {
+            position: relative;
+            width: 100%; /* Changed from 800px to 100% to fit main-content */
+            max-width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(99, 102, 241, 0.2);
+            background: #000;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+        }
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 20px 15px 15px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .video-container:hover .controls, .video-container.paused .controls {
+            opacity: 1; /* Show controls on hover or pause */
+        }
+        .progress-bar {
+            width: 100%;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            height: 5px;
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+            transition: height 0.1s ease;
+        }
+        .progress-bar:hover {
+            height: 7px;
+        }
+        .progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #0d6efd; /* Blue accent color */
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .left-controls, .right-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .video-container button { /* Specificity for player buttons */
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, color 0.2s;
+        }
+        .video-container button:hover {
+            transform: scale(1.1);
+            color: #0d6efd;
+        }
+        .settings-wrapper {
+            position: relative;
+        }
+        .settings-menu {
+            position: absolute;
+            bottom: 45px;
+            right: -10px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 8px 0;
+            display: none;
+            width: 240px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .settings-menu::-webkit-scrollbar { width: 5px; }
+        .settings-menu::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+        }
+        .settings-menu.show {
+            display: block;
+        }
+        .menu-panel {
+            display: none;
+            flex-direction: column;
+        }
+        .menu-panel.active {
+            display: flex;
+            animation: slideIn 0.2s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .settings-item {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .settings-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .settings-item.active {
+            color: #0d6efd;
+            font-weight: bold;
+        }
+        .settings-header-back {
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .settings-header-back:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .time-display {
+            font-size: 0.9rem;
+            user-select: none;
+            font-weight: 600;
+        }
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .volume-slider {
+            width: 80px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            height: 4px;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+        }
+        .double-tap-anim {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        .double-tap-left { left: 10%; }
+        .double-tap-right { right: 10%; }
+        /* End Custom Video Player Styles */
+
         .main-content { flex: 1 1 65%; max-width: 100%; }
         .sidebar { flex: 1 1 30%; display: flex; flex-direction: column; gap: 15px; }
         .video-container { width: 100%; background: #000; border-radius: 16px; overflow: hidden; position: relative; padding-bottom: 56.25%; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(99, 102, 241, 0.1); border: 1px solid rgba(255,255,255,0.05); }
-        .video-container iframe, .video-container video, .fluid_video_wrapper { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; outline: none; }
+        .video-container iframe { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; outline: none; }
         .info { padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .title { font-size: 1.5rem; margin: 0 0 15px 0; font-weight: bold; }
         .author-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
@@ -57,10 +236,6 @@
         .desc-content { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: all 0.3s ease; }
         .desc-content.expanded { display: block; -webkit-line-clamp: unset; }
         .show-more-btn { background: none; border: none; color: #aaa; cursor: pointer; font-weight: bold; padding: 8px 0 0 0; font-size: 0.9rem; }
-        .show-more-btn:hover { color: #fff; }
-        .double-tap-anim { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 50px; font-weight: bold; pointer-events: none; opacity: 0; z-index: 100; transition: opacity 0.3s; }
-        .double-tap-left { left: 10%; }
-        .double-tap-right { right: 10%; }
         .double-tap-center { left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 5rem; color: #ff0050; background: transparent; padding: 0; border-radius: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
         /* Modern Comment Styles */
@@ -84,6 +259,17 @@
         .mention-item { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #fff; transition: background 0.2s; }
         .mention-item:hover { background: #333; }
         .reply-input-container { display: none; margin-top: 10px; gap: 10px; position: relative; }
+
+        /* Theme Dropdown Styles from index.html */
+        .theme-dropdown-container { position: relative; display: inline-block; margin-left: auto; }
+        .theme-dropdown { position: absolute; top: 100%; right: 0; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px; display: none; flex-direction: column; gap: 8px; z-index: 1000; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 10px; }
+        .theme-dropdown.show { display: flex; animation: slideUp 0.2s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .theme-option { padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; text-align: left; display: flex; align-items: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; font-family: inherit; font-size: 0.9rem; }
+        .theme-option:hover { transform: scale(1.05); }
+        .theme-option.active { border: 2px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1.02); }
+        .theme-btn { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; padding: 5px; }
+
         @media (max-width: 900px) {
             .container { flex-direction: column; padding: 10px; }
             .sidebar { width: 100%; }
@@ -96,6 +282,17 @@
 <body>
     <div class="navbar">
             <a href="index.html"><i data-lucide="arrow-left"></i> Viyou</a>
+            <div class="theme-dropdown-container">
+                <button id="main-menu-toggle" class="theme-btn"><i data-lucide="menu"></i></button>
+                <div id="main-menu-dropdown" class="theme-dropdown">
+                    <a href="about-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="info" style="width: 16px;"></i> About Us</a>
+                    <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
+                    <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
+                    <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
+                    <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
+                    <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou. All Rights Reserved.</div>
+                </div>
+            </div>
     </div>
     <div class="container">
         <div class="main-content" id="main-content">
@@ -108,14 +305,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { firebaseConfig } from "./firebase-config.js";
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        import { db, auth } from "./firebase-config.js";
 
         // Helper function to escape HTML/XML for XSS prevention
         function escapeHTML(str) {
@@ -128,6 +320,21 @@
         let currentBlog = null;
         let vastAdConfig = {};
         let preRollAdConfig = { frequency: 3, activeAds: [] };
+
+        // --- Menu Logic ---
+        const mainMenuToggleBtn = document.getElementById('main-menu-toggle');
+        const mainMenuDropdown = document.getElementById('main-menu-dropdown');
+
+        mainMenuToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mainMenuDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (mainMenuDropdown && !mainMenuToggleBtn.contains(e.target) && !mainMenuDropdown.contains(e.target)) {
+                mainMenuDropdown.classList.remove('show');
+            }
+        });
         
         async function trackAdClick(blogIdForClick, isExternal = false) {
             if (!blogIdForClick) return;
@@ -217,13 +424,19 @@
 
             const blog = snap.data();
             currentBlog = { id: blogId, ...blog };
-            updateDoc(docRef, { views: increment(1) }).catch(e => {}); // Track View
+            // Only increment longVideoViews (for earnings) if it's a direct upload, not a YouTube link
+            if (blog.video && !blog.youtubeUrl) {
+                updateDoc(docRef, { views: increment(1), longVideoViews: increment(1) }).catch(e => {});
+            } else {
+                updateDoc(docRef, { views: increment(1) }).catch(e => {});
+            }
 
             // --- Pre-Roll Ad Logic ---
             let sessionViews = parseInt(sessionStorage.getItem('viyou_video_views') || '0');
             sessionViews++;
             sessionStorage.setItem('viyou_video_views', sessionViews);
 
+            // Fluid Player specific ad logic removed for custom player
             let preRollAdToPlay = null;
             window.userAdImpressionTracked = false;
             
@@ -233,53 +446,9 @@
                 return ad.targetCategories.includes(blog.category || 'Others');
             });
 
-            if (eligibleAds.length > 0 && (sessionViews % preRollAdConfig.frequency === 0)) {
+            if (eligibleAds.length > 0 && (sessionViews % (preRollAdConfig.frequency || 3) === 0)) {
                 // Select a random pre-roll ad to play
                 preRollAdToPlay = eligibleAds[Math.floor(Math.random() * eligibleAds.length)];
-            }
-
-            // Construct VAST XML for the pre-roll ad
-            let preRollVastUrl = null;
-            if (preRollAdToPlay) {
-                // Dynamically calculate video duration to apply skip logic
-                let duration = await new Promise((resolve) => {
-                    const v = document.createElement('video');
-                    v.preload = 'metadata';
-                    v.onloadedmetadata = () => resolve(v.duration && v.duration !== Infinity ? v.duration : 15);
-                    v.onerror = () => resolve(15);
-                    v.src = preRollAdToPlay.mediaData;
-                });
-                
-                const formattedDuration = new Date(duration * 1000).toISOString().substring(11, 19); // Output format: HH:MM:SS
-                const skipAttr = duration > 20 ? ' skipoffset="00:00:07"' : '';
-
-                // Using a Data URL for the video content
-                const preRollVastTag = `
-                <VAST version="3.0">
-                  <Ad>
-                    <InLine> 
-                      <AdSystem>Viyou</AdSystem>
-                      <AdTitle>Sponsored: ${escapeHTML(preRollAdToPlay.title)}</AdTitle>
-                      <Creatives>
-                        <Creative>
-                          <Linear${skipAttr}>
-                            <Duration>${formattedDuration}</Duration>
-                            <VideoClicks>
-                              <ClickThrough><![CDATA[${preRollAdToPlay.targetUrl}]]></ClickThrough>
-                            </VideoClicks>
-                            <MediaFiles>
-                              <MediaFile delivery="progressive" type="video/mp4" width="640" height="360"><![CDATA[${preRollAdToPlay.mediaData}]]></MediaFile>
-                            </MediaFiles>
-                          </Linear>
-                        </Creative>
-                      </Creatives>
-                    </InLine>
-                  </Ad>
-                </VAST>`;
-                
-                // Convert XML string to a Blob URL so Fluid Player can fetch it properly
-                const blob = new Blob([preRollVastTag], { type: 'application/xml' });
-                preRollVastUrl = URL.createObjectURL(blob);
             }
 
             let mediaHtml = '';
@@ -288,9 +457,94 @@
                 mediaHtml = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             } else if (blog.video) {
                 mediaHtml = `
-                    <video id="watch-video-player">
-                        <source src="${blog.video}" type="video/mp4">
-                    </video>`;
+                    <video id="custom-video" playsinline></video>
+                    
+                    <div id="dt-left" class="double-tap-anim double-tap-left">⏪ 10s</div>
+                    <div id="dt-right" class="double-tap-anim double-tap-right">⏩ 10s</div>
+
+                    <!-- Pre-Roll Ad Overlay -->
+                    <div id="ad-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none;">
+                        <div style="position: absolute; top: 15px; left: 15px; background: rgba(245, 158, 11, 0.9); color: black; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; pointer-events: auto;">Ad</div>
+                        <button id="ad-action-btn" style="position: absolute; bottom: 85px; left: 15px; background: #0d6efd; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; pointer-events: auto; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"><i data-lucide="external-link" style="width: 16px; height: 16px; margin-right: 5px;"></i> Learn More</button>
+                        <button id="ad-skip-btn" style="position: absolute; bottom: 85px; right: 15px; background: rgba(0,0,0,0.8); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 8px 15px; border-radius: 6px; cursor: pointer; pointer-events: auto; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">Skip Ad <i data-lucide="skip-forward" style="width: 16px; height: 16px; margin-left: 5px;"></i></button>
+                        <div id="ad-countdown" style="position: absolute; bottom: 85px; right: 15px; background: rgba(0,0,0,0.8); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 8px 15px; border-radius: 6px; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">Skip in 5</div>
+                    </div>
+
+                    <!-- Custom Controls UI -->
+                    <div class="controls">
+                        <input type="range" id="progress-bar" class="progress-bar" min="0" max="100" value="0">
+                        
+                        <div class="control-buttons">
+                            <div class="left-controls">
+                                <button id="play-pause-btn"><i data-lucide="play"></i></button>
+                                <div class="volume-container">
+                                    <button id="mute-btn"><i data-lucide="volume-2"></i></button>
+                                    <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                                </div>
+                                <div class="time-display">
+                                    <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+                                </div>
+                            </div>
+                            
+                            <div class="right-controls">
+                                <div class="settings-wrapper">
+                                    <button id="settings-btn" title="Settings"><i data-lucide="settings"></i></button>
+                                    <div id="settings-menu" class="settings-menu">
+                                        <!-- Main Settings Panel -->
+                                        <div class="menu-panel active" id="panel-main">
+                                            <div class="settings-item nav-item" data-target="panel-quality">
+                                                <span style="display: flex; align-items: center;"><i data-lucide="sliders-horizontal" style="width: 16px; height: 16px; margin-right: 10px;"></i> Quality</span>
+                                                <span style="color: #aaa; font-size: 0.8rem; display: flex; align-items: center;"><span id="current-quality-text">720p</span> <i data-lucide="chevron-right" style="width: 16px; height: 16px; margin-left: 5px;"></i></span>
+                                            </div>
+                                            <div class="settings-item nav-item" data-target="panel-speed">
+                                                <span style="display: flex; align-items: center;"><i data-lucide="play-circle" style="width: 16px; height: 16px; margin-right: 10px;"></i> Playback Speed</span>
+                                                <span style="color: #aaa; font-size: 0.8rem; display: flex; align-items: center;"><span id="current-speed-text">Normal</span> <i data-lucide="chevron-right" style="width: 16px; height: 16px; margin-left: 5px;"></i></span>
+                                            </div>
+                                            <div class="settings-item nav-item" data-target="panel-sleep-timer">
+                                                <span style="display: flex; align-items: center;"><i data-lucide="moon" style="width: 16px; height: 16px; margin-right: 10px;"></i> Sleep Timer</span>
+                                                <span style="color: #aaa; font-size: 0.8rem; display: flex; align-items: center;"><span id="current-sleep-timer-text">Off</span> <i data-lucide="chevron-right" style="width: 16px; height: 16px; margin-left: 5px;"></i></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Quality Selection Panel -->
+                                        <div class="menu-panel" id="panel-quality">
+                                            <div class="settings-header-back nav-item" data-target="panel-main"><i data-lucide="chevron-left" style="width: 18px; height: 18px; margin-right: 10px;"></i> Quality</div>
+                                            <div class="settings-item quality-item" data-quality="1080">1080p</div>
+                                            <div class="settings-item quality-item active" data-quality="720">720p <i data-lucide="check" style="width: 14px; height: 14px;"></i></div>
+                                            <div class="settings-item quality-item" data-quality="480">480p</div>
+                                            <div class="settings-item quality-item" data-quality="360">360p</div>
+                                        </div>
+
+                                        <!-- Speed Selection Panel -->
+                                        <div class="menu-panel" id="panel-speed">
+                                            <div class="settings-header-back nav-item" data-target="panel-main"><i data-lucide="chevron-left" style="width: 18px; height: 18px; margin-right: 10px;"></i> Playback speed</div>
+                                            <div class="settings-item speed-item" data-speed="0.25">0.25x</div>
+                                            <div class="settings-item speed-item" data-speed="0.5">0.5x</div>
+                                            <div class="settings-item speed-item" data-speed="0.75">0.75x</div>
+                                            <div class="settings-item speed-item active" data-speed="1">Normal <i data-lucide="check" style="width: 14px; height: 14px;"></i></div>
+                                            <div class="settings-item speed-item" data-speed="1.25">1.25x</div>
+                                            <div class="settings-item speed-item" data-speed="1.5">1.5x</div>
+                                            <div class="settings-item speed-item" data-speed="2">2x</div>
+                                        </div>
+
+                                        <!-- Sleep Timer Selection Panel -->
+                                        <div class="menu-panel" id="panel-sleep-timer">
+                                            <div class="settings-header-back nav-item" data-target="panel-main"><i data-lucide="chevron-left" style="width: 18px; height: 18px; margin-right: 10px;"></i> Sleep Timer</div>
+                                            <div class="settings-item sleep-timer-item active" data-duration="0">Off <i data-lucide="check" style="width: 14px; height: 14px;"></i></div>
+                                            <div class="settings-item sleep-timer-item" data-duration="5">5 minutes</div>
+                                            <div class="settings-item sleep-timer-item" data-duration="10">10 minutes</div>
+                                            <div class="settings-item sleep-timer-item" data-duration="15">15 minutes</div>
+                                            <div class="settings-item sleep-timer-item" data-duration="30">30 minutes</div>
+                                            <div class="settings-item sleep-timer-item" data-duration="60">60 minutes</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button id="pip-btn" title="Miniplayer (Picture in Picture)"><i data-lucide="picture-in-picture"></i></button>
+                                <button id="fullscreen-btn"><i data-lucide="maximize"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             } else {
                 mediaHtml = `<div style="padding: 50px; text-align: center; color: #aaa;">No video attached to this post.</div>`;
             }
@@ -298,19 +552,13 @@
             const views = (blog.views || 0) + 1;
             const likes = blog.likes || [];
             const likesCount = Array.isArray(likes) ? likes.length : (typeof likes === 'number' ? likes : 0);
-            const isLiked = auth.currentUser && Array.isArray(likes) && likes.includes(auth.currentUser.uid);
-            
-            const skipSelectOptions = [5, 8, 12, 15].map(v => 
-                `<option value="${v}" style="color:black;" ${window.skipDuration === v ? 'selected' : ''}>${v}s Skip</option>`
-            ).join('');
+            const isLiked = auth.currentUser && Array.isArray(likes) && likes.includes(auth.currentUser.uid);            
 
             const categoryBadge = blog.category ? `<span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ddd; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; display: inline-block;">🏷️ ${blog.category}</span>` : '';
 
             document.getElementById('main-content').innerHTML = `
-                <div class="video-container" id="video-container" onclick="window.handleVideoClick(event)">
+                <div class="video-container paused" id="video-container">
                     ${mediaHtml}
-                    <div id="dt-left" class="double-tap-anim double-tap-left">⏪ ${window.skipDuration}s</div>
-                    <div id="dt-right" class="double-tap-anim double-tap-right">⏩ ${window.skipDuration}s</div>
                     <div id="dt-center" class="double-tap-anim double-tap-center"><i data-lucide="heart" class="lucide-fill"></i></div>
                 </div>
                 <div class="info">
@@ -324,10 +572,7 @@
                                 <div style="font-size: 0.85rem; color: #aaa;">${views.toLocaleString()} views • ${new Date(blog.date).toLocaleDateString()}</div>
                             </div>
                         </div>
-                        <div class="actions">
-                            <select id="skip-duration-select" class="btn" style="appearance: none; -webkit-appearance: none; padding-right: 10px; cursor: pointer; text-align: center;" onchange="window.updateSkipDuration(this.value)">
-                                ${skipSelectOptions}
-                            </select>
+                        <div class="actions">                            
                             <button class="btn" id="like-btn-${blogId}" onclick="likeVideo('${blogId}')">
                                 <i data-lucide="heart" class="${isLiked ? 'lucide-fill' : ''}" style="color: ${isLiked ? '#ff0050' : 'inherit'};"></i> <span id="like-count-display">${likesCount}</span>
                             </button>
@@ -345,83 +590,397 @@
                 </div>
             `;
 
-            if (blog.video && !blog.youtubeUrl) {
-                const systemVastAd = (vastAdConfig.enabled && vastAdConfig.vastUrl) ? { roll: 'preRoll', vastTag: vastAdConfig.vastUrl } : null;
-                const userPreRollAd = preRollVastUrl ? { roll: 'preRoll', vastTag: preRollVastUrl } : null;
-                
-                // 🔥 Track Impression immediately when the VAST ad is initialized for the player
-                if (preRollAdToPlay && !window.userAdImpressionTracked) {
-                    window.userAdImpressionTracked = true;
-                    const adRef = doc(db, "promotions", preRollAdToPlay.id);
-                    updateDoc(adRef, { impressions_served: increment(1) })
-                        .catch(e => console.error("Impression tracking failed:", e));
-                }
+            // Custom Player JS Init
+            if (blog.video && !blog.youtubeUrl) { // Only for custom video player
+                const videoElement = document.getElementById('custom-video');
+                const adOverlay = document.getElementById('ad-overlay');
+                const controlsContainer = document.querySelector('.controls');
 
-                const adList = [systemVastAd, userPreRollAd].filter(Boolean); // Filter out nulls
-
-                const adOptions = {
-                    vastOptions: {
-                        adList: adList,
-                        adText: 'Sponsored', // Changes the default "Ad" tag to "Sponsored"
-                        adCTAText: 'Visit Sponsor', // Optional: Adds a CTA text for better clicks
-                        adClickCallback: (adItem) => {
-                            if (preRollAdToPlay) {
-                                trackAdClick(preRollAdToPlay.id, true); // Track Ad Click
-                            } else {
-                                trackAdClick(blogId); // Track Video Click
-                            }
-                        }
-                    }
+                const playMainVideo = () => {
+                    if (adOverlay) adOverlay.style.display = 'none';
+                    if (controlsContainer) controlsContainer.style.display = 'flex';
+                    videoElement.src = blog.video;
+                    videoElement.play().catch(e => console.log("Main video play blocked", e));
+                    videoElement.onended = null;
+                    if (window.lucide) lucide.createIcons();
                 };
 
-                const playerOptions = adList.length > 0 ? adOptions : { layoutControls: { playButtonShowing: true, playPauseAnimation: true } };
-                var player = fluidPlayer('watch-video-player', playerOptions);
+                if (preRollAdToPlay && preRollAdToPlay.mediaData) {
+                    videoElement.src = preRollAdToPlay.mediaData;
+                    if (adOverlay) adOverlay.style.display = 'block';
+                    if (controlsContainer) controlsContainer.style.display = 'none';
+                    
+                    if (!window.userAdImpressionTracked) {
+                        updateDoc(doc(db, "promotions", preRollAdToPlay.id), { impressions_served: increment(1) }).catch(e => console.error(e));
+                        window.userAdImpressionTracked = true;
+                    }
+
+                    const adActionBtn = document.getElementById('ad-action-btn');
+                    const adSkipBtn = document.getElementById('ad-skip-btn');
+                    const adCountdown = document.getElementById('ad-countdown');
+                    
+                    if (adActionBtn) {
+                        adActionBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            window.open(preRollAdToPlay.targetUrl, '_blank');
+                            trackAdClick(preRollAdToPlay.id, true);
+                            videoElement.pause();
+                        };
+                    }
+
+                    let skipTimer = 5;
+                    const skipInterval = setInterval(() => {
+                        skipTimer--;
+                        if (skipTimer <= 0) {
+                            clearInterval(skipInterval);
+                            if (adCountdown) adCountdown.style.display = 'none';
+                            if (adSkipBtn) adSkipBtn.style.display = 'block';
+                        } else {
+                            if (adCountdown) adCountdown.innerText = `Skip in ${skipTimer}`;
+                        }
+                    }, 1000);
+
+                    if (adSkipBtn) {
+                        adSkipBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            clearInterval(skipInterval);
+                            playMainVideo();
+                        };
+                    }
+
+                    videoElement.onended = () => {
+                        clearInterval(skipInterval);
+                        playMainVideo();
+                    };
+                    
+                    videoElement.play().catch(e => console.log("Ad autoplay blocked", e));
+                } else {
+                    videoElement.src = blog.video;
+                }
+
+                // Get DOM Elements for custom player
+                const container = document.getElementById('video-container');
+                const playPauseBtn = document.getElementById('play-pause-btn');
+                const muteBtn = document.getElementById('mute-btn');
+                const volumeSlider = document.getElementById('volume-slider');
+                const progressBar = document.getElementById('progress-bar');
+                const currentTimeDisplay = document.getElementById('current-time');
+                const durationDisplay = document.getElementById('duration');
+                const fullscreenBtn = document.getElementById('fullscreen-btn');
+                const settingsBtn = document.getElementById('settings-btn');
+                const pipBtn = document.getElementById('pip-btn'); // Added PiP button
+                const settingsMenu = document.getElementById('settings-menu');
+                const speedItems = document.querySelectorAll('.speed-item');
+                const qualityItems = document.querySelectorAll('.quality-item');
+                const sleepTimerItems = document.querySelectorAll('.sleep-timer-item');
+                const currentSleepTimerText = document.getElementById('current-sleep-timer-text');
+                
+                const currentSpeedText = document.getElementById('current-speed-text');
+                const currentQualityText = document.getElementById('current-quality-text');
+                const navItems = document.querySelectorAll('.nav-item');
+                const menuPanels = document.querySelectorAll('.menu-panel');
+
+                // Play / Pause Logic
+                function togglePlay() {
+                    if (videoElement.paused) {
+                        videoElement.play();
+                        playPauseBtn.innerHTML = '<i data-lucide="pause"></i>';
+                        container.classList.remove('paused');
+                    } else {
+                        videoElement.pause();
+                        playPauseBtn.innerHTML = '<i data-lucide="play"></i>';
+                        container.classList.add('paused');
+                    }
+                    lucide.createIcons(); // Refresh icon
+                }
+
+                playPauseBtn.addEventListener('click', togglePlay);
+                
+                // Double Tap to Skip Logic
+                let clickTimer = null;
+                const SKIP_SECONDS = 10;
+
+                videoElement.addEventListener('click', (e) => {
+                    const adOverlay = document.getElementById('ad-overlay');
+                    if (adOverlay && adOverlay.style.display === 'block') {
+                        window.open(preRollAdToPlay.targetUrl, '_blank');
+                        trackAdClick(preRollAdToPlay.id, true);
+                        videoElement.pause();
+                        return;
+                    }
+
+                    if (clickTimer) {
+                        clearTimeout(clickTimer);
+                        clickTimer = null;
+                        
+                        const rect = videoElement.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const width = rect.width;
+
+                        // Check if clicked on the left or right half
+                        if (x < width / 2) {
+                            videoElement.currentTime = Math.max(0, videoElement.currentTime - SKIP_SECONDS);
+                            showAnim('dt-left');
+                        } else {
+                            videoElement.currentTime = Math.min(videoElement.duration, videoElement.currentTime + SKIP_SECONDS);
+                            showAnim('dt-right');
+                        }
+                    } else {
+                        // Wait 300ms to see if it's a double tap, otherwise toggle play/pause
+                        clickTimer = setTimeout(() => {
+                            clickTimer = null;
+                            togglePlay();
+                        }, 300);
+                    }
+                });
+
+                function showAnim(id) {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.style.opacity = '1';
+                    setTimeout(() => { el.style.opacity = '0'; }, 800);
+                }
+
+                // Format Time helper (seconds to MM:SS)
+                function formatTime(seconds) {
+                    if (isNaN(seconds)) return "0:00";
+                    const mins = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60);
+                    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                }
+
+                // Update Progress Bar and Time
+                videoElement.addEventListener('timeupdate', () => {
+                    const progress = (videoElement.currentTime / videoElement.duration) * 100;
+                    progressBar.value = progress;
+                    currentTimeDisplay.textContent = formatTime(videoElement.currentTime);
+                });
+
+                // Set Duration when video metadata loads
+                videoElement.addEventListener('loadedmetadata', () => {
+                    durationDisplay.textContent = formatTime(videoElement.duration);
+                });
+
+                // Seek Video when Progress Bar is dragged
+                progressBar.addEventListener('input', () => {
+                    const seekTime = (progressBar.value / 100) * videoElement.duration;
+                    videoElement.currentTime = seekTime;
+                });
+
+                // Volume Logic
+                volumeSlider.addEventListener('input', () => {
+                    videoElement.volume = volumeSlider.value;
+                    updateMuteIcon();
+                });
+
+                function updateMuteIcon() {
+                    if (videoElement.volume === 0 || videoElement.muted) {
+                        muteBtn.innerHTML = '<i data-lucide="volume-x"></i>';
+                    } else {
+                        muteBtn.innerHTML = '<i data-lucide="volume-2"></i>';
+                    }
+                    lucide.createIcons();
+                }
+
+                muteBtn.addEventListener('click', () => {
+                    videoElement.muted = !videoElement.muted;
+                    if (videoElement.muted) {
+                        volumeSlider.value = 0;
+                    } else {
+                        volumeSlider.value = videoElement.volume > 0 ? videoElement.volume : 1;
+                        if(videoElement.volume === 0) videoElement.volume = 1; // Unmute resets to full if it was 0
+                    }
+                    updateMuteIcon();
+                });
+
+                // Settings Menu & Playback Speed Logic
+                settingsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    settingsMenu.classList.toggle('show');
+                    
+                    // Always open to main panel when toggling menu
+                    if (settingsMenu.classList.contains('show')) {
+                        menuPanels.forEach(p => p.classList.remove('active'));
+                        document.getElementById('panel-main').classList.add('active');
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+                        settingsMenu.classList.remove('show');
+                    }
+                });
+
+                // Sub-menu Navigation Logic
+                navItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const targetId = item.getAttribute('data-target');
+                        menuPanels.forEach(p => p.classList.remove('active'));
+                        document.getElementById(targetId).classList.add('active');
+                        lucide.createIcons();
+                    });
+                });
+
+                // Playback Speed Logic
+                speedItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const speed = parseFloat(item.getAttribute('data-speed'));
+                        videoElement.playbackRate = speed;
+                        
+                        speedItems.forEach(i => {
+                            i.classList.remove('active');
+                            i.innerHTML = i.innerText; // Remove check icon
+                        });
+                        item.classList.add('active');
+                        item.innerHTML = `${item.innerText} <i data-lucide="check" style="width: 14px; height: 14px;"></i>`;
+                        
+                        // Update Main Menu Text
+                        currentSpeedText.innerText = item.innerText;
+                        
+                        lucide.createIcons();
+                        settingsMenu.classList.remove('show');
+                        menuPanels.forEach(p => p.classList.remove('active'));
+                        document.getElementById('panel-main').classList.add('active');
+                    });
+                });
+
+                // Video Quality Logic
+                qualityItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const quality = item.getAttribute('data-quality');
+                        
+                        // Save current state
+                        const currentTime = videoElement.currentTime;
+                        const isPlaying = !videoElement.paused;
+                        const currentSpeed = videoElement.playbackRate;
+
+                        // TODO: Update video source based on quality selected
+                        // Example: videoElement.src = `bairan_${quality}p.mp4`; 
+                        // (Since we only have bairan.MP4 right now, we are simulating the behavior)
+                        
+                        videoElement.currentTime = currentTime;
+                        videoElement.playbackRate = currentSpeed;
+                        if (isPlaying) videoElement.play();
+
+                        qualityItems.forEach(i => {
+                            i.classList.remove('active');
+                            i.innerHTML = i.innerText; // Remove check icon
+                        });
+                        item.classList.add('active');
+                        item.innerHTML = `${item.innerText} <i data-lucide="check" style="width: 14px; height: 14px;"></i>`;
+                        
+                        // Update Main Menu Text
+                        currentQualityText.innerText = item.innerText;
+                        
+                        lucide.createIcons();
+                        settingsMenu.classList.remove('show');
+                        menuPanels.forEach(p => p.classList.remove('active'));
+                        document.getElementById('panel-main').classList.add('active');
+                    });
+                });
+
+                // Sleep Timer Logic
+                let sleepTimerId = null;
+                let sleepTimerEndTime = null;
+
+                function startSleepTimer(durationInMinutes) {
+                    stopSleepTimer(); // Clear any existing timer
+
+                    if (durationInMinutes === 0) {
+                        currentSleepTimerText.innerText = 'Off';
+                        return;
+                    }
+
+                    sleepTimerEndTime = Date.now() + (durationInMinutes * 60 * 1000);
+                    
+                    sleepTimerId = setInterval(() => {
+                        const remainingTime = sleepTimerEndTime - Date.now();
+                        if (remainingTime <= 0) {
+                            stopSleepTimer();
+                            videoElement.pause();
+                            playPauseBtn.innerHTML = '<i data-lucide="play"></i>';
+                            container.classList.add('paused');
+                            currentSleepTimerText.innerText = 'Off';
+                            alert('Sleep timer ended. Video paused.');
+                        } else {
+                            const minutes = Math.floor(remainingTime / (60 * 1000));
+                            const seconds = Math.floor((remainingTime % (60 * 1000)) / 1000);
+                            currentSleepTimerText.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds} remaining`;
+                        }
+                    }, 1000);
+                }
+
+                function stopSleepTimer() {
+                    if (sleepTimerId) {
+                        clearInterval(sleepTimerId);
+                        sleepTimerId = null;
+                        sleepTimerEndTime = null;
+                    }
+                    currentSleepTimerText.innerText = 'Off';
+                }
+
+                sleepTimerItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const duration = parseInt(item.getAttribute('data-duration'));
+                        startSleepTimer(duration);
+                        syncSettingsMenuText(); // Update checkmark and main menu text
+                        settingsMenu.classList.remove('show');
+                        menuPanels.forEach(p => p.classList.remove('active'));
+                        document.getElementById('panel-main').classList.add('active');
+                    });
+                });
+
+                // Picture-in-Picture (Miniplayer) Logic
+                if ('pictureInPictureEnabled' in document) {
+                    pipBtn.addEventListener('click', async () => {
+                        try {
+                            if (document.pictureInPictureElement) {
+                                await document.exitPictureInPicture();
+                            } else {
+                                await videoElement.requestPictureInPicture();
+                            }
+                        } catch (err) {
+                            console.error("PiP Error:", err);
+                        }
+                    });
+                } else {
+                    pipBtn.style.display = 'none'; // Hide if browser doesn't support it
+                }
+
+                // Fullscreen Logic
+                fullscreenBtn.addEventListener('click', () => {
+                    if (!document.fullscreenElement) {
+                        container.requestFullscreen().catch(err => {
+                            console.error("Error attempting to enable fullscreen:", err);
+                        });
+                        fullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
+                    } else {
+                        document.exitFullscreen();
+                        fullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
+                    }
+                    lucide.createIcons();
+                });
+
+                // Function to update checkmarks and main menu text for settings
+                function syncSettingsMenuText() {
+                    // Update checkmark for sleep timer
+                    sleepTimerItems.forEach(item => {
+                        item.classList.remove('active');
+                        item.innerHTML = item.innerText.split('<')[0].trim(); // Remove check icon
+                        if (item.getAttribute('data-duration') === (sleepTimerEndTime ? Math.ceil((sleepTimerEndTime - Date.now()) / (60 * 1000)).toString() : '0')) {
+                            item.classList.add('active');
+                            item.innerHTML = `${item.innerText} <i data-lucide="check" style="width: 14px; height: 14px;"></i>`;
+                        }
+                    });
+                };
             }
 
             window.renderComments();
         }
-
-        window.toggleDescription = function() {
-            const desc = document.getElementById('video-description');
-            const btn = document.getElementById('show-more-btn');
-            const isExpanded = desc.classList.toggle('expanded');
-            btn.innerText = isExpanded ? 'Show less' : 'Show more';
-        };
-
-        window.likeVideo = async (id) => {
-            if (!auth.currentUser) { alert('Please log in to like.'); return; }
-            const ref = doc(db, "blogs", id);
-            
-            const likeBtnIcon = document.querySelector('#like-btn-' + id + ' i');
-            const likeCountDisplay = document.getElementById('like-count-display');
-            if (likeBtnIcon && likeCountDisplay) {
-                let currentLikes = parseInt(likeCountDisplay.innerText) || 0;
-                const isCurrentlyLiked = likeBtnIcon.style.color === 'rgb(255, 0, 80)' || likeBtnIcon.style.color === '#ff0050';
-                
-                if (isCurrentlyLiked) {
-                    likeBtnIcon.style.color = 'inherit';
-                    likeCountDisplay.innerText = Math.max(0, currentLikes - 1);
-                } else {
-                    likeBtnIcon.style.color = '#ff0050';
-                    likeCountDisplay.innerText = currentLikes + 1;
-                }
-            }
-
-            try {
-                const snap = await getDoc(ref);
-                if (snap.exists()) {
-                    const data = snap.data();
-                    let likes = data.likes || [];
-                    if (Array.isArray(likes)) {
-                        if (!likes.includes(auth.currentUser.uid)) { likes.push(auth.currentUser.uid); }
-                        else { likes = likes.filter(uid => uid !== auth.currentUser.uid); }
-                        await updateDoc(ref, { likes });
-                    }
-                }
-            } catch(e) { console.error(e); }
-        };
-
-        window.shareVideo = () => { navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard!'); };
 
         async function loadSuggestions() {
             const container = document.getElementById('suggestions');
@@ -483,71 +1042,52 @@
             }
         }
 
-        window.skipDuration = parseInt(localStorage.getItem('viyou_skip_duration') || '12', 10);
-        window.updateSkipDuration = function(val) {
-            window.skipDuration = parseInt(val, 10);
-            localStorage.setItem('viyou_skip_duration', window.skipDuration);
-            const dtLeft = document.getElementById('dt-left');
-            const dtRight = document.getElementById('dt-right');
-            if(dtLeft) dtLeft.innerText = `⏪ ${window.skipDuration}s`;
-            if(dtRight) dtRight.innerText = `⏩ ${window.skipDuration}s`;
+        window.toggleDescription = function() {
+            const desc = document.getElementById('video-description');
+            const btn = document.getElementById('show-more-btn');
+            const isExpanded = desc.classList.toggle('expanded');
+            btn.innerText = isExpanded ? 'Show less' : 'Show more';
         };
 
-        let clickTimer = null;
-        window.handleVideoClick = function(e) {
-            if (e.target.closest('.fluid_controls_container') || e.target.tagName.toLowerCase() === 'iframe') return;
-            
-            if (clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-                
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const width = rect.width;
-                const vid = document.getElementById('watch-video-player');
+        window.likeVideo = async (id) => {
+            if (!auth.currentUser) {
+                alert('Please log in to like.');
+                return;
+            }
+            const ref = doc(db, "blogs", id);
+            const likeBtnIcon = document.querySelector('#like-btn-' + id + ' svg') || document.querySelector('#like-btn-' + id + ' i');
+            const likeCountDisplay = document.getElementById('like-count-display');
 
-                if (x < width / 3) {
-                    if (vid) vid.currentTime = Math.max(0, vid.currentTime - window.skipDuration);
-                    window.showAnim('dt-left', `⏪ ${window.skipDuration}s`);
-                } else if (x > (width * 2) / 3) {
-                    if (vid) vid.currentTime = Math.min(vid.duration, vid.currentTime + window.skipDuration);
-                    window.showAnim('dt-right', `⏩ ${window.skipDuration}s`);
-                } else {
-                    if (!auth.currentUser) {
-                        alert('Please log in to like.');
-                        return;
-                    }
-                    const likeBtnIcon = document.querySelector('#like-btn-' + blogId + ' i');
-                    if (likeBtnIcon) {
-                        const isLiked = likeBtnIcon.style.color === 'rgb(255, 0, 80)' || likeBtnIcon.style.color === '#ff0050';
-                        if (!isLiked) window.likeVideo(blogId);
-                    }
-                    
-                    const heart = document.getElementById('dt-center');
-                    heart.style.transition = 'none';
-                    heart.style.transform = 'translate(-50%, -50%) scale(1)';
-                    heart.style.opacity = '1';
-                    void heart.offsetWidth; // Force Reflow
-                    heart.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out';
-                    heart.style.transform = 'translate(-50%, -50%) scale(1.5)';
-                    setTimeout(() => {
-                        heart.style.transition = 'transform 0.2s ease-in, opacity 0.2s ease-in';
-                        heart.style.transform = 'translate(-50%, -50%) scale(2)';
-                        heart.style.opacity = '0';
-                    }, 500);
-                }
+            if (!likeBtnIcon || !likeCountDisplay) return;
+
+            const isCurrentlyLiked = likeBtnIcon.classList.contains('lucide-fill');
+            let currentLikes = parseInt(likeCountDisplay.innerText) || 0;
+
+            // Optimistic UI Update
+            if (isCurrentlyLiked) {
+                likeBtnIcon.style.color = 'inherit';
+                likeBtnIcon.classList.remove('lucide-fill');
+                likeCountDisplay.innerText = Math.max(0, currentLikes - 1);
             } else {
-                clickTimer = setTimeout(() => { clickTimer = null; }, 300);
+                likeBtnIcon.style.color = '#ff0050';
+                likeBtnIcon.classList.add('lucide-fill');
+                likeCountDisplay.innerText = currentLikes + 1;
+            }
+
+            // DB Update
+            try {
+                if (isCurrentlyLiked) {
+                    await updateDoc(ref, { likes: arrayRemove(auth.currentUser.uid) });
+                } else {
+                    await updateDoc(ref, { likes: arrayUnion(auth.currentUser.uid) });
+                }
+            } catch (e) {
+                console.error("Like error:", e);
+                alert("Failed to update like status.");
             }
         };
 
-        window.showAnim = function(id, text) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            if (text) el.innerText = text;
-            el.style.opacity = '1';
-            setTimeout(() => { el.style.opacity = '0'; }, 800);
-        };
+        window.shareVideo = () => { navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard!'); };
 
         // --- MODERN COMMENT SYSTEM ---
 

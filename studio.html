@@ -27,6 +27,7 @@
             observer.observe(document.body, { childList: true, subtree: true });
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -143,24 +144,24 @@
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>Total Video Views</h3>
+                <h3>Total Views</h3>
                 <p id="total-views">...</p>
             </div>
             <div class="stat-card">
-                <h3>Total Ad Clicks</h3>
-                <p id="total-clicks">...</p>
+                <h3>Long Video Views</h3>
+                <p id="long-video-views">...</p>
             </div>
             <div class="stat-card">
-                <h3>Total Likes</h3>
-                <p id="total-likes">...</p>
+                <h3>Flicks Views</h3>
+                <p id="flicks-views">...</p>
             </div>
             <div class="stat-card">
                 <h3>Followers</h3>
                 <p id="total-followers">...</p>
             </div>
             <div class="stat-card">
-                <h3>Blogs Published</h3>
-                <p id="total-blogs">...</p>
+                <h3>Revenue Tier</h3>
+                <p id="current-tier" style="color: #a855f7;">...</p>
             </div>
         </div>
 
@@ -169,6 +170,15 @@
             <h2>Monetization Status</h2>
             <div id="monetization-status">
                 <p>Loading status...</p>
+            </div>
+        </div>
+
+        <!-- Growth Analytics -->
+        <div class="monetization-card" id="tier-analytics-card" style="display: none; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05);">
+            <h2 style="color: #10b981; margin: 0 0 10px 0;"><i data-lucide="trending-up"></i> Growth Analytics</h2>
+            <p id="next-tier-info" style="margin-top: 0; color: #ccc; font-size: 0.95rem; line-height: 1.4;"></p>
+            <div id="chart-wrapper" style="position: relative; height: 250px; width: 100%; margin-top: 20px;">
+                <canvas id="tierGrowthChart"></canvas>
             </div>
         </div>
 
@@ -183,12 +193,49 @@
             </div>
         </div>
 
-        <!-- Earnings -->
-        <div class="stat-card" style="text-align: left; margin-bottom: 30px;">
-            <h3>Estimated Earnings</h3>
-            <p id="estimated-earnings" style="color: #10b981;">₹0.00</p>
-            <small id="earning-note">Earnings are calculated for monetized users based on views on their videos.</small>
-            <button id="withdraw-btn" class="btn" disabled style="margin-top: 15px;">Withdraw Funds</button>
+        <!-- Earnings Analytics -->
+        <div class="monetization-card" id="earnings-analytics-card" style="border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.05); margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                <div style="flex: 1; min-width: 250px;">
+                    <h2 style="color: #3b82f6; margin-top: 0;"><i data-lucide="indian-rupee"></i> Estimated Earnings</h2>
+                    <p id="estimated-earnings" style="font-size: 2.5rem; font-weight: bold; color: #10b981; margin: 10px 0;">₹0.00</p>
+                    <div id="earning-note" style="color: #ccc; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">Earnings are calculated for monetized users based on views on their videos.</div>
+                    <button id="withdraw-btn" class="btn" disabled>Withdraw Funds</button>
+                </div>
+                <div style="flex: 1; min-width: 250px; height: 200px; position: relative;">
+                    <canvas id="earningsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Performance Analytics -->
+        <div class="monetization-card" id="content-performance-card" style="border-color: rgba(236, 72, 153, 0.3); background: rgba(236, 72, 153, 0.05); margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="color: #ec4899; margin-top: 0; margin-bottom: 0;"><i data-lucide="bar-chart-2"></i> Content Performance</h2>
+                <select id="content-filter" style="width: auto; padding: 8px 15px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none; cursor: pointer;" onchange="window.renderContentTable(this.value)">
+                    <option value="all">All Content</option>
+                    <option value="video">Long Videos</option>
+                    <option value="flick">Flicks</option>
+                    <option value="blog">Blogs</option>
+                </select>
+            </div>
+            <div style="overflow-x: auto; max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);">
+                <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 600px;">
+                    <thead style="position: sticky; top: 0; background: #1a1a1a; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                        <tr style="color: #aaa; font-size: 0.9rem;">
+                            <th style="padding: 12px 10px; width: 40%;">Content</th>
+                            <th style="padding: 12px 10px;">Date</th>
+                            <th style="padding: 12px 10px;"><i data-lucide="eye" style="width: 14px;"></i> Views</th>
+                            <th style="padding: 12px 10px;"><i data-lucide="heart" style="width: 14px;"></i> Likes</th>
+                            <th style="padding: 12px 10px;"><i data-lucide="message-circle" style="width: 14px;"></i> Comments</th>
+                            <th style="padding: 12px 10px;"><i data-lucide="indian-rupee" style="width: 14px;"></i> Est. Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="content-performance-list">
+                        <tr><td colspan="6" style="padding: 15px; text-align: center; color: #aaa;">Loading content data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Payment History -->
@@ -317,21 +364,15 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { firebaseConfig } from "./firebase-config.js";
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        import { db, auth } from "./firebase-config.js";
 
         const MONETIZATION_VIEWS = 10000;
         const MONETIZATION_FOLLOWERS = 200;
         
-        let monetizationSettings = { enableCpm: true, enableCpc: false, cpmRate: 50, cpcRate: 200, currency: 'INR', minWithdrawal: 500 }; // Default values
+        let monetizationSettings = { preRollRate: 200, preRollFreq: 3, currency: 'INR', minWithdrawal: 500, tierFollowers: [200, 1000, 50000, 100000, 1000000] }; // Default values
         let currentUnpaidViews = 0;
-        let currentUnpaidClicks = 0;
         let currentEarnings = 0;
         let currentUserTotalViews = 0;
 
@@ -341,6 +382,9 @@
                 const settingsDoc = await getDoc(doc(db, "settings", "monetization"));
                 if (settingsDoc.exists()) {
                     monetizationSettings = settingsDoc.data();
+                    if (!monetizationSettings.tierFollowers) {
+                        monetizationSettings.tierFollowers = [200, 1000, 50000, 100000, 1000000];
+                    }
                 }
             } catch (e) {
                 console.error("Could not load monetization config, using defaults.", e);
@@ -376,10 +420,10 @@
                 const userDocRef = doc(db, "users", uid);
                 const userDocSnap = await getDoc(userDocRef);
                 const userData = userDocSnap.exists() ? userDocSnap.data() : {};
-                const followersCount = userData.followers ? userData.followers.length : 0;
+                const actualFollowers = userData.followers ? userData.followers.length : 0;
+                const followersCount = userData.followerCountOverride !== undefined ? Number(userData.followerCountOverride) : actualFollowers;
                 const isMonetized = userData.isMonetized === true;
-                const paidViews = userData.paidViews || 0; // Views for which payment is already done
-                const paidClicks = userData.paidClicks || 0; // Clicks for which payment is already done
+                const paidLongVideoViews = Number(userData.paidLongVideoViews) || Number(userData.paidViews) || 0; 
 
                 // Check for pending withdrawal requests
                 const pendingQuery = query(collection(db, "withdrawals"), where("uid", "==", uid), where("status", "==", "pending"));
@@ -391,19 +435,22 @@
                 const blogsSnapshot = await getDocs(blogsQuery);
 
                 let totalViews = 0;
-                let totalClicks = 0;
-                let totalLikes = 0;
-                let totalBlogs = 0;
+                let totalLongVideoViews = 0;
+                let totalFlicksViews = 0;
                 let activePromotions = [];
+                let allUserContent = [];
                 const now = new Date();
 
                 blogsSnapshot.forEach(blogDoc => {
                     const blogData = blogDoc.data();
                     if (blogData.status !== 'draft') {
-                        totalBlogs++;
-                        totalViews += blogData.views || 0;
-                        totalClicks += blogData.adClicks || 0;
-                        totalLikes += Array.isArray(blogData.likes) ? blogData.likes.length : (blogData.likes || 0);
+                        allUserContent.push({ id: blogDoc.id, ...blogData });
+                        totalViews += Number(blogData.views) || 0;
+                        if (blogData.isFlicker) {
+                            totalFlicksViews += Number(blogData.views) || 0;
+                        } else if (blogData.video && !blogData.youtubeUrl) { // Only count direct uploads for earnings
+                            totalLongVideoViews += blogData.longVideoViews !== undefined ? Number(blogData.longVideoViews) : (Number(blogData.views) || 0);
+                        }
                         
                         if (blogData.isPromoted && blogData.promoExpiry) {
                             if (new Date(blogData.promoExpiry) > now) {
@@ -426,18 +473,86 @@
                 });
 
                 currentUserTotalViews = totalViews;
-                currentUnpaidViews = Math.max(0, totalViews - paidViews);
-                currentUnpaidClicks = Math.max(0, totalClicks - paidClicks);
+                
+                // Tier Calculation Logic
+                let tier = 0, sharePercent = 0;
+                const tierFollowers = monetizationSettings.tierFollowers || [200, 1000, 50000, 100000, 1000000];
+                if (followersCount >= tierFollowers[4] && totalViews >= 10000000) { tier = 5; sharePercent = 0.70; }
+                else if (followersCount >= tierFollowers[3] && totalViews >= 5000000) { tier = 4; sharePercent = 0.65; }
+                else if (followersCount >= tierFollowers[2] && totalViews >= 1000000) { tier = 3; sharePercent = 0.60; }
+                else if (followersCount >= tierFollowers[1] && totalViews >= 100000) { tier = 2; sharePercent = 0.55; }
+                else if (followersCount >= tierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
 
                 // Update UI
                 document.getElementById('total-views').innerText = totalViews.toLocaleString();
-                document.getElementById('total-clicks').innerText = totalClicks.toLocaleString();
-                document.getElementById('total-likes').innerText = totalLikes.toLocaleString();
+                document.getElementById('long-video-views').innerText = totalLongVideoViews.toLocaleString();
+                document.getElementById('flicks-views').innerText = totalFlicksViews.toLocaleString();
                 document.getElementById('total-followers').innerText = followersCount.toLocaleString();
-                document.getElementById('total-blogs').innerText = totalBlogs.toLocaleString();
+                document.getElementById('current-tier').innerText = tier > 0 ? `Tier ${tier} (${Math.round(sharePercent * 100)}%)` : 'No Tier';
 
                 // Update Monetization UI
                 updateMonetizationUI(isMonetized, totalViews, followersCount);
+
+                // --- Tier Growth Line Chart Analytics ---
+                const tierViewsLevels = [10000, 100000, 1000000, 5000000, 10000000];
+                const targetNextTier = Math.min(5, tier + 1);
+                const analyticsCard = document.getElementById('tier-analytics-card');
+                
+                if (tier < 5) {
+                    analyticsCard.style.display = 'block';
+                    document.getElementById('chart-wrapper').style.display = 'block';
+                    const targetFollowers = tierFollowers[targetNextTier - 1];
+                    const targetViews = tierViewsLevels[targetNextTier - 1];
+                    
+                    const followersNeeded = Math.max(0, targetFollowers - followersCount);
+                    const viewsNeeded = Math.max(0, targetViews - totalViews);
+                    
+                    let neededTextParts = [];
+                    if (followersNeeded > 0) neededTextParts.push(`<strong>${followersNeeded.toLocaleString()}</strong> more followers`);
+                    if (viewsNeeded > 0) neededTextParts.push(`<strong>${viewsNeeded.toLocaleString()}</strong> more views`);
+                    
+                    let neededText = neededTextParts.join(' <span style="color:#f59e0b; font-weight:bold;">AND</span> ');
+                    if (neededTextParts.length === 0) neededText = 'to keep growing';
+                    
+                    document.getElementById('next-tier-info').innerHTML = `To unlock <strong>Tier ${targetNextTier}</strong>, you need ${neededText}.`;
+                    
+                    const fProg = Math.min(100, (followersCount / targetFollowers) * 100);
+                    const vProg = Math.min(100, (totalViews / targetViews) * 100);
+
+                    if (window.tierChart) window.tierChart.destroy();
+                    const ctx = document.getElementById('tierGrowthChart').getContext('2d');
+                    
+                    const isLightMode = document.body.classList.contains('light-mode');
+                    const gridColor = isLightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)';
+                    const textColor = isLightMode ? '#555' : '#aaa';
+
+                    window.tierChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Current Progress', `Goal (Tier ${targetNextTier})`],
+                            datasets: [
+                                { label: 'Followers Growth (%)', data: [fProg, 100], borderColor: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.1)', borderWidth: 3, fill: true, tension: 0.3, pointRadius: 6, pointBackgroundColor: '#a855f7' },
+                                { label: 'Views Growth (%)', data: [vProg, 100], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 3, fill: true, tension: 0.3, pointRadius: 6, pointBackgroundColor: '#10b981' }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { color: textColor, callback: function(val) { return val + '%' } } },
+                                x: { grid: { color: gridColor }, ticks: { color: textColor } }
+                            },
+                            plugins: {
+                                legend: { labels: { color: textColor } },
+                                tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'; } } }
+                            }
+                        }
+                    });
+                } else {
+                    analyticsCard.style.display = 'block';
+                    document.getElementById('next-tier-info').innerHTML = `🎉 <strong>Congratulations!</strong> You have reached the maximum Tier 5. You are earning the highest revenue share possible!`;
+                    document.getElementById('chart-wrapper').style.display = 'none';
+                }
 
                 // Update Active Promotions UI
                 const promoListContainer = document.getElementById('active-promotions-list');
@@ -488,30 +603,82 @@
                     });
                 }
 
-                // Update Earnings UI (placeholder logic)
-                if (isMonetized) {
-                    let earnings = 0;
-                    let earningNotes = [];
-                    
-                    if (monetizationSettings.enableCpm !== false) {
-                        const rate = monetizationSettings.cpmRate || 50;
-                        earnings += (currentUnpaidViews / 1000) * rate;
-                        earningNotes.push(`₹${rate} per 1000 views (${currentUnpaidViews.toLocaleString()} unpaid)`);
-                    }
-                    
-                    if (monetizationSettings.enableCpc) {
-                        const cpcRate = monetizationSettings.cpcRate || 200;
-                        earnings += (currentUnpaidClicks / 1000) * cpcRate;
-                        earningNotes.push(`₹${cpcRate} per 1000 clicks on Long Video Ads (${currentUnpaidClicks.toLocaleString()} unpaid)`);
-                    }
-                    
-                    if (monetizationSettings.enableCpm === false && !monetizationSettings.enableCpc) {
-                        earningNotes.push("Monetization is currently paused by admin.");
-                    }
+                // --- Content Performance Table ---
+                allUserContent.sort((a, b) => new Date(b.date) - new Date(a.date)); // Newest first
+                window.cachedContentData = allUserContent;
+                window.cachedMonetizationParams = {
+                    preRollRate: monetizationSettings.preRollRate || 200,
+                    preRollFreq: monetizationSettings.preRollFreq || 3,
+                    sharePercent: sharePercent,
+                    isMonetized: isMonetized
+                };
+                window.renderContentTable('all');
 
-                    currentEarnings = earnings;
+                window.currentUserWalletBalance = userData.walletBalance || 0;
+                window.currentUserTotalLongVideoViews = totalLongVideoViews;
+                window.currentUserPendingEarnings = 0;
+
+                // Update Earnings UI
+                if (isMonetized) {
+                    let earningNotes = [];
+                    const preRollRate = monetizationSettings.preRollRate || 200;
+                    const preRollFreq = monetizationSettings.preRollFreq || 3;
+                    
+                    const unpaidLongViews = Math.max(0, totalLongVideoViews - paidLongVideoViews);
+                    const adImpressions = unpaidLongViews / preRollFreq;
+                    const generatedRevenue = (adImpressions / 1000) * preRollRate;
+                    window.currentUserPendingEarnings = generatedRevenue * sharePercent;
+
+                    currentEarnings = window.currentUserWalletBalance + window.currentUserPendingEarnings;
+                    
+                    earningNotes.push(`<strong>Tier ${tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong>`);
+                    earningNotes.push(`Unpaid Long Video Views: ${unpaidLongViews.toLocaleString()}`);
+                    earningNotes.push(`Frequency: 1 Ad per ${preRollFreq} Views`);
+                    earningNotes.push(`Wallet Balance: ₹${window.currentUserWalletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`);
+
                     document.getElementById('estimated-earnings').innerText = `₹${currentEarnings.toFixed(2)}`;
                     document.getElementById('earning-note').innerHTML = earningNotes.join("<br>");
+                    
+                    // --- Earnings Doughnut Chart ---
+                    const eCtx = document.getElementById('earningsChart').getContext('2d');
+                    if (window.earningsChart && typeof window.earningsChart.destroy === 'function') window.earningsChart.destroy();
+                    
+                    const isLightModeTheme = document.body.classList.contains('light-mode');
+                    const chartTextColor = isLightModeTheme ? '#555' : '#aaa';
+                    
+                    let chartData = [window.currentUserWalletBalance, window.currentUserPendingEarnings];
+                    let bgColors = ['#3b82f6', '#10b981'];
+                    let labels = ['Wallet Balance (₹)', 'Pending Ad Revenue (₹)'];
+
+                    if (currentEarnings === 0) {
+                        chartData = [1];
+                        bgColors = [isLightModeTheme ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'];
+                        labels = ['No Earnings Yet'];
+                    }
+
+                    window.earningsChart = new Chart(eCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: chartData,
+                                backgroundColor: bgColors,
+                                borderColor: isLightModeTheme ? '#fff' : '#1e1e1e',
+                                borderWidth: 2,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '70%',
+                            plugins: {
+                                legend: { position: 'right', labels: { color: chartTextColor, font: { family: "'Outfit', sans-serif" } } },
+                                tooltip: { callbacks: { label: function(context) { if (currentEarnings === 0) return ' ₹0.00'; return ' ₹' + context.parsed.toFixed(2); } } }
+                            }
+                        }
+                    });
+
                     const withdrawBtn = document.getElementById('withdraw-btn');
                     
                     if (hasPending) {
@@ -541,6 +708,83 @@
                 alert("Could not load your studio data.");
             }
         }
+
+        window.renderContentTable = function(filterType = 'all') {
+            const perfList = document.getElementById('content-performance-list');
+            if (!window.cachedContentData || window.cachedContentData.length === 0) {
+                perfList.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: #aaa;">No published content found.</td></tr>';
+                return;
+            }
+
+            const { preRollRate, preRollFreq, sharePercent, isMonetized } = window.cachedMonetizationParams;
+
+            let filteredContent = window.cachedContentData;
+            if (filterType !== 'all') {
+                filteredContent = window.cachedContentData.filter(content => {
+                    if (filterType === 'flick') return content.isFlicker;
+                    if (filterType === 'video') return !content.isFlicker && (content.video || content.youtubeUrl);
+                    if (filterType === 'blog') return !content.isFlicker && !content.video && !content.youtubeUrl;
+                    return true;
+                });
+            }
+
+            if (filteredContent.length === 0) {
+                perfList.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: #aaa;">No content found for this filter.</td></tr>';
+                return;
+            }
+
+            perfList.innerHTML = '';
+            filteredContent.forEach(content => {
+                let typeLabel = 'Blog Post';
+                let isDirectVideo = false;
+                if (content.isFlicker) { typeLabel = 'Flick (Short)'; }
+                else if (content.video && !content.youtubeUrl) { typeLabel = 'Long Video'; isDirectVideo = true; }
+                else if (content.youtubeUrl) { typeLabel = 'YouTube Video'; }
+                else if (content.video) { typeLabel = 'Long Video'; }
+
+                let views = content.views || 0;
+                let likes = Array.isArray(content.likes) ? content.likes.length : (typeof content.likes === 'number' && !isNaN(content.likes) ? content.likes : 0);
+                let comments = content.comments ? content.comments.length : 0;
+                let dateStr = content.date ? new Date(content.date).toLocaleDateString() : 'N/A';
+                
+                let itemRevenue = 0;
+                if (isMonetized && isDirectVideo) {
+                    const vidViews = content.longVideoViews !== undefined ? Number(content.longVideoViews) : (Number(content.views) || 0);
+                    const impressions = vidViews / preRollFreq;
+                    itemRevenue = (impressions / 1000) * preRollRate * sharePercent;
+                }
+
+                let thumb = 'logo.png';
+                if (content.thumbnail) thumb = content.thumbnail;
+                else if (content.youtubeUrl) {
+                    const match = content.youtubeUrl.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
+                    if (match) thumb = `https://img.youtube.com/vi/${match[1]}/default.jpg`;
+                } else if (content.images && content.images.length > 0) thumb = content.images[0];
+                else if (content.image && content.image !== 'logo.png') thumb = content.image;
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                tr.innerHTML = `
+                    <td style="padding: 10px; display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 80px; height: 45px; border-radius: 4px; overflow: hidden; background: #222; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
+                            <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;">
+                            ${typeLabel.includes('Video') ? '<i data-lucide="play-circle" style="position: absolute; color: white; width: 16px; height: 16px;"></i>' : (typeLabel === 'Flick (Short)' ? '<i data-lucide="zap" style="position: absolute; color: #ff0050; width: 16px; height: 16px;"></i>' : '')}
+                        </div>
+                        <div style="overflow: hidden;">
+                            <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${(content.title || 'Untitled').replace(/"/g, '&quot;')}">${content.title || 'Untitled'}</div>
+                            <div style="font-size: 0.8rem; color: #aaa;">${typeLabel}</div>
+                        </div>
+                    </td>
+                    <td style="padding: 10px; color: #ccc; font-size: 0.9rem; white-space: nowrap;">${dateStr}</td>
+                    <td style="padding: 10px; color: #10b981; font-weight: bold;">${views.toLocaleString()}</td>
+                    <td style="padding: 10px; color: #ff0050;">${likes.toLocaleString()}</td>
+                    <td style="padding: 10px; color: #87ceeb;">${comments.toLocaleString()}</td>
+                    <td style="padding: 10px; color: #3b82f6; font-weight: bold;">₹${itemRevenue.toFixed(2)}</td>
+                `;
+                perfList.appendChild(tr);
+            });
+            if (window.lucide) window.lucide.createIcons(); // Refresh table icons
+        };
 
         function updateMonetizationUI(isMonetized, views, followers) {
             const container = document.getElementById('monetization-status');
@@ -677,15 +921,18 @@
             submitBtn.innerText = "Processing...";
 
             try {
-                const fraction = reqAmount / currentEarnings;
-                const viewsForAmount = Math.ceil(currentUnpaidViews * fraction);
-                const clicksForAmount = Math.ceil(currentUnpaidClicks * fraction);
+                // Snapshot pending earnings directly into wallet to clear unpaid views
+                const newWalletBalance = window.currentUserWalletBalance + window.currentUserPendingEarnings;
+                const remainingBalance = newWalletBalance - reqAmount;
+
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    walletBalance: remainingBalance,
+                    paidLongVideoViews: window.currentUserTotalLongVideoViews
+                });
 
                 await addDoc(collection(db, "withdrawals"), {
                     uid: auth.currentUser.uid,
                     amount: reqAmount,
-                    viewsCalculated: viewsForAmount,
-                    clicksCalculated: clicksForAmount,
                     paymentInfo: paymentInfo,
                     status: 'pending',
                     date: new Date().toISOString()

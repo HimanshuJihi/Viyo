@@ -27,12 +27,22 @@
         p, li { font-size: 1.05rem; color: #ddd; }
         .btn { display: inline-block; padding: 10px 20px; font-weight: bold; color: #fff; background-color: #0d6efd; border-radius: 5px; text-decoration: none; margin-top: 20px; transition: 0.2s; }
         .btn:hover { background-color: #0b5ed7; }
+        .lang-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; }
+        .lang-tab-btn { background-color: transparent; border: 1px solid #6c757d; color: #aaa; padding: 8px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .lang-tab-btn.active { background-color: #6366f1; border-color: #6366f1; color: white; }
+        .lang-tab-btn:hover:not(.active) { background-color: rgba(255, 255, 255, 0.1); color: #fff; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="container">
+        <div class="lang-tabs">
+            <button id="tab-en" class="lang-tab-btn active" onclick="switchLang('en')">English</button>
+            <button id="tab-hi" class="lang-tab-btn" onclick="switchLang('hi')">हिंदी (Hindi)</button>
+        </div>
+
+        <div id="english-section">
         <h1>Terms of Service</h1>
         <p>Welcome to Viyou! These terms and conditions outline the rules and regulations for the use of our Website.</p>
         
@@ -47,8 +57,37 @@
         
         <h2>4. Account Termination</h2>
         <p>We may terminate or suspend your account and bar access to the Service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+        </div>
         
+        <div id="hindi-section" style="display: none;">
+            <h1>सेवा की शर्तें (Terms of Service)</h1>
+            <p>Viyou में आपका स्वागत है! ये नियम और शर्तें हमारी वेबसाइट के उपयोग के लिए नियमों और विनियमों की रूपरेखा तैयार करती हैं।</p>
+            
+            <h2>1. उपयोगकर्ता द्वारा निर्मित सामग्री (User Generated Content)</h2>
+            <p>Viyou उपयोगकर्ताओं को ब्लॉग, चित्र, फ्लिक्स (लघु वीडियो) और टिप्पणियाँ पोस्ट करने की अनुमति देता है। आप उस सामग्री के लिए पूरी तरह से जिम्मेदार हैं, और उस सामग्री के परिणामस्वरूप होने वाले किसी भी नुकसान के लिए भी। आपको कुछ भी ऐसा पोस्ट नहीं करना चाहिए जो अवैध, आक्रामक हो, या दूसरों के बौद्धिक संपदा अधिकारों का उल्लंघन करता हो।</p>
+            
+            <h2>2. कॉपीराइट दावे (Copyright Claims)</h2>
+            <p>हम दूसरों के बौद्धिक संपदा अधिकारों का सम्मान करते हैं। यदि आपको लगता है कि आपके काम की इस तरह से नकल की गई है जिससे कॉपीराइट का उल्लंघन होता है, तो कृपया इन-ऐप "कॉपीराइट स्ट्राइक" सुविधा का उपयोग करें या हमारे प्रशासन से संपर्क करें। हम उल्लंघन करने वाली सामग्री को हटाने और बार-बार उल्लंघन करने वालों के खातों को समाप्त करने का अधिकार सुरक्षित रखते हैं।</p>
+            
+            <h2>3. मुद्रीकरण और कमाई (Monetization & Earnings)</h2>
+            <p>क्रिएटर मुद्रीकरण (Monetization) एडमिन की मंजूरी और सामुदायिक दिशानिर्देशों के पालन के अधीन है। क्रिएटर स्टूडियो में गनी गई कमाई अनुमानित है और समीक्षा के अधीन है। यदि हम अमान्य क्लिक गतिविधियों, बॉट ट्रैफ़िक या नीति उल्लंघनों का पता लगाते हैं, तो हम भुगतान रोकने या खातों पर प्रतिबंध लगाने का अधिकार सुरक्षित रखते हैं।</p>
+            
+            <h2>4. खाता समाप्ति (Account Termination)</h2>
+            <p>हम बिना किसी पूर्व सूचना या दायित्व के, अपने पूर्ण विवेक के तहत, किसी भी कारण से, जिसमें बिना किसी सीमा के यदि आप शर्तों का उल्लंघन करते हैं, तो आपकी सेवा तक पहुंच को तत्काल समाप्त या निलंबित कर सकते हैं।</p>
+        </div>
+
         <a href="index.html" class="btn">← Back to Home</a>
     </div>
+    <script>
+        function switchLang(lang) {
+            document.getElementById('tab-en').classList.remove('active');
+            document.getElementById('tab-hi').classList.remove('active');
+            document.getElementById('english-section').style.display = 'none';
+            document.getElementById('hindi-section').style.display = 'none';
+            
+            document.getElementById('tab-' + lang).classList.add('active');
+            document.getElementById(lang === 'en' ? 'english-section' : 'hindi-section').style.display = 'block';
+        }
+    </script>
 </body>
 </html>

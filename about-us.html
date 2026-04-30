@@ -26,25 +26,169 @@
         p { font-size: 1.05rem; color: #ddd; }
         .btn { display: inline-block; padding: 10px 20px; font-weight: bold; color: #fff; background-color: #0d6efd; border-radius: 5px; text-decoration: none; margin-top: 20px; transition: 0.2s; }
         .btn:hover { background-color: #0b5ed7; }
+        
+        .lang-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; }
+        .lang-tab-btn { background-color: transparent; border: 1px solid #6c757d; color: #aaa; padding: 8px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .lang-tab-btn.active { background-color: #6366f1; border-color: #6366f1; color: white; }
+        .lang-tab-btn:hover:not(.active) { background-color: rgba(255, 255, 255, 0.1); color: #fff; }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .feature-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+        .feature-card h3 {
+            color: #87ceeb;
+            margin-top: 0;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .feature-card p {
+            font-size: 0.95rem;
+            margin-bottom: 0;
+            color: #ccc;
+        }
+        
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .badge-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .badge-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+        .badge-icon-display {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        .badge-card h4 {
+            margin: 0 0 5px 0;
+            color: #fff;
+            font-size: 1.05rem;
+        }
+        .badge-card p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="container">
-        <h1>About Us</h1>
-        <p>Welcome to <strong>Viyou</strong>, your ultimate destination for content creation and social networking. We're dedicated to providing you the very best platform to share your stories, short videos, and connect with a global community.</p>
+        <div class="lang-tabs">
+            <button id="tab-en" class="lang-tab-btn active" onclick="switchLang('en')">English</button>
+            <button id="tab-hi" class="lang-tab-btn" onclick="switchLang('hi')">हिंदी (Hindi)</button>
+        </div>
+
+        <!-- English Section -->
+        <div id="english-section">
+            <h1>About Us</h1>
+        <p>Welcome to <strong>Viyou</strong>, your ultimate destination for next-generation content creation and social networking. Born from the desire to break the boundaries of traditional social media, we are dedicated to providing you with the most advanced, engaging, and rewarding platform to share your stories, short videos, and connect with a truly global community.</p>
         
-        <h2>Our Mission</h2>
-        <p>Founded by tech and media enthusiasts, Viyou is built with a vision to create a community-driven social platform. We believe that everyone has a story to tell. That's why we allow our users to publish their own posts, share short videos (Flicks), create engaging stories, and participate in community polls.</p>
+        <h2>Our Mission & Vision</h2>
+        <p>At Viyou, our mission is simple yet profound: <strong>to democratize digital creativity and give power back to the creators.</strong> Founded by a passionate team of tech innovators and media enthusiasts, Viyou is built on the core belief that everyone has a unique story to tell, and every story deserves an audience.</p>
+        <p>Our vision is to become the world's most creator-centric digital ecosystem—a place where your creativity is not just seen and heard, but fairly rewarded. We are continuously evolving to bridge the gap between social interaction and content monetization, ensuring a safe, inspiring, and profitable environment for our users.</p>
         
-        <h2>What We Offer</h2>
-        <ul style="color: #ddd; font-size: 1.05rem;">
-            <li>A diverse range of content from creators worldwide.</li>
-            <li>Creator Studio for users to monetize their passion for blogging and content creation.</li>
-            <li>Real-time community interactions through comments, likes, and messages.</li>
-        </ul>
-        <p>We hope you enjoy our platform as much as we enjoy offering it to you. If you have any questions or comments, please don't hesitate to contact us.</p>
+        <h2>Why Choose Viyou?</h2>
+        <p style="color: #ccc; margin-bottom: 20px;">We've packed Viyou with cutting-edge tools designed for modern creators and avid consumers alike:</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>🎬 Flicks & Custom Video</h3>
+                <p>Enjoy endless short vertical videos (Flicks) tailored to your interests, or dive into high-quality, long-form content with our advanced custom player featuring picture-in-picture, speed adjustments, and seamless playback controls.</p>
+            </div>
+            <div class="feature-card">
+                <h3>✍️ Rich Blogging & Polling</h3>
+                <p>Express your thoughts beautifully. Write interactive blogs with multi-image carousels, embedded YouTube videos, and dynamic community polls to gauge audience opinions instantly.</p>
+            </div>
+            <div class="feature-card">
+                <h3>✂️ Advanced Pro Editor</h3>
+                <p>Unleash your inner director with our built-in professional video and story editor. Leverage multi-track timelines, AI Voiceovers (Text-to-Speech), green screen (chroma key) capabilities, and stunning cinematic transitions.</p>
+            </div>
+            <div class="feature-card">
+                <h3>💬 Real-Time Chat & Social</h3>
+                <p>Connect instantly with your friends and followers. Our real-time messaging ecosystem supports secure text, image/PDF sharing, rich link previews, read receipts, and deeply nested comment threads on posts.</p>
+            </div>
+            <div class="feature-card">
+                <h3>💰 Creator Monetization</h3>
+                <p>Turn your passion into profit! Track your views and ad clicks to manage payouts directly from the Creator Studio. Moreover, leverage our Self-Serve Ads system to promote your own products or external links seamlessly.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🎨 Futuristic UI & PWA</h3>
+                <p>Personalize your visual experience with 7 unique, immersive themes including Cyberpunk, Matrix, Ocean, and Solar. Plus, install Viyou as a Progressive Web App (PWA) for a blazing-fast, native app-like experience on any device.</p>
+            </div>
+        </div>
+        
+        <h2>Creator Badges & Recognition</h2>
+        <p style="color: #ccc; margin-bottom: 20px;">We love to celebrate our creators! As you grow your audience and engage with the community, you can earn exclusive badges on your profile:</p>
+        <div class="badges-grid">
+            <div class="badge-card">
+                <div class="badge-icon-display" style="background-color: #1da1f2; color: #fff;">✔</div>
+                <h4>Verified User</h4>
+                <p>A trusted member with 200+ followers.</p>
+            </div>
+            <div class="badge-card">
+                <div class="badge-icon-display" style="background-color: #f1c40f; color: #fff;">🏛️</div>
+                <h4>Community Pillar</h4>
+                <p>Followed by over 1000 users.</p>
+            </div>
+            <div class="badge-card">
+                <div class="badge-icon-display" style="background-color: #ff6b6b; color: #fff;">🔥</div>
+                <h4>Popular Author</h4>
+                <p>Received over 500 likes on posts.</p>
+            </div>
+            <div class="badge-card">
+                <div class="badge-icon-display" style="background-color: #9b59b6; color: #fff;">✍️</div>
+                <h4>Prolific Writer</h4>
+                <p>Published 25 or more blog posts.</p>
+            </div>
+            <div class="badge-card">
+                <div class="badge-icon-display" style="background-color: #2ecc71; color: #fff;">🎉</div>
+                <h4>Contributor</h4>
+                <p>Published their first blog post.</p>
+            </div>
+        </div>
+
+        <h2>Join the Revolution</h2>
+        <p>Whether you're an aspiring filmmaker, a passionate writer, or someone who loves discovering new content, Viyou is built for you. We hope you enjoy exploring our platform as much as we enjoyed crafting it for you. If you have any questions, feedback, or partnership inquiries, please don't hesitate to <a href="contact-us.html">contact us</a>.</p>
+        
         <a href="index.html" class="btn">← Back to Home</a>
     </div>
      

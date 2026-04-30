@@ -6,6 +6,7 @@ const urlsToCache = [
   '/write-blog.html',
   '/privacy.html',
   '/terms.html',
+  '/monetization-policy.html',
   '/about-us.html',
   '/studio.html',
   '/story-editor.html',

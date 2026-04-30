@@ -261,23 +261,17 @@
                 <div class="report-card" style="border-color: gold; margin-bottom: 20px;">
                     <h3 style="color: gold;">Monetization Settings</h3>
                     <div style="margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
-                            <input type="checkbox" id="enable-cpm" checked style="width: 20px; height: 20px;"> 
-                            <strong style="font-size: 1.1rem;">Enable Pay Per View (CPM)</strong>
-                        </label>
-                        <label for="cpm-rate" style="display: block; margin-bottom: 5px;">Rate per 1000 Views (in ₹):</label>
-                        <input type="number" id="cpm-rate" value="50" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
-                            <input type="checkbox" id="enable-cpc" style="width: 20px; height: 20px;"> 
-                            <strong style="font-size: 1.1rem;">Enable Pay Per Click (CPC)</strong>
-                        </label>
-                        <label for="cpc-rate" style="display: block; margin-bottom: 5px;">Rate per 1000 Clicks (in ₹):</label>
-                        <input type="number" id="cpc-rate" value="200" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        <h4 style="margin-top: 0;">Pre-Roll Ad Settings (For Creator Earnings)</h4>
+                        <label for="preroll-rate" style="display: block; margin-bottom: 5px;">Ad Rate per 1000 Impressions (in ₹):</label>
+                        <input type="number" id="preroll-rate" value="200" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
+                        
+                        <label for="preroll-freq" style="display: block; margin-bottom: 5px;">Ad Frequency (1 Ad per X Long Video Views):</label>
+                        <input type="number" id="preroll-freq" value="3" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
                         
                         <label for="min-withdrawal" style="display: block; margin-bottom: 5px; margin-top: 15px;">Minimum Withdrawal Amount (in ₹):</label>
                         <input type="number" id="min-withdrawal" value="500" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                     </div>
-                    <button class="btn" style="background-color: #198754;" onclick="window.saveMonetizationSettings()">Save Monetization Settings</button>
+                    <button class="btn" id="save-monetization-btn" style="background-color: #198754;" onclick="window.saveMonetizationSettings()">Save Monetization Settings</button>
                 </div>
                 
                 <div class="report-card" style="border-color: #198754;">
@@ -431,7 +425,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc, orderBy, limit, startAfter, writeBatch, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { firebaseConfig } from "./firebase-config.js";
 
@@ -1246,11 +1240,14 @@
                 const settingsDoc = await getDoc(doc(db, "settings", "monetization"));
                 if (settingsDoc.exists()) {
                     const data = settingsDoc.data();
-                    document.getElementById('cpm-rate').value = data.cpmRate || 50;
-                    document.getElementById('cpc-rate').value = data.cpcRate || 200;
-                    document.getElementById('enable-cpm').checked = data.enableCpm !== false; // defaults to true
-                    document.getElementById('enable-cpc').checked = data.enableCpc === true;  // defaults to false
-                    document.getElementById('min-withdrawal').value = data.minWithdrawal || 500;
+                    if(document.getElementById('preroll-rate')) document.getElementById('preroll-rate').value = data.preRollRate || 200;
+                    if(document.getElementById('preroll-freq')) document.getElementById('preroll-freq').value = data.preRollFreq || 3;
+                    if(document.getElementById('min-withdrawal')) document.getElementById('min-withdrawal').value = data.minWithdrawal || 500;
+                    if(document.getElementById('tier1-followers')) document.getElementById('tier1-followers').value = data.tierFollowers ? data.tierFollowers[0] : 200;
+                    if(document.getElementById('tier2-followers')) document.getElementById('tier2-followers').value = data.tierFollowers ? data.tierFollowers[1] : 1000;
+                    if(document.getElementById('tier3-followers')) document.getElementById('tier3-followers').value = data.tierFollowers ? data.tierFollowers[2] : 50000;
+                    if(document.getElementById('tier4-followers')) document.getElementById('tier4-followers').value = data.tierFollowers ? data.tierFollowers[3] : 100000;
+                    if(document.getElementById('tier5-followers')) document.getElementById('tier5-followers').value = data.tierFollowers ? data.tierFollowers[4] : 1000000;
                 }
             } catch (e) {
                 console.error("Error loading monetization settings:", e);
@@ -1258,26 +1255,104 @@
         }
 
         window.saveMonetizationSettings = async () => {
-            const rate = parseFloat(document.getElementById('cpm-rate').value);
-            const cpcRate = parseFloat(document.getElementById('cpc-rate').value);
-            const enableCpm = document.getElementById('enable-cpm').checked;
-            const enableCpc = document.getElementById('enable-cpc').checked;
-            const minWithdrawal = parseFloat(document.getElementById('min-withdrawal').value);
+            const btn = document.getElementById('save-monetization-btn');
+            btn.innerText = "Processing & Saving...";
+            btn.disabled = true;
 
-            if (isNaN(rate) || rate < 0 || isNaN(cpcRate) || cpcRate < 0 || isNaN(minWithdrawal) || minWithdrawal < 1) {
-                showToast("Please enter valid, non-negative values for all fields. Minimum withdrawal must be at least 1.", "error");
+            const newRate = parseFloat(document.getElementById('preroll-rate').value);
+            const newFreq = parseFloat(document.getElementById('preroll-freq').value);
+            const minWithdrawal = parseFloat(document.getElementById('min-withdrawal').value);
+            const tierFollowers = [
+                parseInt(document.getElementById('tier1-followers').value),
+                parseInt(document.getElementById('tier2-followers').value),
+                parseInt(document.getElementById('tier3-followers').value),
+                parseInt(document.getElementById('tier4-followers').value),
+                parseInt(document.getElementById('tier5-followers').value)
+            ];
+
+            if (isNaN(newRate) || newRate < 0 || isNaN(newFreq) || newFreq < 1 || isNaN(minWithdrawal) || minWithdrawal < 1) {
+                showToast("Please enter valid positive values for all fields.", "error");
+                btn.innerText = "Save Monetization Settings";
+                btn.disabled = false;
                 return;
             }
-            const settingsData = { cpmRate: rate, cpcRate: cpcRate, enableCpm: enableCpm, enableCpc: enableCpc, currency: 'INR', minWithdrawal: minWithdrawal };
+
             try {
+                const currentSettingsDoc = await getDoc(doc(db, "settings", "monetization")); // This line is correct
+                const oldSettings = currentSettingsDoc.exists() ? currentSettingsDoc.data() : { preRollRate: 200, preRollFreq: 3 };
+                const oldRate = oldSettings.preRollRate || 200;
+                const oldFreq = oldSettings.preRollFreq || 3;
+
+                const monetizedQuery = query(collection(db, "users"), where("isMonetized", "==", true));
+                const usersSnap = await getDocs(monetizedQuery);
+                const batch = writeBatch(db);
+                
+                for (const userDoc of usersSnap.docs) {
+                    const userData = userDoc.data();
+                    const uid = userDoc.id;
+                    const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid), where("status", "!=", "draft"));
+                    const blogsSnap = await getDocs(blogsQuery);
+                    let totalViews = 0; let totalLongVideoViews = 0;
+                    blogsSnap.forEach(blogDoc => {
+                        const bData = blogDoc.data();
+                        totalViews += Number(bData.views) || 0;
+                        if (!bData.isFlicker && (bData.video && !bData.youtubeUrl)) { // Only count direct uploads for earnings
+                            totalLongVideoViews += bData.longVideoViews !== undefined ? Number(bData.longVideoViews) : (Number(bData.views) || 0);
+                        }
+                    });
+                    const actualFollowers = userData.followers ? userData.followers.length : 0;
+                    const followersCount = userData.followerCountOverride !== undefined ? Number(userData.followerCountOverride) : actualFollowers;
+                    let tier = 0, sharePercent = 0;
+                    const oldTierFollowers = oldSettings.tierFollowers || [200, 1000, 50000, 100000, 1000000];
+                    if (followersCount >= oldTierFollowers[4] && totalViews >= 10000000) { tier = 5; sharePercent = 0.70; }
+                    else if (followersCount >= oldTierFollowers[3] && totalViews >= 5000000) { tier = 4; sharePercent = 0.65; }
+                    else if (followersCount >= oldTierFollowers[2] && totalViews >= 1000000) { tier = 3; sharePercent = 0.60; }
+                    else if (followersCount >= oldTierFollowers[1] && totalViews >= 100000) { tier = 2; sharePercent = 0.55; }
+                    else if (followersCount >= oldTierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
+                    const paidViews = Number(userData.paidLongVideoViews) || 0;
+                    const unpaidViews = Math.max(0, totalLongVideoViews - paidViews);
+                    if (unpaidViews > 0) {
+                        const generatedRevenue = ((unpaidViews / oldFreq) / 1000) * oldRate;
+                        const newWalletBalance = (userData.walletBalance || 0) + (generatedRevenue * sharePercent);
+                        batch.update(userDoc.ref, { walletBalance: newWalletBalance, paidLongVideoViews: totalLongVideoViews });
+                    }
+                }
+                await batch.commit();
+
+                const settingsData = { preRollRate: newRate, preRollFreq: newFreq, currency: 'INR', minWithdrawal: minWithdrawal, tierFollowers: tierFollowers };
                 await setDoc(doc(db, "settings", "monetization"), settingsData);
                 showToast("Monetization settings saved successfully!");
             } catch (e) {
                 console.error("Error saving monetization settings:", e);
                 showToast("Failed to save settings.", "error");
+            } finally {
+                btn.innerText = "Save Monetization Settings";
+                btn.disabled = false;
             }
         };
 
+        window.loadBadWords = async () => {
+            try {
+                const modDoc = await getDoc(doc(db, "settings", "moderation"));
+                if (modDoc.exists() && modDoc.data().badWords) {
+                    document.getElementById('admin-bad-words').value = modDoc.data().badWords.join(', ');
+                }
+            } catch (e) {
+                console.error("Error loading bad words:", e);
+            }
+        };
+
+        window.saveBadWords = async () => {
+            const wordsText = document.getElementById('admin-bad-words').value.trim();
+            const badWordsArray = wordsText.split(',').map(word => word.trim()).filter(word => word);
+            try {
+                await setDoc(doc(db, "settings", "moderation"), { badWords: badWordsArray });
+                showToast("Blocked words list updated successfully!");
+            } catch (e) {
+                console.error("Error saving bad words:", e);
+                showToast("Failed to save blocked words.", "error");
+            }
+        };
         // --- Creator Monetization Logic ---
         window.searchUserForMonetization = async () => {
             const username = document.getElementById('user-search-input').value.trim().toLowerCase();
@@ -1325,17 +1400,22 @@
             const card = document.createElement('div');
             card.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;";
             const isMonetized = userData.isMonetized === true;
-            const followersCount = userData.followers ? userData.followers.length : 0;
+            const actualFollowers = userData.followers ? userData.followers.length : 0;
+            const followersCount = userData.followerCountOverride !== undefined ? Number(userData.followerCountOverride) : actualFollowers;
             
             card.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
                     <img src="${userData.photoURL || 'logo.png'}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid ${isMonetized ? '#198754' : '#666'};">
                     <div>
                         <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'}</strong> <span style="color: #aaa; font-size: 0.9rem;">(@${userData.username || 'unknown'})</span>
-                        <div style="font-size: 0.85rem; color: #ccc; margin-top: 5px;">Followers: <strong>${followersCount}</strong> | Monetized: <strong style="color: ${isMonetized ? '#198754' : '#dc3545'}">${isMonetized ? 'Yes' : 'No'}</strong></div>
+                        <div style="font-size: 0.85rem; color: #ccc; margin-top: 5px;">Followers: <strong>${followersCount.toLocaleString()}</strong> | Monetized: <strong style="color: ${isMonetized ? '#198754' : '#dc3545'}">${isMonetized ? 'Yes' : 'No'}</strong></div>
                     </div>
                 </div>
-                <div>
+                <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+                    <div style="display: flex; gap: 5px;">
+                        <input type="number" id="override-followers-${uid}" value="${followersCount}" placeholder="Followers" style="width: 100px; padding: 5px; border-radius: 4px; background: #333; color: white; border: 1px solid #555;">
+                        <button class="btn" style="background-color: #f59e0b; padding: 6px 10px; margin: 0; font-size: 0.85rem;" onclick="window.updateFollowerCount('${uid}')">Set Followers</button>
+                    </div>
                     <button class="btn" style="background-color: ${isMonetized ? '#dc3545' : '#198754'}; margin: 0; display: flex; align-items: center; gap: 5px;" onclick="window.toggleMonetization('${uid}', ${!isMonetized})">
                         ${isMonetized ? '<i data-lucide="ban"></i> Revoke Monetization' : '<i data-lucide="check"></i> Monetize User'}
                     </button>
@@ -1343,6 +1423,27 @@
             `;
             container.appendChild(card);
         }
+
+        window.updateFollowerCount = async (uid) => {
+            const input = document.getElementById(`override-followers-${uid}`);
+            if (!input) return;
+            const val = parseInt(input.value);
+            if (isNaN(val) || val < 0) {
+                showToast("Please enter a valid number.", "error");
+                return;
+            }
+            try {
+                await updateDoc(doc(db, "users", uid), { 
+                    followerCountOverride: val,
+                    isVerified: val >= 200
+                });
+                showToast("Follower count updated successfully!");
+                if (document.getElementById('user-search-input').value.trim()) { window.searchUserForMonetization(); } else { window.loadMonetizedUsers(); }
+            } catch(e) {
+                console.error(e);
+                showToast("Error updating followers.", "error");
+            }
+        };
 
         window.toggleMonetization = async (uid, makeMonetized) => {
             if (!confirm(`Are you sure you want to ${makeMonetized ? 'MONETIZE' : 'REVOKE monetization for'} this user?`)) return;
@@ -1378,7 +1479,7 @@
                     div.innerHTML = `
                         <div>
                             <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
-                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Requested Amount: <strong style="color: #198754;">₹${req.amount.toFixed(2)}</strong> <span style="font-size:0.8rem; color:#888;">(Calculated on ${req.viewsCalculated} views / ${req.clicksCalculated || 0} clicks)</span></div>
+                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Requested Amount: <strong style="color: #198754;">₹${req.amount.toFixed(2)}</strong></div>
                             <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Payment Details:</strong> ${req.paymentInfo}</div>
                             <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Requested on: ${new Date(req.date).toLocaleString()}</div>
                         </div>
@@ -1399,14 +1500,6 @@
             if (!confirm("Are you sure you have transferred the money? This will mark the request as paid and reset their estimated earnings.")) return;
             try {
                 await updateDoc(doc(db, "withdrawals", reqId), { status: 'paid', paidDate: new Date().toISOString() });
-                const userRef = doc(db, "users", uid);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    const currentPaid = userSnap.data().paidViews || 0;
-                    const currentPaidClicks = userSnap.data().paidClicks || 0;
-                    // Add the views that were paid for in this specific transaction
-                    await updateDoc(userRef, { paidViews: currentPaid + viewsCalculated, paidClicks: currentPaidClicks + clicksCalculated });
-                }
                 
                 // Send Automatic Notification to User
                 await addDoc(collection(db, "notifications"), {
@@ -1432,6 +1525,15 @@
             if (reason === null) return; // User cancelled
             
             try {
+                // First safely refund the amount to the user's wallet
+                const userRef = doc(db, "users", uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const currentBalance = Number(userSnap.data().walletBalance) || 0;
+                    await updateDoc(userRef, { walletBalance: currentBalance + Number(amount) });
+                }
+
+                // Then mark the withdrawal request as rejected
                 await updateDoc(doc(db, "withdrawals", reqId), { status: 'rejected', rejectReason: reason, rejectDate: new Date().toISOString() });
                 
                 // Send Automatic Notification to User

@@ -731,8 +731,23 @@
         </div>
     </div>
 
+    <!-- Floating Top-Left Menu (Fixed on Scroll) -->
+    <div style="position: fixed; top: 5px; left: 0px; z-index: 2500;">
+        <div class="theme-dropdown-container">
+            <button id="main-menu-toggle" class="btn theme-btn" style="padding: 1px 12px; background: rgba(20,20,20,0.8) !important; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"><i data-lucide="menu"></i></button>
+            <div id="main-menu-dropdown" class="theme-dropdown" style="left: 0; right: auto; top: 110%;">
+                <a href="about-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="info" style="width: 16px;"></i> About Us</a>
+                <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
+                <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
+                <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
+                <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
+                <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou. All Rights Reserved.</div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
-        <div class="header">
+        <div class="header" style="padding-left: 55px;">
             <h1 style="background: linear-gradient(135deg, #ff007a, #7a00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 3rem; letter-spacing: 2px; margin: 0;"><img src="logo.png" alt="Viyou" style="width: 42px; height: 42px;"> Viyou </h1>
             <div class="header-actions">
                 <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px;">
@@ -980,7 +995,6 @@
             <div style="display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #444;">
                 <button id="tab-google" class="tab-btn" style="background:none; border:none; color:white; padding: 10px; cursor: pointer; border-bottom: 2px solid gold;">Google</button>
                 <button id="tab-email" class="tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer;">Email</button>
-                <button id="tab-phone" class="tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer;">Phone</button>
             </div>
 
             
@@ -994,17 +1008,6 @@
             <div style="text-align: right; margin-bottom: 10px;"><a href="#" id="forgot-pwd-link" style="color: #f59e0b; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a></div>
                 <button id="email-login-btn" class="btn" style="width: 100%; margin-bottom: 10px;">Login</button>
             <button id="email-signup-btn" class="btn" style="width: 100%; background-color: #10b981;">Sign Up</button>
-            </div>
-
-            <div id="content-phone" class="auth-content" style="display: none;">
-                <div id="recaptcha-container" style="margin-bottom: 10px;"></div>
-                <input type="tel" id="phone-input" placeholder="Phone Number (e.g. +919876543210)" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
-            <button id="send-otp-btn" class="btn" style="width: 100%; margin-bottom: 10px; background-color: #10b981;">Send OTP</button>
-                
-                <div id="otp-section" style="display: none;">
-                    <input type="text" id="otp-input" placeholder="Enter 6-digit OTP" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
-                    <button id="verify-otp-btn" class="btn" style="width: 100%; background-color: #0d6efd;">Verify OTP & Login</button>
-                </div>
             </div>
         </div>
     </div>
@@ -1023,15 +1026,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, getDoc, query, orderBy, arrayUnion, arrayRemove, addDoc, where, onSnapshot, limit, startAfter, setDoc, writeBatch, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPhoneNumber, RecaptchaVerifier, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { firebaseConfig } from "./firebase-config.js";
-
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { db, auth } from "./firebase-config.js";
         const provider = new GoogleAuthProvider();
         let currentUserFollowing = [];
         let lastVisibleBlog = null;
@@ -1621,6 +1618,8 @@
         // Theme Toggle Logic
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeDropdown = document.getElementById('theme-dropdown');
+        const mainMenuToggleBtn = document.getElementById('main-menu-toggle');
+        const mainMenuDropdown = document.getElementById('main-menu-dropdown');
         const body = document.body;
 
         function applyTheme(theme) {
@@ -1645,11 +1644,21 @@
         themeToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             themeDropdown.classList.toggle('show');
+            if (mainMenuDropdown) mainMenuDropdown.classList.remove('show');
+        });
+
+        mainMenuToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mainMenuDropdown.classList.toggle('show');
+            if (themeDropdown) themeDropdown.classList.remove('show');
         });
 
         document.addEventListener('click', (e) => {
             if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
                 themeDropdown.classList.remove('show');
+            }
+            if (!mainMenuToggleBtn.contains(e.target) && !mainMenuDropdown.contains(e.target)) {
+                mainMenuDropdown.classList.remove('show');
             }
         });
 
@@ -1677,7 +1686,7 @@
         });
 
         // Tab Switching Logic
-        const tabs = ['google', 'email', 'phone'];
+        const tabs = ['google', 'email'];
         tabs.forEach(tab => {
             document.getElementById(`tab-${tab}`).addEventListener('click', () => {
                 tabs.forEach(t => {
@@ -1690,10 +1699,6 @@
                 const activeBtn = document.getElementById(`tab-${tab}`);
             activeBtn.style.color = '#fff';
             activeBtn.style.borderBottom = '2px solid #f59e0b';
-                
-                if (tab === 'phone') {
-                    initRecaptcha();
-                }
             });
         });
 
@@ -1798,90 +1803,6 @@
                 showToast("Password reset email sent to " + email, 'success');
             } catch(e) {
                 showToast("Error: " + e.message, 'error');
-            }
-        });
-
-        // --- Phone Auth Logic ---
-        let confirmationResult = null;
-
-        function initRecaptcha() {
-            if (!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                    'size': 'normal',
-                    'callback': (response) => {
-                        // reCAPTCHA solved, allow signInWithPhoneNumber.
-                    }
-                });
-            }
-        }
-
-        document.getElementById('send-otp-btn').addEventListener('click', async () => {
-            const phoneNumber = document.getElementById('phone-input').value.trim();
-            if (!phoneNumber || !phoneNumber.startsWith('+')) {
-                alert("Please enter a valid phone number with country code (e.g., +919876543210).");
-                showToast("Please enter a valid phone number with country code (e.g., +91...).", 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('send-otp-btn');
-            btn.innerText = "Sending...";
-            btn.disabled = true;
-
-            initRecaptcha();
-            const appVerifier = window.recaptchaVerifier;
-
-            try {
-                confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-                document.getElementById('otp-section').style.display = 'block';
-                btn.style.display = 'none';
-                alert("OTP sent successfully!");
-                showToast("OTP sent successfully!", 'success');
-            } catch (error) {
-                console.error("Error sending OTP:", error);
-                alert("Failed to send OTP. Please check the phone number format or try again.");
-                showToast("Failed to send OTP. Please check the phone number and try again.", 'error');
-                alert("Failed to send OTP.\nError: " + error.message);
-                showToast("OTP Error: " + error.message, 'error');
-                btn.innerText = "Send OTP";
-                btn.disabled = false;
-                if (window.recaptchaVerifier) {
-                    window.recaptchaVerifier.clear();
-                    window.recaptchaVerifier = null;
-                }
-            }
-        });
-
-        document.getElementById('verify-otp-btn').addEventListener('click', async () => {
-            const otp = document.getElementById('otp-input').value.trim();
-            if (!otp || otp.length !== 6) {
-                alert("Please enter the 6-digit OTP.");
-                showToast("Please enter the 6-digit OTP.", 'error');
-                return;
-            }
-
-            const btn = document.getElementById('verify-otp-btn');
-            btn.innerText = "Verifying...";
-            btn.disabled = true;
-
-            try {
-                await confirmationResult.confirm(otp);
-                document.getElementById('login-modal').style.display = 'none';
-                
-                // Reset UI for next login attempt
-                document.getElementById('otp-section').style.display = 'none';
-                document.getElementById('send-otp-btn').style.display = 'block';
-                document.getElementById('send-otp-btn').innerText = 'Send OTP';
-                document.getElementById('send-otp-btn').disabled = false;
-                btn.innerText = "Verify OTP & Login";
-                btn.disabled = false;
-                document.getElementById('phone-input').value = '';
-                document.getElementById('otp-input').value = '';
-            } catch (error) {
-                console.error("Error verifying OTP:", error);
-                alert("Invalid OTP. Please try again.");
-                showToast("Invalid OTP. Please try again.", 'error');
-                btn.innerText = "Verify OTP & Login";
-                btn.disabled = false;
             }
         });
 
@@ -2830,13 +2751,19 @@
 
                 // --- User Promoted Content Logic ---
                 if (window.activePromotions && window.activePromotions.length > 0) {
-                    window.activePromotions.forEach(promo => {
+                    let eligiblePromos = window.activePromotions.filter(promo => {
                         const freq = promo.promoFrequency || promo.frequency || 4;
-                        if ((index + 1) % freq === 0) {
-                            const promoDiv = document.createElement('div');
-                            promoDiv.className = 'news-card';
-                            promoDiv.style.marginBottom = '20px';
-                            promoDiv.style.padding = '20px';
+                        return (index + 1) % freq === 0;
+                    });
+
+                    if (eligiblePromos.length > 0) {
+                        // Pick ONE random promotion to show, preventing ad spam on the feed
+                        const promo = eligiblePromos[Math.floor(Math.random() * eligiblePromos.length)];
+                        
+                        const promoDiv = document.createElement('div');
+                        promoDiv.className = 'news-card';
+                        promoDiv.style.marginBottom = '20px';
+                        promoDiv.style.padding = '20px';
                             promoDiv.style.border = '2px solid #8e44ad';
                             promoDiv.style.boxShadow = '0 0 15px rgba(142, 68, 173, 0.2)';
                             
@@ -2894,8 +2821,7 @@
                             `;
                             }
                             grid.appendChild(promoDiv);
-                        }
-                    });
+                    }
                 }
                 });
 
@@ -5393,14 +5319,5 @@
         });
     </script>
     
-    <footer>
-       <p>&copy;  Viyou. All Rights Reserved.</p>
-       <div style="margin-top: 10px;">
-           <a href="about-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">About Us</a>
-           <a href="contact-us.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Contact Us</a>
-           <a href="privacy.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
-           <a href="terms.html" style="color: #aaa; text-decoration: none; margin: 0 10px;">Terms of Service</a>
-       </div>
-    </footer>
 </body>
 </html>

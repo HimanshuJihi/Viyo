@@ -355,19 +355,32 @@
     <textarea id="bio" rows="3" placeholder="Bio (e.g. Content Creator from Mumbai)"></textarea>
     
     <button id="create-story-btn" class="btn" style="background-color: #f59e0b; color: black; margin-top: 20px; width: 100%; display: none;" onclick="window.location.href='story-editor.html'"><i data-lucide="plus"></i> Create New Post</button>
-    <button id="studio-btn" class="btn" style="background: linear-gradient(45deg, #9b59b6, #8e44ad); margin-top: 10px; width: 100%; display: none;" onclick="window.location.href='studio.html'">🚀 Creator Studio</button>
+    <button id="studio-btn" class="btn" style="background: linear-gradient(45deg, #9b59b6, #8e44ad); margin-top: 10px; width: 100%; display: none;" onclick="window.location.href='studio.html'"><i data-lucide="line-chart"></i> Creator Studio</button>
     
     <button id="save-btn" class="btn-transparent"><img src="save-icon.png" alt="Save Profile" height="30px" width="30px" style="vertical-align: middle;"> Save Profile</button>
-    <div class="theme-dropdown-container">
-        <button id="theme-toggle" class="btn theme-btn" style="margin-top: 10px; width: 100%;"><i data-lucide="palette"></i> Change Theme</button>
-        <div id="theme-dropdown" class="theme-dropdown">
-            <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
-            <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
-            <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
-            <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
-            <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
-            <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
-            <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <div class="theme-dropdown-container" style="flex: 1;">
+            <button id="main-menu-toggle" class="btn theme-btn" style="width: 100%;"><i data-lucide="menu"></i> Menu</button>
+            <div id="main-menu-dropdown" class="theme-dropdown">
+                <a href="about-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="info" style="width: 16px;"></i> About Us</a>
+                <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
+                <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
+                <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
+                <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
+                <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou. All Rights Reserved.</div>
+            </div>
+        </div>
+        <div class="theme-dropdown-container" style="flex: 1;">
+            <button id="theme-toggle" class="btn theme-btn" style="width: 100%;"><i data-lucide="palette"></i> Theme</button>
+            <div id="theme-dropdown" class="theme-dropdown">
+                <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
+                <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
+                <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
+                <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
+                <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
+                <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
+                <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+            </div>
         </div>
     </div>
     <button id="change-pwd-btn" class="btn-transparent" style="margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><img src="change-pwd-icon.png" alt="Change Password" height="30px" width="30px" style="vertical-align: middle;"> Change Password</button>
@@ -457,15 +470,9 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, onSnapshot, deleteField, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, updateProfile, deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    import { db, auth } from "./firebase-config.js";
     let currentUser = null;
     let currentProfileData = {}; // Store loaded profile data for lists
     let profilePageBlogs = [];
@@ -487,6 +494,8 @@
     // Theme Toggle Logic
     const themeToggleBtn = document.getElementById('theme-toggle');
     const themeDropdown = document.getElementById('theme-dropdown');
+    const mainMenuToggleBtn = document.getElementById('main-menu-toggle');
+    const mainMenuDropdown = document.getElementById('main-menu-dropdown');
     const body = document.body;
 
     function applyTheme(theme) {
@@ -509,11 +518,21 @@
     themeToggleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         themeDropdown.classList.toggle('show');
+        if (mainMenuDropdown) mainMenuDropdown.classList.remove('show');
+    });
+
+    mainMenuToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        mainMenuDropdown.classList.toggle('show');
+        if (themeDropdown) themeDropdown.classList.remove('show');
     });
 
     document.addEventListener('click', (e) => {
         if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
             themeDropdown.classList.remove('show');
+        }
+        if (mainMenuToggleBtn && !mainMenuToggleBtn.contains(e.target) && mainMenuDropdown && !mainMenuDropdown.contains(e.target)) {
+            mainMenuDropdown.classList.remove('show');
         }
     });
 
@@ -800,9 +819,9 @@
                     await updateDoc(userRef, { following: arrayUnion(targetUid) });
                     await updateDoc(targetRef, { followers: arrayUnion(myUid) });
                     const targetDocSnap = await getDoc(targetRef);
-                    if (targetDocSnap.exists() && (targetDocSnap.data().followers || []).length >= 9 && !targetDocSnap.data().isVerified) {
+                    if (targetDocSnap.exists() && (targetDocSnap.data().followers || []).length >= 200 && !targetDocSnap.data().isVerified) {
                         await updateDoc(targetRef, { isVerified: true });
-                        await addDoc(collection(db, "notifications"), { recipientUid: targetUid, senderName: "Auction To Arena", type: "verification", date: new Date().toISOString(), read: false });
+                        await addDoc(collection(db, "notifications"), { recipientUid: targetUid, senderName: "System", type: "verification", date: new Date().toISOString(), read: false });
                     }
                     await addDoc(collection(db, "notifications"), { recipientUid: targetUid, senderUid: myUid, senderName: currentUser.displayName || "Someone", type: "follow", date: new Date().toISOString(), read: false });
                 }
@@ -838,6 +857,7 @@
         let data = {};
         let totalBlogs = 0;
         let totalLikes = 0;
+        let isVerifiedDisplay = false;
 
         try {
             const docRef = doc(db, "users", uid);
@@ -865,13 +885,22 @@
                 }
                 
                 // Update Counts
-                const followers = data.followers || [];
+                const actualFollowers = data.followers ? data.followers.length : 0;
+                const displayFollowers = data.followerCountOverride !== undefined ? Number(data.followerCountOverride) : actualFollowers;
                 const following = data.following || [];
-                document.getElementById('followers-count').innerText = followers.length;
-                document.getElementById('following-count').innerText = following.length;
+                document.getElementById('followers-count').innerText = displayFollowers.toLocaleString();
+                document.getElementById('following-count').innerText = following.length.toLocaleString();
+
+                // Hide 'Following' count from other users
+                if (viewerUser && viewerUser.uid === uid) {
+                    document.getElementById('following-box').style.display = 'block';
+                } else {
+                    document.getElementById('following-box').style.display = 'none';
+                }
 
                 // Verified Badge
-                if (data.isVerified) {
+                isVerifiedDisplay = data.isVerified || displayFollowers >= 200;
+                if (isVerifiedDisplay) {
                     document.getElementById('verified-indicator').style.display = 'block';
                 } else {
                     document.getElementById('verified-indicator').style.display = 'none';
@@ -897,6 +926,7 @@
                 document.getElementById('likes-count').innerText = totalLikes;
             } catch (e) { console.error("Error fetching blog stats:", e); }
 
+            data.isVerified = isVerifiedDisplay;
             // NEW: Display badges based on stats
             displayBadges(data, totalBlogs, totalLikes);
 
@@ -918,7 +948,7 @@
                 icon: '✔',
                 title: 'Verified User',
                 color: '#1da1f2',
-                description: 'A trusted member of the community with 9+ followers.'
+                description: 'A trusted member of the community with 200+ followers.'
             });
         }
 
@@ -932,13 +962,16 @@
             });
         }
 
+        const actualFollowers = userData.followers ? userData.followers.length : 0;
+        const displayFollowers = userData.followerCountOverride !== undefined ? Number(userData.followerCountOverride) : actualFollowers;
+
         // 3. Community Pillar Badge
-        if (userData.followers && userData.followers.length >= 100) {
+        if (displayFollowers >= 1000) {
             badges.push({
                 icon: '🏛️',
                 title: 'Community Pillar',
                 color: '#f1c40f', // A golden yellow
-                description: 'Followed by over 100 users.'
+                description: 'Followed by over 1000 users.'
             });
         }
         
@@ -1858,7 +1891,9 @@
         const username = document.getElementById('username').value.trim();
         const bio = document.getElementById('bio').value;
         const photoURL = base64Image || currentUser.photoURL;
-        let isVerified = (currentProfileData.followers || []).length >= 9;
+        const actualFollowers = currentProfileData.followers ? currentProfileData.followers.length : 0;
+        const displayFollowers = currentProfileData.followerCountOverride !== undefined ? Number(currentProfileData.followerCountOverride) : actualFollowers;
+        let isVerified = displayFollowers >= 200;
         
         const saveBtn = document.getElementById('save-btn');
         const originalBtnContent = saveBtn.innerHTML;

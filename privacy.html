@@ -29,12 +29,22 @@
         a:hover { text-decoration: underline; }
         .btn { display: inline-block; padding: 10px 20px; font-weight: bold; color: #fff; background-color: #0d6efd; border-radius: 5px; text-decoration: none; margin-top: 20px; transition: 0.2s; }
         .btn:hover { background-color: #0b5ed7; }
+        .lang-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; }
+        .lang-tab-btn { background-color: transparent; border: 1px solid #6c757d; color: #aaa; padding: 8px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .lang-tab-btn.active { background-color: #6366f1; border-color: #6366f1; color: white; }
+        .lang-tab-btn:hover:not(.active) { background-color: rgba(255, 255, 255, 0.1); color: #fff; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="container">
+        <div class="lang-tabs">
+            <button id="tab-en" class="lang-tab-btn active" onclick="switchLang('en')">English</button>
+            <button id="tab-hi" class="lang-tab-btn" onclick="switchLang('hi')">हिंदी (Hindi)</button>
+        </div>
+
+        <div id="english-section">
         <h1>Privacy Policy</h1>
         <p>At Viyou, accessible from our website, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Viyou and how we use it.</p>
         
@@ -53,8 +63,41 @@
 
         <h2>Consent</h2>
         <p>By using our website, you hereby consent to our Privacy Policy and agree to its Terms and Conditions.</p>
+        </div>
         
+        <div id="hindi-section" style="display: none;">
+            <h1>गोपनीयता नीति (Privacy Policy)</h1>
+            <p>Viyou में, हमारी वेबसाइट से सुलभ, हमारी मुख्य प्राथमिकताओं में से एक हमारे आगंतुकों की गोपनीयता है। इस गोपनीयता नीति दस्तावेज़ में Viyou द्वारा एकत्र की जाने वाली जानकारी के प्रकार और हम इसका उपयोग कैसे करते हैं, यह शामिल है।</p>
+            
+            <h2>हम कौन सी जानकारी एकत्र करते हैं</h2>
+            <p>यदि आप पंजीकरण करना और हमारे प्लेटफ़ॉर्म का उपयोग करना चुनते हैं, तो हम Google या ईमेल प्रमाणीकरण के माध्यम से आपका नाम, ईमेल पता और प्रोफ़ाइल चित्र जैसी जानकारी एकत्र करते हैं। कोई भी उपयोगकर्ता-निर्मित सामग्री (ब्लॉग, वीडियो, चित्र, टिप्पणियाँ) हमारे सर्वर पर सुरक्षित रूप से संग्रहीत की जाती है।</p>
+            
+            <h2>कुकीज़ और वेब बीकन</h2>
+            <p>किसी भी अन्य वेबसाइट की तरह, Viyou "कुकीज़" का उपयोग करता है। इन कुकीज़ का उपयोग आगंतुकों की प्राथमिकताओं और वेबसाइट के उन पृष्ठों सहित जानकारी संग्रहीत करने के लिए किया जाता है जिन पर आगंतुक ने पहुँचना या जाना चुना है। जानकारी का उपयोग आगंतुकों के ब्राउज़र प्रकार और/या अन्य जानकारी के आधार पर हमारे वेब पेज की सामग्री को अनुकूलित करके उपयोगकर्ताओं के अनुभव को अनुकूलित करने के लिए किया जाता है।</p>
+            
+            <h2>Google DoubleClick DART कुकी</h2>
+            <p>Google हमारी साइट पर एक तृतीय-पक्ष विक्रेता है। यह भी कुकीज़ का उपयोग करता है, जिसे DART कुकीज़ के रूप में जाना जाता है, ताकि हमारी साइट और इंटरनेट पर अन्य साइटों पर उनकी यात्रा के आधार पर हमारे साइट आगंतुकों को विज्ञापन दिए जा सकें। हालाँकि, आगंतुक निम्नलिखित URL पर Google विज्ञापन और सामग्री नेटवर्क गोपनीयता नीति पर जाकर DART कुकीज़ के उपयोग को अस्वीकार करना चुन सकते हैं – <a href="https://policies.google.com/technologies/ads" target="_blank">https://policies.google.com/technologies/ads</a></p>
+            
+            <h2>तृतीय-पक्ष गोपनीयता नीतियां (AdSense)</h2>
+            <p>Google सहित तृतीय-पक्ष विक्रेता, आपकी वेबसाइट या अन्य वेबसाइटों पर उपयोगकर्ता की पूर्व यात्राओं के आधार पर विज्ञापन देने के लिए कुकीज़ का उपयोग करते हैं। Google का विज्ञापन कुकीज़ का उपयोग उसे और उसके भागीदारों को आपकी साइटों और/या इंटरनेट पर अन्य साइटों पर उनकी यात्रा के आधार पर आपके उपयोगकर्ताओं को विज्ञापन देने में सक्षम बनाता है।</p>
+            <p>उपयोगकर्ता <a href="https://www.google.com/settings/ads" target="_blank">विज्ञापन सेटिंग</a> पर जाकर वैयक्तिकृत विज्ञापन से बाहर निकल सकते हैं।</p>
+
+            <h2>सहमति</h2>
+            <p>हमारी वेबसाइट का उपयोग करके, आप एतद्द्वारा हमारी गोपनीयता नीति से सहमत होते हैं और इसके नियमों और शर्तों से सहमत होते हैं।</p>
+        </div>
+
         <a href="index.html" class="btn">← Back to Home</a>
     </div>
+    <script>
+        function switchLang(lang) {
+            document.getElementById('tab-en').classList.remove('active');
+            document.getElementById('tab-hi').classList.remove('active');
+            document.getElementById('english-section').style.display = 'none';
+            document.getElementById('hindi-section').style.display = 'none';
+            
+            document.getElementById('tab-' + lang).classList.add('active');
+            document.getElementById(lang === 'en' ? 'english-section' : 'hindi-section').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
