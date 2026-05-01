@@ -5,110 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <style>
-        body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background: #050505;
-            color: #fff;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1, h2 {
-            color: #f59e0b;
-            border-bottom: 1px solid #444;
-            padding-bottom: 10px;
-        }
-        .report-card {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-        .report-card h3 {
-            margin-top: 0;
-            color: #87ceeb;
-        }
-        .report-card p {
-            margin: 5px 0;
-        }
-        .btn {
-            display: inline-block; padding: 10px 20px; font-size: 1rem;
-            font-weight: bold;
-            color: #fff;
-            background: linear-gradient(135deg, #6366f1, #a855f7);
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            text-decoration: none;
-            margin-right: 10px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5); }
-        .btn-danger { background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
-        .btn-danger:hover { box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5); }
-        .btn-secondary { background: #64748b; box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3); }
-        .btn-secondary:hover { box-shadow: 0 8px 25px rgba(100, 116, 139, 0.5); }
-
-        .admin-tab-btn {
-            background-color: transparent;
-            border: 1px solid #6c757d;
-            color: #aaa;
-            padding: 8px 20px;
-            font-size: 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        .admin-tab-btn.active {
-            background-color: #6366f1;
-            border-color: #6366f1;
-            color: white;
-        }
-        .admin-tab-btn:hover:not(.active) {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-        /* Custom Toast Notification */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .toast {
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            opacity: 0;
-            transform: translateX(100%);
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-        .toast.show { opacity: 1; transform: translateX(0); }
-        .toast.success { background-color: #198754; border-left: 5px solid #155724; }
-        .toast.error { background-color: #dc3545; border-left: 5px solid #8b1c27; }
-    </style>
+    <link rel="stylesheet" href="assets/css/admin.css">
 </head>
     <!-- Modern Icons (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
         .lucide-fill { fill: currentColor; }
+        #admin-tabs::-webkit-scrollbar { display: none; }
+        .admin-tab-btn { flex-shrink: 0; white-space: nowrap; }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -130,7 +35,13 @@
         <a href="index.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to Viyou</a>
         <button id="migrate-btn" class="btn btn-secondary" onclick="window.migrateUsernames()" style="margin-bottom: 20px; display: none; background-color: #ffc107; color: #000;">⚙️ Migrate Usernames</button>
 
-        <div id="admin-tabs" style="display: none; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px;">
+        <!-- Admin Global Search -->
+        <div id="admin-search-container" style="display: none; margin-bottom: 20px; position: relative;">
+            <input type="text" id="admin-global-search" placeholder="🔍 Search settings, usernames, or payment IDs..." style="width: 100%; padding: 12px 15px 12px 40px; border-radius: 8px; background: rgba(0,0,0,0.5); color: white; border: 1px solid #555; font-size: 1rem; box-sizing: border-box; transition: border-color 0.3s;">
+            <i data-lucide="search" style="position: absolute; left: 12px; top: 12px; color: #aaa;"></i>
+        </div>
+
+        <div id="admin-tabs" style="display: none; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">
             <button id="tab-reported" class="admin-tab-btn active">🚩 Reported Blogs</button>
             <button id="tab-ads" class="admin-tab-btn">💰 Ad Management</button>
             <button id="tab-monetization" class="admin-tab-btn">💎 Creator Monetization</button>
@@ -306,6 +217,21 @@
             <!-- Headlines Section -->
             <div id="section-headlines" style="display: none;">
                 <h2>Headlines & Alerts</h2>
+                
+                <div class="report-card" style="border-color: #a855f7; margin-bottom: 20px;">
+                    <h3 style="color: #a855f7; margin-top: 0;"><i data-lucide="hard-drive"></i> General Platform Settings</h3>
+                    <label style="display: block; margin-bottom: 5px;">Maximum Upload Size (in MB):</label>
+                    <p style="color: #aaa; font-size: 0.85rem; margin-top: 0; margin-bottom: 10px;">This limit will apply to long videos, flicks, and image uploads across the platform.</p>
+                    <input type="number" id="admin-max-upload-size" placeholder="e.g. 5" value="5" min="1" max="50" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px;">
+                        <input type="checkbox" id="admin-enable-youtube" style="width: 20px; height: 20px;">
+                        <strong style="font-size: 1rem;">Enable YouTube Link Feature</strong>
+                    </label>
+
+                    <button class="btn" style="background-color: #a855f7;" onclick="window.saveGeneralSettings()">Save General Settings</button>
+                </div>
+
                 <div class="report-card" style="border-color: #0d6efd;">
                     <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 15px;">Display important announcements to your users. Leave empty to hide.</p>
                     
@@ -695,12 +621,24 @@
                         }
                     }
 
+                    // Show Global Search
+                    document.getElementById('admin-search-container').style.display = 'block';
+
+                    // Preload all lists so they are globally searchable immediately
                     loadReports();
                     loadAdminAds();
                     loadMonetizationSettings();
                     window.loadHeadlines();
                     window.loadVastSettings();
+                    window.loadGeneralSettings();
                     window.loadBadWords();
+                    window.loadMonetizedUsers();
+                    window.loadPayoutRequests();
+                    window.loadCopyrightClaims();
+                    window.loadPromoSettings();
+                    window.loadPromoRequests();
+                    window.loadPromoHistory();
+                    window.loadLivePromotions();
                 } else {
                     authMessage.innerHTML = '<p style="color: red;">Access Denied. You are not an admin.</p>';
                     setTimeout(() => window.location.href = 'index.html', 2000);
@@ -1234,6 +1172,89 @@
             }
         };
 
+        window.loadGeneralSettings = async () => {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "general"));
+                if (docSnap.exists() && docSnap.data().maxUploadSizeMB) {
+                    document.getElementById('admin-max-upload-size').value = docSnap.data().maxUploadSizeMB;
+                }
+                if (docSnap.exists() && docSnap.data().enableYoutubeLinks !== undefined) {
+                    document.getElementById('admin-enable-youtube').checked = docSnap.data().enableYoutubeLinks;
+                } else {
+                    document.getElementById('admin-enable-youtube').checked = true; // Default to true
+                }
+            } catch (e) { console.error("Error loading general settings:", e); }
+        };
+
+        window.saveGeneralSettings = async () => {
+            const size = parseInt(document.getElementById('admin-max-upload-size').value) || 5;
+            const enableYt = document.getElementById('admin-enable-youtube').checked;
+            try {
+                await setDoc(doc(db, "settings", "general"), { maxUploadSizeMB: size, enableYoutubeLinks: enableYt }, { merge: true });
+                showToast("General settings saved successfully!");
+            } catch (e) { console.error("Error saving general settings:", e); showToast("Failed to save settings.", "error"); }
+        };
+
+        // --- Admin Global Search Logic ---
+        document.getElementById('admin-global-search').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase().trim();
+            const sections = document.querySelectorAll('#admin-content > div');
+            const tabsContainer = document.getElementById('admin-tabs');
+
+            if (term === '') {
+                // Restore normal view
+                tabsContainer.style.display = 'flex';
+                const activeTab = document.querySelector('.admin-tab-btn.active');
+                if (activeTab) activeTab.click();
+                
+                // Reset visibility of all cards and items
+                document.querySelectorAll('.report-card').forEach(c => c.style.display = 'block');
+                document.querySelectorAll('[id$="-list"] > div').forEach(c => {
+                    if(c.classList.contains('search-filtered')) {
+                        c.style.display = 'flex';
+                        c.classList.remove('search-filtered');
+                    }
+                });
+                return;
+            }
+
+            // Search Mode Active
+            tabsContainer.style.display = 'none'; // Hide tabs while searching globally
+            
+            sections.forEach(sec => {
+                let sectionHasMatch = false;
+                
+                const cards = sec.querySelectorAll('.report-card');
+                cards.forEach(card => {
+                    const text = card.innerText.toLowerCase();
+                    
+                    // Check lists inside the card precisely
+                    let listHasMatch = false;
+                    const listItems = card.querySelectorAll('[id$="-list"] > div');
+                    listItems.forEach(item => {
+                        const itemText = item.innerText.toLowerCase();
+                        if (itemText.includes(term)) {
+                            item.style.display = 'flex';
+                            item.classList.remove('search-filtered');
+                            listHasMatch = true;
+                        } else {
+                            item.style.display = 'none';
+                            item.classList.add('search-filtered');
+                        }
+                    });
+
+                    if (text.includes(term) || listHasMatch) {
+                        card.style.display = 'block';
+                        sectionHasMatch = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                sec.style.display = sectionHasMatch ? 'block' : 'none';
+            });
+        });
+
         // --- Monetization Settings Logic ---
         async function loadMonetizationSettings() {
             try {
@@ -1760,6 +1781,21 @@
                     let imageHtml = '';
                     if (req.paymentScreenshot) {
                         imageHtml = `<img src="${req.paymentScreenshot}" style="max-height: 100px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 10px;" onclick="window.open('${req.paymentScreenshot}', '_blank')">`;
+                        imageHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Payment Screenshot:</strong><br><img src="${req.paymentScreenshot}" style="max-height: 150px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 5px;" onclick="window.open('${req.paymentScreenshot}', '_blank')"></div>`;
+                    }
+
+                    let adMediaHtml = '';
+                    if (req.type === 'external' && req.mediaData) {
+                        if (req.mediaType === 'video') {
+                            adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Media Preview:</strong><br><video src="${req.mediaData}" controls style="max-height: 150px; border-radius: 4px; border: 1px solid #555; margin-top: 5px; max-width: 100%;"></video></div>`;
+                        } else {
+                            adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Media Preview:</strong><br><img src="${req.mediaData}" style="max-height: 150px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 5px; max-width: 100%;" onclick="window.open('${req.mediaData}', '_blank')"></div>`;
+                        }
+                    } else if (req.type === 'preroll' && req.mediaData) {
+                        adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Video Preview:</strong><br><video src="${req.mediaData}" controls style="max-height: 150px; border-radius: 4px; border: 1px solid #555; margin-top: 5px; max-width: 100%;"></video></div>`;
+                    } else if (req.blogId) {
+                        // For content promotion (not custom product)
+                        adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Content Promotion:</strong><br><span style="font-size: 0.9rem; color: #ccc;">Preview available via Content ID link above.</span></div>`;
                     }
                     
                     const div = document.createElement('div');
@@ -1778,12 +1814,13 @@
                         }</div>
                             <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount paid: <strong style="color: #198754;">₹${req.price}</strong></div>
                             <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>UTR / Txn ID:</strong> ${req.utr}</div>
+                            ${adMediaHtml}
                             ${imageHtml}
                             <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Requested on: ${new Date(req.timestamp).toLocaleString()}</div>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                             <button class="btn" style="background-color: #198754; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.approvePromotion('${reqDoc.id}', '${req.blogId}', ${req.frequency}, ${req.hours})"><i data-lucide="check"></i> Approve</button>
-                            <button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPromotion('${reqDoc.id}')"><i data-lucide="x"></i> Reject</button>
+                            <button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPromotion('${reqDoc.id}', '${req.uid}', '${(req.title || '').replace(/'/g, "\\'")}')"><i data-lucide="x"></i> Reject</button>
                         </div>
                     `;
                     listDiv.appendChild(div);
@@ -1805,6 +1842,24 @@
                 const statusText = isApproved ? 'APPROVED' : 'REJECTED';
                 const dateText = new Date(req.approvedAt || req.rejectedAt || req.timestamp).toLocaleString();
                 
+                let adMediaHtml = '';
+                if (req.type === 'external' && req.mediaData) {
+                    if (req.mediaType === 'video') {
+                        adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Media Preview:</strong><br><video src="${req.mediaData}" controls style="max-height: 150px; border-radius: 4px; border: 1px solid #555; margin-top: 5px; max-width: 100%;"></video></div>`;
+                    } else {
+                        adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Media Preview:</strong><br><img src="${req.mediaData}" style="max-height: 150px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 5px; max-width: 100%;" onclick="window.open('${req.mediaData}', '_blank')"></div>`;
+                    }
+                } else if (req.type === 'preroll' && req.mediaData) {
+                    adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Video Preview:</strong><br><video src="${req.mediaData}" controls style="max-height: 150px; border-radius: 4px; border: 1px solid #555; margin-top: 5px; max-width: 100%;"></video></div>`;
+                } else if (req.blogId) {
+                    adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Content Promotion:</strong><br><span style="font-size: 0.9rem; color: #ccc;">Preview available via Content ID link above.</span></div>`;
+                }
+
+                let rejectReasonHtml = '';
+                if (!isApproved && req.rejectReason) {
+                    rejectReasonHtml = `<div style="font-size: 0.9rem; color: #ff6b6b; margin-top: 5px;"><strong>Reject Reason:</strong> ${req.rejectReason}</div>`;
+                }
+
                 const div = document.createElement('div');
                 div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: flex-start;";
                 div.innerHTML = `
@@ -1821,6 +1876,8 @@
                         }</div>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount paid: <strong style="color: #198754;">₹${req.price}</strong></div>
                         <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>UTR / Txn ID:</strong> ${req.utr}</div>
+                        ${adMediaHtml}
+                        ${rejectReasonHtml}
                     </div>
                     <div style="text-align: right;">
                         <span style="background: ${statusColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">${statusText}</span>
@@ -1851,10 +1908,28 @@
             } catch (e) { console.error(e); showToast("Error approving promotion.", "error"); }
         };
         
-        window.rejectPromotion = async (reqId) => {
-            if (!confirm("Reject this promotion request?")) return;
+        window.rejectPromotion = async (reqId, uid, title) => {
+            const reason = prompt("Enter reason for rejection (e.g., Invalid UTR, Inappropriate Content):");
+            if (reason === null) return; // User cancelled
+            
             try {
-                await updateDoc(doc(db, "promotions", reqId), { status: 'rejected', rejectedAt: new Date().toISOString() });
+                await updateDoc(doc(db, "promotions", reqId), { 
+                    status: 'rejected', 
+                    rejectedAt: new Date().toISOString(),
+                    rejectReason: reason.trim()
+                });
+                
+                if (uid) {
+                    await addDoc(collection(db, "notifications"), {
+                        recipientUid: uid,
+                        senderUid: "admin",
+                        senderName: "System",
+                        type: "promotion_rejected",
+                        message: `Your promotion request for "${title || 'Content'}" was rejected. Reason: ${reason.trim() || 'Not specified'}.`,
+                        date: new Date().toISOString(),
+                        read: false
+                    });
+                }
                 showToast("Promotion rejected.", "error");
                 window.loadPromoRequests();
                 window.loadPromoHistory();

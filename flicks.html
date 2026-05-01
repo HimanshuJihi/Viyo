@@ -10,6 +10,9 @@
     <style>
         .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
         .lucide-fill { fill: currentColor; }
+        .theme-dropdown { max-height: 75vh; overflow-y: auto; overflow-x: hidden; }
+        .theme-dropdown::-webkit-scrollbar { width: 4px; }
+        .theme-dropdown::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -27,72 +30,7 @@
     <!-- Fluid Player for VAST Ads -->
     <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css" type="text/css"/>
     <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js" defer></script>
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: 'Outfit', -apple-system, sans-serif; overflow: hidden; }
-        .navbar { position: absolute; top: 0; width: 100%; padding: 15px 20px; z-index: 100; display: flex; align-items: center; box-sizing: border-box; background: linear-gradient(rgba(0,0,0,0.6), transparent); }
-        .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .navbar span { margin-left: 15px; font-weight: bold; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .flicks-container { height: 100vh; width: 100vw; overflow-y: scroll; scroll-snap-type: y mandatory; -ms-overflow-style: none; scrollbar-width: none; }
-        .flicks-container::-webkit-scrollbar { display: none; }
-        .flick-item { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; display: flex; justify-content: center; align-items: center; background: #111; }
-        video { width: 100%; height: 100%; object-fit: contain; cursor: pointer; }
-        .overlay { position: absolute; bottom: 25px; left: 15px; right: 75px; z-index: 10; pointer-events: none; }
-        .author-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; pointer-events: auto; }
-        .author-row img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
-        .author-row strong { font-size: 1.1rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
-        .title { margin: 0; font-size: 1.05rem; line-height: 1.4; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; pointer-events: auto; transition: max-height 0.3s ease; }
-        .title.expanded { display: block; -webkit-line-clamp: unset; max-height: 30vh; overflow-y: auto; padding-right: 5px; }
-        .show-more-flick { pointer-events: auto; background: none; border: none; color: #fff; opacity: 0.8; font-weight: bold; cursor: pointer; padding: 2px 0; font-size: 0.95rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
-        .sidebar { position: absolute; bottom: 30px; right: 15px; display: flex; flex-direction: column; gap: 20px; z-index: 10; align-items: center; }
-        .action-wrapper { text-align: center; }
-        .action-btn { background: rgba(0,0,0,0.4); border: none; color: white; width: 48px; height: 48px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
-        .action-btn:hover { transform: scale(1.1); background: rgba(0,0,0,0.6); }
-        .action-wrapper span { font-size: 0.85rem; font-weight: bold; margin-top: 6px; display: block; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
-        
-        /* Modern Comment Styles */
-        .btn {
-            display: inline-block;
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: #fff;
-            background-color: #0d6efd;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .comment-wrapper { display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start; }
-        .comment-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #333; cursor: pointer; }
-        .comment-body { flex: 1; }
-        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .comment-author { font-weight: bold; color: #f1f1f1; font-size: 0.9rem; text-decoration: none; cursor: pointer; }
-        .comment-date { font-size: 0.75rem; color: #888; }
-        .comment-text { font-size: 0.95rem; color: #ddd; margin: 0 0 6px 0; word-wrap: break-word; line-height: 1.4; }
-        .comment-actions { display: flex; gap: 16px; align-items: center; font-size: 0.8rem; color: #aaa; }
-        .comment-action-btn { background: transparent; border: none; color: #aaa; cursor: pointer; padding: 0; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 4px; }
-        .comment-action-btn:hover { color: #fff; }
-        .author-liked-badge { display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2); }
-        .author-liked-badge img { width: 14px; height: 14px; border-radius: 50%; }
-        .mention-link { color: #3ea6ff; text-decoration: none; font-weight: bold; }
-        .mention-link:hover { text-decoration: underline; }
-        .reply-list { margin-left: 48px; margin-top: 12px; position: relative; }
-        .reply-list::before { content: ''; position: absolute; left: -24px; top: 0; bottom: 0; width: 2px; background: #333; border-radius: 2px; }
-        .mention-dropdown { position: absolute; bottom: 100%; left: 0; right: 0; background: #222; border: 1px solid #444; border-radius: 8px; max-height: 150px; overflow-y: auto; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); display: none; }
-        .mention-item { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #fff; transition: background 0.2s; }
-        .mention-item:hover { background: #333; }
-        .reply-input-container { display: none; margin-top: 10px; gap: 10px; position: relative; }
-
-        /* Theme Dropdown Styles from index.html */
-        .theme-dropdown-container { position: relative; display: inline-block; margin-left: auto; }
-        .theme-dropdown { position: absolute; top: 100%; right: 0; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px; display: none; flex-direction: column; gap: 8px; z-index: 1000; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 10px; }
-        .theme-dropdown.show { display: flex; animation: slideUp 0.2s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .theme-option { padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; text-align: left; display: flex; align-items: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; font-family: inherit; font-size: 0.9rem; }
-        .theme-option:hover { transform: scale(1.05); }
-        .theme-option.active { border: 2px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1.02); }
-        .theme-btn { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; padding: 5px; }
-
-    </style>
+    <link rel="stylesheet" href="assets/css/flicks.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
 </head>
@@ -305,8 +243,15 @@
                         const id = vid.getAttribute('data-id');
                         currentFlickId = id;
                         if (id && !viewedFlicks.has(id)) {
-                            viewedFlicks.add(id);
-                            updateDoc(doc(db, "blogs", id), { views: increment(1) }).catch(e=>{});
+                            if (vid._viewTimerFn) vid.removeEventListener('timeupdate', vid._viewTimerFn);
+                            vid._viewTimerFn = function() {
+                                if (vid.currentTime >= 5 && !viewedFlicks.has(id)) {
+                                    viewedFlicks.add(id);
+                                    updateDoc(doc(db, "blogs", id), { views: increment(1) }).catch(e=>{});
+                                    vid.removeEventListener('timeupdate', vid._viewTimerFn);
+                                }
+                            };
+                            vid.addEventListener('timeupdate', vid._viewTimerFn);
                         }
                     } else {
                         vid.pause();

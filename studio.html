@@ -13,6 +13,9 @@
     <style>
         .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
         .lucide-fill { fill: currentColor; }
+        .theme-dropdown { max-height: 75vh; overflow-y: auto; overflow-x: hidden; }
+        .theme-dropdown::-webkit-scrollbar { width: 4px; }
+        .theme-dropdown::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -28,112 +31,23 @@
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #050505;
-            color: #e2e8f0;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        h1, h2 {
-            color: #f59e0b;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 10px;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .stat-card h3 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
-            color: #aaa;
-        }
-        .stat-card p {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        .monetization-card {
-            background: rgba(245, 158, 11, 0.05);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            margin-bottom: 30px;
-        }
-        .monetization-card h2 {
-            margin-top: 0;
-        }
-        .progress-bar {
-            background: #444;
-            border-radius: 5px;
-            height: 10px;
-            width: 100%;
-            overflow: hidden;
-            margin-top: 5px;
-        }
-        .progress-bar-inner {
-            background: #10b981;
-            height: 100%;
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-        .btn {
-            display: inline-block; padding: 10px 20px; font-size: 1rem; font-weight: bold; color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 30px; text-decoration: none; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5); }
-        .btn:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-        .btn-secondary { background: #64748b; box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3); }
-        .btn-secondary:hover { box-shadow: 0 8px 25px rgba(100, 116, 139, 0.5); }
-
-        /* Modal Styles */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: rgba(20, 20, 20, 0.9); padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .modal-content h2 { margin-top: 0; color: #f59e0b; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 15px; font-size: 1.5rem; text-align: center; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 5px; color: #aaa; font-size: 0.9rem; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; box-sizing: border-box; font-size: 1rem; }
-        .form-group input:focus, .form-group select:focus { border-color: #6366f1; outline: none; }
-        .tabs { display: flex; border-bottom: 1px solid #444; margin-bottom: 20px; }
-        .tab-btn { background: none; border: none; color: #888; padding: 10px 15px; cursor: pointer; font-size: 1rem; border-bottom: 3px solid transparent; flex: 1; transition: all 0.3s; }
-        .tab-btn.active { color: white; border-bottom-color: #6366f1; font-weight: bold; background: rgba(99, 102, 241, 0.1); }
-        .tab-pane { display: none; }
-        .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
-        
-        /* Category Chips for Ad Targeting */
-        .cat-chip { background: #333; padding: 6px 14px; border-radius: 20px; cursor: pointer; border: 1px solid #555; display: inline-block; font-size: 0.85rem; user-select: none; transition: 0.2s; }
-        .cat-chip:hover { background: #444; }
-        .cat-chip.selected { background: #6366f1; border-color: #6366f1; color: white; font-weight: bold; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+    <link rel="stylesheet" href="assets/css/studio.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <div id="toast-container"></div>
     <div class="container">
         <a href="profile.html" class="btn btn-secondary" style="margin-bottom: 20px; display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="arrow-left"></i> Back to Profile</a>
-        <h1><i data-lucide="line-chart"></i> Creator Studio</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h1 style="margin: 0;"><i data-lucide="line-chart"></i> Creator Studio</h1>
+            <select id="studio-time-filter" onchange="window.applyTimeFilter()" style="padding: 10px 15px; border-radius: 8px; background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); outline: none; font-family: 'Outfit', sans-serif; cursor: pointer; font-size: 1rem;">
+                <option value="all">Lifetime</option>
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="365">Last 365 Days</option>
+            </select>
+        </div>
 
         <!-- Studio Headline Box -->
         <div id="studio-headline-container" style="display:none; background: linear-gradient(45deg, #10b981, #f59e0b); padding: 15px; margin-bottom: 30px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
@@ -296,7 +210,7 @@
             <!-- In-Feed Ad Pane -->
             <div id="promo-tab-infeed" class="tab-pane active">
                 <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="ext-ad-title" placeholder="e.g., Buy the new Smartwatch..."></div>
-                <div class="form-group"><label>Media (Image or Video - Max 800KB)</label><input type="file" id="ext-ad-media" accept="image/*,video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Media (Image or Video - Max 2MB)</label><input type="file" id="ext-ad-media" accept="image/*,video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
                 <div class="form-group"><label>Target URL (External Link)</label><input type="text" id="ext-ad-url" placeholder="https://yourwebsite.com/product"></div>
                 <div class="form-group"><label>Promotion Frequency</label><select id="ext-promo-tier" onchange="window.calculateExtPrice()"><option value="4">Show after every 4 posts (Base: ₹50 / 50 Hrs)</option><option value="3">Show after every 3 posts (Base: ₹70 / 50 Hrs)</option><option value="2">Show after every 2 posts (Base: ₹80 / 50 Hrs)</option><option value="1">Show after every 1 post (Base: ₹100 / 50 Hrs)</option></select></div>
                 <div class="form-group"><label id="ext-duration-label">Duration (Hours) - Minimum 50</label><input type="number" id="ext-promo-hours" value="50" min="50" step="50" oninput="window.calculateExtPrice()"></div>
@@ -306,11 +220,11 @@
             <div id="promo-tab-preroll" class="tab-pane">
                 <p style="font-size: 0.85rem; color: #aaa; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">This ad will play before a long video starts. Pricing is based on impressions.</p>
                 <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="preroll-ad-title" placeholder="e.g., Viyou Pre-Roll Ad"></div>
-                <div class="form-group"><label>Ad Video (Max 800KB, Recommended 10-15s)</label><input type="file" id="preroll-ad-video" accept="video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Ad Video (Max 2MB, Recommended 10-15s)</label><input type="file" id="preroll-ad-video" accept="video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
                 <div class="form-group"><label>Target URL (External Link)</label><input type="text" id="preroll-ad-url" placeholder="https://yourwebsite.com/product"></div>
                 
                 <div class="form-group">
-                    <label>Target Categories (Select up to 3) <small style="color: #aaa; font-weight: normal; display: block; margin-top: 3px;">Ads will only show on videos of these categories.</small></label>
+                    <label>Target Categories (Select up to 5) <small style="color: #aaa; font-weight: normal; display: block; margin-top: 3px;">Ads will only show on videos of these categories.</small></label>
                     <div id="preroll-categories" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
                         <span class="cat-chip" onclick="window.togglePromoCat(this)">Entertainment</span>
                         <span class="cat-chip" onclick="window.togglePromoCat(this)">Music</span>
@@ -367,7 +281,44 @@
         import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { db, auth } from "./firebase-config.js";
+window.showToast = function(message, type = 'info') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let iconClass = 'info';
+            if (type === 'success') iconClass = 'check-circle';
+            if (type === 'error') iconClass = 'x-circle';
+            toast.innerHTML = `<span class="toast-icon"><i data-lucide="${iconClass}"></i></span><span>${message}</span>`;
+            container.appendChild(toast);
+            if (window.lucide) window.lucide.createIcons({ root: toast });
+            setTimeout(() => { toast.classList.add('show'); }, 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        };
 
+        window.playActionAnimation = function(btn) {
+            if (btn) {
+                btn.style.position = 'relative';
+                btn.style.overflow = 'hidden';
+                const btnLaser = document.createElement('div');
+                btnLaser.style.cssText = 'position: absolute; top: 0; left: -100%; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, #fff, transparent); pointer-events: none; z-index: 10;';
+                btnLaser.animate([ { left: '-100%', opacity: 0 }, { opacity: 1, offset: 0.5 }, { left: '100%', opacity: 0 } ], { duration: 600, easing: 'ease-out' });
+                btn.appendChild(btnLaser);
+                setTimeout(() => btnLaser.remove(), 600);
+            }
+            const screenLaser = document.createElement('div');
+            screenLaser.style.cssText = 'position: fixed; top: 0; left: -100%; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, #10b981, #3b82f6, #a855f7, transparent); z-index: 99999; pointer-events: none; box-shadow: 0 0 15px #a855f7, 0 0 5px #10b981;';
+            screenLaser.animate([ { left: '-100%' }, { left: '100%' } ], { duration: 800, easing: 'ease-in-out' });
+            document.body.appendChild(screenLaser);
+            setTimeout(() => screenLaser.remove(), 800);
+        };
         const MONETIZATION_VIEWS = 10000;
         const MONETIZATION_FOLLOWERS = 200;
         
@@ -483,13 +434,12 @@
                 else if (followersCount >= tierFollowers[1] && totalViews >= 100000) { tier = 2; sharePercent = 0.55; }
                 else if (followersCount >= tierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
 
-                // Update UI
-                document.getElementById('total-views').innerText = totalViews.toLocaleString();
-                document.getElementById('long-video-views').innerText = totalLongVideoViews.toLocaleString();
-                document.getElementById('flicks-views').innerText = totalFlicksViews.toLocaleString();
-                document.getElementById('total-followers').innerText = followersCount.toLocaleString();
-                document.getElementById('current-tier').innerText = tier > 0 ? `Tier ${tier} (${Math.round(sharePercent * 100)}%)` : 'No Tier';
+                window.cachedLifetimeData = {
+                    totalViews, totalLongVideoViews, totalFlicksViews, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, walletBalance: userData.walletBalance || 0
+                };
 
+                document.getElementById('current-tier').innerText = tier > 0 ? `Tier ${tier} (${Math.round(sharePercent * 100)}%)` : 'No Tier';
+                document.getElementById('total-followers').innerText = followersCount.toLocaleString();
                 // Update Monetization UI
                 updateMonetizationUI(isMonetized, totalViews, followersCount);
 
@@ -527,24 +477,40 @@
                     const textColor = isLightMode ? '#555' : '#aaa';
 
                     window.tierChart = new Chart(ctx, {
-                        type: 'line',
+                        type: 'bar',
                         data: {
-                            labels: ['Current Progress', `Goal (Tier ${targetNextTier})`],
-                            datasets: [
-                                { label: 'Followers Growth (%)', data: [fProg, 100], borderColor: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.1)', borderWidth: 3, fill: true, tension: 0.3, pointRadius: 6, pointBackgroundColor: '#a855f7' },
-                                { label: 'Views Growth (%)', data: [vProg, 100], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 3, fill: true, tension: 0.3, pointRadius: 6, pointBackgroundColor: '#10b981' }
-                            ]
+                            labels: [`Followers (Goal: ${targetFollowers.toLocaleString()})`, `Views (Goal: ${targetViews.toLocaleString()})`],
+                            datasets: [{
+                                label: `Progress to Tier ${targetNextTier}`,
+                                data: [fProg, vProg],
+                                backgroundColor: ['rgba(168, 85, 247, 0.7)', 'rgba(16, 185, 129, 0.7)'],
+                                borderColor: ['#a855f7', '#10b981'],
+                                borderWidth: 2,
+                                borderRadius: 6,
+                                barPercentage: 0.5
+                            }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
                             scales: {
                                 y: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { color: textColor, callback: function(val) { return val + '%' } } },
-                                x: { grid: { color: gridColor }, ticks: { color: textColor } }
+                                x: { grid: { display: false }, ticks: { color: textColor, font: { family: "'Outfit', sans-serif", weight: '600' } } }
                             },
                             plugins: {
-                                legend: { labels: { color: textColor } },
-                                tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'; } } }
+                                legend: { display: false },
+                                tooltip: { 
+                                    backgroundColor: 'rgba(0,0,0,0.8)',
+                                    titleFont: { family: "'Outfit', sans-serif", size: 14 },
+                                    bodyFont: { family: "'Outfit', sans-serif", size: 13 },
+                                    callbacks: { 
+                                        label: function(context) { 
+                                            let currentVal = context.dataIndex === 0 ? followersCount.toLocaleString() : totalViews.toLocaleString();
+                                            let targetVal = context.dataIndex === 0 ? targetFollowers.toLocaleString() : targetViews.toLocaleString();
+                                            return ` Completed: ${context.parsed.y.toFixed(1)}% (${currentVal} / ${targetVal})`; 
+                                        } 
+                                    } 
+                                }
                             }
                         }
                     });
@@ -603,102 +569,23 @@
                     });
                 }
 
-                // --- Content Performance Table ---
+                // --- Setup Global Analytics State ---
                 allUserContent.sort((a, b) => new Date(b.date) - new Date(a.date)); // Newest first
                 window.cachedContentData = allUserContent;
                 window.cachedMonetizationParams = {
                     preRollRate: monetizationSettings.preRollRate || 200,
                     preRollFreq: monetizationSettings.preRollFreq || 3,
                     sharePercent: sharePercent,
-                    isMonetized: isMonetized
+                    isMonetized: isMonetized,
+                    minWithdrawal: monetizationSettings.minWithdrawal || 500,
+                    hasPending: hasPending
                 };
-                window.renderContentTable('all');
-
                 window.currentUserWalletBalance = userData.walletBalance || 0;
                 window.currentUserTotalLongVideoViews = totalLongVideoViews;
-                window.currentUserPendingEarnings = 0;
 
-                // Update Earnings UI
-                if (isMonetized) {
-                    let earningNotes = [];
-                    const preRollRate = monetizationSettings.preRollRate || 200;
-                    const preRollFreq = monetizationSettings.preRollFreq || 3;
-                    
-                    const unpaidLongViews = Math.max(0, totalLongVideoViews - paidLongVideoViews);
-                    const adImpressions = unpaidLongViews / preRollFreq;
-                    const generatedRevenue = (adImpressions / 1000) * preRollRate;
-                    window.currentUserPendingEarnings = generatedRevenue * sharePercent;
-
-                    currentEarnings = window.currentUserWalletBalance + window.currentUserPendingEarnings;
-                    
-                    earningNotes.push(`<strong>Tier ${tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong>`);
-                    earningNotes.push(`Unpaid Long Video Views: ${unpaidLongViews.toLocaleString()}`);
-                    earningNotes.push(`Frequency: 1 Ad per ${preRollFreq} Views`);
-                    earningNotes.push(`Wallet Balance: ₹${window.currentUserWalletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`);
-
-                    document.getElementById('estimated-earnings').innerText = `₹${currentEarnings.toFixed(2)}`;
-                    document.getElementById('earning-note').innerHTML = earningNotes.join("<br>");
-                    
-                    // --- Earnings Doughnut Chart ---
-                    const eCtx = document.getElementById('earningsChart').getContext('2d');
-                    if (window.earningsChart && typeof window.earningsChart.destroy === 'function') window.earningsChart.destroy();
-                    
-                    const isLightModeTheme = document.body.classList.contains('light-mode');
-                    const chartTextColor = isLightModeTheme ? '#555' : '#aaa';
-                    
-                    let chartData = [window.currentUserWalletBalance, window.currentUserPendingEarnings];
-                    let bgColors = ['#3b82f6', '#10b981'];
-                    let labels = ['Wallet Balance (₹)', 'Pending Ad Revenue (₹)'];
-
-                    if (currentEarnings === 0) {
-                        chartData = [1];
-                        bgColors = [isLightModeTheme ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'];
-                        labels = ['No Earnings Yet'];
-                    }
-
-                    window.earningsChart = new Chart(eCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                data: chartData,
-                                backgroundColor: bgColors,
-                                borderColor: isLightModeTheme ? '#fff' : '#1e1e1e',
-                                borderWidth: 2,
-                                hoverOffset: 4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            cutout: '70%',
-                            plugins: {
-                                legend: { position: 'right', labels: { color: chartTextColor, font: { family: "'Outfit', sans-serif" } } },
-                                tooltip: { callbacks: { label: function(context) { if (currentEarnings === 0) return ' ₹0.00'; return ' ₹' + context.parsed.toFixed(2); } } }
-                            }
-                        }
-                    });
-
-                    const withdrawBtn = document.getElementById('withdraw-btn');
-                    
-                    if (hasPending) {
-                        withdrawBtn.innerText = "Request Pending";
-                        withdrawBtn.disabled = true;
-                    } else if (currentEarnings >= monetizationSettings.minWithdrawal) {
-                        withdrawBtn.disabled = false;
-                        withdrawBtn.onclick = () => {
-                            const minAmount = monetizationSettings.minWithdrawal || 500;
-                            document.getElementById('max-amount-label').innerText = `(Max: ₹${currentEarnings.toFixed(2)})`;
-                            document.getElementById('withdraw-amount').value = currentEarnings.toFixed(2);
-                            document.getElementById('withdraw-amount').max = currentEarnings.toFixed(2);
-                            document.getElementById('withdraw-amount').min = minAmount;
-                            document.getElementById('withdraw-modal').style.display = 'flex';
-                        };
-                    } else {
-                        withdrawBtn.innerText = `Need ₹${(monetizationSettings.minWithdrawal || 500).toFixed(2)} to withdraw`;
-                        withdrawBtn.disabled = true;
-                    }
-                }
+                // Apply Default Time Filter (Lifetime) - This updates Earnings, Stats, and Table
+                document.getElementById('studio-time-filter').value = 'all';
+                window.applyTimeFilter();
 
                 // Load Payment History
                 loadPaymentHistory(uid);
@@ -711,16 +598,18 @@
 
         window.renderContentTable = function(filterType = 'all') {
             const perfList = document.getElementById('content-performance-list');
-            if (!window.cachedContentData || window.cachedContentData.length === 0) {
-                perfList.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: #aaa;">No published content found.</td></tr>';
+            const dataToRender = window.filteredByDateContent || window.cachedContentData;
+            
+            if (!dataToRender || dataToRender.length === 0) {
+                perfList.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: #aaa;">No published content found for this period.</td></tr>';
                 return;
             }
 
             const { preRollRate, preRollFreq, sharePercent, isMonetized } = window.cachedMonetizationParams;
 
-            let filteredContent = window.cachedContentData;
+            let filteredContent = dataToRender;
             if (filterType !== 'all') {
-                filteredContent = window.cachedContentData.filter(content => {
+                filteredContent = dataToRender.filter(content => {
                     if (filterType === 'flick') return content.isFlicker;
                     if (filterType === 'video') return !content.isFlicker && (content.video || content.youtubeUrl);
                     if (filterType === 'blog') return !content.isFlicker && !content.video && !content.youtubeUrl;
@@ -786,6 +675,175 @@
             if (window.lucide) window.lucide.createIcons(); // Refresh table icons
         };
 
+        // --- NEW TIME FILTER LOGIC ---
+        window.updateEarningsChart = function(wallet, pending, isPeriod = false) {
+            const eCtx = document.getElementById('earningsChart').getContext('2d');
+            if (window.earningsChart && typeof window.earningsChart.destroy === 'function') window.earningsChart.destroy();
+            
+            const isLightModeTheme = document.body.classList.contains('light-mode');
+            const chartTextColor = isLightModeTheme ? '#555' : '#aaa';
+            
+            let chartData = [wallet, pending];
+            let bgColors = ['#3b82f6', '#10b981'];
+            let labels = ['Wallet Balance (₹)', 'Pending Ad Revenue (₹)'];
+
+            if (isPeriod) {
+                chartData = [pending];
+                bgColors = ['#10b981'];
+                labels = ['Period Est. Revenue (₹)'];
+            }
+
+            const total = wallet + pending;
+            if (total === 0) {
+                chartData = [1];
+                bgColors = [isLightModeTheme ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'];
+                labels = ['No Earnings Yet'];
+            }
+
+            window.earningsChart = new Chart(eCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: bgColors,
+                        borderColor: isLightModeTheme ? '#fff' : '#1e1e1e',
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right', labels: { color: chartTextColor, font: { family: "'Outfit', sans-serif" } } },
+                        tooltip: { 
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: { family: "'Outfit', sans-serif", size: 14 },
+                            bodyFont: { family: "'Outfit', sans-serif", size: 13 },
+                            padding: 12,
+                            callbacks: { 
+                                label: function(context) { 
+                                    if (total === 0) return ' ₹0.00'; 
+                                    let value = context.parsed;
+                                    let percentage = ((value / total) * 100).toFixed(1);
+                                    return ` ${context.label}: ₹${value.toFixed(2)} (${percentage}%)`; 
+                                } 
+                            } 
+                        }
+                    }
+                }
+            });
+        };
+
+        window.applyTimeFilter = function() {
+            if (!window.cachedContentData || !window.cachedLifetimeData) return;
+
+            const filterVal = document.getElementById('studio-time-filter').value;
+            const now = new Date();
+            let cutoffDate = new Date(0); // Lifetime
+
+            if (filterVal !== 'all') {
+                cutoffDate = new Date(now.getTime() - (parseInt(filterVal) * 24 * 60 * 60 * 1000));
+            }
+
+            let periodTotalViews = 0;
+            let periodLongViews = 0;
+            let periodFlicksViews = 0;
+
+            window.filteredByDateContent = window.cachedContentData.filter(blog => {
+                const bDate = new Date(blog.date);
+                return bDate >= cutoffDate;
+            });
+
+            window.filteredByDateContent.forEach(blog => {
+                periodTotalViews += Number(blog.views) || 0;
+                if (blog.isFlicker) {
+                    periodFlicksViews += Number(blog.views) || 0;
+                } else if (blog.video && !blog.youtubeUrl) {
+                    periodLongViews += blog.longVideoViews !== undefined ? Number(blog.longVideoViews) : (Number(blog.views) || 0);
+                }
+            });
+
+            // Update Stats Cards
+            document.getElementById('total-views').innerText = periodTotalViews.toLocaleString();
+            document.getElementById('long-video-views').innerText = periodLongViews.toLocaleString();
+            document.getElementById('flicks-views').innerText = periodFlicksViews.toLocaleString();
+            
+            // Followers and Tiers always remain Lifetime metric (we don't track historical follow dates)
+            // document.getElementById('total-followers').innerText = window.cachedLifetimeData.followersCount.toLocaleString();
+            
+            const withdrawBtn = document.getElementById('withdraw-btn');
+
+            // Update Estimated Earnings for Period
+            if (window.cachedLifetimeData.isMonetized) {
+                const { preRollRate, preRollFreq, sharePercent, minWithdrawal, hasPending } = window.cachedMonetizationParams;
+                
+                if (filterVal === 'all') {
+                    // Show standard wallet + pending
+                    const unpaidLongViews = Math.max(0, window.cachedLifetimeData.totalLongVideoViews - window.cachedLifetimeData.paidLongVideoViews);
+                    const adImpressions = unpaidLongViews / preRollFreq;
+                    const generatedRevenue = (adImpressions / 1000) * preRollRate;
+                    window.currentUserPendingEarnings = generatedRevenue * sharePercent;
+                    currentEarnings = window.cachedLifetimeData.walletBalance + window.currentUserPendingEarnings;
+                    
+                    document.getElementById('estimated-earnings').innerText = `₹${currentEarnings.toFixed(2)}`;
+                    document.getElementById('earning-note').innerHTML = `<strong>Tier ${window.cachedLifetimeData.tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong><br>Unpaid Long Video Views: ${unpaidLongViews.toLocaleString()}<br>Frequency: 1 Ad per ${preRollFreq} Views<br>Wallet Balance: ₹${window.cachedLifetimeData.walletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`;
+                    
+                    window.updateEarningsChart(window.cachedLifetimeData.walletBalance, window.currentUserPendingEarnings, false);
+
+                    // Withdraw Button Logic (Only active in Lifetime view)
+                    withdrawBtn.style.display = 'inline-block';
+                    withdrawBtn.disabled = false; // Keep enabled to allow clicks for animation
+                    if (hasPending) {
+                        withdrawBtn.innerText = "Request Pending";
+                        withdrawBtn.style.opacity = '0.5';
+                        withdrawBtn.style.cursor = 'not-allowed';
+                        withdrawBtn.onclick = (e) => {
+                            window.playActionAnimation(e.currentTarget);
+                            window.showToast("You already have a pending withdrawal request.", "info");
+                        };
+                    } else if (currentEarnings >= minWithdrawal) {
+                        withdrawBtn.innerText = "Withdraw Funds";
+                        withdrawBtn.style.opacity = '1';
+                        withdrawBtn.style.cursor = 'pointer';
+                        withdrawBtn.onclick = (e) => {
+                            window.playActionAnimation(e.currentTarget);
+                            document.getElementById('max-amount-label').innerText = `(Max: ₹${currentEarnings.toFixed(2)})`;
+                            document.getElementById('withdraw-amount').value = currentEarnings.toFixed(2);
+                            document.getElementById('withdraw-amount').max = currentEarnings.toFixed(2);
+                            document.getElementById('withdraw-amount').min = minWithdrawal;
+                            document.getElementById('withdraw-modal').style.display = 'flex';
+                        };
+                    } else {
+                        withdrawBtn.innerText = `Need ₹${minWithdrawal.toFixed(2)} to withdraw`;
+                        withdrawBtn.style.opacity = '0.5';
+                        withdrawBtn.style.cursor = 'not-allowed';
+                        withdrawBtn.onclick = (e) => {
+                            window.playActionAnimation(e.currentTarget);
+                            window.showToast(`You need at least ₹${minWithdrawal.toFixed(2)} to withdraw.`, "info");
+                        };
+                    }
+
+                } else {
+                    // Show estimated generated revenue for content in this period
+                    const adImpressions = periodLongViews / preRollFreq;
+                    const generatedRevenue = (adImpressions / 1000) * preRollRate;
+                    const periodEarnings = generatedRevenue * sharePercent;
+                    
+                    document.getElementById('estimated-earnings').innerText = `₹${periodEarnings.toFixed(2)}`;
+                    document.getElementById('earning-note').innerHTML = `Estimated earnings from content published in the last ${filterVal} days.<br>Long Video Views: ${periodLongViews.toLocaleString()}<br><em>Note: Wallet balance and withdrawals are based on Lifetime metrics.</em>`;
+                    
+                    window.updateEarningsChart(0, periodEarnings, true);
+                    withdrawBtn.style.display = 'none'; // Hide withdraw in period view to avoid confusion
+                }
+            }
+
+            // Update Content Table
+            window.renderContentTable(document.getElementById('content-filter').value);
+        };
+
         function updateMonetizationUI(isMonetized, views, followers) {
             const container = document.getElementById('monetization-status');
             if (isMonetized) {
@@ -812,16 +870,19 @@
                             <div class="progress-bar-inner" style="width: ${viewsProgress}%;"></div>
                         </div>
                     </div>
-                    <button id="apply-btn" class="btn" ${canApply ? '' : 'disabled'} style="margin-top: 20px; background: #10b981;">
+                    <button id="apply-btn" class="btn" style="margin-top: 20px; background: #10b981;">
                         ${canApply ? 'Apply for Monetization' : 'Keep Growing!'}
                     </button>
                 `;
 
-                if (canApply) {
-                    document.getElementById('apply-btn').addEventListener('click', () => {
-                        alert("Application submitted! The admin will review your profile. (This is a placeholder, manual approval is done by admin).");
-                    });
-                }
+                document.getElementById('apply-btn').addEventListener('click', (e) => {
+                    window.playActionAnimation(e.currentTarget);
+                    if (canApply) {
+                        window.showToast("Application submitted! Admin will review your profile.", "success");
+                    } else {
+                        window.showToast("Keep creating and growing your audience to unlock monetization!", "info");
+                    }
+                });
             }
         }
 
@@ -1038,8 +1099,8 @@
                 window.selectedPromoCats = window.selectedPromoCats.filter(c => c !== cat);
                 el.classList.remove('selected');
             } else {
-                if (window.selectedPromoCats.length >= 3) {
-                    alert("You can select a maximum of 3 categories for targeting."); return;
+                if (window.selectedPromoCats.length >= 5) {
+                    alert("You can select a maximum of 5 categories for targeting."); return;
                 }
                 window.selectedPromoCats.push(cat); el.classList.add('selected');
             }
@@ -1070,7 +1131,7 @@
                 };
                 reader.readAsDataURL(file);
             } else if (file.type.startsWith('video/')) {
-                if (file.size > 800 * 1024) { alert("Video must be under 800KB."); e.target.value = ''; return; }
+                if (file.size > 2 * 1024 * 1024) { alert("Video must be under 2MB."); e.target.value = ''; return; }
                 extMediaType = 'video';
                 const reader = new FileReader();
                 reader.onload = (event) => { extMediaBase64 = event.target.result; };
@@ -1081,7 +1142,7 @@
         document.getElementById('preroll-ad-video').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            if (file.size > 800 * 1024) { alert("Video must be under 800KB."); e.target.value = ''; return; }
+            if (file.size > 2 * 1024 * 1024) { alert("Video must be under 2MB."); e.target.value = ''; return; }
             const reader = new FileReader();
             reader.onload = (event) => { prerollVideoBase64 = event.target.result; };
             reader.readAsDataURL(file);

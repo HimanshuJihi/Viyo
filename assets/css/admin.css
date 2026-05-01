@@ -1,0 +1,96 @@
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #050505;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: #f59e0b;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        .report-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .report-card h3 {
+            margin-top: 0;
+            color: #87ceeb;
+        }
+        .report-card p {
+            margin: 5px 0;
+        }
+        .btn {
+            display: inline-block; padding: 10px 20px; font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5); }
+        .btn-danger { background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5); }
+        .btn-secondary { background: #64748b; box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3); }
+        .btn-secondary:hover { box-shadow: 0 8px 25px rgba(100, 116, 139, 0.5); }
+
+        .admin-tab-btn {
+            background-color: transparent;
+            border: 1px solid #6c757d;
+            color: #aaa;
+            padding: 8px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .admin-tab-btn.active {
+            background-color: #6366f1;
+            border-color: #6366f1;
+            color: white;
+        }
+        .admin-tab-btn:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        /* Custom Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { background-color: #198754; border-left: 5px solid #155724; }
+        .toast.error { background-color: #dc3545; border-left: 5px solid #8b1c27; }
