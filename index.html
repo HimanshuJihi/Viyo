@@ -3620,7 +3620,7 @@
                 document.getElementById('flicks-comments-panel').style.display = 'flex';
                 window.renderFlickComments();
             };
-            document.getElementById('flicks-comments-panel').style.display = 'none';
+            } else { if(pipBtn) pipBtn.style.display = 'none'; }
 
             const titleDisplay = document.getElementById('flicks-title-display');
             if (flick.mentionMap) {
