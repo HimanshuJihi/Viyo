@@ -31,7 +31,7 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="chat-container">
         <div class="chat-header">
         <button class="back-btn btn-transparent" style="padding: 5px 12px; border-radius: 5px;" onclick="window.history.back()"><i data-lucide="arrow-left"></i></button>
             <img id="chat-partner-pic" src="https://via.placeholder.com/40" class="profile-pic" onclick="window.viewPartnerProfile()">
@@ -61,10 +61,10 @@
         <div id="typing-indicator" style="height: 20px; color: #aaa; font-style: italic; padding-left: 10px; display: none; transition: opacity 0.3s;"></div>
 
         <div class="message-input-area">
-        <button id="attach-btn" class="btn-transparent" title="Send Image or PDF" style="padding: 5px; border-radius: none; display: flex; align-items: center; justify-content: center;"><img src="attach-icon.png" alt="Attach" style="width: 34px; height: 34px;"></button>
+            <button id="attach-btn" title="Send Image or PDF" style="background: transparent; border: none; padding: 5px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><img src="attach-icon.png" alt="Attach" style="width: 22px; height: 22px;"></button>
             <input type="file" id="image-input-chat" style="display: none;" accept="image/*,application/pdf">
             <input type="text" id="message-input" placeholder="Type your message..." style="flex-grow: 1; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem;">
-        <button id="send-message-btn" class="btn-transparent" style="padding: 5px; border-radius: 5px; display: flex; align-items: center; justify-content: center;"><img src="send-icon.png" alt="Send" style="width: 34px; height: 34px;"></button>
+            <button id="send-message-btn" title="Send" style="background: transparent; border: none; padding: 5px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-left: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><img src="send-icon.png" alt="Send" style="width: 22px; height: 22px;"></button>
         </div>
     </div>
 
@@ -83,6 +83,18 @@
                 <button onclick="document.getElementById('forward-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             <div id="forward-user-list" style="overflow-y:auto; flex:1;">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Delete Message Modal -->
+    <div id="delete-message-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
+        <div style="width:90%; max-width:350px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; display:flex; flex-direction:column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <h3 style="margin-top:0; color:#ff6b6b; text-align: center;"><i data-lucide="trash-2"></i> Delete Message</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                <button class="btn" id="delete-for-me-btn" style="background: #444; color: white;" onclick="window.executeDeleteForMe()">Delete for me</button>
+                <button class="btn" id="delete-for-everyone-btn" style="background: #dc3545; color: white; display: none;" onclick="window.executeDeleteForEveryone()">Delete for everyone</button>
+                <button class="btn btn-transparent" style="margin-top: 10px;" onclick="document.getElementById('delete-message-modal').style.display='none'">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -117,6 +129,7 @@
         let messageToForward = null;
         let lastMessageDate = null;
         let currentEditMessageId = null;
+        let messageToDelete = null;
         const TYPING_TIMEOUT_DURATION = 2000; // 2 seconds
 
         const chatMessages = document.getElementById('chat-messages');
@@ -184,7 +197,7 @@
                 partnerUid = urlParams.get('uid');
 
                 if (!partnerUid) {
-                    alert("No user specified to chat with.");
+                    await viyouAlert("No user specified to chat with.");
                     window.location.href = 'messages.html';
                     return;
                 }
@@ -231,7 +244,7 @@
                 listenForMessages();
                 setupTypingListener();
             } else {
-                alert("Please login to chat.");
+                await viyouAlert("Please login to chat.");
                 window.location.href = 'index.html';
             }
         });
@@ -303,16 +316,22 @@
                     const messageData = change.doc.data();
                     messagesCache.set(messageId, messageData);
 
+                    const isDeletedForMe = messageData.deletedBy && messageData.deletedBy.includes(currentUser.uid);
+
                     if (change.type === "added") {
-                        renderMessage(messageId, messageData);
-                        if (messageData.senderUid === partnerUid && !messageData.isRead) {
-                            batch.update(change.doc.ref, { isRead: true });
-                            hasUnread = true;
+                        if (!isDeletedForMe) {
+                            renderMessage(messageId, messageData);
+                            if (messageData.senderUid === partnerUid && !messageData.isRead) {
+                                batch.update(change.doc.ref, { isRead: true });
+                                hasUnread = true;
+                            }
                         }
                     } else if (change.type === "modified") {
                         // Re-render the specific message that was modified (e.g., reaction added, link preview)
                         const existingMsgEl = document.getElementById(`msg-${messageId}`);
-                        if (existingMsgEl) {
+                        if (isDeletedForMe) {
+                            if (existingMsgEl) existingMsgEl.remove();
+                        } else if (existingMsgEl) {
                             const scrollPos = chatMessages.scrollTop;
                             const isAtBottom = chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 1;
                             
@@ -524,20 +543,60 @@
         }
 
         window.confirmDeleteMessage = function(messageId) {
-            if (confirm("Are you sure you want to delete this message? This action cannot be undone.")) {
-                deleteMessage(messageId);
+            const messageData = messagesCache.get(messageId);
+            if (!messageData) return;
+            
+            messageToDelete = messageId;
+            
+            const isSender = messageData.senderUid === currentUser.uid;
+            let canDeleteForEveryone = false;
+            
+            if (isSender && messageData.timestamp) {
+                const messageTime = messageData.timestamp.toMillis();
+                const twentyFourHours = 24 * 60 * 60 * 1000;
+                if (Date.now() - messageTime < twentyFourHours) {
+                    canDeleteForEveryone = true;
+                }
+            }
+            
+            const everyoneBtn = document.getElementById('delete-for-everyone-btn');
+            if (canDeleteForEveryone) {
+                everyoneBtn.style.display = 'block';
+            } else {
+                everyoneBtn.style.display = 'none';
+            }
+            
+            document.getElementById('delete-message-modal').style.display = 'flex';
+        }
+
+        window.executeDeleteForMe = async function() {
+            if (!messageToDelete || !currentUser || !conversationId) return;
+            const msgId = messageToDelete;
+            messageToDelete = null;
+            document.getElementById('delete-message-modal').style.display = 'none';
+            
+            const msgRef = doc(db, "conversations", conversationId, "messages", msgId);
+            try {
+                await updateDoc(msgRef, { deletedBy: arrayUnion(currentUser.uid) });
+            } catch (e) {
+                console.error("Error deleting message for me:", e);
+                await viyouAlert("Failed to delete message.");
             }
         }
 
-        async function deleteMessage(messageId) {
-            if (!currentUser || !conversationId) return;
-            const msgRef = doc(db, "conversations", conversationId, "messages", messageId);
+        window.executeDeleteForEveryone = async function() {
+            if (!messageToDelete || !currentUser || !conversationId) return;
+            const msgId = messageToDelete;
+            messageToDelete = null;
+            document.getElementById('delete-message-modal').style.display = 'none';
+            
+            const msgRef = doc(db, "conversations", conversationId, "messages", msgId);
             try {
                 await deleteDoc(msgRef);
                 // The UI will update automatically via the onSnapshot listener
             } catch (e) {
                 console.error("Error deleting message:", e);
-                alert("Failed to delete message.");
+                await viyouAlert("Failed to delete message.");
             }
         }
 
@@ -711,9 +770,9 @@
 
                 if (file.type === 'application/pdf') {
                     if (file.size > 800 * 1024) { // 800KB limit for PDFs
-                        alert("PDF file is too large! Maximum allowed size is 800KB.");
+                        await viyouAlert("PDF file is too large! Maximum allowed size is 800KB.");
                         sendBtn.disabled = false;
-                        sendBtn.innerHTML = '<img src="send-icon.png" alt="Send" style="width: 34px; height: 34px;">';
+                    sendBtn.innerHTML = '<img src="send-icon.png" alt="Send" style="width: 22px; height: 22px;">';
                         imageInput.value = '';
                         return;
                     }
@@ -747,10 +806,10 @@
 
             } catch (err) {
                 console.error("Error sending image:", err);
-                alert("Failed to send file.");
+                await viyouAlert("Failed to send file.");
             } finally {
                 sendBtn.disabled = false;
-            sendBtn.innerHTML = '<img src="send-icon.png" alt="Send" style="width: 34px; height: 34px;">';
+            sendBtn.innerHTML = '<img src="send-icon.png" alt="Send" style="width: 22px; height: 22px;">';
                 imageInput.value = ''; // Reset file input
             }
         });
@@ -946,5 +1005,42 @@
         });
     </script>
       
+    <!-- Custom Viyou Popup -->
+    <div id="viyou-custom-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999999; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+        <div style="background:#1e1e1e; padding:25px; border-radius:12px; width:90%; max-width:400px; text-align:center; border:1px solid #444; box-shadow:0 10px 30px rgba(0,0,0,0.5); color:#fff; font-family:'Outfit', sans-serif;">
+            <h3 id="viyou-popup-title" style="margin-top:0; color:#f59e0b; font-size:1.3rem;">Notification</h3>
+            <p id="viyou-popup-message" style="margin-bottom:20px; color:#ddd; font-size:1rem; line-height:1.4; word-wrap:break-word;"></p>
+            <input type="text" id="viyou-popup-input" style="display:none; width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:1px solid #555; background:#333; color:#fff; box-sizing:border-box; font-size:1rem; outline:none;" autocomplete="off">
+            <div style="display:flex; justify-content:center; gap:15px;">
+                <button id="viyou-popup-cancel" style="display:none; flex:1; padding:12px; background:#444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; transition:0.2s;">Cancel</button>
+                <button id="viyou-popup-ok" style="flex:1; padding:12px; background:linear-gradient(135deg, #6366f1, #a855f7); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; transition:0.2s;">OK</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.viyouAlert = function(message, title = "Notification") {
+            return new Promise(resolve => {
+                const popup = document.getElementById('viyou-custom-popup');
+                document.getElementById('viyou-popup-title').innerText = title;
+                document.getElementById('viyou-popup-message').innerText = message;
+                document.getElementById('viyou-popup-input').style.display = 'none';
+                document.getElementById('viyou-popup-cancel').style.display = 'none';
+                document.getElementById('viyou-popup-ok').onclick = () => { popup.style.display = 'none'; resolve(); };
+                popup.style.display = 'flex';
+            });
+        };
+        window.viyouConfirm = function(message, title = "Confirm") {
+            return new Promise(resolve => {
+                const popup = document.getElementById('viyou-custom-popup');
+                document.getElementById('viyou-popup-title').innerText = title;
+                document.getElementById('viyou-popup-message').innerText = message;
+                document.getElementById('viyou-popup-input').style.display = 'none';
+                document.getElementById('viyou-popup-cancel').style.display = 'block';
+                document.getElementById('viyou-popup-cancel').onclick = () => { popup.style.display = 'none'; resolve(false); };
+                document.getElementById('viyou-popup-ok').onclick = () => { popup.style.display = 'none'; resolve(true); };
+                popup.style.display = 'flex';
+            });
+        };
+    </script>
 </body>
 </html>

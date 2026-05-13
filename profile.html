@@ -43,86 +43,49 @@
 </head>
 <body>
 
-<div class="container">
-    <h2>My Profile</h2>
-    <img id="preview" src="https://via.placeholder.com/100" class="profile-pic" onclick="window.openLightbox(this.src, true)" title="View Photo">
-    <input type="file" id="file-input" style="display: none;" accept="image/*">
-    <div id="profile-action-buttons" style="margin-top: 10px; display: none;">
-        <button id="follow-btn" class="btn-transparent" style="display: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Follow</button>
-        <button id="message-profile-btn" class="btn-transparent" style="display: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px;"><img src="messages-icon.png" alt="Message" height="20px" width="20px" style="vertical-align: middle;"> Message</button>
-        <button id="block-btn" class="btn-transparent" style="display: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px;"><img src="block-icon.png" alt="Block" height="20px" width="20px" style="vertical-align: middle;"> Block</button>
+<div id="profile-main-view" class="container" style="text-align: left; padding: 20px 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <button id="back-to-news-btn" class="btn-transparent" style="padding: 6px 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem;" onclick="window.location.href='index.html'"><i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i> Back</button>
+        <button id="open-settings-btn" class="btn-transparent" style="padding: 6px 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; display: none;" onclick="window.openSettingsPage()"><i data-lucide="settings" style="width: 18px; height: 18px;"></i> Settings</button>
     </div>
-    <p id="photo-hint" style="font-size: 0.9rem; color: #87ceeb; cursor: pointer; margin-top: -5px; " onclick="document.getElementById('file-input').click()"><img src="camera-icon.png" alt="Change Photo" height="20px" width="20px" style="vertical-align: middle;"> Change Photo</p>
-    
-    <!-- Status display removed from profile, will be handled by stories on news page -->
-    <!-- Followers/Following Stats -->
-    <div style="display: flex; gap: 30px; margin: 15px 0; justify-content: center; width: 100%;">
-        <div id="followers-box" onclick="window.showUserList('followers')" style="cursor: pointer; text-align: center;">
-            <span id="followers-count" style="font-size: 1.4rem; font-weight: bold; color: #f59e0b;">0</span><br>
-            <span class="stat-label">Followers</span>
+
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+            <img id="preview" src="https://via.placeholder.com/100" class="profile-pic" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #87ceeb; margin-bottom: 0;" title="View Photo" onclick="window.openLightbox(this.src, true)">
+            <input type="file" id="file-input" style="display: none;" accept="image/*">
+            <div id="photo-hint" style="display: none; position: absolute; bottom: -5px; background: rgba(0,0,0,0.8); color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; cursor: pointer; align-items: center; gap: 3px; border: 1px solid #555;" onclick="document.getElementById('file-input').click()"><img src="camera-icon.png" alt="Change" style="width: 12px; height: 12px;"> Edit</div>
         </div>
-        <div id="following-box" onclick="window.showUserList('following')" style="cursor: pointer; text-align: center;">
-            <span id="following-count" style="font-size: 1.4rem; font-weight: bold; color: #f59e0b;">0</span><br>
-            <span class="stat-label">Following</span>
-        </div>
-        <div style="text-align: center;">
-            <span id="blogs-count" style="font-size: 1.4rem; font-weight: bold; color: #f59e0b;">0</span><br>
-            <span class="stat-label">Blogs</span>
-        </div>
-        <div style="text-align: center;">
-            <span id="likes-count" style="font-size: 1.4rem; font-weight: bold; color: #f59e0b;">0</span><br>
-            <span class="stat-label">Likes</span>
+        
+        <div style="display: flex; flex: 1; justify-content: space-around; text-align: center;">
+            <div style="text-align: center;"><span id="blogs-count" style="font-size: 1.1rem; font-weight: bold; color: #fff;">0</span><br><span class="stat-label" style="font-size: 0.8rem; color: #aaa;">Posts</span></div>
+            <div id="followers-box" onclick="window.showUserList('followers')" style="cursor: pointer; text-align: center;"><span id="followers-count" style="font-size: 1.1rem; font-weight: bold; color: #fff;">0</span><br><span class="stat-label" style="font-size: 0.8rem; color: #aaa;">Followers</span></div>
+            <div id="following-box" onclick="window.showUserList('following')" style="cursor: pointer; text-align: center;"><span id="following-count" style="font-size: 1.1rem; font-weight: bold; color: #fff;">0</span><br><span class="stat-label" style="font-size: 0.8rem; color: #aaa;">Following</span></div>
         </div>
     </div>
 
-    <div id="verified-indicator" style="display:none; color:#1da1f2; font-weight:bold; margin: 5px 0;"><img src="verify-icon.png" alt="Verified" height="20px" width="20px" style="vertical-align: middle;"> Verified Account</div>
+    <div style="padding: 0 5px; margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <h2 id="display-name" style="margin: 0; font-size: 1.1rem; color: #fff;">User Name</h2>
+            <div id="verified-indicator" style="display:none;"><img src="verify-icon.png" height="14px"></div>
+        </div>
+        <p id="display-username" style="color: #aaa; margin: 2px 0 8px 0; font-size: 0.9rem;">@username</p>
+        <p id="display-bio" style="color: #ddd; font-size: 0.95rem; margin: 0; white-space: pre-wrap; word-wrap: break-word;"></p>
+    </div>
     
-    <div id="badges-section" style="margin: 20px 0; text-align: center;">
-        <!-- Badges will be populated by JavaScript -->
+    <div id="badges-section" style="margin: 15px 0; text-align: left;"></div>
+
+    <div id="profile-action-buttons" style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button id="follow-btn" class="btn" style="display: none; padding: 6px 0; border-radius: 8px; flex: 1; font-weight: bold; font-size: 0.95rem; border: none;">Follow</button>
+        <button id="message-profile-btn" class="btn-transparent" style="display: none; padding: 6px 0; border-radius: 8px; flex: 1; font-weight: bold; font-size: 0.95rem; background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important;"><i data-lucide="message-square" style="width: 16px; height: 16px;"></i> Message</button>
+        <button id="block-btn" class="btn-transparent" style="display: none; padding: 6px 10px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important;"><i data-lucide="user-x" style="width: 16px; height: 16px;"></i></button>
     </div>
 
-    <input type="text" id="username" placeholder="Unique ID (e.g. @creator_name)">
-    <input type="text" id="name" placeholder="Display Name">
-    <textarea id="bio" rows="3" placeholder="Bio (e.g. Content Creator from Mumbai)"></textarea>
-    
-    <button id="create-story-btn" class="btn" style="background-color: #f59e0b; color: black; margin-top: 20px; width: 100%; display: none;" onclick="window.location.href='story-editor.html'"><i data-lucide="plus"></i> Create New Post</button>
-    <button id="studio-btn" class="btn" style="background: linear-gradient(45deg, #9b59b6, #8e44ad); margin-top: 10px; width: 100%; display: none;" onclick="window.location.href='studio.html'"><i data-lucide="line-chart"></i> Creator Studio</button>
-    
-    <button id="save-btn" class="btn-transparent"><img src="save-icon.png" alt="Save Profile" height="30px" width="30px" style="vertical-align: middle;"> Save Profile</button>
-    <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <div class="theme-dropdown-container" style="flex: 1;">
-            <button id="main-menu-toggle" class="btn theme-btn" style="width: 100%;"><i data-lucide="menu"></i> Menu</button>
-            <div id="main-menu-dropdown" class="theme-dropdown">
-                <a href="about-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="info" style="width: 16px;"></i> About Us</a>
-                <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
-                <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
-                <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
-                <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
-                <a href="advertise.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="megaphone" style="width: 16px;"></i> Advertise with Us</a>
-                <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou. All Rights Reserved.</div>
-            </div>
-        </div>
-        <div class="theme-dropdown-container" style="flex: 1;">
-            <button id="theme-toggle" class="btn theme-btn" style="width: 100%;"><i data-lucide="palette"></i> Theme</button>
-            <div id="theme-dropdown" class="theme-dropdown">
-                <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
-                <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
-                <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
-                <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
-                <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
-                <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
-                <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
-            </div>
-        </div>
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button id="create-story-btn" class="btn" style="background-color: #f59e0b; color: black; flex: 1; display: none; padding: 8px; border-radius: 8px; border: none;" onclick="window.location.href='story-editor.html'"><i data-lucide="plus" style="width: 18px; height: 18px;"></i> New Post</button>
+        <button id="studio-btn" class="btn" style="background: linear-gradient(45deg, #9b59b6, #8e44ad); flex: 1; display: none; padding: 8px; border-radius: 8px; border: none;" onclick="window.location.href='studio.html'"><i data-lucide="line-chart" style="width: 18px; height: 18px;"></i> Studio</button>
     </div>
-    <button id="change-pwd-btn" class="btn-transparent" style="margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><img src="change-pwd-icon.png" alt="Change Password" height="30px" width="30px" style="vertical-align: middle;"> Change Password</button>
-    <button id="back-to-news-btn" class="btn-transparent" style="margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="window.location.href='index.html'"><i data-lucide="arrow-left"></i> Back to Home</button>
-    <button id="delete-acc-btn" class="btn-transparent" style="margin-top: 30px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><img src="delete-acc-icon.png" alt="Delete Account" height="30px" width="30px" style="vertical-align: middle;"> Delete Account</button>
 
-    <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
-        <h3 style="color: #f59e0b; margin-bottom: 5px; text-align: center;"><i data-lucide="film"></i> My Content</h3>
-    </div>
-    <div class="profile-tabs">
+    <div class="profile-tabs" style="margin-top: 20px;">
         <button id="btn-tab-blogs" class="profile-tab-btn active" onclick="window.switchProfileTab('blogs')">Blogs</button>
         <button id="btn-tab-videos" class="profile-tab-btn" onclick="window.switchProfileTab('videos')">Videos</button>
         <button id="btn-tab-flicks" class="profile-tab-btn" onclick="window.switchProfileTab('flicks')">Flicks</button>
@@ -149,6 +112,8 @@
             <div id="my-liked-single-content"></div>
         </div>
     </div>
+
+</div> <!-- Close profile-main-view -->
 
     <!-- Cropper Modal -->
     <div id="cropper-modal" style="display:none; position:fixed; top:0px; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:1000; flex-direction:column; align-items:center; justify-content:center; padding: 15px; box-sizing: border-box;">
@@ -199,7 +164,65 @@
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Settings Page View (SPA Mode) -->
+    <div id="profile-settings-view" class="container" style="display: none;">
+        <div style="display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <button class="btn-transparent" style="padding: 8px 12px; border-radius: 8px; font-weight: bold; margin-right: 15px;" onclick="window.closeSettingsPage()"><i data-lucide="arrow-left"></i> Back</button>
+            <h2 style="margin: 0; color: #f59e0b;"><i data-lucide="settings" style="vertical-align: middle;"></i> Settings</h2>
+        </div>
+
+        <div style="display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <button id="tab-edit-profile" class="settings-tab-btn" style="background:none; border:none; color:#fff; padding: 10px; cursor: pointer; border-bottom: 2px solid #f59e0b; font-weight: bold; flex: 1; transition: 0.3s;" onclick="window.switchSettingsTab('edit')">Edit Profile</button>
+            <button id="tab-account-options" class="settings-tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer; font-weight: bold; flex: 1; border-bottom: 2px solid transparent; transition: 0.3s;" onclick="window.switchSettingsTab('options')">Options</button>
+        </div>
+        
+        <!-- Edit Profile Section -->
+        <div id="settings-content-edit" class="settings-content-section" style="display: block;">
+            <label style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px; display: block;">Unique ID</label>
+            <input type="text" id="username" placeholder="Unique ID (e.g. @creator_name)" style="margin-bottom: 15px; width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box; font-family: inherit; font-size: 1rem; outline: none;">
+            
+            <label style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px; display: block;">Display Name</label>
+            <input type="text" id="name" placeholder="Display Name" style="margin-bottom: 15px; width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box; font-family: inherit; font-size: 1rem; outline: none;">
+            
+            <label style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px; display: block;">Bio</label>
+            <textarea id="bio" rows="3" placeholder="Bio (e.g. Content Creator from Mumbai)" style="margin-bottom: 20px; width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box; resize: vertical; font-family: inherit; font-size: 1rem; outline: none;"></textarea>
+            
+            <button id="save-btn" class="btn" style="margin-bottom: 5px; width: 100%; border-radius: 8px; padding: 12px; font-size: 1.05rem;"><i data-lucide="save"></i> Save Profile</button>
+        </div>
+
+        <!-- Options Section -->
+        <div id="settings-content-options" class="settings-content-section" style="display: none;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div class="theme-dropdown-container" style="flex: 1; margin: 0;">
+                    <button id="main-menu-toggle-settings" class="btn-transparent" style="width: 100%; padding: 12px; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important;" onclick="document.getElementById('main-menu-dropdown-settings').classList.toggle('show'); document.getElementById('theme-dropdown-settings').classList.remove('show');"><i data-lucide="menu"></i> Menu</button>
+                    <div id="main-menu-dropdown-settings" class="theme-dropdown" style="top: 100%; margin-top: 5px; bottom: auto; left: 0;">
+                        <a href="about-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="info" style="width: 16px;"></i> About Us</a>
+                        <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
+                        <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
+                        <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
+                        <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
+                        <a href="advertise.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="megaphone" style="width: 16px;"></i> Advertise</a>
+                    </div>
+                </div>
+                <div class="theme-dropdown-container" style="flex: 1; margin: 0;">
+                    <button id="theme-toggle-settings" class="btn-transparent" style="width: 100%; padding: 12px; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important;" onclick="document.getElementById('theme-dropdown-settings').classList.toggle('show'); document.getElementById('main-menu-dropdown-settings').classList.remove('show');"><i data-lucide="palette"></i> Theme</button>
+                    <div id="theme-dropdown-settings" class="theme-dropdown" style="top: 100%; margin-top: 5px; bottom: auto; right: 0;">
+                        <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
+                        <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
+                        <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
+                        <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
+                        <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
+                        <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
+                        <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="change-pwd-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: #87ceeb; text-align: center;"><i data-lucide="lock"></i> Change Password</button>
+            <button id="delete-acc-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; color: #ff6b6b; text-align: center;"><i data-lucide="user-x"></i> Delete Account</button>
+        </div>
+    </div>
 
 <script type="module">
     import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, onSnapshot, deleteField, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -224,10 +247,6 @@
     }
 
     // Theme Toggle Logic
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const themeDropdown = document.getElementById('theme-dropdown');
-    const mainMenuToggleBtn = document.getElementById('main-menu-toggle');
-    const mainMenuDropdown = document.getElementById('main-menu-dropdown');
     const body = document.body;
 
     function applyTheme(theme) {
@@ -247,25 +266,14 @@
         });
     }
 
-    themeToggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        themeDropdown.classList.toggle('show');
-        if (mainMenuDropdown) mainMenuDropdown.classList.remove('show');
-    });
-
-    mainMenuToggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        mainMenuDropdown.classList.toggle('show');
-        if (themeDropdown) themeDropdown.classList.remove('show');
-    });
-
     document.addEventListener('click', (e) => {
-        if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
-            themeDropdown.classList.remove('show');
-        }
-        if (mainMenuToggleBtn && !mainMenuToggleBtn.contains(e.target) && mainMenuDropdown && !mainMenuDropdown.contains(e.target)) {
-            mainMenuDropdown.classList.remove('show');
-        }
+        
+        const themeBtnSet = document.getElementById('theme-toggle-settings');
+        const themeDropSet = document.getElementById('theme-dropdown-settings');
+        const menuBtnSet = document.getElementById('main-menu-toggle-settings');
+        const menuDropSet = document.getElementById('main-menu-dropdown-settings');
+        if (themeBtnSet && !themeBtnSet.contains(e.target) && themeDropSet && !themeDropSet.contains(e.target)) themeDropSet.classList.remove('show');
+        if (menuBtnSet && !menuBtnSet.contains(e.target) && menuDropSet && !menuDropSet.contains(e.target)) menuDropSet.classList.remove('show');
     });
 
     document.querySelectorAll('.theme-option').forEach(btn => {
@@ -273,7 +281,8 @@
             e.stopPropagation();
             const newTheme = btn.getAttribute('data-theme');
             applyTheme(newTheme);
-            themeDropdown.classList.remove('show');
+            const themeDropSet = document.getElementById('theme-dropdown-settings');
+            if (themeDropSet) themeDropSet.classList.remove('show');
 
             if (auth.currentUser) {
                 try {
@@ -338,7 +347,6 @@
         let quality = 0.8;
         let dataURL = canvas.toDataURL('image/jpeg', quality);
         
-        // 15KB approx 20,000 base64 chars
         while (dataURL.length > 20000 && quality > 0.1) {
             quality -= 0.1;
             dataURL = canvas.toDataURL('image/jpeg', quality);
@@ -349,6 +357,50 @@
         
         cropperModal.style.display = 'none';
         cropper.destroy();
+
+        if (auth.currentUser) {
+            (async () => {
+                try {
+                    await setDoc(doc(db, "users", auth.currentUser.uid), { photoURL: dataURL }, { merge: true });
+                    
+                    const allBlogsSnapshot = await getDocs(collection(db, "blogs"));
+                    const updatePromises = [];
+                    allBlogsSnapshot.forEach((blogDoc) => {
+                        const blogData = blogDoc.data();
+                        const updates = {}; let needsUpdate = false;
+                        if (blogData.authorUid === auth.currentUser.uid) {
+                            updates.authorPhoto = dataURL; needsUpdate = true;
+                        }
+                        if (blogData.comments && Array.isArray(blogData.comments)) {
+                            let commentsChanged = false;
+                            const updatedComments = blogData.comments.map(comment => {
+                                let c = { ...comment }; let cChanged = false;
+                                if (c.userUid === auth.currentUser.uid) { c.photo = dataURL; cChanged = true; }
+                                if (c.replies && Array.isArray(c.replies)) {
+                                    const newReplies = c.replies.map(reply => {
+                                        if (reply.userUid === auth.currentUser.uid) { cChanged = true; return { ...reply, photo: dataURL }; }
+                                        return reply;
+                                    });
+                                    if (cChanged) c.replies = newReplies;
+                                }
+                                if (cChanged) commentsChanged = true;
+                                return c;
+                            });
+                            if (commentsChanged) { updates.comments = updatedComments; needsUpdate = true; }
+                        }
+                        if (needsUpdate) updatePromises.push(updateDoc(doc(db, "blogs", blogDoc.id), updates));
+                    });
+                    
+                    const allStoriesSnapshot = await getDocs(collection(db, "stories"));
+                    allStoriesSnapshot.forEach((storyDoc) => {
+                        if (storyDoc.data().authorUid === auth.currentUser.uid) {
+                            updatePromises.push(updateDoc(doc(db, "stories", storyDoc.id), { authorPhoto: dataURL }));
+                        }
+                    });
+                    await Promise.all(updatePromises);
+                } catch(e) { console.error("Error saving photo in background:", e); }
+            })();
+        }
     });
 
     onAuthStateChanged(auth, async (user) => {
@@ -386,12 +438,9 @@
 
         if (viewUid && (!user || viewUid !== user.uid)) {
             // View Mode (Guest or viewing someone else)
-            document.querySelector('h2').innerText = "User Profile";
-            document.getElementById('save-btn').style.display = 'none';
-            document.getElementById('theme-toggle').style.display = 'none'; // Hide theme toggle in view mode
-            document.getElementById('change-pwd-btn').style.display = 'none';
-            document.getElementById('profile-action-buttons').style.display = 'block';
-            document.getElementById('delete-acc-btn').style.display = 'none';
+            const settingsBtn = document.getElementById('open-settings-btn');
+            if(settingsBtn) settingsBtn.style.display = 'none';
+            document.getElementById('profile-action-buttons').style.display = 'flex';
             document.getElementById('preview').onclick = function() {
                 window.openLightbox(this.src, true);
             };
@@ -399,16 +448,6 @@
             document.getElementById('preview').style.border = '3px solid #87ceeb';
             document.getElementById('followers-box').style.cursor = 'default';
             document.getElementById('following-box').style.cursor = 'default';
-            
-            ['username', 'name', 'bio'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.readOnly = true;
-                    el.style.border = 'none';
-                    el.style.background = 'transparent';
-                    el.style.textAlign = 'center';
-                }
-            });
 
             // Load my data first to check for blocks
             if (user) {
@@ -461,18 +500,20 @@
         } else if (user) {
             // Edit Mode (My Profile)
             // Load existing profile
-                document.getElementById('studio-btn').style.display = 'block';
-                document.getElementById('create-story-btn').style.display = 'block';
+                document.getElementById('studio-btn').style.display = 'inline-block';
+                document.getElementById('create-story-btn').style.display = 'inline-block';
                 document.getElementById('profile-action-buttons').style.display = 'none';
                 document.getElementById('btn-tab-liked').style.display = 'inline-block';
+                
+                const settingsBtn = document.getElementById('open-settings-btn');
+                if(settingsBtn) settingsBtn.style.display = 'flex';
+                document.getElementById('photo-hint').style.display = 'flex';
 
                 isProfileOwner = true;
             
             // Also load my following list if I am viewing my own profile (for my blogs)
-            if (user) {
                 const myDocSnap = await getDoc(doc(db, "users", user.uid));
                 if (myDocSnap.exists()) currentUserFollowing = myDocSnap.data().following || [];
-            }
 
                 loadProfileData(user.uid, user);
                 renderUserBlogs(user.uid, true);
@@ -481,8 +522,8 @@
                 // Check if username is required
                 if (urlParams.get('requireUsername') === 'true' && !document.getElementById('username').value) {
                     alert("Please create a Unique ID (Username) to continue.");
+                window.openSettingsPage();
                     document.getElementById('username').focus();
-                    document.getElementById('back-to-news-btn').style.display = 'none'; // Hide back button to enforce creation
                 }
         } else {
                 window.location.href = 'index.html';
@@ -610,6 +651,10 @@
                 document.getElementById('name').value = data.name || "";
                 document.getElementById('username').value = data.username || "";
                 document.getElementById('bio').value = data.bio || "";
+                
+                document.getElementById('display-name').innerText = data.name || "User";
+                document.getElementById('display-username').innerText = data.username ? "@" + data.username : "";
+                document.getElementById('display-bio').innerText = data.bio || "";
                 if (data.photoURL) {
                     document.getElementById('preview').src = data.photoURL;
                     if (currentUser && uid === currentUser.uid) base64Image = data.photoURL;
@@ -654,8 +699,12 @@
                     totalLikes += Array.isArray(blogData.likes) ? blogData.likes.length : (typeof blogData.likes === 'number' && !isNaN(blogData.likes) ? blogData.likes : 0);
                 });
 
-                document.getElementById('blogs-count').innerText = totalBlogs;
-                document.getElementById('likes-count').innerText = totalLikes;
+                if (document.getElementById('blogs-count')) {
+                    document.getElementById('blogs-count').innerText = totalBlogs;
+                }
+                if (document.getElementById('likes-count')) {
+                    document.getElementById('likes-count').innerText = totalLikes;
+                }
             } catch (e) { console.error("Error fetching blog stats:", e); }
 
             data.isVerified = isVerifiedDisplay;
@@ -666,6 +715,45 @@
     }
 
     // --- Blog Rendering Logic ---
+
+    window.openSettingsPage = function() {
+        document.getElementById('profile-main-view').style.display = 'none';
+        document.getElementById('profile-settings-view').style.display = 'block';
+        window.scrollTo(0, 0);
+    };
+
+    window.closeSettingsPage = function() {
+        document.getElementById('profile-settings-view').style.display = 'none';
+        document.getElementById('profile-main-view').style.display = 'block';
+    };
+
+    window.switchSettingsTab = function(tabName) {
+        document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+            btn.style.color = '#aaa';
+            btn.style.borderBottomColor = 'transparent';
+        });
+        document.querySelectorAll('.settings-content-section').forEach(sec => sec.style.display = 'none');
+        
+        const activeBtn = document.getElementById(`tab-${tabName === 'edit' ? 'edit-profile' : 'account-options'}`);
+        const activeSec = document.getElementById(`settings-content-${tabName}`);
+        
+        if (activeBtn) { activeBtn.style.color = '#fff'; activeBtn.style.borderBottomColor = '#f59e0b'; }
+        if (activeSec) { activeSec.style.display = 'block'; }
+    };
+
+    window.playFlickPreview = function(el) {
+        const vid = el.querySelector('video');
+        const img = el.querySelector('.flick-thumb-img');
+        if (vid) vid.play().catch(e => {});
+        if (img) img.style.opacity = '0';
+    };
+
+    window.stopFlickPreview = function(el) {
+        const vid = el.querySelector('video');
+        const img = el.querySelector('.flick-thumb-img');
+        if (vid) { vid.pause(); vid.currentTime = 0; }
+        if (img) img.style.opacity = '1';
+    };
 
     function displayBadges(userData, blogCount, likeCount) {
         const badgesSection = document.getElementById('badges-section');
@@ -837,6 +925,8 @@
                     } else {
                         thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
                     }
+                } else if (blog.images && blog.images.length > 0) {
+                    thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                 } else if (blog.image && blog.image !== 'logo.png') {
                     thumbHtml = `<img src="${blog.image}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                 } else {
@@ -922,6 +1012,56 @@
             if (blog.isFlicker) category = 'flicks';
             else if (blog.video || blog.youtubeUrl) category = 'videos';
 
+            // --- New Instagram Style Flicks Grid Layout ---
+            if (category === 'flicks') {
+                const item = document.createElement('div');
+                item.className = 'flick-grid-item';
+                item.onclick = () => window.location.href = `flicks.html?id=${blog.id}`;
+                item.onmouseenter = (e) => window.playFlickPreview(e.currentTarget);
+                item.onmouseleave = (e) => window.stopFlickPreview(e.currentTarget);
+                
+                let thumbUrl = blog.thumbnail || (blog.image && blog.image !== 'logo.png') ? (blog.thumbnail || blog.image) : '';
+                let mediaHtml = '';
+                
+                if (blog.video) {
+                    mediaHtml += `<video src="${blog.video}#t=0.1" muted playsinline loop preload="metadata" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:inherit;"></video>`;
+                }
+                
+                if (thumbUrl) {
+                    mediaHtml += `<img src="${thumbUrl}" class="flick-thumb-img" loading="lazy" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; transition: opacity 0.3s; z-index: 1; border-radius:inherit;">`;
+                } else {
+                    mediaHtml += `<div style="display:flex; align-items:center; justify-content:center; height:100%; background:#222; position:absolute; top:0; left:0; width:100%;"><i data-lucide="zap" style="font-size:2rem; color:#555;"></i></div>`;
+                }
+
+                let editDelHtml = '';
+                if (isOwner) {
+                    editDelHtml = `
+                        <div class="flick-grid-actions" style="z-index: 2;">
+                            <button onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" class="flick-grid-action-btn" title="Delete" style="color: #ff6b6b;"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i></button>
+                        </div>
+                    `;
+                }
+
+                const duration = blog.duration || 0;
+                let durationHtml = '';
+                if (duration > 0) {
+                    const mins = Math.floor(duration / 60);
+                    const secs = Math.floor(duration % 60);
+                    durationHtml = `<div class="flick-grid-duration" style="z-index: 2;">${mins}:${secs < 10 ? '0' : ''}${secs}</div>`;
+                }
+
+                const views = blog.views || 0;
+                item.innerHTML = `
+                    ${mediaHtml}
+                    <div class="flick-grid-stats" style="z-index: 2;"><i data-lucide="play" style="width: 14px; height: 14px;" class="lucide-fill"></i> ${views.toLocaleString()}</div>
+                    ${durationHtml}
+                    ${editDelHtml}
+                `;
+                flicksGrid.appendChild(item);
+                flicksCount++;
+                return; // Stop here, skip the default blog/video card layout
+            }
+
             const item = document.createElement('div');
             item.className = 'yt-grid-item';
             
@@ -931,7 +1071,7 @@
                 thumbHtml = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
             } else if (blog.video) {
                 if (blog.thumbnail) {
-                    thumbHtml = `<img src="${blog.image}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                    thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                 } else {
                     thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
                 }
@@ -988,20 +1128,12 @@
                         ${icon} 
                     </div>
                 </div>
-                <h4 onclick="${targetAction}"></h4>
+                <h4 class="grid-title-text" onclick="${targetAction}">${blog.title || 'Untitled'}</h4>
                 <p>${category === 'blogs' ? `❤️ ${Array.isArray(blog.likes) ? blog.likes.length : (typeof blog.likes === 'number' && !isNaN(blog.likes) ? blog.likes : 0)}` : `${views} views`} • ${dateStr}</p>
                 ${editDelHtml}
             `;
-            
-            const titleElement = item.querySelector('h4');
-            if (titleElement) {
-                titleElement.textContent = blog.title || 'Untitled';
-            }
 
-            if (category === 'flicks') {
-                flicksGrid.appendChild(item);
-                flicksCount++;
-            } else if (category === 'videos') {
+            if (category === 'videos') {
                 videosGrid.appendChild(item);
                 videosCount++;
             } else {
@@ -1029,15 +1161,35 @@
         }
         let likeIcon = isLiked ? '❤️' : '🤍';
         
+        let menuItems = '';
+        menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.readAloud('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="volume-2" style="color: #87ceeb; width: 16px;"></i> Read Aloud</button>`;
+        menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.stopReadAloud()" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="stop-circle" style="color: #ff6b6b; width: 16px;"></i> Stop Audio</button>`;
+        menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.reportBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="flag" style="color: #aaa; width: 16px;"></i> Report</button>`;
+
+        if (blog.video || blog.youtubeUrl) {
+            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.submitCopyrightClaim('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="shield-alert" style="color: #ef4444; width: 16px;"></i> Copyright Claim</button>`;
+        }
+        
+        if (isOwner) {
+            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="pen" style="color: #f59e0b; width: 16px;"></i> Edit</button>`;
+            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="trash-2" style="color: #ff6b6b; width: 16px;"></i> Delete</button>`;
+        }
+        
+        const optionsDropdown = `
+            <div class="post-options-container" style="position: relative; margin-left: auto;">
+                <button onclick="event.stopPropagation(); document.getElementById('post-menu-${blog.id}').classList.toggle('show')" style="background: none; border: none; color: #aaa; cursor: pointer; padding: 5px;"><i data-lucide="more-vertical"></i></button>
+                <div id="post-menu-${blog.id}" class="theme-dropdown post-options-dropdown" style="top: 100%; right: 0; min-width: 180px; z-index: 100; margin-top: 5px;">
+                    ${menuItems}
+                </div>
+            </div>
+        `;
+
         let actionButtons = `
         <button onclick="window.likeUserBlog('${blog.id}')" style="background:none; border:none; color:#ff0050; cursor:pointer; font-size: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${isLiked ? '<i data-lucide="heart" class="lucide-fill"></i>' : '<i data-lucide="heart"></i>'} ${likeCount}</button>
-        <button onclick="window.shareBlog('${blog.id}', '${(blog.title||'').replace(/'/g, "\\'")}')" style="background:none; border:none; color:#6366f1; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i data-lucide="share-2"></i> Share</button>
+        <button onclick='window.shareBlog(${JSON.stringify(blog.id)}, ${JSON.stringify(blog.title || "")})' style="background:none; border:none; color:#6366f1; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i data-lucide="share-2"></i> Share</button>
         `;
 
         if (isOwner) {
-        actionButtons += `<button onclick="window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#f59e0b; cursor:pointer; font-size: 0.9rem;"><i data-lucide="pen"></i> Edit</button>`;
-        actionButtons += `<button onclick="window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.9rem;"><i data-lucide="trash-2"></i> Delete</button>`;
-            
             let promoteBtnHtmlFull = '';
             const now = new Date();
             let isLive = false;
@@ -1056,22 +1208,26 @@
             } else {
                 promoteBtnHtmlFull = `<button onclick="window.location.href='promote.html?id=${blog.id}'" class="btn-promote" style="margin-left: auto;"><i class="fa-solid fa-rocket"></i> Promote Ad</button>`;
             }
-            actionButtons += promoteBtnHtmlFull;
+            actionButtons += `<div style="margin-left: auto;">${promoteBtnHtmlFull}</div>`;
         }
 
         let mediaHtml = '';
         if (blog.images && blog.images.length > 0) {
             const imagesList = blog.images.map(img => `<img src="${img}" alt="Blog Image" onclick="window.openLightbox('${img}')">`).join('');
             const arrows = blog.images.length > 1 ? `<button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button><button class="carousel-btn next" onclick="window.scrollCarousel(this, 1)">&#10095;</button>` : '';
-            mediaHtml += `<div class="carousel-container">${arrows}<div class="image-carousel">${imagesList}</div></div>`;
+            mediaHtml += `<div class="carousel-container card-media-container" style="background: transparent;">${arrows}<div class="image-carousel">${imagesList}</div></div>`;
         } else if (blog.image) {
-            if (blog.image !== 'logo.png') mediaHtml += `<img src="${blog.image}" class="card-img-top" alt="" onclick="window.openLightbox('${blog.image}')">`;
+            if (blog.image !== 'logo.png') mediaHtml += `<div class="card-media-container" onclick="event.stopPropagation(); window.openLightbox('${blog.image}')"><img src="${blog.image}" alt="" loading="lazy"></div>`;
         }
 
         const draftBadge = (blog.status === 'draft' && isOwner) ? '<span style="background:orange; color:black; padding:2px 5px; border-radius:4px; font-size:0.7rem; margin-left:5px;">DRAFT</span>' : '';
         
         const renderTextWithMentions = (text) => {
             let safeText = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+            const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+            safeText = safeText.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #0d6efd; text-decoration: underline;" onclick="event.stopPropagation()">$1</a>');
+        const hashtagRegex = /#(\w+)/g;
+        safeText = safeText.replace(hashtagRegex, '<a href="search.html?q=%23$1" style="color: #0d6efd; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation()">#$1</a>');
             if (blog.mentionMap) {
                 return safeText.replace(/@([\w_]+)/g, (match, username) => {
                     const uid = blog.mentionMap[username.toLowerCase()];
@@ -1089,32 +1245,36 @@
                     <strong style="color: #87ceeb; font-size: 1.1rem; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
                     <span style="font-size: 0.8rem; color: #aaa; margin-top: 4px; display: block;">${blog.date ? new Date(blog.date).toLocaleDateString() : ''}</span>
                 </div>
+                ${optionsDropdown}
             </div>
         `;
 
         return `
-            ${mediaHtml}
-            <div class="news-card-content">
+            <div style="cursor: pointer; position: relative; width: 100%;">
+                ${mediaHtml}
+            </div>
+            <div class="news-card-info" style="display: flex; flex-direction: column; padding: 10px 15px 0 15px; box-sizing: border-box;">
                 ${authorHeader}
-                <h2 style="margin-top: 5px;">${renderTextWithMentions(blog.title)} ${draftBadge}</h2>
-                <p>${renderTextWithMentions(blog.content)}</p>
+                <h3 class="card-title-text" style="margin-top: 5px;">${renderTextWithMentions(blog.title)} ${draftBadge}</h3>
+                <p style="font-size: 0.95rem; color: #eee; margin-top: 5px; margin-bottom: 10px;">${renderTextWithMentions(blog.content)}</p>
                 
-                <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; display: flex; align-items: center; gap: 15px;">
+                <div class="card-action-row" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding: 10px 0; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box;">
                     ${actionButtons}
                 </div>
 
                 <!-- Comments Section -->
-                <div style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                <div class="card-comments-box" style="margin: 0 0 15px 0; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; box-sizing: border-box;">
                     <h3 style="font-size: 1.1rem; margin-top: 0; color: #ddd;">Comments</h3>
                     <div id="comments-list-${blog.id}" style="margin-bottom: 10px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
-                        ${(blog.comments || []).map((c, index) => {
+                        ${(blog.comments || []).map((c, idx) => {
+                            const commentId = c.id || idx; // Fallback for old comments without an ID
                             const commentLikes = c.likes || [];
                             const isCommentLiked = user && commentLikes.includes(user.uid);
                             const commentLikeIcon = isCommentLiked ? '❤️' : '🤍';
                             const isCommentOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
                             const editDelBtns = isCommentOwner ? `
-                                <button onclick="window.editProfileComment('${blog.id}', ${index})" style="background:none; border:none; color:#ffc107; cursor:pointer; font-size: 0.8rem; margin-left: 10px;"><i class="fa-solid fa-pen"></i> Edit</button>
-                            <button onclick="window.deleteProfileComment('${blog.id}', ${index})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.8rem; margin-left: 10px;"><i data-lucide="trash-2" style="color: rgb(220, 37, 23);"></i> Delete</button>
+                                <button class="comment-action-btn" onclick="window.editProfileComment('${blog.id}', '${commentId}')" style="color:#f59e0b; margin-left: 10px;"><i data-lucide="pen"></i> Edit</button>
+                            <button class="comment-action-btn" onclick="window.deleteProfileComment('${blog.id}', '${commentId}')" style="color:#ff6b6b; margin-left: 10px;"><i data-lucide="trash-2"></i> Delete</button>
                             ` : '';
                             return `
                             <div id="comment-${blog.id}-${index}" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
@@ -1123,8 +1283,8 @@
                                     <div style="flex: 1;">
                                         <strong style="color: #87ceeb; font-size: 0.9rem;">${c.author}</strong>
                                         <p style="font-size: 0.95rem; color: #eee; margin: 5px 0;">${c.text}</p>
-                                        <div class="comment-actions" id="comment-actions-${blog.id}-${index}">
-                                            <button onclick="window.toggleCommentLike('${blog.id}', ${index})" class="comment-action-btn">${commentLikeIcon} ${commentLikes.length}</button>
+                                        <div class="comment-actions" id="comment-actions-${blog.id}-${commentId}">
+                                            <button onclick="window.toggleCommentLike('${blog.id}', '${commentId}')" class="comment-action-btn">${commentLikeIcon} ${commentLikes.length}</button>
                                             ${editDelBtns}
                                         </div>
                                     </div>
@@ -1350,6 +1510,7 @@
         } catch(e) {}
 
         const newComment = {
+            id: Date.now().toString(36) + Math.random().toString(36).substring(2),
             author: authorName,
             userUid: auth.currentUser.uid,
             photo: authorPhoto,
@@ -1407,7 +1568,7 @@
         }
     };
 
-    window.toggleCommentLike = async function(blogId, commentIndex) {
+    window.toggleCommentLike = async function(blogId, commentIdOrIndex) {
         if (!auth.currentUser) { alert("Please login to like comments!"); return; }
 
         let blog = null;
@@ -1422,7 +1583,7 @@
         
         if (!blog) return;
 
-        let comment = blog.comments[commentIndex];
+        let comment = blog.comments.find((c, i) => (c.id || i) == commentIdOrIndex);
         if (!comment) return;
 
         if (!comment.likes) comment.likes = [];
@@ -1452,7 +1613,8 @@
             const docSnap = await getDoc(blogRef);
             if (docSnap.exists()) {
                 let blogData = docSnap.data();
-                blogData.comments[commentIndex] = comment; // Update the specific comment
+                const dbCommentIndex = blogData.comments.findIndex((c, i) => (c.id || i) == commentIdOrIndex);
+                if (dbCommentIndex > -1) blogData.comments[dbCommentIndex] = comment;
                 await updateDoc(blogRef, { comments: blogData.comments });
             }
         } catch (e) {
@@ -1461,7 +1623,7 @@
         }
     };
 
-    window.editProfileComment = async function(blogId, commentIndex) {
+    window.editProfileComment = async function(blogId, commentIdOrIndex) {
         if (!auth.currentUser) return;
         
         let blog = null;
@@ -1476,12 +1638,14 @@
         
         if (!blog) return;
         
+        const commentIndex = blog.comments.findIndex((c, i) => (c.id || i) == commentIdOrIndex);
+        if (commentIndex === -1) return;
         let comment = blog.comments[commentIndex];
         if (!comment) return;
         const isOwner = comment.userUid === auth.currentUser.uid || (!comment.userUid && comment.author === auth.currentUser.displayName);
         if (!isOwner) return;
 
-        const newText = prompt("Edit your comment:", comment.text);
+        const newText = await window.viyouPrompt("Edit your comment:", comment.text);
         if (newText !== null && newText.trim() !== "" && newText.trim() !== comment.text) {
             comment.text = newText.trim();
             if (isLikedView) {
@@ -1498,7 +1662,8 @@
                 const docSnap = await getDoc(blogRef);
                 if (docSnap.exists()) {
                     let blogData = docSnap.data();
-                    blogData.comments[commentIndex].text = newText.trim();
+                    const dbCommentIndex = blogData.comments.findIndex((c, i) => (c.id || i) == commentIdOrIndex);
+                    if (dbCommentIndex > -1) blogData.comments[dbCommentIndex].text = newText.trim();
                     await updateDoc(blogRef, { comments: blogData.comments });
                 }
             } catch (e) {
@@ -1508,9 +1673,9 @@
         }
     };
 
-    window.deleteProfileComment = async function(blogId, commentIndex) {
+    window.deleteProfileComment = async function(blogId, commentIdOrIndex) {
         if (!auth.currentUser) return;
-        if (!confirm("Are you sure you want to delete this comment?")) return;
+        if (!(await window.viyouConfirm("Are you sure you want to delete this comment?"))) return;
 
         let blog = null;
         let isLikedView = false;
@@ -1524,11 +1689,12 @@
         
         if (!blog) return;
         
+        const commentIndex = blog.comments.findIndex((c, i) => (c.id || i) == commentIdOrIndex);
+        if (commentIndex === -1) return;
         let comment = blog.comments[commentIndex];
         if (!comment) return;
         const isOwner = comment.userUid === auth.currentUser.uid || (!comment.userUid && comment.author === auth.currentUser.displayName);
         if (!isOwner) return;
-
         blog.comments.splice(commentIndex, 1);
         
         if (isLikedView) {
@@ -1545,7 +1711,8 @@
             const docSnap = await getDoc(blogRef);
             if (docSnap.exists()) {
                 let blogData = docSnap.data();
-                blogData.comments.splice(commentIndex, 1);
+                const dbCommentIndex = blogData.comments.findIndex((c, i) => (c.id || i) == commentIdOrIndex);
+                if (dbCommentIndex > -1) blogData.comments.splice(dbCommentIndex, 1);
                 await updateDoc(blogRef, { comments: blogData.comments });
             }
         } catch (e) {
@@ -1645,11 +1812,11 @@
             if (username !== currentProfileData.username) {
                 // Username has changed, so validate it fully
                 if (!username) {
-                    alert("Unique ID (Username) is required!");
+                        await window.viyouAlert("Unique ID (Username) is required!");
                     return;
                 }
                 if (username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) {
-                    alert("Username can only contain letters, numbers, and underscores, and be max 20 characters.");
+                        await window.viyouAlert("Username can only contain letters, numbers, and underscores, and be max 20 characters.");
                     return;
                 }
 
@@ -1659,12 +1826,12 @@
                 snap.forEach(d => { if (d.id !== currentUser.uid) isTaken = true; });
 
                 if (isTaken) {
-                    alert("Username '" + username + "' is already taken. Please choose another.");
+                        await window.viyouAlert("Username '" + username + "' is already taken. Please choose another.");
                     return;
                 }
             } else if (!username) {
                 // Username is unchanged but empty. This is an error state for any user.
-                alert("Unique ID (Username) is required!");
+                    await window.viyouAlert("Unique ID (Username) is required!");
                 return;
             }
 
@@ -1736,13 +1903,24 @@
                     updatePromises.push(updateDoc(doc(db, "blogs", blogDoc.id), updates));
                 }
             });
+            
+            const allStoriesSnapshot = await getDocs(collection(db, "stories"));
+            allStoriesSnapshot.forEach((storyDoc) => {
+                if (storyDoc.data().authorUid === currentUser.uid) {
+                    updatePromises.push(updateDoc(doc(db, "stories", storyDoc.id), {
+                        authorName: name,
+                        authorPhoto: photoURL
+                    }));
+                }
+            });
             await Promise.all(updatePromises);
 
-            alert("Profile Saved Successfully!");
-            window.location.href = 'index.html';
+                await window.viyouAlert("Profile Saved Successfully!");
+            window.closeSettingsPage();
+            loadProfileData(currentUser.uid, currentUser);
         } catch (error) {
             console.error("Error saving profile:", error);
-            alert("Error saving profile: " + error.message);
+                await window.viyouAlert("Error saving profile: " + error.message);
         } finally {
             saveBtn.innerHTML = originalBtnContent;
             saveBtn.disabled = false;
@@ -1759,7 +1937,7 @@
         // Check if user is using password provider
         const isPasswordUser = currentUser.providerData.some(p => p.providerId === 'password');
         if (!isPasswordUser) {
-            alert("You are logged in with a social account (e.g., Google). Please manage your password through that provider.");
+                window.viyouAlert("You are logged in with a social account (e.g., Google). Please manage your password through that provider.");
             return;
         }
 
@@ -1793,7 +1971,7 @@
     pwdActionBtn.addEventListener('click', async () => {
         if (!currentUser) return;
         const currentPwd = document.getElementById('current-password').value;
-        if (!currentPwd) { alert("Please enter your current password."); return; }
+            if (!currentPwd) { await window.viyouAlert("Please enter your current password."); return; }
 
         const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
         

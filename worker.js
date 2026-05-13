@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Viyou-v6'; // Cache version updated
+const CACHE_NAME = 'Viyou-v34'; // Cache version updated
 const urlsToCache = [
   '/',
   '/index.html',

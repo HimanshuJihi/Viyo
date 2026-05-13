@@ -62,6 +62,10 @@
                 <p id="total-views">...</p>
             </div>
             <div class="stat-card">
+                <h3>Ad Views</h3>
+                <p id="total-ad-views" style="color: #10b981;">...</p>
+            </div>
+            <div class="stat-card">
                 <h3>Long Video Views</h3>
                 <p id="long-video-views">...</p>
             </div>
@@ -140,6 +144,7 @@
                             <th style="padding: 12px 10px; width: 40%;">Content</th>
                             <th style="padding: 12px 10px;">Date</th>
                             <th style="padding: 12px 10px;"><i data-lucide="eye" style="width: 14px;"></i> Views</th>
+                            <th style="padding: 12px 10px;"><i data-lucide="play" style="width: 14px;"></i> Ad Views</th>
                             <th style="padding: 12px 10px;"><i data-lucide="heart" style="width: 14px;"></i> Likes</th>
                             <th style="padding: 12px 10px;"><i data-lucide="message-circle" style="width: 14px;"></i> Comments</th>
                             <th style="padding: 12px 10px;"><i data-lucide="indian-rupee" style="width: 14px;"></i> Est. Revenue</th>
@@ -239,6 +244,8 @@
                         <span class="cat-chip" onclick="window.togglePromoCat(this)">Food</span>
                         <span class="cat-chip" onclick="window.togglePromoCat(this)">Devotional</span>
                         <span class="cat-chip" onclick="window.togglePromoCat(this)">Gym & Fitness</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Health</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Podcasts</span>
                     </div>
                 </div>
 
@@ -388,6 +395,7 @@ window.showToast = function(message, type = 'info') {
                 let totalViews = 0;
                 let totalLongVideoViews = 0;
                 let totalFlicksViews = 0;
+                let totalAdImpressions = 0;
                 let activePromotions = [];
                 let allUserContent = [];
                 const now = new Date();
@@ -397,6 +405,7 @@ window.showToast = function(message, type = 'info') {
                     if (blogData.status !== 'draft') {
                         allUserContent.push({ id: blogDoc.id, ...blogData });
                         totalViews += Number(blogData.views) || 0;
+                        totalAdImpressions += Number(blogData.adImpressions) || 0;
                         if (blogData.isFlicker) {
                             totalFlicksViews += Number(blogData.views) || 0;
                         } else if (blogData.video && !blogData.youtubeUrl) { // Only count direct uploads for earnings
@@ -435,7 +444,7 @@ window.showToast = function(message, type = 'info') {
                 else if (followersCount >= tierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
 
                 window.cachedLifetimeData = {
-                    totalViews, totalLongVideoViews, totalFlicksViews, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, walletBalance: userData.walletBalance || 0
+                    totalViews, totalLongVideoViews, totalFlicksViews, totalAdImpressions, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, walletBalance: userData.walletBalance || 0
                 };
 
                 document.getElementById('current-tier').innerText = tier > 0 ? `Tier ${tier} (${Math.round(sharePercent * 100)}%)` : 'No Tier';
@@ -618,7 +627,7 @@ window.showToast = function(message, type = 'info') {
             }
 
             if (filteredContent.length === 0) {
-                perfList.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: #aaa;">No content found for this filter.</td></tr>';
+                perfList.innerHTML = '<tr><td colspan="7" style="padding: 15px; text-align: center; color: #aaa;">No content found for this filter.</td></tr>';
                 return;
             }
 
@@ -635,6 +644,7 @@ window.showToast = function(message, type = 'info') {
                 let likes = Array.isArray(content.likes) ? content.likes.length : (typeof content.likes === 'number' && !isNaN(content.likes) ? content.likes : 0);
                 let comments = content.comments ? content.comments.length : 0;
                 let dateStr = content.date ? new Date(content.date).toLocaleDateString() : 'N/A';
+                let adViews = content.adImpressions || 0;
                 
                 let itemRevenue = 0;
                 if (isMonetized && isDirectVideo) {
@@ -666,6 +676,7 @@ window.showToast = function(message, type = 'info') {
                     </td>
                     <td style="padding: 10px; color: #ccc; font-size: 0.9rem; white-space: nowrap;">${dateStr}</td>
                     <td style="padding: 10px; color: #10b981; font-weight: bold;">${views.toLocaleString()}</td>
+                    <td style="padding: 10px; color: #f59e0b; font-weight: bold;">${adViews.toLocaleString()}</td>
                     <td style="padding: 10px; color: #ff0050;">${likes.toLocaleString()}</td>
                     <td style="padding: 10px; color: #87ceeb;">${comments.toLocaleString()}</td>
                     <td style="padding: 10px; color: #3b82f6; font-weight: bold;">₹${itemRevenue.toFixed(2)}</td>
@@ -751,6 +762,7 @@ window.showToast = function(message, type = 'info') {
             let periodTotalViews = 0;
             let periodLongViews = 0;
             let periodFlicksViews = 0;
+            let periodAdViews = 0;
 
             window.filteredByDateContent = window.cachedContentData.filter(blog => {
                 const bDate = new Date(blog.date);
@@ -759,6 +771,7 @@ window.showToast = function(message, type = 'info') {
 
             window.filteredByDateContent.forEach(blog => {
                 periodTotalViews += Number(blog.views) || 0;
+                periodAdViews += Number(blog.adImpressions) || 0;
                 if (blog.isFlicker) {
                     periodFlicksViews += Number(blog.views) || 0;
                 } else if (blog.video && !blog.youtubeUrl) {
@@ -768,6 +781,7 @@ window.showToast = function(message, type = 'info') {
 
             // Update Stats Cards
             document.getElementById('total-views').innerText = periodTotalViews.toLocaleString();
+            document.getElementById('total-ad-views').innerText = periodAdViews.toLocaleString();
             document.getElementById('long-video-views').innerText = periodLongViews.toLocaleString();
             document.getElementById('flicks-views').innerText = periodFlicksViews.toLocaleString();
             

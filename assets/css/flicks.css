@@ -1,10 +1,10 @@
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: 'Outfit', -apple-system, sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: 'Outfit', -apple-system, sans-serif; }
         .navbar { position: absolute; top: 0; width: 100%; padding: 15px 20px; z-index: 100; display: flex; align-items: center; box-sizing: border-box; background: linear-gradient(rgba(0,0,0,0.6), transparent); }
         .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .navbar span { margin-left: 15px; font-weight: bold; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .flicks-container { height: 100vh; width: 100vw; overflow-y: scroll; scroll-snap-type: y mandatory; -ms-overflow-style: none; scrollbar-width: none; }
+        .flicks-container { height: 100vh; width: 100%; max-width: 100%; overflow-y: auto; scroll-snap-type: y mandatory; -ms-overflow-style: none; scrollbar-width: none; box-sizing: border-box; }
         .flicks-container::-webkit-scrollbar { display: none; }
-        .flick-item { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; display: flex; justify-content: center; align-items: center; background: #111; }
+        .flick-item { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; justify-content: center; align-items: center; background: #111; }
         video { width: 100%; height: 100%; object-fit: contain; cursor: pointer; }
         .overlay { position: absolute; bottom: 25px; left: 15px; right: 75px; z-index: 10; pointer-events: none; }
         .author-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; pointer-events: auto; }

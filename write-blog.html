@@ -42,6 +42,7 @@
             <div id="upload-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #a855f7); transition: width 0.3s;"></div>
         </div>
         <p id="upload-progress-text" style="color: white; margin-top: 10px; font-weight: bold;">0%</p>
+        <button type="button" id="cancel-upload-btn" class="btn" style="margin-top: 20px; background: #dc3545; width: auto; padding: 8px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(220,53,69,0.3);"><i data-lucide="x" style="width: 16px; height: 16px;"></i> Cancel Upload</button>
     </div>
 
     <div class="container">
@@ -75,6 +76,8 @@
                     <option value="Food">Food (भोजन)</option>
                     <option value="Devotional">Devotional (भक्ति)</option>
                     <option value="Gym & Fitness">Gym & Fitness (जिम और फिटनेस)</option>
+                    <option value="Health">Health (स्वास्थ्य)</option>
+                    <option value="Podcasts">Podcasts (पॉडकास्ट)</option>
                     <option value="Others" selected>Others (अन्य)</option>
                 </select>
             </div>
@@ -145,7 +148,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { firebaseConfig, storage } from "./firebase-config.js";
@@ -157,6 +160,8 @@
         let isUserVerified = false;
         let currentPostType = 'blog';
         window.maxUploadSizeMB = 5; // Default max upload size
+        window.maxVideoUploadSizeMB = 500;
+        window.maxFlickUploadSizeMB = 50;
 
         // --- Toast Notification Logic ---
         function showToast(message, type = 'info') {
@@ -327,7 +332,7 @@
                 videoFields.style.display = 'block';
                 thumbnailGroup.style.display = 'block';
                 document.getElementById('content-label-text').innerText = 'विवरण (Description) - Optional';
-                document.getElementById('video-upload-label').innerText = `Long Video अपलोड करें (Max ${window.maxUploadSizeMB}MB)`;
+                document.getElementById('video-upload-label').innerText = `Long Video अपलोड करें (Max ${window.maxVideoUploadSizeMB}MB)`;
                 document.getElementById('title').required = false;
                 document.getElementById('content').required = false;
                 document.getElementById('content').setAttribute('maxlength', '1000');
@@ -336,9 +341,9 @@
             } else if (type === 'flick') {
                 blogFields.style.display = 'none';
                 videoFields.style.display = 'block';
-                thumbnailGroup.style.display = 'none';
+                thumbnailGroup.style.display = 'block';
                 document.getElementById('content-label-text').innerText = 'विवरण (Description) - Optional';
-                document.getElementById('video-upload-label').innerText = `Flick Video अपलोड करें (Max ${window.maxUploadSizeMB}MB)`;
+                document.getElementById('video-upload-label').innerText = `Flick Video अपलोड करें (Max ${window.maxFlickUploadSizeMB}MB)`;
                 document.getElementById('title').required = false;
                 document.getElementById('content').required = false;
                 document.getElementById('content').setAttribute('maxlength', '1000');
@@ -373,6 +378,8 @@
                     if (genDoc.exists() && genDoc.data().maxUploadSizeMB) {
                         window.maxUploadSizeMB = genDoc.data().maxUploadSizeMB;
                     }
+                    if (genDoc.exists() && genDoc.data().maxVideoSizeMB) window.maxVideoUploadSizeMB = genDoc.data().maxVideoSizeMB;
+                    if (genDoc.exists() && genDoc.data().maxFlickSizeMB) window.maxFlickUploadSizeMB = genDoc.data().maxFlickSizeMB;
                     if (genDoc.exists() && genDoc.data().enableYoutubeLinks === false) {
                         document.getElementById('youtube-url-group').style.display = 'none';
                     } else {
@@ -452,19 +459,50 @@
             const overlay = document.getElementById('upload-progress-overlay');
             const bar = document.getElementById('upload-progress-bar');
             const text = document.getElementById('upload-progress-text');
+            const cancelBtn = document.getElementById('cancel-upload-btn');
             overlay.style.display = 'flex';
 
             const storageRef = ref(storage, path);
             const uploadTask = uploadBytesResumable(storageRef, file);
 
+            const cancelUpload = () => {
+                uploadTask.cancel();
+                overlay.style.display = 'none';
+                reject(new Error("Upload cancelled by user"));
+                cancelBtn.removeEventListener('click', cancelUpload);
+            };
+            cancelBtn.addEventListener('click', cancelUpload);
+
+            let startTime = Date.now();
+
             uploadTask.on('state_changed', 
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     bar.style.width = progress + '%';
-                    text.innerText = Math.round(progress) + '%';
+                    
+                    const timeElapsed = (Date.now() - startTime) / 1000;
+                    if (timeElapsed > 0.5 && snapshot.bytesTransferred > 0) {
+                        const speedBps = snapshot.bytesTransferred / timeElapsed;
+                        let speedText = speedBps > 1048576 ? (speedBps / 1048576).toFixed(2) + ' MB/s' : (speedBps / 1024).toFixed(0) + ' KB/s';
+                        const secRemaining = (snapshot.totalBytes - snapshot.bytesTransferred) / speedBps;
+                        let etaText = secRemaining > 60 ? Math.floor(secRemaining / 60) + 'm ' + Math.floor(secRemaining % 60) + 's left' : Math.ceil(secRemaining) + 's left';
+                        text.innerText = `${Math.round(progress)}%  •  ${speedText}  •  ${etaText}`;
+                    } else {
+                        text.innerText = Math.round(progress) + '%';
+                    }
                 }, 
-                (error) => { overlay.style.display = 'none'; reject(error); }, 
-                () => { getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => { overlay.style.display = 'none'; resolve(downloadURL); }); }
+                (error) => { 
+                    overlay.style.display = 'none'; 
+                    cancelBtn.removeEventListener('click', cancelUpload);
+                    reject(error); 
+                }, 
+                () => { 
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => { 
+                        overlay.style.display = 'none'; 
+                        cancelBtn.removeEventListener('click', cancelUpload);
+                        resolve(downloadURL); 
+                    }); 
+                }
             );
         });
     }
@@ -496,6 +534,7 @@
 
             video.onloadedmetadata = function() {
                 const ratio = video.videoWidth / video.videoHeight;
+                const duration = video.duration;
                 let isValid = true;
                 let expectedRatioText = "";
 
@@ -504,6 +543,10 @@
                     if (ratio < 0.45 || ratio > 0.65) {
                         isValid = false;
                         expectedRatioText = "9:16 (Vertical)";
+                    }
+                    if (duration > 31) { // 1 second safety buffer
+                        isValid = false;
+                        expectedRatioText = expectedRatioText ? expectedRatioText + " & Max 30 seconds duration" : "Max 30 seconds duration";
                     }
                 } else if (currentPostType === 'video') {
                     // Check for roughly 16:9 (1.77) or 1:1 (1.0)
@@ -516,7 +559,11 @@
                 }
 
                 if (!isValid) {
-                    alert(`Invalid video aspect ratio for ${currentPostType === 'flick' ? 'Flick' : 'Long Video'}.\nExpected: ${expectedRatioText}\nSelected video ratio is approx: ${(ratio).toFixed(2)}:1`);
+                    let alertMsg = `Invalid video for ${currentPostType === 'flick' ? 'Flick' : 'Long Video'}.\nExpected: ${expectedRatioText}`;
+                    if (ratio < 0.45 || ratio > 0.65 || (currentPostType === 'video' && !is16by9 && !is1by1)) {
+                         alertMsg += `\nSelected video ratio is approx: ${(ratio).toFixed(2)}:1`;
+                    }
+                    alert(alertMsg);
                     document.getElementById('video-upload').value = '';
                     preview.style.display = 'none';
                     preview.src = '';
@@ -760,6 +807,12 @@
             if(title && author && (content !== "" || currentPostType !== 'blog')) {
                 const processBlog = async (imagesData, youtubeUrl, pollData, videoBase64, thumbnailBase64) => {
                     try {
+                        let videoDuration = 0;
+                        const vidPreview = document.getElementById('video-preview');
+                        if (vidPreview && vidPreview.src && vidPreview.duration) {
+                            videoDuration = vidPreview.duration;
+                        }
+
                         // --- Smart Search: Create keywords from title and content ---
                         const allTextForKeywords = (title + " " + content).toLowerCase();
                         // Remove punctuation, split into words, filter short words, and get unique keywords
@@ -799,6 +852,7 @@
                             if (imagesData && imagesData.length > 0) {
                                 updateData.images = imagesData;
                             }
+                            if (videoDuration > 0) updateData.duration = videoDuration;
                             if (videoBase64) updateData.video = videoBase64;
                             if (thumbnailBase64) updateData.thumbnail = thumbnailBase64;
                             updateData.youtubeUrl = youtubeUrl || null;
@@ -835,6 +889,7 @@
                             images: imagesData || [],
                             image: thumbnailBase64 ? thumbnailBase64 : ((imagesData && imagesData.length > 0) ? imagesData[0] : 'logo.png'), // Default image
                             video: videoBase64 || null,
+                            duration: videoDuration,
                             thumbnail: thumbnailBase64 || null,
                             youtubeUrl: youtubeUrl || null,
                             poll: pollData,
@@ -902,8 +957,9 @@
                     const videoInput = document.getElementById('video-upload');
                     if (videoInput && videoInput.files.length > 0) {
                         const vFile = videoInput.files[0];
-                        if (vFile.size > window.maxUploadSizeMB * 1024 * 1024) {
-                            showToast(`Video size is too large! Max ${window.maxUploadSizeMB}MB.`, 'error');
+                        let limitMB = currentPostType === 'flick' ? window.maxFlickUploadSizeMB : window.maxVideoUploadSizeMB;
+                        if (vFile.size > limitMB * 1024 * 1024) {
+                            showToast(`Video size is too large! Max ${limitMB}MB allowed for ${currentPostType === 'flick' ? 'Flicks' : 'Long Videos'}.`, 'error');
                             submitBtn.innerHTML = originalBtnContent;
                             submitBtn.disabled = false;
                             return;
@@ -913,7 +969,7 @@
                 }
 
                 let thumbnailPromise = Promise.resolve(null);
-                if (currentPostType === 'video' && document.getElementById('thumbnail-upload').files.length > 0) {
+                if ((currentPostType === 'video' || currentPostType === 'flick') && document.getElementById('thumbnail-upload').files.length > 0) {
                     thumbnailPromise = compressThumbnail(document.getElementById('thumbnail-upload').files[0]);
                 }
                 

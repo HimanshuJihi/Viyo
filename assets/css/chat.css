@@ -7,16 +7,13 @@
             color: #fff;
             transition: background 0.3s, color 0.3s;
         }
-        .container {
-            max-width: 600px; /* Optimized for chat screen */
-            margin: 20px auto;
-            padding: 20px 15px;
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            height: calc(100vh - 40px); /* Full viewport height minus margin */
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0;
+        background: transparent;
+        border: none;
+        height: 100vh;
             display: flex;
             flex-direction: column;
         }
@@ -24,9 +21,11 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            padding-bottom: 15px;
+        padding: 15px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 15px;
+        background: rgba(10, 10, 10, 0.8);
+        backdrop-filter: blur(10px);
+        margin-bottom: 0;
             position: relative;
             z-index: 100;
         }
@@ -54,8 +53,7 @@
         .chat-messages {
             flex-grow: 1;
             overflow-y: auto;
-            padding-right: 10px; /* For scrollbar space */
-            margin-bottom: 15px;
+        padding: 15px 20px;
         }
         .message-item {
             display: flex;
@@ -134,44 +132,34 @@
             background: rgba(0, 0, 0, 0.05);
             color: #555;
         }
-        .edit-msg-btn {
-            background: none; border: none; color: #aaa; font-size: 0.9rem; cursor: pointer; padding: 0 8px; opacity: 0; transition: opacity 0.2s;
+        .edit-msg-btn, .delete-msg-btn, .forward-msg-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 4px;
+            margin: 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .message-sent:hover .edit-msg-btn {
+        .message-item:hover .edit-msg-btn,
+        .message-item:hover .delete-msg-btn,
+        .message-item:hover .forward-msg-btn {
             opacity: 1;
         }
         .edited-indicator {
             font-size: 0.7rem;
             color: #bbb;
         }
-        .delete-msg-btn {
-            background: none;
-            border: none;
-            color: #aaa;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0 8px;
-            opacity: 0; /* Hide by default */
-            transition: opacity 0.2s;
-       }
-        .message-item:hover .delete-msg-btn {
-            opacity: 1; /* Show on hover */
-        }
-        .forward-msg-btn {
-            background: none;
-            border: none;
-            color: #aaa;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0 8px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            align-self: center; /* Center it vertically */
-        }
-        .message-item:hover .forward-msg-btn { opacity: 1; }
         .message-input-area {
             display: flex;
-            background: rgba(255, 255, 255, 0.2);
+        background: rgba(10, 10, 10, 0.5);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 15px 20px;
             color: white;
             font-size: 1rem;
         }
@@ -190,7 +178,7 @@
         }
         /* Light Mode */
         body.light-mode { background: #f4f7f6; color: #333; }
-        body.light-mode .container { background: #fff; border-color: #ddd; }
+    body.light-mode .chat-container { background: transparent; border: none; }
         body.light-mode .chat-header h2 { color: #0d6efd; }
         body.light-mode .chat-header .back-btn { color: #333; }
         body.light-mode .chat-messages { border-color: #eee; }
@@ -212,6 +200,7 @@
         body.light-mode #forward-user-list > div { border-bottom-color: #eee; }
         body.light-mode #forward-user-list strong { color: #000; }
         body.light-mode #edit-message-modal > div { background: #fff !important; border-color: #ddd !important; }
+        body.light-mode #delete-message-modal > div { background: #fff !important; border-color: #ddd !important; }
         body.light-mode #edit-message-input { background: #f4f7f6 !important; color: #333 !important; border-color: #ccc !important; }
         /* Reaction Styles */
         .reaction-picker {

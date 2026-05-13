@@ -7,23 +7,25 @@
             color: #fff;
             transition: background 0.3s, color 0.3s;
         }
-        .container {
-            max-width: 800px; /* Optimized for chat list */
-            margin: 20px auto;
-            padding: 20px 15px;
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+    .messages-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0;
+        background: transparent;
+        border: none;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+        padding: 15px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 30px;
+        margin-bottom: 0;
+        background: rgba(10, 10, 10, 0.8);
+        backdrop-filter: blur(10px);
             position: relative;
             z-index: 100;
         }
@@ -94,6 +96,8 @@
             list-style: none;
             padding: 0;
             margin: 0;
+        flex-grow: 1;
+        overflow-y: auto;
         }
         .conversation-item {
             display: flex;
@@ -119,6 +123,7 @@
         }
         .conversation-info {
             flex-grow: 1;
+        text-align: left;
         }
         .conversation-info h3 {
             margin: 0;
@@ -139,7 +144,7 @@
         }
         /* Light Mode */
         body.light-mode { background: #f4f7f6; color: #333; }
-        body.light-mode .container { background: #fff; border-color: #ddd; }
+    body.light-mode .messages-container { background: transparent; border: none; }
         body.light-mode .header h1 { color: #333; }
         body.light-mode .conversation-item { border-bottom-color: #eee; }
         body.light-mode .conversation-item:hover { background-color: #f0f0f0; }

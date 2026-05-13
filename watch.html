@@ -24,6 +24,7 @@
             <div class="theme-dropdown-container">
                 <button id="main-menu-toggle" class="theme-btn"><i data-lucide="menu"></i></button>
                 <div id="main-menu-dropdown" class="theme-dropdown">
+                    <a href="index.html?view=history" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="history" style="width: 16px;"></i> Watch History</a>
                     <a href="about-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="info" style="width: 16px;"></i> About Us</a>
                     <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
                     <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
@@ -60,6 +61,11 @@
         let currentBlog = null;
         let vastAdConfig = {};
         let preRollAdConfig = { frequency: 3, activeAds: [] };
+
+        // Start fetching data immediately to cut loading time in half
+        const globalVastPromise = loadVastAdConfig();
+        const globalPreRollPromise = loadPreRollAdConfig();
+        const globalVideoSnapPromise = blogId ? getDoc(doc(db, "blogs", blogId)) : null;
 
         // --- Menu Logic ---
         const mainMenuToggleBtn = document.getElementById('main-menu-toggle');
@@ -159,17 +165,47 @@
         async function loadVideo() {
             if (!blogId) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
             const docRef = doc(db, "blogs", blogId);
-            const snap = await getDoc(docRef);
-            if (!snap.exists()) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
+            const snap = await globalVideoSnapPromise; // Wait for pre-fetched data
+            if (!snap || !snap.exists()) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
 
             const blog = snap.data();
             currentBlog = { id: blogId, ...blog };
+            
+            if (auth.currentUser) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                    if (!userDoc.exists() || !userDoc.data().historyPaused) {
+                        await setDoc(doc(db, "users", auth.currentUser.uid, "watchHistory", blogId), {
+                            blogId: blogId,
+                            viewedAt: serverTimestamp()
+                        }, { merge: true });
+                    }
+                } catch (e) { console.error("Error saving history:", e); }
+            }
+            
+            // Dynamic SEO tags for Google Indexing
+            document.title = (blog.title || 'Watch Video') + " - Viyou";
+            let canonical = document.querySelector("link[rel='canonical']");
+            if (!canonical) {
+                canonical = document.createElement('link');
+                canonical.setAttribute('rel', 'canonical');
+                document.head.appendChild(canonical);
+            }
+            canonical.setAttribute('href', window.location.origin + window.location.pathname + '?id=' + blogId);
 
             // Delayed View Count Logic (10 Seconds)
             window.viewAlreadyCounted = false;
             window.countVideoView = function() {
                 if (window.viewAlreadyCounted) return;
+                
+                // --- Max 4 Views Per User/Device Logic ---
+                const viewKey = `viyou_view_count_${blogId}`;
+                let currentViews = parseInt(localStorage.getItem(viewKey) || '0');
+                if (currentViews >= 4) return; // 4 Views Limit Reached
+                
                 window.viewAlreadyCounted = true;
+                localStorage.setItem(viewKey, currentViews + 1); // Update local count
+
                 if (blog.video && !blog.youtubeUrl) {
                     updateDoc(docRef, { views: increment(1), longVideoViews: increment(1) }).catch(e => {});
                 } else {
@@ -177,24 +213,26 @@
                 }
             };
 
-            // --- Pre-Roll Ad Logic ---
+            // --- Ad Decision Logic ---
             let sessionViews = parseInt(sessionStorage.getItem('viyou_video_views') || '0');
             sessionViews++;
             sessionStorage.setItem('viyou_video_views', sessionViews);
 
-            // Fluid Player specific ad logic removed for custom player
-            let preRollAdToPlay = null;
             window.userAdImpressionTracked = false;
+            let preRollAdToPlay = null;
             
-            // Filter ads based on video category and check if pre-roll ads are globally enabled
-            let eligibleAds = preRollAdConfig.activeAds.filter(ad => {
-                if (!ad.targetCategories || ad.targetCategories.length === 0) return true; // Legacy ads target all
-                return ad.targetCategories.includes(blog.category || 'Others');
-            });
+            // VAST ads have priority. Check if it's time to play an ad.
+            const isAdTime = (sessionViews % (preRollAdConfig.frequency || 3) === 0);
+            const playVast = vastAdConfig.enabled && vastAdConfig.vastUrl && isAdTime;
 
-            if (eligibleAds.length > 0 && (sessionViews % (preRollAdConfig.frequency || 3) === 0)) {
-                // Select a random pre-roll ad to play
-                preRollAdToPlay = eligibleAds[Math.floor(Math.random() * eligibleAds.length)];
+            if (!playVast && isAdTime) {
+                // If not playing a VAST ad, check for internal pre-roll ads.
+                let eligibleAds = preRollAdConfig.activeAds.filter(ad => {
+                    if (!ad.targetCategories || ad.targetCategories.length === 0) return true; // Legacy ads target all
+                    return ad.targetCategories.includes(blog.category || 'Others');
+                });
+
+                if (eligibleAds.length > 0) preRollAdToPlay = eligibleAds[Math.floor(Math.random() * eligibleAds.length)];
             }
 
             let mediaHtml = '';
@@ -204,10 +242,20 @@
                 setTimeout(window.countVideoView, 10000); // 10-second timer for YouTube iframe
             } else if (blog.video) {
                 mediaHtml = `
-                    <video id="custom-video" playsinline></video>
+                    <video id="custom-video" playsinline preload="auto"></video>
                     
-                    <div id="dt-left" class="double-tap-anim double-tap-left">⏪ 10s</div>
-                    <div id="dt-right" class="double-tap-anim double-tap-right">⏩ 10s</div>
+                    <div id="dt-left" class="yt-skip-anim yt-skip-left">
+                        <div class="yt-skip-content">
+                            <div class="yt-skip-arrows"><i data-lucide="chevrons-left"></i></div>
+                            <span class="yt-skip-text">10 seconds</span>
+                        </div>
+                    </div>
+                    <div id="dt-right" class="yt-skip-anim yt-skip-right">
+                        <div class="yt-skip-content">
+                            <div class="yt-skip-arrows"><i data-lucide="chevrons-right"></i></div>
+                            <span class="yt-skip-text">10 seconds</span>
+                        </div>
+                    </div>
 
                     <!-- Pre-Roll Ad Overlay -->
                     <div id="ad-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none;">
@@ -287,6 +335,7 @@
                                     </div>
                                 </div>
                                 <button id="pip-btn" title="Miniplayer (Picture in Picture)"><i data-lucide="picture-in-picture"></i></button>
+                                <button id="theater-btn" class="pc-only-btn" title="Theater Mode"><i data-lucide="rectangle-horizontal"></i></button>
                                 <button id="fullscreen-btn"><i data-lucide="maximize"></i></button>
                             </div>
                         </div>
@@ -303,10 +352,16 @@
 
             const categoryBadge = blog.category ? `<span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ddd; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; display: inline-block;">🏷️ ${blog.category}</span>` : '';
 
+            // Formatting links in description
+            let safeDesc = escapeHTML(blog.content || '');
+            const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+            safeDesc = safeDesc.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #87ceeb; text-decoration: underline;">$1</a>');
+            safeDesc = safeDesc.replace(/\n/g, '<br>');
+
             document.getElementById('main-content').innerHTML = `
                 <div class="video-container paused" id="video-container">
                     ${mediaHtml}
-                    <div id="dt-center" class="double-tap-anim double-tap-center"><i data-lucide="heart" class="lucide-fill"></i></div>
+                    <div id="dt-center" class="double-tap-center"><i data-lucide="heart" class="lucide-fill"></i></div>
                 </div>
                 <div class="info">
                     ${categoryBadge}
@@ -327,7 +382,7 @@
                         </div>
                     </div>
                     <div class="desc-box"> 
-                        <div id="video-description" class="desc-content">${(blog.content || '').replace(/\n/g, '<br>')}</div>
+                        <div id="video-description" class="desc-content">${safeDesc}</div>
                         <button id="show-more-btn" class="show-more-btn" onclick="toggleDescription()">Show more</button>
                     </div>
                 </div>
@@ -343,23 +398,92 @@
                 const adOverlay = document.getElementById('ad-overlay');
                 const controlsContainer = document.querySelector('.controls');
 
+                // Play Next Video Logic
+                const playNextVideo = () => {
+                    const firstSuggestion = document.querySelector('.suggestion-card');
+                    if (firstSuggestion) {
+                        firstSuggestion.click(); // Autoplays the very first "Up Next" video
+                    }
+                };
+
                 const playMainVideo = () => {
                     if (adOverlay) adOverlay.style.display = 'none';
                     if (controlsContainer) controlsContainer.style.display = 'flex';
                     videoElement.src = blog.video;
                     window.isPlayingMainVideo = true;
                     videoElement.play().catch(e => console.log("Main video play blocked", e));
-                    videoElement.onended = null;
+                    videoElement.onended = playNextVideo; // Auto-play next video on end
                     if (window.lucide) lucide.createIcons();
                 };
+                
+                // NEW: VAST Ad Player function
+                async function playVastAd(vastUrl) {
+                    try {
+                        const response = await fetch(vastUrl);
+                        if (!response.ok) throw new Error(`VAST request failed: ${response.status}`);
+                        const vastString = await response.text();
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(vastString, "text/xml");
 
-                if (preRollAdToPlay && preRollAdToPlay.mediaData) {
+                        const mediaFileNode = xmlDoc.querySelector('MediaFile[type="video/mp4"]');
+                        const clickThroughNode = xmlDoc.querySelector('ClickThrough');
+                        const impressionNodes = xmlDoc.querySelectorAll('Impression');
+
+                        if (!mediaFileNode || !mediaFileNode.textContent) {
+                            console.warn("No compatible MP4 MediaFile found in VAST response. Playing main video.");
+                            playMainVideo();
+                            return;
+                        }
+
+                        const adVideoUrl = mediaFileNode.textContent.trim();
+                        const clickUrl = clickThroughNode ? clickThroughNode.textContent.trim() : null;
+
+                        // Fire impression trackers
+                        impressionNodes.forEach(node => {
+                            if (node.textContent) {
+                                try { navigator.sendBeacon(node.textContent.trim()); } catch(e) { console.error("Beacon error:", e); }
+                            }
+                        });
+                        
+                        // Track Ad View (Impression) for Creator
+                        updateDoc(doc(db, "blogs", blogId), { adImpressions: increment(1) }).catch(e => console.error(e));
+
+                        videoElement.src = adVideoUrl;
+                        if (adOverlay) adOverlay.style.display = 'block';
+                        if (controlsContainer) controlsContainer.style.display = 'none';
+
+                        const adActionBtn = document.getElementById('ad-action-btn');
+                        if (adActionBtn && clickUrl) {
+                            adActionBtn.style.display = 'block';
+                            adActionBtn.onclick = (e) => { e.stopPropagation(); window.open(clickUrl, '_blank'); videoElement.pause(); };
+                        } else if (adActionBtn) {
+                            adActionBtn.style.display = 'none';
+                        }
+
+                        const adSkipBtn = document.getElementById('ad-skip-btn');
+                        const adCountdown = document.getElementById('ad-countdown');
+                        let skipTimer = 5; // Default skip time
+                        if (adCountdown) { adCountdown.style.display = 'block'; adCountdown.innerText = `Skip in ${skipTimer}`; }
+                        if (adSkipBtn) adSkipBtn.style.display = 'none';
+
+                        const skipInterval = setInterval(() => { if (--skipTimer <= 0) { clearInterval(skipInterval); if (adCountdown) adCountdown.style.display = 'none'; if (adSkipBtn) adSkipBtn.style.display = 'block'; } else if (adCountdown) adCountdown.innerText = `Skip in ${skipTimer}`; }, 1000);
+                        if (adSkipBtn) adSkipBtn.onclick = (e) => { e.stopPropagation(); clearInterval(skipInterval); playMainVideo(); };
+                        videoElement.onended = () => { clearInterval(skipInterval); playMainVideo(); };
+                        videoElement.play().catch(e => { console.log("VAST Ad autoplay blocked", e); playMainVideo(); });
+                    } catch (error) { console.error("Error processing VAST ad:", error); playMainVideo(); }
+                }
+
+                if (playVast) {
+                    playVastAd(vastAdConfig.vastUrl);
+                } else if (preRollAdToPlay && preRollAdToPlay.mediaData) {
                     videoElement.src = preRollAdToPlay.mediaData;
                     if (adOverlay) adOverlay.style.display = 'block';
                     if (controlsContainer) controlsContainer.style.display = 'none';
                     
                     if (!window.userAdImpressionTracked) {
                         updateDoc(doc(db, "promotions", preRollAdToPlay.id), { impressions_served: increment(1) }).catch(e => console.error(e));
+                        // Track Ad View (Impression) for Creator
+                        updateDoc(docRef, { adImpressions: increment(1) }).catch(e => console.error(e));
                         window.userAdImpressionTracked = true;
                     }
 
@@ -400,11 +524,9 @@
                         clearInterval(skipInterval);
                         playMainVideo();
                     };
-                    
                     videoElement.play().catch(e => console.log("Ad autoplay blocked", e));
                 } else {
-                    videoElement.src = blog.video;
-                    window.isPlayingMainVideo = true;
+                    playMainVideo(); // Play main video directly if no ads
                 }
 
                 // Get DOM Elements for custom player
@@ -418,6 +540,7 @@
                 const fullscreenBtn = document.getElementById('fullscreen-btn');
                 const settingsBtn = document.getElementById('settings-btn');
                 const pipBtn = document.getElementById('pip-btn'); // Added PiP button
+                const theaterBtn = document.getElementById('theater-btn'); // Added Theater Button
                 const settingsMenu = document.getElementById('settings-menu');
                 const speedItems = document.querySelectorAll('.speed-item');
                 const qualityItems = document.querySelectorAll('.quality-item');
@@ -447,10 +570,11 @@
                 
                 // Double Tap to Skip Logic
                 let clickTimer = null;
+                let lastTapTime = 0;
                 const SKIP_SECONDS = 10;
 
-                videoElement.addEventListener('click', (e) => {
-                    const adOverlay = document.getElementById('ad-overlay');
+// Changed 'click' to 'pointerup' for much smoother mobile touch response
+                videoElement.addEventListener('pointerup', (e) => {                    const adOverlay = document.getElementById('ad-overlay');
                     if (adOverlay && adOverlay.style.display === 'block') {
                         window.open(preRollAdToPlay.targetUrl, '_blank');
                         trackAdClick(preRollAdToPlay.id, true);
@@ -458,7 +582,11 @@
                         return;
                     }
 
-                    if (clickTimer) {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTapTime;
+
+                    if (tapLength > 0 && tapLength < 350) {
+                        // --- Double Tap Detected ---
                         clearTimeout(clickTimer);
                         clickTimer = null;
                         
@@ -466,28 +594,61 @@
                         const x = e.clientX - rect.left;
                         const width = rect.width;
 
-                        // Check if clicked on the left or right half
-                        if (x < width / 2) {
+                       // 40% Left = Skip Back, 40% Right = Skip Forward, 20% Center = Like
+                        if (x < width * 0.4) {
                             videoElement.currentTime = Math.max(0, videoElement.currentTime - SKIP_SECONDS);
                             showAnim('dt-left');
-                        } else {
+                        } else if (x > width * 0.6) {
                             videoElement.currentTime = Math.min(videoElement.duration, videoElement.currentTime + SKIP_SECONDS);
                             showAnim('dt-right');
+                        } else {
+                            // Center area - like functionality
+                            showAnim('dt-center');
+                            if (typeof window.likeVideo === 'function') window.likeVideo(blogId);
+                        }
+                        lastTapTime = 0; // Reset to avoid triple-tap triggering again instantly
+                    } else {
+                // --- Single Tap Detected ---
+                lastTapTime = currentTime;
+                clickTimer = setTimeout(() => {
+                            clickTimer = null;
+                    if (e.pointerType === 'touch') {
+                        container.classList.toggle('show-controls');
+                        if (container._hideControlsTimer) clearTimeout(container._hideControlsTimer);
+                        if (container.classList.contains('show-controls')) {
+                            container._hideControlsTimer = setTimeout(() => container.classList.remove('show-controls'), 3000);
                         }
                     } else {
-                        // Wait 300ms to see if it's a double tap, otherwise toggle play/pause
-                        clickTimer = setTimeout(() => {
-                            clickTimer = null;
-                            togglePlay();
-                        }, 300);
+                        togglePlay();
+                    }
+                        }, 350); // Wait 350ms to confirm it's not a double tap
                     }
                 });
 
                 function showAnim(id) {
                     const el = document.getElementById(id);
                     if (!el) return;
-                    el.style.opacity = '1';
-                    setTimeout(() => { el.style.opacity = '0'; }, 800);
+                    
+                    if (id === 'dt-center') {
+                        el.style.transition = 'none';
+                        el.style.transform = 'translate(-50%, -50%) scale(1)';
+                        el.style.opacity = '1';
+                        void el.offsetWidth; // Force Reflow
+                        el.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out';
+                        el.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                        if (el._animTimer) clearTimeout(el._animTimer);
+                        el._animTimer = setTimeout(() => {
+                            el.style.transition = 'transform 0.2s ease-in, opacity 0.2s ease-in';
+                            el.style.transform = 'translate(-50%, -50%) scale(2)';
+                            el.style.opacity = '0';
+                        }, 500);
+                    } else {
+                        el.classList.remove('show');
+                        void el.offsetWidth;
+                        el.classList.add('show');
+                        if (el._animTimer) clearTimeout(el._animTimer);
+                        el._animTimer = setTimeout(() => { el.classList.remove('show'); }, 600);
+                    }
                 }
 
                 // Format Time helper (seconds to MM:SS)
@@ -505,8 +666,18 @@
                     }
                     const progress = (videoElement.currentTime / videoElement.duration) * 100;
                     progressBar.value = progress;
+            progressBar.style.setProperty('--progress', `${progress || 0}%`);
                     currentTimeDisplay.textContent = formatTime(videoElement.currentTime);
                 });
+
+        // Buffer Progress Indicator
+        videoElement.addEventListener('progress', () => {
+            if (videoElement.duration > 0 && videoElement.buffered.length > 0) {
+                const bufferedEnd = videoElement.buffered.end(videoElement.buffered.length - 1);
+                const bufferPercent = (bufferedEnd / videoElement.duration) * 100;
+                progressBar.style.setProperty('--buffer', `${bufferPercent}%`);
+            }
+        });
 
                 // Set Duration when video metadata loads
                 videoElement.addEventListener('loadedmetadata', () => {
@@ -703,18 +874,116 @@
                     pipBtn.style.display = 'none'; // Hide if browser doesn't support it
                 }
 
-                // Fullscreen Logic
-                fullscreenBtn.addEventListener('click', () => {
+                // Theater Mode Logic (PC Only)
+                if (theaterBtn) {
+                    // Load saved preference
+                    if (localStorage.getItem('viyou_theater_mode') === 'true') {
+                        document.querySelector('.container').classList.add('theater-mode');
+                    }
+                    
+                    theaterBtn.addEventListener('click', () => {
+                        const containerNode = document.querySelector('.container');
+                        containerNode.classList.toggle('theater-mode');
+                        
+                        if (containerNode.classList.contains('theater-mode')) {
+                            localStorage.setItem('viyou_theater_mode', 'true');
+                        } else {
+                            localStorage.setItem('viyou_theater_mode', 'false');
+                        }
+                    });
+                }
+
+                // Fullscreen & Mobile Rotation Logic
+                fullscreenBtn.addEventListener('click', async () => {
                     if (!document.fullscreenElement) {
-                        container.requestFullscreen().catch(err => {
+                        try {
+                            await container.requestFullscreen();
+                            fullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
+                            // If mobile device, rotate screen to landscape like YouTube
+                            if (window.innerWidth <= 768 && screen.orientation && screen.orientation.lock) {
+                                await screen.orientation.lock('landscape').catch(e => console.log("Orientation lock blocked:", e));
+                            }
+                        } catch (err) {
                             console.error("Error attempting to enable fullscreen:", err);
-                        });
-                        fullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
+                        }
                     } else {
-                        document.exitFullscreen();
-                        fullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
+                        try {
+                            await document.exitFullscreen();
+                            fullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
+                            if (screen.orientation && screen.orientation.unlock) {
+                                screen.orientation.unlock();
+                            }
+                        } catch (err) {
+                            console.error("Error attempting to exit fullscreen:", err);
+                        }
                     }
                     lucide.createIcons();
+                });
+
+                // Update UI if user exits fullscreen using Esc key or mobile gestures
+                document.addEventListener('fullscreenchange', () => {
+                    if (!document.fullscreenElement) {
+                        fullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
+                        if (screen.orientation && screen.orientation.unlock) {
+                            screen.orientation.unlock();
+                        }
+                        if (window.lucide) window.lucide.createIcons();
+                    }
+                });
+
+                // PC Keyboard Shortcuts Logic
+                document.addEventListener('keydown', (e) => {
+                    // Ignore shortcuts if typing in an input or textarea (like comments)
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                    switch(e.key.toLowerCase()) {
+                        case ' ':
+                        case 'k':
+                            e.preventDefault();
+                            togglePlay();
+                            break;
+                        case 'f':
+                            e.preventDefault();
+                            if (fullscreenBtn) fullscreenBtn.click();
+                            break;
+                        case 't':
+                            e.preventDefault();
+                            if (theaterBtn) theaterBtn.click();
+                            break;
+                        case 'p':
+                        
+                            e.preventDefault();
+                            if (pipBtn && pipBtn.style.display !== 'none') pipBtn.click();
+                            break;
+                        case 'm':
+                            e.preventDefault();
+                            if (muteBtn) muteBtn.click();
+                            break;
+                        case 'arrowleft':
+                        case 'j':
+                            e.preventDefault();
+                            videoElement.currentTime = Math.max(0, videoElement.currentTime - SKIP_SECONDS);
+                            showAnim('dt-left');
+                            break;
+                        case 'arrowright':
+                        case 'l':
+                            e.preventDefault();
+                            videoElement.currentTime = Math.min(videoElement.duration, videoElement.currentTime + SKIP_SECONDS);
+                            showAnim('dt-right');
+                            break;
+                        case 'arrowup':
+                            e.preventDefault();
+                            videoElement.volume = Math.min(1, videoElement.volume + 0.05);
+                            if (volumeSlider) volumeSlider.value = videoElement.volume;
+                            updateMuteIcon();
+                            break;
+                        case 'arrowdown':
+                            e.preventDefault();
+                            videoElement.volume = Math.max(0, videoElement.volume - 0.05);
+                            if (volumeSlider) volumeSlider.value = videoElement.volume;
+                            updateMuteIcon();
+                            break;
+                    }
                 });
 
                 // Function to update checkmarks and main menu text for settings
@@ -1095,8 +1364,7 @@
         });
 
         onAuthStateChanged(auth, async () => {
-            await loadVastAdConfig();
-            await loadPreRollAdConfig();
+            await Promise.all([globalVastPromise, globalPreRollPromise]);
             loadVideo(); 
             loadSuggestions();
         });

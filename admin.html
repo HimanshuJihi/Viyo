@@ -14,6 +14,9 @@
         .lucide-fill { fill: currentColor; }
         #admin-tabs::-webkit-scrollbar { display: none; }
         .admin-tab-btn { flex-shrink: 0; white-space: nowrap; }
+        .scrollable-list { max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .scrollable-list::-webkit-scrollbar { width: 5px; }
+        .scrollable-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 5px; }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -49,6 +52,8 @@
             <button id="tab-headlines" class="admin-tab-btn">📢 Headlines</button>
             <button id="tab-vast" class="admin-tab-btn">📺 VAST Ads</button>
             <button id="tab-promotions" class="admin-tab-btn">🚀 Promotions</button>
+            <button id="tab-users" class="admin-tab-btn">👥 Users</button>
+            <button id="tab-team" class="admin-tab-btn">👥 Team Members</button>
         </div>
 
         <div id="admin-content" style="display: none;">
@@ -151,7 +156,7 @@
                     <button class="btn" style="background-color: #ff0050; margin-top: 10px;" onclick="window.saveBadWords()">Save Blocked Words</button>
                 </div>
 
-                <div id="reports-list">
+                <div id="reports-list" class="scrollable-list">
                     <p>Loading reports...</p>
                 </div>
             </div>
@@ -159,7 +164,7 @@
             <!-- Copyright Claims Section -->
             <div id="section-copyright" style="display: none;">
                 <h2>Copyright Claims <span style="float: right; background: #dc3545; color: #fff; padding: 2px 12px; border-radius: 20px; font-size: 1rem;">Total: <span id="copyright-count">0</span></span></h2>
-                <div id="copyright-list">
+                <div id="copyright-list" class="scrollable-list">
                     <p>Loading claims...</p>
                 </div>
             </div>
@@ -188,14 +193,14 @@
                 <div class="report-card" style="border-color: #198754;">
                     <h3 style="color: #198754;"><i data-lucide="wallet"></i> Pending Payout Requests</h3>
                     <button class="btn btn-secondary" onclick="window.loadPayoutRequests()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh Requests</button>
-                    <div id="payout-requests-list">Click refresh to load pending requests...</div>
+                    <div id="payout-requests-list" class="scrollable-list">Click refresh to load pending requests...</div>
                 </div>
 
                 <!-- Payment History Section -->
                 <div class="report-card" style="border-color: #6c757d;">
                     <h3 style="color: #6c757d;"><i data-lucide="history"></i> Payment History</h3>
                     <button class="btn btn-secondary" onclick="window.loadPaymentHistory()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Load History</button>
-                    <div id="payment-history-list" style="max-height: 400px; overflow-y: auto;">Click load to view past payments...</div>
+                    <div id="payment-history-list" class="scrollable-list">Click load to view past payments...</div>
                 </div>
 
                 <div class="report-card">
@@ -205,12 +210,12 @@
                         <input type="text" id="user-search-input" placeholder="Enter username (e.g. creator_name)..." style="flex: 1; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                         <button class="btn" onclick="window.searchUserForMonetization()">Search</button>
                     </div>
-                    <div id="monetization-search-results"></div>
+                    <div id="monetization-search-results" class="scrollable-list" style="max-height: 250px;"></div>
                 </div>
                 <div class="report-card">
                     <h3>Currently Monetized Creators</h3>
                     <button class="btn btn-secondary" onclick="window.loadMonetizedUsers()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh List</button>
-                    <div id="monetized-users-list">Click refresh to load...</div>
+                    <div id="monetized-users-list" class="scrollable-list">Click refresh to load...</div>
                 </div>
             </div>
 
@@ -220,9 +225,26 @@
                 
                 <div class="report-card" style="border-color: #a855f7; margin-bottom: 20px;">
                     <h3 style="color: #a855f7; margin-top: 0;"><i data-lucide="hard-drive"></i> General Platform Settings</h3>
-                    <label style="display: block; margin-bottom: 5px;">Maximum Upload Size (in MB):</label>
-                    <p style="color: #aaa; font-size: 0.85rem; margin-top: 0; margin-bottom: 10px;">This limit will apply to long videos, flicks, and image uploads across the platform.</p>
-                    <input type="number" id="admin-max-upload-size" placeholder="e.g. 5" value="5" min="1" max="50" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    <p style="color: #aaa; font-size: 0.85rem; margin-top: 0; margin-bottom: 15px;">Set maximum file upload sizes for different content types across the platform.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Images & Blogs (MB):</label>
+                            <input type="number" id="admin-max-upload-size" placeholder="e.g. 5" value="5" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Long Videos (MB):</label>
+                            <input type="number" id="admin-max-video-size" placeholder="e.g. 500" value="500" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Flicks (MB):</label>
+                            <input type="number" id="admin-max-flick-size" placeholder="e.g. 50" value="50" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Story Editor (MB):</label>
+                            <input type="number" id="admin-max-story-size" placeholder="e.g. 500" value="500" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        </div>
+                    </div>
                     
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px;">
                         <input type="checkbox" id="admin-enable-youtube" style="width: 20px; height: 20px;">
@@ -259,7 +281,7 @@
 
                     <div id="vast-history-section" style="margin-top: 10px; margin-bottom: 20px;">
                         <h3 style="color: #aaa; font-size: 1rem; margin-bottom: 10px;">Recent VAST URLs</h3>
-                        <div id="vast-history-list">
+                        <div id="vast-history-list" class="scrollable-list" style="max-height: 200px;">
                             <!-- History items will be populated here -->
                         </div>
                     </div>
@@ -323,25 +345,69 @@
                 <div class="report-card" style="border-color: #0d6efd; margin-bottom: 20px;">
                     <h3 style="color: #0d6efd;"><i data-lucide="satellite-dish"></i> Live Promotions</h3>
                     <button class="btn btn-secondary" onclick="window.loadLivePromotions()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh Live</button>
-                    <div id="live-promotions-list">Click refresh to load live promotions...</div>
+                    <div id="live-promotions-list" class="scrollable-list">Click refresh to load live promotions...</div>
                 </div>
 
                 <div class="report-card" style="border-color: gold;">
                     <h3 style="color: gold;"><i data-lucide="history"></i> Pending Promotion Requests</h3>
                     <button class="btn btn-secondary" onclick="window.loadPromoRequests()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh Requests</button>
-                    <div id="promo-requests-list">Click refresh to load pending requests...</div>
+                    <div id="promo-requests-list" class="scrollable-list">Click refresh to load pending requests...</div>
                 </div>
 
                 <div class="report-card" style="border-color: #6c757d;">
                     <h3 style="color: #6c757d;"><i data-lucide="history"></i> Promotion History</h3>
                     <button class="btn btn-secondary" onclick="window.loadPromoHistory()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh History</button>
-                    <div id="promo-history-list">Click refresh to load history...</div>
+                    <div id="promo-history-list" class="scrollable-list">Click refresh to load history...</div>
                     <div style="text-align: center; margin-top: 15px;">
                         <button id="load-more-promo-history-btn" class="btn btn-secondary" style="display: none;" onclick="window.loadMorePromoHistory()">Load More</button>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Users Section -->
+            <div id="section-users" style="display: none;">
+                <h2>User Statistics</h2>
+                <div class="report-card">
+                    <h3>Total Registered Users</h3>
+                    <p id="total-users-count" style="font-size: 2.5rem; font-weight: bold; color: #87ceeb; margin: 10px 0;">...</p>
+                    <button class="btn btn-secondary" onclick="window.loadUserStats()"><i data-lucide="refresh-cw"></i> Refresh Count</button>
+                    </div>
+                </div>
+
+            <!-- Team Members Section -->
+            <div id="section-team" style="display: none;">
+                <h2>Team Members Management</h2>
+                <div class="report-card" style="border-color: #6366f1;">
+                    <h3>Add New Team Member</h3>
+                    <p style="color: #aaa; font-size: 0.9rem;">Search for a user by their Unique ID (username) or Email to add them as a team member and assign permissions.</p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="text" id="team-member-search-input" placeholder="Enter username or email..." style="flex: 1; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                        <button class="btn" onclick="window.searchUserForTeam()">Search</button>
+                    </div>
+                    <div id="team-member-search-results" class="scrollable-list" style="max-height: 200px;"></div>
+                </div>
+
+                <div class="report-card" id="team-member-permissions-card" style="display: none; border-color: #10b981;">
+                    <h3>Set Permissions for <span id="selected-team-member-name" style="color: #10b981;"></span></h3>
+                    <p style="color: #aaa; font-size: 0.9rem;">Select the sections this team member can access in the admin panel.</p>
+                    <div id="permission-checkboxes" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                        <!-- Permissions will be dynamically loaded here -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" style="background-color: #198754;" onclick="window.saveTeamMemberPermissions()">Save Permissions</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('team-member-permissions-card').style.display='none'">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="report-card" style="border-color: #f59e0b;">
+                    <h3>Existing Team Members</h3>
+                    <button class="btn btn-secondary" onclick="window.loadTeamMembers()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh List</button>
+                    <div id="existing-team-members-list" class="scrollable-list">
+                        <p>Click refresh to load existing team members...</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div id="auth-message">
@@ -351,7 +417,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc, orderBy, limit, startAfter, writeBatch, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc, orderBy, limit, startAfter, writeBatch, increment, getCountFromServer, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { firebaseConfig } from "./firebase-config.js";
 
@@ -377,8 +443,14 @@
         const sectionHeadlines = document.getElementById('section-headlines');
         const sectionVast = document.getElementById('section-vast');
         const tabPromotions = document.getElementById('tab-promotions');
+        const tabTeam = document.getElementById('tab-team');
         const sectionPromotions = document.getElementById('section-promotions');
+        const tabUsers = document.getElementById('tab-users');
+        const sectionUsers = document.getElementById('section-users');
         let currentAdConfig = {};
+
+        window.adminIsSuperAdmin = false;
+        window.adminPermissions = {};
 
         // --- Custom Toast Notification ---
         function showToast(message, type = 'success') {
@@ -409,6 +481,8 @@
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
             tabPromotions.classList.remove('active');
+            tabUsers.classList.remove('active');
+            tabTeam.classList.remove('active');
             sectionReported.style.display = 'block';
             sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
@@ -416,6 +490,8 @@
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
             sectionPromotions.style.display = 'none';
+            sectionUsers.style.display = 'none';
+            sectionTeam.style.display = 'none';
         });
 
         tabAds.addEventListener('click', () => {
@@ -426,6 +502,8 @@
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
             tabPromotions.classList.remove('active');
+            tabUsers.classList.remove('active');
+            tabTeam.classList.remove('active');
             sectionAds.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionMonetization.style.display = 'none';
@@ -433,6 +511,8 @@
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
             sectionPromotions.style.display = 'none';
+            sectionUsers.style.display = 'none';
+            sectionTeam.style.display = 'none';
         });
 
         tabMonetization.addEventListener('click', () => {
@@ -443,6 +523,8 @@
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
             tabPromotions.classList.remove('active');
+            tabUsers.classList.remove('active');
+            tabTeam.classList.remove('active');
             sectionMonetization.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
@@ -450,6 +532,8 @@
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
             sectionPromotions.style.display = 'none';
+            sectionUsers.style.display = 'none';
+            sectionTeam.style.display = 'none';
             window.loadPayoutRequests();
             window.loadMonetizedUsers();
         });
@@ -462,6 +546,8 @@
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
             tabPromotions.classList.remove('active');
+            tabTeam.classList.remove('active');
+            tabUsers.classList.remove('active');
             sectionCopyright.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
@@ -469,6 +555,8 @@
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
             sectionPromotions.style.display = 'none';
+            sectionTeam.style.display = 'none';
+            sectionUsers.style.display = 'none';
             window.loadCopyrightClaims();
         });
 
@@ -480,6 +568,8 @@
             tabCopyright.classList.remove('active');
             tabVast.classList.remove('active');
             tabPromotions.classList.remove('active');
+            tabTeam.classList.remove('active');
+            tabUsers.classList.remove('active');
             sectionHeadlines.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
@@ -487,6 +577,8 @@
             sectionCopyright.style.display = 'none';
             sectionVast.style.display = 'none';
             sectionPromotions.style.display = 'none';
+            sectionTeam.style.display = 'none';
+            sectionUsers.style.display = 'none';
             window.loadHeadlines();
         });
 
@@ -498,6 +590,8 @@
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
             tabPromotions.classList.remove('active');
+            tabTeam.classList.remove('active');
+            tabUsers.classList.remove('active');
             sectionVast.style.display = 'block';
             sectionReported.style.display = 'none';
             sectionAds.style.display = 'none';
@@ -505,6 +599,8 @@
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
             sectionPromotions.style.display = 'none';
+            sectionTeam.style.display = 'none';
+            sectionUsers.style.display = 'none';
             window.loadVastSettings();
         });
 
@@ -515,6 +611,7 @@
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
+            tabTeam.classList.remove('active');
             tabVast.classList.remove('active');
             sectionPromotions.style.display = 'block';
             sectionReported.style.display = 'none';
@@ -523,33 +620,125 @@
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
+            sectionTeam.style.display = 'none';
+            sectionUsers.style.display = 'none';
             window.loadPromoSettings();
             window.loadPromoRequests();
             window.loadPromoHistory();
             window.loadLivePromotions();
         });
 
+        tabUsers.addEventListener('click', () => {
+            tabUsers.classList.add('active');
+            tabReported.classList.remove('active');
+            tabAds.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            tabHeadlines.classList.remove('active');
+            tabVast.classList.remove('active');
+            tabTeam.classList.remove('active');
+            tabPromotions.classList.remove('active');
+            sectionUsers.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionAds.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
+            sectionVast.style.display = 'none';
+            sectionTeam.style.display = 'none';
+            sectionPromotions.style.display = 'none';
+            window.loadUserStats();
+        });
+
+        const sectionTeam = document.getElementById('section-team');
+        tabTeam.addEventListener('click', () => {
+            tabTeam.classList.add('active');
+            // Hide all other tabs
+            tabReported.classList.remove('active');
+            tabAds.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            tabHeadlines.classList.remove('active');
+            tabVast.classList.remove('active');
+            tabPromotions.classList.remove('active');
+            tabUsers.classList.remove('active');
+            // Show only the Team Members section
+            sectionTeam.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionAds.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
+            sectionVast.style.display = 'none';
+            sectionPromotions.style.display = 'none';
+            sectionUsers.style.display = 'none';
+            window.loadUserStats();
+        });
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const adminEmails = ["nshuhima246@gmail.com", "manahoo09@zohomail.in"];
-                let isAdmin = false;
+                const adminEmails = ["nshuhima246@gmail.com", "manahoo09@zohomail.in", "himanshusainiaggarwal@gmail.com"];
+                let isSuperAdmin = false;
+                let isTeamMember = false;
+                let permissions = {};
                 
-                // Check if the logged in user's email matches our admin list
                 if (user.email && adminEmails.includes(user.email.toLowerCase())) {
-                    isAdmin = true;
+                    isSuperAdmin = true;
                 } else {
-                    // Check if the user is an admin in Firestore as fallback
                     const userDocRef = doc(db, "users", user.uid);
                     const userDocSnap = await getDoc(userDocRef);
-                    isAdmin = userDocSnap.exists() && userDocSnap.data().isAdmin === true;
+                    if (userDocSnap.exists() && userDocSnap.data().adminPermissions) {
+                        permissions = userDocSnap.data().adminPermissions;
+                        if (permissions.isSuperAdmin) {
+                            isSuperAdmin = true;
+                        } else {
+                            isTeamMember = true;
+                        }
+                    } else if (userDocSnap.exists() && userDocSnap.data().isAdmin === true) {
+                        // Fallback for old admin logic
+                        isSuperAdmin = true;
+                    }
                 }
 
-                if (isAdmin) {
+                if (isSuperAdmin || isTeamMember) {
+                    window.adminIsSuperAdmin = isSuperAdmin;
+                    window.adminPermissions = permissions;
+
                     authMessage.style.display = 'none';
                     adminContent.style.display = 'block';
                     adminTabs.style.display = 'flex';
-                    document.getElementById('migrate-btn').style.display = 'inline-block';
+                    document.getElementById('migrate-btn').style.display = isSuperAdmin ? 'inline-block' : 'none';
                     
+                    if (isSuperAdmin) {
+                        document.getElementById('tab-reported').style.display = 'block';
+                        document.getElementById('tab-ads').style.display = 'block';
+                        document.getElementById('tab-monetization').style.display = 'block';
+                        document.getElementById('tab-copyright').style.display = 'block';
+                        document.getElementById('tab-headlines').style.display = 'block';
+                        document.getElementById('tab-vast').style.display = 'block';
+                        document.getElementById('tab-promotions').style.display = 'block';
+                        document.getElementById('tab-users').style.display = 'block';
+                        document.getElementById('tab-team').style.display = 'block';
+                    } else {
+                        if (!permissions.canAccessReported) { document.getElementById('tab-reported').remove(); sectionReported.remove(); }
+                        if (!permissions.canAccessAds) { document.getElementById('tab-ads').remove(); sectionAds.remove(); }
+                        if (!permissions.canAccessMonetization) { document.getElementById('tab-monetization').remove(); sectionMonetization.remove(); }
+                        if (!permissions.canAccessCopyright) { document.getElementById('tab-copyright').remove(); sectionCopyright.remove(); }
+                        if (!permissions.canAccessHeadlines) { document.getElementById('tab-headlines').remove(); sectionHeadlines.remove(); }
+                        if (!permissions.canAccessVast) { document.getElementById('tab-vast').remove(); sectionVast.remove(); }
+                        if (!permissions.canAccessPromotions) { document.getElementById('tab-promotions').remove(); sectionPromotions.remove(); }
+                        if (!permissions.canAccessUsers) { document.getElementById('tab-users').remove(); sectionUsers.remove(); }
+                        document.getElementById('tab-team').remove();
+                        sectionTeam.remove();
+
+                        // Click the first visible tab
+                        if (adminTabs.children.length > 0) {
+                            adminTabs.children[0].click();
+                        } else {
+                            adminContent.innerHTML = '<p style="padding: 20px;">You do not have permission to view any sections.</p>';
+                        }
+                    }
+                    // Dynamically create banner input fields
                     const bannersContainer = document.getElementById('rotating-banners-container');
                     if (bannersContainer && bannersContainer.innerHTML === '') {
                         let html = '';
@@ -625,6 +814,7 @@
                     document.getElementById('admin-search-container').style.display = 'block';
 
                     // Preload all lists so they are globally searchable immediately
+                    // Preload all lists so they are globally searchable immediately and UI can be rendered
                     loadReports();
                     loadAdminAds();
                     loadMonetizationSettings();
@@ -639,6 +829,8 @@
                     window.loadPromoRequests();
                     window.loadPromoHistory();
                     window.loadLivePromotions();
+                    if (isSuperAdmin) window.loadTeamMembers(); // Load team members only for super admin
+                    window.loadUserStats();
                 } else {
                     authMessage.innerHTML = '<p style="color: red;">Access Denied. You are not an admin.</p>';
                     setTimeout(() => window.location.href = 'index.html', 2000);
@@ -648,6 +840,208 @@
                 setTimeout(() => window.location.href = 'index.html', 2000);
             }
         });
+
+        let currentEditingTeamMemberUid = null;
+
+        window.searchUserForTeam = async () => {
+            const searchTerm = document.getElementById('team-member-search-input').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('team-member-search-results');
+            if (!searchTerm) return;
+            
+            resultsDiv.innerHTML = '<p style="color:#aaa;">Searching...</p>';
+            try {
+                const usernameQuery = query(collection(db, "users"), where("usernameLower", "==", searchTerm));
+                const emailQuery = query(collection(db, "users"), where("email", "==", searchTerm));
+                
+                const [usernameSnap, emailSnap] = await Promise.all([
+                    getDocs(usernameQuery),
+                    getDocs(emailQuery)
+                ]);
+
+                const results = new Map();
+                usernameSnap.forEach(doc => results.set(doc.id, doc.data()));
+                emailSnap.forEach(doc => results.set(doc.id, doc.data()));
+
+                if (results.size === 0) {
+                    resultsDiv.innerHTML = '<p style="color: #ff6b6b;">No user found.</p>';
+                    return;
+                }
+                
+                resultsDiv.innerHTML = '';
+                results.forEach((userData, uid) => {
+                    const card = document.createElement('div');
+                    card.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;";
+                    const isTeamMember = userData.adminPermissions != null;
+                    
+                    card.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                            <img src="${userData.photoURL || 'logo.png'}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid ${isTeamMember ? '#198754' : '#666'};">
+                            <div>
+                                <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'}</strong> <span style="color: #aaa; font-size: 0.9rem;">(@${userData.username || 'unknown'})</span>
+                                <div style="font-size: 0.85rem; color: #ccc; margin-top: 5px;">Email: <strong>${userData.email || 'N/A'}</strong></div>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn" style="background-color: #10b981; margin: 0;" onclick="window.openTeamMemberPermissions('${uid}', '${(userData.name || 'User').replace(/'/g, "\\'")}')">
+                                ${isTeamMember ? 'Edit Permissions' : 'Add to Team'}
+                            </button>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(card);
+                });
+            } catch (e) {
+                console.error(e);
+                resultsDiv.innerHTML = '<p style="color: #ff6b6b;">Error searching user.</p>';
+            }
+        };
+
+        window.openTeamMemberPermissions = async (uid, name) => {
+            currentEditingTeamMemberUid = uid;
+            document.getElementById('selected-team-member-name').innerText = name;
+            
+            const permissionsCard = document.getElementById('team-member-permissions-card');
+            const checkboxesDiv = document.getElementById('permission-checkboxes');
+            
+            checkboxesDiv.innerHTML = '<p style="color:#aaa;">Loading permissions...</p>';
+            permissionsCard.style.display = 'block';
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", uid));
+                const perms = userDoc.exists() && userDoc.data().adminPermissions ? userDoc.data().adminPermissions : {};
+
+                checkboxesDiv.innerHTML = `
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="perm-reported" ${perms.canAccessReported ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        Reported Blogs
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="perm-ads" ${perms.canAccessAds ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        Ad Management
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="perm-monetization" ${perms.canAccessMonetization ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        Monetization
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="perm-copyright" ${perms.canAccessCopyright ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        Copyright Claims
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="perm-headlines" ${perms.canAccessHeadlines ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        Headlines
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="perm-vast" ${perms.canAccessVast ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        VAST Ads
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="perm-promotions" ${perms.canAccessPromotions ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        Promotions
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="perm-users" ${perms.canAccessUsers ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        Users
+                    </label>
+                `;
+            } catch (e) {
+                console.error("Error loading permissions:", e);
+                checkboxesDiv.innerHTML = '<p style="color: #ff6b6b;">Error loading permissions.</p>';
+            }
+        };
+
+        window.saveTeamMemberPermissions = async () => {
+            if (!currentEditingTeamMemberUid) return;
+            
+            const perms = {
+                canAccessReported: document.getElementById('perm-reported').checked,
+                canAccessAds: document.getElementById('perm-ads').checked,
+                canAccessMonetization: document.getElementById('perm-monetization').checked,
+                canAccessCopyright: document.getElementById('perm-copyright').checked,
+                canAccessHeadlines: document.getElementById('perm-headlines').checked,
+                canAccessVast: document.getElementById('perm-vast').checked,
+                canAccessPromotions: document.getElementById('perm-promotions').checked,
+                canAccessUsers: document.getElementById('perm-users').checked,
+                isSuperAdmin: false
+            };
+
+            const hasAnyPermission = Object.values(perms).some(v => v === true);
+
+            try {
+                if (hasAnyPermission) {
+                    await updateDoc(doc(db, "users", currentEditingTeamMemberUid), { adminPermissions: perms, isTeamMember: true });
+                    showToast("Team member permissions updated successfully.");
+                } else {
+                    await updateDoc(doc(db, "users", currentEditingTeamMemberUid), { adminPermissions: deleteField(), isTeamMember: deleteField() });
+                    showToast("Team member removed from team (no permissions).");
+                }
+                
+                document.getElementById('team-member-permissions-card').style.display = 'none';
+                if (document.getElementById('team-member-search-input').value.trim()) {
+                    window.searchUserForTeam();
+                }
+                window.loadTeamMembers();
+                
+            } catch (e) {
+                console.error("Error saving permissions:", e);
+                showToast("Failed to save permissions.", "error");
+            }
+        };
+
+        window.loadTeamMembers = async () => {
+            const listDiv = document.getElementById('existing-team-members-list');
+            listDiv.innerHTML = '<p style="color:#aaa;">Loading team members...</p>';
+            try {
+                const q = query(collection(db, "users"), where("isTeamMember", "==", true), orderBy("name"));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    listDiv.innerHTML = '<p style="color: #aaa;">No team members have been added yet.</p>';
+                    return;
+                }
+                listDiv.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const userData = docSnap.data();
+                    const uid = docSnap.id;
+                    const card = document.createElement('div');
+                    card.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;";
+                    
+                    card.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                            <img src="${userData.photoURL || 'logo.png'}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #198754;">
+                            <div>
+                                <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'}</strong> <span style="color: #aaa; font-size: 0.9rem;">(@${userData.username || 'unknown'})</span>
+                                <div style="font-size: 0.85rem; color: #ccc; margin-top: 5px;">Email: <strong>${userData.email || 'N/A'}</strong></div>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn" style="background-color: #10b981; margin: 0;" onclick="window.openTeamMemberPermissions('${uid}', '${(userData.name || 'User').replace(/'/g, "\\'")}')">
+                                Edit Permissions
+                            </button>
+                        </div>
+                    `;
+                    listDiv.appendChild(card);
+                });
+            } catch (e) {
+                console.error(e);
+                let errorMsg = "Error loading team members.";
+                if (e.code === 'failed-precondition') {
+                    errorMsg = `Error: Missing Firestore index. Please create a composite index for the 'users' collection on 'isTeamMember' (Ascending) AND 'name' (Ascending). Check the browser console (F12) for a direct link to create it.`;
+                }
+                listDiv.innerHTML = `<p style="color: #ff6b6b;">${errorMsg}</p>`;
+            }
+        };
+
+        window.loadUserStats = async () => {
+            const userCountEl = document.getElementById('total-users-count');
+            userCountEl.innerText = 'Loading...';
+            try {
+                const coll = collection(db, "users");
+                const snapshot = await getCountFromServer(coll);
+                userCountEl.innerText = snapshot.data().count.toLocaleString();
+            } catch (e) {
+                console.error("Error fetching user count:", e);
+                userCountEl.innerText = 'Error';
+            }
+        };
 
         // Load Ad Settings
         async function loadAdminAds() {
@@ -1178,6 +1572,9 @@
                 if (docSnap.exists() && docSnap.data().maxUploadSizeMB) {
                     document.getElementById('admin-max-upload-size').value = docSnap.data().maxUploadSizeMB;
                 }
+                if (docSnap.exists() && docSnap.data().maxVideoSizeMB) document.getElementById('admin-max-video-size').value = docSnap.data().maxVideoSizeMB;
+                if (docSnap.exists() && docSnap.data().maxFlickSizeMB) document.getElementById('admin-max-flick-size').value = docSnap.data().maxFlickSizeMB;
+                if (docSnap.exists() && docSnap.data().maxStorySizeMB) document.getElementById('admin-max-story-size').value = docSnap.data().maxStorySizeMB;
                 if (docSnap.exists() && docSnap.data().enableYoutubeLinks !== undefined) {
                     document.getElementById('admin-enable-youtube').checked = docSnap.data().enableYoutubeLinks;
                 } else {
@@ -1188,9 +1585,12 @@
 
         window.saveGeneralSettings = async () => {
             const size = parseInt(document.getElementById('admin-max-upload-size').value) || 5;
+            const videoSize = parseInt(document.getElementById('admin-max-video-size').value) || 500;
+            const flickSize = parseInt(document.getElementById('admin-max-flick-size').value) || 50;
+            const storySize = parseInt(document.getElementById('admin-max-story-size').value) || 500;
             const enableYt = document.getElementById('admin-enable-youtube').checked;
             try {
-                await setDoc(doc(db, "settings", "general"), { maxUploadSizeMB: size, enableYoutubeLinks: enableYt }, { merge: true });
+                await setDoc(doc(db, "settings", "general"), { maxUploadSizeMB: size, maxVideoSizeMB: videoSize, maxFlickSizeMB: flickSize, maxStorySizeMB: storySize, enableYoutubeLinks: enableYt }, { merge: true });
                 showToast("General settings saved successfully!");
             } catch (e) { console.error("Error saving general settings:", e); showToast("Failed to save settings.", "error"); }
         };

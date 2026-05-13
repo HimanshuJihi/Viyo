@@ -1,7 +1,7 @@
         body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; background: #050505; color: #e2e8f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; transition: background-color .3s ease, color .3s ease; }
-        .container { background: rgba(20, 20, 20, 0.6); padding: 30px; border-radius: 20px; backdrop-filter: blur(20px); width: 100%; max-width: 800px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        #profile-main-view, #profile-settings-view { background: transparent; padding: 30px 15px; border-radius: 0; backdrop-filter: none; width: 100%; max-width: 800px; text-align: center; border: none; margin: 0 auto; box-sizing: border-box; }
         input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: bold; margin-top: 10px; }
+        button { padding: 10px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: bold; margin-top: 10px; }
         button:hover { background: #e68900; }
         .profile-pic { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid white; margin-bottom: 15px; cursor: pointer; }
         /* CropperJS CSS Fix */
@@ -43,7 +43,7 @@
         body.light-mode .stat-label { color: #555; font-weight: bold; }
 
         @media (max-width: 480px) {
-            .container { width: 90%; padding: 20px; }
+            #profile-main-view, #profile-settings-view { width: 90%; padding: 20px; }
         }
 
         /* Profile Inputs & Bio Styling */
@@ -67,7 +67,7 @@
 
         /* Light Mode */
         body.light-mode { background: #f4f7f6; color: #333; }
-        body.light-mode .container { background: #fff; border-color: #ddd; }
+        body.light-mode #profile-main-view, body.light-mode #profile-settings-view { background: transparent; border: none; }
         body.light-mode input, body.light-mode textarea { background: #f0f0f0; color: #333; border: 1px solid #ccc; }
         
         /* Light mode for badges */
@@ -98,7 +98,7 @@
         body.light-mode #pwd-modal-desc { color: #666; }
         body.light-mode #pwd-auth-section input, body.light-mode #new-password-section input { background: #f0f0f0; border-color: #ccc; color: #333; }
         .btn {
-            display: inline-block; padding: 12px 24px; font-size: 1rem; font-weight: bold; color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 30px !important; text-decoration: none; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            display: inline-block; padding: 8px 18px; font-size: 0.9rem; font-weight: bold; color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 30px !important; text-decoration: none; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5); }
 
@@ -156,10 +156,10 @@
 
         /* 5 New Futuristic Themes */
         body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
-        body.cyberpunk-mode .container { border-color: rgba(255, 0, 124, 0.2); }
+        body.cyberpunk-mode #profile-main-view, body.cyberpunk-mode #profile-settings-view { border: none; }
         body.cyberpunk-mode .btn { background: linear-gradient(135deg, #f72585, #4361ee); box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3); }
         body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
-        body.matrix-mode .container { border-color: rgba(0, 255, 65, 0.2); }
+        body.matrix-mode #profile-main-view, body.matrix-mode #profile-settings-view { border: none; }
         body.matrix-mode .btn { background: linear-gradient(135deg, #00b4d8, #00ff41); box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3); color: #000; }
         body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
         body.ocean-mode .btn { background: linear-gradient(135deg, #0077b6, #00b4d8); box-shadow: 0 4px 15px rgba(0, 119, 182, 0.3); }
@@ -182,20 +182,14 @@
 
         /* Styles from news.html for blog cards */
         .news-card {
-            background: rgba(20, 20, 20, 0.5);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            overflow: hidden;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        overflow: visible;
             display: flex;
             flex-direction: column;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
             margin-bottom: 20px;
-        }
-        .news-card:hover {
-            transform: translateY(-6px) scale(1.01);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.1);
         }
         .news-card img.card-img-top {
             width: 100%;
@@ -209,11 +203,41 @@
         .news-card-content h2 a:hover { color: #ddd; text-decoration: underline; }
         .article-meta { font-size: 0.85rem; color: #ddd; margin-bottom: 15px; display: block; }
         .news-card-content p { font-size: 1.05rem; color: #eee; margin-bottom: 1em; }
+        .card-title-text {
+            margin: 0 0 4px 0;
+            font-size: 1rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            cursor: pointer;
+            color: #fff;
+        }
+        .card-media-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .card-media-container img, .card-media-container video, .card-media-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: none;
+        }
         .carousel-container { position: relative; }
-        .image-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
-        .image-carousel img { flex: 0 0 100%; scroll-snap-align: center; max-height: 300px; object-fit: cover; border-radius: 8px; cursor: pointer; }
+        .image-carousel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; padding: 0 !important; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; }
+        .image-carousel img { flex: 0 0 100%; scroll-snap-align: center; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; cursor: pointer; position: relative !important; }
         .image-carousel::-webkit-scrollbar { display: none; }
-        .image-carousel { -ms-overflow-style: none; scrollbar-width: none; }
         .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; z-index: 5; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s; }
         .carousel-btn:hover { background: rgba(0,0,0,0.9); }
         .carousel-btn.prev { left: 10px; }
@@ -221,16 +245,35 @@
         .comment-actions { display: flex; gap: 15px; margin-top: 8px; font-size: 0.85rem; color: #aaa; }
         .comment-action-btn { background: none; border: none; color: inherit; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 5px; transition: color 0.2s; }
         .comment-action-btn:hover { color: #fff; }
+
+        /* Modern Action Buttons for Blog Cards */
+        .blog-action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            font-family: inherit;
+        }
+        .blog-action-btn:hover { background-color: rgba(255, 255, 255, 0.05); transform: scale(1.05); }
+
         .replies-list { margin-left: 20px; margin-top: 10px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px; }
         .pinned-badge { background: #ffd700; color: #000; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: 8px; font-weight: bold; vertical-align: middle; }
         .follow-btn.in-card { padding: 2px 8px; font-size: 0.7rem; border-radius: 10px; border: 1px solid #0d6efd; background: transparent; color: #0d6efd; cursor: pointer; margin-left: 10px; transition: all 0.2s; }
         .follow-btn.in-card.following { background: #0d6efd; color: white; }
 
         /* Light mode for blog cards */
-        body.light-mode .news-card { background: #fff; border-color: #ddd; }
+    body.light-mode .news-card { background: transparent; border: none; box-shadow: none; }
         body.light-mode .news-card-content h2 a { color: #333; }
         body.light-mode .news-card-content p { color: #555; }
         body.light-mode .article-meta { color: #666; }
+        body.light-mode .blog-action-btn:hover { background-color: rgba(0, 0, 0, 0.05); }
         body.light-mode .comment-actions { color: #666; }
         body.light-mode .comment-action-btn:hover { color: #000; }
         body.light-mode .replies-list { border-left-color: #eee; }
@@ -259,12 +302,38 @@
 
         /* Grid View Styles for Videos and Flicks */
         .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; }
-        .flicks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .flicks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .flick-grid-item { position: relative; aspect-ratio: 9 / 16; cursor: pointer; overflow: hidden; background: #222; border-radius: 4px; transition: transform 0.2s; }
+        .flick-grid-item:hover { transform: scale(1.02); }
+        .flick-grid-item img, .flick-grid-item video { width: 100%; height: 100%; object-fit: cover; }
+        .flick-grid-stats { position: absolute; bottom: 8px; left: 8px; color: white; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); pointer-events: none; }
+        .flick-grid-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; pointer-events: none; z-index: 2; text-shadow: 1px 1px 2px black; backdrop-filter: blur(2px); }
+        .flick-grid-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 5px; opacity: 0; transition: opacity 0.2s; }
+        .flick-grid-item:hover .flick-grid-actions { opacity: 1; }
+        .flick-grid-action-btn { background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 5px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .flick-grid-action-btn:hover { background: rgba(0,0,0,0.9); }
+        @media (max-width: 768px) {
+            .flicks-grid { gap: 2px; }
+            .flick-grid-actions { opacity: 1; top: 4px; right: 4px; }
+            .flick-grid-action-btn { padding: 4px; }
+            .flick-grid-stats { bottom: 4px; left: 4px; font-size: 0.75rem; }
+            .flick-grid-duration { bottom: 4px; right: 4px; font-size: 0.7rem; padding: 2px 4px; }
+        }
         .yt-grid-item { cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: transform 0.2s; }
         .yt-grid-item:hover { transform: scale(1.02); }
         .video-thumbnail { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #222; border: 1px solid #444; }
         .flick-thumbnail { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; background: #222; border: 1px solid #444; }
-        .yt-grid-item h4 { margin: 8px 0 4px 0; font-size: 0.95rem; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+        .grid-title-text { margin: 8px 0 4px 0; font-size: 0.95rem; color: inherit; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+        @media (min-width: 601px) {
+            .card-title-text { min-height: 2.8em; }
+            .grid-title-text { min-height: 2.6em; }
+            .card-media-container { border-radius: 12px; }
+        }
+        @media (max-width: 600px) {
+            .news-card { margin-bottom: 0 !important; border-bottom: 4px solid #222; padding-bottom: 10px; border-radius: 0; }
+            .news-card-content { padding: 10px 12px 0 12px !important; }
+            body.light-mode .news-card { border-bottom: 4px solid #ddd; }
+        }
         .yt-grid-item p { margin: 0; font-size: 0.8rem; color: #aaa; }
         body.light-mode .yt-grid-item h4 { color: #333; }
         body.light-mode .yt-grid-item p { color: #666; }

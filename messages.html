@@ -32,7 +32,7 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="messages-container">
         <div class="header">
             <h1>My Messages</h1>
             <div class="header-actions">
@@ -48,7 +48,7 @@
                         <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
                     </div>
                 </div>
-                <button id="new-message-btn" class="btn btn-transparent"><i data-lucide="message-square"></i> New Message</button>
+                <button id="new-message-btn" style="background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; font-size: 0.85rem; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="message-square" style="width: 16px; height: 16px;"></i> New Message</button>
                 <a href="index.html" class="btn btn-transparent"><i data-lucide="arrow-left"></i> Back to Home</a>
             </div>
         </div>
@@ -157,7 +157,7 @@
                 listenForConversations(blockedUsers);
                 setupNewMessageButton();
             } else {
-                alert("Please login to view your messages.");
+                await viyouAlert("Please login to view your messages.");
                 window.location.href = 'index.html';
             }
         });

@@ -13,15 +13,104 @@
         .theme-dropdown { max-height: 75vh; overflow-y: auto; overflow-x: hidden; }
         .theme-dropdown::-webkit-scrollbar { width: 4px; }
         .theme-dropdown::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+
+        /* Double Tap Heart Animation */
+        .double-tap-heart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            color: #ff0050;
+            font-size: 6rem;
+            z-index: 25;
+            pointer-events: none;
+            opacity: 0;
+            text-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+/* General positioning for overlay and sidebar to keep them ON screen */
+        .flick-item { position: relative; }
+        .flick-item video { width: 100%; height: 100%; object-fit: cover; }
+        .flick-item .overlay {
+            position: absolute;
+            bottom: 30px;
+            left: 15px;
+            right: 70px;
+            z-index: 10;
+            color: white;
+            pointer-events: none;
+        }
+        .flick-item .sidebar {
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            pointer-events: auto;
+        }
+        /* Mobile Safari/Chrome Bottom Bar Fix */
+        @media screen and (max-width: 768px) {
+            .flicks-container, .flick-item {
+                height: 100dvh !important;
+            }
+            .flick-item .sidebar { bottom: 90px !important; }
+            .flick-item .overlay { bottom: 70px !important; }
+            
+            .flicks-container {
+                overflow-y: scroll;
+                scroll-snap-type: y mandatory;
+                scrollbar-width: none;
+            }
+            .flicks-container::-webkit-scrollbar { display: none; }
+            .flick-item { scroll-snap-align: start; }
+        }
+
+        /* Desktop/PC Flicks Layout Fix (Instagram Reels Style) */
+        @media screen and (min-width: 769px) {
+            body { background: #050505; overflow: hidden; } /* Prevents double scrollbar */
+            .navbar { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.8); backdrop-filter: blur(0px); border-bottom: 0px solid #333; }
+            .flicks-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding-top: 70px;
+                padding-bottom: 70px;
+                height: 100vh !important; /* Makes container the scrollable area */
+                overflow-y: scroll;
+                scroll-snap-type: y mandatory;
+                scrollbar-width: none;
+                scroll-behavior: smooth;
+            }
+            .flicks-container::-webkit-scrollbar { display: none; }
+            .flick-item {
+                position: relative;
+                height: calc(100vh - 30px) !important;
+                aspect-ratio: 9 / 16; /* Forces original vertical ratio on PC */
+                width: auto;
+                max-width: 25%;
+                margin-bottom: 20px; /* More space to make snapping smoother */
+                border-radius: 16px;
+                box-shadow: 0 0 20px rgba(255,255,255,0.05);
+                overflow: hidden;
+                background: #111;
+                flex-shrink: 0; /* Prevents multiple flicks from squishing into one screen */
+                scroll-snap-align: center; /* Snaps perfectly to the center */
+            }
+            .flick-item video { width: 100%; height: 100%; object-fit: cover; }
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+            let lucideTimeout;
             const observer = new MutationObserver((mutations) => {
                 if (mutations.some(m => m.addedNodes.length > 0)) {
-                    observer.disconnect();
-                    lucide.createIcons();
-                    observer.observe(document.body, { childList: true, subtree: true });
+                    clearTimeout(lucideTimeout);
+                    lucideTimeout = setTimeout(() => {
+                        lucide.createIcons();
+                    }, 50);
                 }
             });
             observer.observe(document.body, { childList: true, subtree: true });
@@ -41,6 +130,7 @@
         <div class="theme-dropdown-container">
             <button id="main-menu-toggle" class="theme-btn"><i data-lucide="menu"></i></button>
             <div id="main-menu-dropdown" class="theme-dropdown">
+                <a href="#" onclick="window.navigateTo('history', event); document.getElementById('main-menu-dropdown').classList.remove('show');" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="history" style="width: 16px;"></i> Flicks History</a>
                 <a href="about-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="info" style="width: 16px;"></i> About Us</a>
                 <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
                 <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
@@ -54,8 +144,37 @@
     <div id="flicks-comments-panel" style="display:none; position: fixed; bottom: 0; left: 0; width: 100%; height: 60%; background: #1e1e1e; border-top-left-radius: 15px; border-top-right-radius: 15px; z-index: 101; flex-direction: column; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); transform: translateY(100%); transition: transform 0.3s ease-out;">
         <!-- Comment Panel Content will be injected by JS -->
     </div>
+    <!-- Flicks Description Panel -->
+    <div id="flicks-description-panel" style="display:none; position: fixed; bottom: 0; left: 0; width: 100%; height: 60%; background: #1e1e1e; border-top-left-radius: 15px; border-top-right-radius: 15px; z-index: 101; flex-direction: column; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); transform: translateY(100%); transition: transform 0.3s ease-out;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #333;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: white;">Description</h3>
+            <button onclick="window.closeFlickDescription()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <div id="flicks-description-content" style="flex: 1; overflow-y: auto; padding: 20px; color: white;"></div>
+    </div>
+
+    <!-- Flicks Feed SPA View -->
     <div class="flicks-container" id="flicks-container">
         <div style="height: 100vh; display: flex; align-items: center; justify-content: center; color: #aaa;">Loading Flicks...</div>
+    </div>
+
+    <!-- Flicks History SPA View -->
+    <div id="view-flicks-history" style="display: none; padding-top: 80px; height: 100vh; overflow-y: auto; box-sizing: border-box; background: #050505; width: 100%;">
+        <div style="max-width: 1000px; margin: 0 auto; padding: 0 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center;">
+                    <button class="btn-transparent" style="padding: 6px 10px; border-radius: 8px; font-weight: bold; margin-right: 15px; color: white; background: rgba(255,255,255,0.1); border: none; cursor: pointer;" onclick="window.navigateTo('feed', event)"><i data-lucide="arrow-left" style="vertical-align: middle;"></i> Back</button>
+                    <h2 style="margin: 0; color: #ff0050;"><i data-lucide="history" style="vertical-align: middle;"></i> Flicks History</h2>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="pause-flicks-history-btn" style="background: rgba(255,255,255,0.1); color: #ccc; padding: 6px 12px; border-radius: 8px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;" onclick="window.toggleFlicksHistoryPause()"><i data-lucide="pause-circle" style="vertical-align: middle; width: 16px; height: 16px;"></i> <span id="pause-flicks-history-text">Pause</span></button>
+                    <button style="background: rgba(255,0,80,0.2); color: #ff0050; padding: 6px 12px; border-radius: 8px; font-weight: bold; border: 1px solid rgba(255,0,80,0.5); cursor: pointer;" onclick="window.clearFlicksHistory()"><i data-lucide="trash-2" style="vertical-align: middle; width: 16px; height: 16px;"></i> Clear</button>
+                </div>
+            </div>
+            <div id="flicks-history-loading" style="text-align: center; color: #aaa; padding: 20px; display: none;"><i data-lucide="loader" style="width: 32px; height: 32px; color: #ff0050; animation: spin 1s linear infinite;"></i><p>Loading...</p></div>
+            <div id="flicks-history-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding-bottom: 30px;"></div>
+            <div id="flicks-history-empty" style="text-align: center; padding: 40px; color: #aaa; display: none;">No flicks history found.</div>
+        </div>
     </div>
 
     <!-- Send Flick Modal -->
@@ -70,9 +189,13 @@
     </div>
 
     <script type="module">
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, setDoc, orderBy, limit, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { db, auth } from "./firebase-config.js";
+
+        // Start fetching data immediately to speed up load time
+        const globalFlicksPromise = getDocs(query(collection(db, "blogs"), where("isFlicker", "==", true)));
+        let flicksGlobalMuted = true; // Track mute state across scroll
 
         // Helper function to escape HTML for XSS prevention
         function escapeHTML(str) {
@@ -109,8 +232,7 @@
 
         async function loadFlicks() {
             try {
-                const q = query(collection(db, "blogs"), where("isFlicker", "==", true));
-                const snap = await getDocs(q);
+                const snap = await globalFlicksPromise;
                 snap.forEach(doc => {
                     const data = doc.data();
                     if(data.status !== 'draft') flicks.push({ id: doc.id, ...data });
@@ -148,38 +270,59 @@
                     
                     let titleText = flick.title || '';
                     let showMoreHtml = '';
-                    if (titleText.length > 60) {
-                        showMoreHtml = `<button class="show-more-flick" id="flick-btn-${flick.id}" onclick="toggleFlickDesc('${flick.id}', event)">more</button>`;
+                    if (titleText.length > 60 || (flick.content && flick.content.length > 0)) {
+                        showMoreHtml = `<button class="show-more-flick" id="flick-btn-${flick.id}" onclick="window.openFlickDescription('${flick.id}', event)" style="background:none; border:none; color:#aaa; font-weight:bold; padding:0; cursor:pointer;">more</button>`;
                     }
+
+                    let followBtnHtml = '';
+                    if (auth.currentUser && flick.authorUid && flick.authorUid !== auth.currentUser.uid) {
+                        const isFollowing = currentUserFollowing.includes(flick.authorUid);
+                        followBtnHtml = `<button onclick="event.stopPropagation(); window.toggleFollow('${flick.authorUid}')" class="follow-btn ${isFollowing ? 'following' : ''}" style="margin-left: 8px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; border: 1px solid #fff; background: ${isFollowing ? 'rgba(255,255,255,0.2)' : '#ff0050'}; color: #fff; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">${isFollowing ? 'Following' : 'Follow'}</button>`;
+                    }
+                    const viewsCount = (flick.views || 0).toLocaleString();
                     
+                    let safeTitleHtml = escapeHTML(titleText);
+                    const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+                    safeTitleHtml = safeTitleHtml.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #87ceeb; text-decoration: underline;" onclick="event.stopPropagation()">$1</a>');
+                    
+                    const hashtagRegex = /#(\w+)/g;
+                    safeTitleHtml = safeTitleHtml.replace(hashtagRegex, '<a href="search.html?q=%23$1" style="color: #0d6efd; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation()">#$1</a>');
+
                     div.innerHTML = `
-                        <video src="${flick.video}" loop playsinline data-id="${flick.id}"></video>
+                        <video src="${flick.video}" loop playsinline muted preload="auto" data-id="${flick.id}"></video>
+                        <div class="double-tap-heart" id="dt-heart-${flick.id}"><i data-lucide="heart" class="lucide-fill"></i></div>
                         <div class="overlay">
-                            <div class="author-row" onclick="window.location.href='profile.html?uid=${flick.authorUid}'">
-                                <img src="${flick.authorPhoto || 'https://via.placeholder.com/45'}">
-                                <strong>@${flick.author}</strong>
+                            <div class="author-row" style="display: flex; align-items: center; width: 100%; margin-bottom: 12px; pointer-events: auto;">
+                                <img src="${flick.authorPhoto || 'https://via.placeholder.com/45'}" onclick="window.location.href='profile.html?uid=${flick.authorUid}'" style="cursor: pointer; margin-right: 12px; width: 45px; height: 45px; border-radius: 50%; border: 2px solid white; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                                <div style="display: flex; flex-direction: column; justify-content: center; cursor: pointer;" onclick="window.location.href='profile.html?uid=${flick.authorUid}'">
+                                    <div style="display: flex; align-items: center;">
+                                        <strong style="font-size: 1.05rem; font-weight: bold; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.9);">@${flick.author}</strong>
+                                        ${followBtnHtml}
+                                    </div>
+                                    <span style="font-size: 0.8rem; color: #eee; margin-top: 2px; display: flex; align-items: center; gap: 4px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9);"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> <span id="view-count-${flick.id}">${viewsCount}</span></span>
+                                </div>
                             </div>
-                            <div style="pointer-events: auto;">
-                                <div class="title" id="flick-title-${flick.id}">${escapeHTML(titleText)}</div>
+                            <div style="pointer-events: auto; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); color: white;">
+                                <div class="title" id="flick-title-${flick.id}" style="font-size: 0.95rem; line-height: 1.4; margin-bottom: 5px; cursor: pointer;" onclick="window.openFlickDescription('${flick.id}', event)">${safeTitleHtml}</div>
                                 ${showMoreHtml}
                             </div>
                         </div>
                         <div class="sidebar">
-                            <div class="action-wrapper">
-                                <button class="action-btn" onclick="window.likeFlick('${flick.id}', this)"><i data-lucide="heart" class="${fillClass}" style="color: ${heartColor};"></i></button>
-                                <span id="like-count-${flick.id}">${likesCount}</span>
+                            <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+                                <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="window.likeFlick('${flick.id}', this)"><i data-lucide="heart" class="${fillClass}" style="color: ${heartColor};"></i></button>
+                                <span id="like-count-${flick.id}" style="font-size: 0.85rem; font-weight: bold;">${likesCount}</span>
                             </div>
-                            <div class="action-wrapper">
-                                <button class="action-btn" onclick="window.openFlickComments()"><i data-lucide="message-circle"></i></button>
-                                <span id="comment-count-${flick.id}">${(flick.comments || []).length}</span>
+                            <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+                                <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="window.openFlickComments()"><i data-lucide="message-circle"></i></button>
+                                <span id="comment-count-${flick.id}" style="font-size: 0.85rem; font-weight: bold;">${(flick.comments || []).length}</span>
                             </div>
-                            <div class="action-wrapper">
-                                <button class="action-btn" onclick="shareFlick('${flick.id}')"><i data-lucide="share-2"></i></button>
-                                <span>Share</span>
+                            <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+                                <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="shareFlick('${flick.id}')"><i data-lucide="share-2"></i></button>
+                                <span style="font-size: 0.85rem; font-weight: bold;">Share</span>
                             </div>
-                            <div class="action-wrapper">
-                                <button class="action-btn" onclick="window.openSendFlickModal('${flick.id}')"><i data-lucide="send"></i></button>
-                                <span>Send</span>
+                            <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+                                <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="window.openSendFlickModal('${flick.id}')"><i data-lucide="send"></i></button>
+                                <span style="font-size: 0.85rem; font-weight: bold;">Send</span>
                             </div>
                         </div>
                     `;
@@ -192,39 +335,177 @@
             }
         }
         
-        window.toggleFlickDesc = function(id, event) {
+        window.openFlickDescription = function(id, event) {
             if (event) event.stopPropagation();
-            const titleEl = document.getElementById(`flick-title-${id}`);
-            const btn = document.getElementById(`flick-btn-${id}`);
-            const isExpanded = titleEl.classList.toggle('expanded');
-            btn.innerText = isExpanded ? 'less' : 'more';
+            const panel = document.getElementById('flicks-description-panel');
+            if (!panel) return;
+            const flick = flicks.find(f => f.id === id);
+            if (!flick) return;
+
+            let safeTitleHtml = escapeHTML(flick.title || '');
+            let safeContentHtml = escapeHTML(flick.content || '');
+            const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+            
+            safeTitleHtml = safeTitleHtml.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #87ceeb; text-decoration: underline;" onclick="event.stopPropagation()">$1</a>');
+            safeContentHtml = safeContentHtml.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #87ceeb; text-decoration: underline;" onclick="event.stopPropagation()">$1</a>').replace(/\n/g, '<br>');
+
+            const hashtagRegex = /#(\w+)/g;
+            safeTitleHtml = safeTitleHtml.replace(hashtagRegex, '<a href="search.html?q=%23$1" style="color: #0d6efd; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation()">#$1</a>');
+            safeContentHtml = safeContentHtml.replace(hashtagRegex, '<a href="search.html?q=%23$1" style="color: #0d6efd; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation()">#$1</a>');
+
+            if (flick.mentionMap) {
+                safeTitleHtml = safeTitleHtml.replace(/@([\w_]+)/g, (match, username) => {
+                    const uid = flick.mentionMap[username.toLowerCase()];
+                    if (uid) return `<a href="profile.html?uid=${uid}" style="color: #87ceeb; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation();">${match}</a>`;
+                    return match;
+                });
+                safeContentHtml = safeContentHtml.replace(/@([\w_]+)/g, (match, username) => {
+                    const uid = flick.mentionMap[username.toLowerCase()];
+                    if (uid) return `<a href="profile.html?uid=${uid}" style="color: #87ceeb; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation();">${match}</a>`;
+                    return match;
+                });
+            }
+
+            document.getElementById('flicks-description-content').innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                    <img src="${flick.authorPhoto || 'https://via.placeholder.com/45'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);" onclick="window.location.href='profile.html?uid=${flick.authorUid}'">
+                    <div style="cursor: pointer;" onclick="window.location.href='profile.html?uid=${flick.authorUid}'">
+                        <strong style="color: #fff; font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">@${flick.author}</strong>
+                        <div style="color: #ccc; font-size: 0.85rem;">${new Date(flick.date).toLocaleDateString()}</div>
+                    </div>
+                </div>
+                <h3 style="margin-top: 0; color: #fff; font-size: 1.15rem; line-height: 1.4;">${safeTitleHtml}</h3>
+                <div style="color: #ddd; margin-top: 10px; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word;">${safeContentHtml}</div>
+                
+                <!-- Original Audio Information Box -->
+                <div style="margin-top: 20px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="background: rgba(0,0,0,0.5); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="music" style="width: 20px; height: 20px; color: #f59e0b;"></i>
+                    </div>
+                    <div style="flex: 1; overflow: hidden; text-align: left;">
+                        <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem;">Original Audio</div>
+                        <div style="font-size: 0.8rem; color: #aaa;">@${flick.author}</div>
+                    </div>
+                    <button style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" onclick="window.useFlickAudio('${flick.id}')">Use</button>
+                </div>
+            `;
+
+            panel.style.display = 'flex';
+            setTimeout(() => {
+                panel.style.transform = 'translateY(0)';
+            }, 10);
+        };
+
+        window.closeFlickDescription = function() {
+            const panel = document.getElementById('flicks-description-panel');
+            if (!panel) return;
+            panel.style.transform = 'translateY(100%)';
+            setTimeout(() => panel.style.display = 'none', 300);
+        };
+
+        window.useFlickAudio = function(id) {
+            const flick = flicks.find(f => f.id === id);
+            if (flick && flick.video) {
+                localStorage.setItem('viyou_import_audio_url', flick.video);
+                localStorage.setItem('viyou_import_audio_name', 'Original Audio - @' + flick.author);
+                window.location.href = 'story-editor.html?importAudio=true';
+            }
         };
 
        window.likeFlick = async (id, btn) => {
             if (!auth.currentUser) { alert('Log in to like.'); return; }
             const icon = btn.querySelector('svg') || btn.querySelector('i');
             const countSpan = btn.nextElementSibling;
-            let currentLikes = parseInt(countSpan.innerText);
+            let currentLikes = parseInt(countSpan.innerText) || 0;
+            const uid = auth.currentUser.uid;
 
+            // Local state find and update
+            const flickIndex = flicks.findIndex(f => f.id === id);
+            if (flickIndex === -1) return;
+            const flick = flicks[flickIndex];
+
+            let likes = Array.isArray(flick.likes) ? flick.likes : [];
+            const isLiking = !likes.includes(uid);
+
+            // 1. Optimistic UI Update (Instant Response, No Lag)
+            if (isLiking) {
+                likes.push(uid);
+                icon.style.color = '#ff0050';
+                icon.classList.add('lucide-fill');
+                countSpan.innerText = currentLikes + 1;
+            } else {
+                likes = likes.filter(u => u !== uid);
+                icon.style.color = 'white';
+                icon.classList.remove('lucide-fill');
+                countSpan.innerText = Math.max(0, currentLikes - 1);
+            }
+            flick.likes = likes; // Update local state so it doesn't revert on scroll
+
+            // 2. Background Network Request
             const ref = doc(db, "blogs", id);
             try {
-                const snap = await getDoc(ref);
-                let likes = snap.data().likes || [];
-                const isLiking = !likes.includes(auth.currentUser.uid);
-
                 if (isLiking) {
-                    likes.push(auth.currentUser.uid);
-                    icon.style.color = '#ff0050';
-                    icon.classList.add('lucide-fill');
-                    countSpan.innerText = currentLikes + 1;
+                    await updateDoc(ref, { likes: arrayUnion(uid) });
+                    
+                    // Send notification to the creator of the flick
+                    if (flick.authorUid && flick.authorUid !== uid) {
+                        await addDoc(collection(db, "notifications"), {
+                            recipientUid: flick.authorUid,
+                            senderUid: uid,
+                            senderName: auth.currentUser.displayName || "User",
+                            type: "like",
+                            blogId: id,
+                            blogTitle: flick.title || "Flick",
+                            date: new Date().toISOString(),
+                            read: false
+                        });
+                    }
                 } else {
-                    likes = likes.filter(uid => uid !== auth.currentUser.uid);
-                    icon.style.color = 'white';
-                    icon.classList.remove('lucide-fill');
-                    countSpan.innerText = Math.max(0, currentLikes - 1);
+                    await updateDoc(ref, { likes: arrayRemove(uid) });
                 }
-                await updateDoc(ref, { likes });
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error("Like Status Update Error:", e); 
+            }
+        };
+
+        window.toggleFollow = async function(targetUid) {
+            if (!auth.currentUser) { alert("Please login to follow!"); return; }
+            const myUid = auth.currentUser.uid;
+            const isUnfollowing = currentUserFollowing.includes(targetUid);
+
+            // 1. Optimistic Local Update (ताकि बटन का रंग तुरंत बदल जाए)
+            if (isUnfollowing) {
+                currentUserFollowing = currentUserFollowing.filter(id => id !== targetUid);
+            } else {
+                currentUserFollowing.push(targetUid);
+            }
+
+            // 2. स्क्रीन पर मौजूद उस क्रिएटर के सभी Follow बटन्स को अपडेट करें
+            document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
+                if (isUnfollowing) {
+                    btn.classList.remove('following');
+                    btn.innerText = 'Follow';
+                    btn.style.background = '#ff0050';
+                } else {
+                    btn.classList.add('following');
+                    btn.innerText = 'Following';
+                    btn.style.background = 'rgba(255,255,255,0.2)';
+                }
+            });
+
+            // 3. बैकग्राउंड में डेटाबेस (Firestore) अपडेट करें
+            try {
+                const userRef = doc(db, "users", myUid);
+                const targetRef = doc(db, "users", targetUid);
+                if (isUnfollowing) {
+                    await updateDoc(userRef, { following: arrayRemove(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayRemove(myUid) });
+                } else {
+                    await updateDoc(userRef, { following: arrayUnion(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayUnion(myUid) });
+                    await addDoc(collection(db, "notifications"), { recipientUid: targetUid, senderUid: myUid, senderName: auth.currentUser.displayName || "Someone", type: "follow", date: new Date().toISOString(), read: false });
+                }
+            } catch(e) { console.error("Follow error:", e); }
         };
 
         window.shareFlick = (id) => {
@@ -239,15 +520,40 @@
                 entries.forEach(entry => {
                     const vid = entry.target;
                     if (entry.isIntersecting) {
-                        vid.play().catch(e=>{});
+                        vid.muted = flicksGlobalMuted; // Sync mute state
+                        const playPromise = vid.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                vid.muted = true; // Fallback to mute if browser blocks autoplay
+                                vid.play().catch(e => {});
+                            });
+                        }
                         const id = vid.getAttribute('data-id');
                         currentFlickId = id;
+
+                        // --- SAVE WATCH HISTORY ---
+                        if (id && auth.currentUser && !window.isHistoryPaused) {
+                            try {
+                                setDoc(doc(db, "users", auth.currentUser.uid, "watchHistory", id), {
+                                    blogId: id,
+                                    viewedAt: serverTimestamp()
+                                }, { merge: true });
+                            } catch (e) { console.error("Error saving history:", e); }
+                        }
+                        // --------------------------
+
                         if (id && !viewedFlicks.has(id)) {
                             if (vid._viewTimerFn) vid.removeEventListener('timeupdate', vid._viewTimerFn);
                             vid._viewTimerFn = function() {
                                 if (vid.currentTime >= 5 && !viewedFlicks.has(id)) {
+                                    // --- Max 4 Views Per User/Device Logic ---
+                                    const viewKey = `viyou_view_count_${id}`;
+                                    let currentViews = parseInt(localStorage.getItem(viewKey) || '0');
+                                    if (currentViews < 4) {
+                                        localStorage.setItem(viewKey, currentViews + 1);
+                                        updateDoc(doc(db, "blogs", id), { views: increment(1) }).catch(e=>{});
+                                    }
                                     viewedFlicks.add(id);
-                                    updateDoc(doc(db, "blogs", id), { views: increment(1) }).catch(e=>{});
                                     vid.removeEventListener('timeupdate', vid._viewTimerFn);
                                 }
                             };
@@ -262,9 +568,88 @@
 
             videos.forEach(vid => {
                 observer.observe(vid);
-                vid.addEventListener('click', () => { if (vid.paused) vid.play(); else vid.pause(); });
+                let clickTimer = null; // Timer to detect double tap
+                vid.addEventListener('click', (e) => { 
+                    if (clickTimer) {
+                        clearTimeout(clickTimer);
+                        clickTimer = null;
+                        // --- DOUBLE TAP DETECTED ---
+                        const flickId = vid.getAttribute('data-id');
+                        
+                        // Play heart animation
+                        const heart = document.getElementById(`dt-heart-${flickId}`);
+                        if (heart) {
+                            heart.style.transition = 'none';
+                            heart.style.transform = 'translate(-50%, -50%) scale(1)';
+                            heart.style.opacity = '1';
+                            void heart.offsetWidth; // Force reflow
+                            heart.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out';
+                            heart.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                            setTimeout(() => {
+                                heart.style.transition = 'transform 0.2s ease-in, opacity 0.2s ease-in';
+                                heart.style.transform = 'translate(-50%, -50%) scale(2)';
+                                heart.style.opacity = '0';
+                            }, 500);
+                        }
+
+                        // Trigger Like automatically if not already liked
+                        const uid = auth.currentUser ? auth.currentUser.uid : null;
+                        if (uid) {
+                            const flick = flicks.find(f => f.id === flickId);
+                            const likes = Array.isArray(flick.likes) ? flick.likes : [];
+                            if (!likes.includes(uid)) {
+                                const likeBtn = document.querySelector(`#flick-item-${flickId} .action-btn`);
+                                if (likeBtn) window.likeFlick(flickId, likeBtn);
+                            }
+                        }
+                    } else {
+                        clickTimer = setTimeout(() => {
+                            clickTimer = null;
+                            // --- SINGLE CLICK DETECTED ---
+                            if (vid.muted) {
+                                vid.muted = false; // Unmute on tap
+                                flicksGlobalMuted = false;
+                                document.querySelectorAll('video').forEach(v => v.muted = false);
+                                vid.play().catch(e => {});
+                            } else {
+                                if (vid.paused) vid.play(); else vid.pause(); 
+                            }
+                        }, 250); // Wait 250ms for a potential second tap
+                    }
+                });
             });
         }
+
+        // --- SPA Navigation Engine for Flicks ---
+        window.navigateTo = function(page, event) {
+            if (event) event.preventDefault();
+            const feedView = document.getElementById('flicks-container');
+            const historyView = document.getElementById('view-flicks-history');
+            
+            // Pause all running videos when navigating away from feed
+            document.querySelectorAll('.flick-item video').forEach(v => v.pause());
+
+            if (page === 'feed') {
+                historyView.style.display = 'none';
+                feedView.style.display = ''; // Fallback to CSS rules
+                window.history.pushState({page: 'feed'}, '', window.location.pathname);
+                
+                // Resume video if we go back to feed
+                const activeVid = document.querySelector('.flick-item video[data-id="'+currentFlickId+'"]');
+                if(activeVid) activeVid.play().catch(e=>{});
+            } else if (page === 'history') {
+                feedView.style.display = 'none';
+                historyView.style.display = 'block';
+                window.history.pushState({page: 'history'}, '', '?view=history');
+                window.loadFlicksHistory();
+            }
+        };
+
+        window.addEventListener('popstate', (e) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === 'history') window.navigateTo('history');
+            else window.navigateTo('feed');
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -272,12 +657,21 @@
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         currentUserFollowing = userDoc.data().following || [];
+                        window.isHistoryPaused = userDoc.data().historyPaused || false;
+                        if (typeof window.updatePauseFlicksHistoryBtnUI === 'function') window.updatePauseFlicksHistoryBtnUI();
                     }
                 } catch(e) { console.error("Error loading following list:", e); }
             } else {
                 currentUserFollowing = [];
             }
-            loadFlicks();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === 'history') {
+                window.navigateTo('history');
+                loadFlicks(); 
+            } else {
+                loadFlicks();
+            }
         });
 
         window.openFlickComments = function() {
@@ -616,6 +1010,226 @@
                 await setDoc(convRef, { participants: [auth.currentUser.uid, targetUid], participantDetails: { [auth.currentUser.uid]: { name: myProfileSnap.data()?.name || "User", photoURL: myProfileSnap.data()?.photoURL || null }, [targetUid]: { name: partnerProfileSnap.exists() ? partnerProfileSnap.data().name : "User", photoURL: partnerProfileSnap.exists() ? partnerProfileSnap.data().photoURL : null } }, lastMessage: { text: "Sent a Flick", senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } }, { merge: true });
                 btnElement.innerText = "Sent!"; btnElement.style.background = "#198754"; btnElement.style.borderColor = "#198754"; btnElement.style.color = "white";
             } catch (e) { console.error(e); btnElement.innerText = "Error"; }
+        };
+
+        // PC Keyboard Navigation (Up/Down Arrows)
+        document.addEventListener('keydown', (e) => {
+            const container = document.getElementById('flicks-container');
+            if (!container) return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                container.scrollBy({ top: window.innerHeight * 0.7, behavior: 'smooth' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                container.scrollBy({ top: -window.innerHeight * 0.7, behavior: 'smooth' });
+            }
+        });
+
+        // Setup touch swipe down to close for Flicks Description Panel
+        const flicksDescPanel = document.getElementById('flicks-description-panel');
+        const flicksDescContent = document.getElementById('flicks-description-content');
+        let descTouchStartY = 0;
+
+        if (flicksDescPanel) {
+            flicksDescPanel.addEventListener('touchstart', e => {
+                if (flicksDescContent && flicksDescContent.scrollTop > 0) {
+                    descTouchStartY = 0;
+                    return;
+                }
+                descTouchStartY = e.changedTouches[0].screenY;
+                flicksDescPanel.style.transition = 'none';
+            }, {passive: true});
+
+            flicksDescPanel.addEventListener('touchmove', e => {
+                if (descTouchStartY === 0) return;
+                const currentY = e.changedTouches[0].screenY;
+                const deltaY = currentY - descTouchStartY;
+                if (deltaY > 0) { flicksDescPanel.style.transform = `translateY(${deltaY}px)`; }
+            }, {passive: true});
+
+            flicksDescPanel.addEventListener('touchend', e => {
+                if (descTouchStartY === 0) return;
+                const deltaY = e.changedTouches[0].screenY - descTouchStartY;
+                flicksDescPanel.style.transition = 'transform 0.3s ease-out';
+                if (deltaY > 100) { window.closeFlickDescription(); } 
+                else { flicksDescPanel.style.transform = 'translateY(0)'; }
+                descTouchStartY = 0;
+            }, {passive: true});
+        }
+
+        // --- Flicks History Logic ---
+        window.loadFlicksHistory = async function() {
+            const historyList = document.getElementById('flicks-history-list');
+            const emptyMsg = document.getElementById('flicks-history-empty');
+            const loading = document.getElementById('flicks-history-loading');
+            
+            if (!auth.currentUser) {
+                historyList.innerHTML = '';
+                emptyMsg.innerHTML = 'Please login to view your Flicks history.';
+                emptyMsg.style.display = 'block';
+                return;
+            }
+            
+            historyList.innerHTML = '';
+            emptyMsg.style.display = 'none';
+            loading.style.display = 'block';
+
+            try {
+                const historyRef = collection(db, "users", auth.currentUser.uid, "watchHistory");
+                const q = query(historyRef, orderBy("viewedAt", "desc"), limit(100)); 
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    loading.style.display = 'none';
+                    emptyMsg.innerHTML = 'No flicks history found.';
+                    emptyMsg.style.display = 'block';
+                    return;
+                }
+
+                let historyItems = [];
+                snap.forEach(d => historyItems.push({
+                    blogId: d.data().blogId,
+                    viewedAt: d.data().viewedAt ? d.data().viewedAt.toDate() : new Date()
+                }));
+
+                const docPromises = historyItems.map(item => getDoc(doc(db, "blogs", item.blogId)));
+                const docSnaps = await Promise.all(docPromises);
+                
+                let flicksBlogs = [];
+                docSnaps.forEach((d, idx) => {
+                    if (d.exists() && d.data().isFlicker) {
+                        flicksBlogs.push({ id: d.id, ...d.data(), viewedAt: historyItems[idx].viewedAt });
+                    }
+                });
+
+                loading.style.display = 'none';
+                
+                if (flicksBlogs.length === 0) {
+                    emptyMsg.innerHTML = 'No flicks history found.';
+                    emptyMsg.style.display = 'block';
+                    return;
+                }
+
+                let lastDateLabel = "";
+                flicksBlogs.forEach(blog => {
+                    const dateObj = blog.viewedAt;
+                    const today = new Date();
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    let dateLabel = dateObj.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+                    if (dateObj.toDateString() === today.toDateString()) dateLabel = "Today";
+                    else if (dateObj.toDateString() === yesterday.toDateString()) dateLabel = "Yesterday";
+
+                    if (dateLabel !== lastDateLabel) {
+                        const header = document.createElement('div');
+                        header.style.cssText = "grid-column: 1 / -1; margin-top: 15px; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;";
+                        header.innerHTML = `<h3 style="margin: 0; color: #fff; font-size: 1.1rem;"><i data-lucide="calendar" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px; color: #ff0050;"></i>${dateLabel}</h3>`;
+                        historyList.appendChild(header);
+                        lastDateLabel = dateLabel;
+                    }
+
+                    const item = document.createElement('div');
+                    item.style.cssText = "position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 9/16; background: #222; cursor: pointer; border: 1px solid #444; transition: transform 0.2s;";
+                    item.onmouseenter = () => item.style.transform = "scale(1.03)";
+                    item.onmouseleave = () => item.style.transform = "scale(1)";
+                    
+                    let thumbHtml = '';
+                    if (blog.thumbnail) {
+                        thumbHtml = `<img src="${blog.thumbnail}" style="width:100%; height:100%; object-fit:cover;">`;
+                    } else if (blog.image && blog.image !== 'logo.png') {
+                        thumbHtml = `<img src="${blog.image}" style="width:100%; height:100%; object-fit:cover;">`;
+                    } else if (blog.video) {
+                        thumbHtml = `<video src="${blog.video}#t=0.1" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
+                    }
+
+                    let targetAction = `window.navigateTo('feed', event); setTimeout(() => { const el = document.getElementById('flick-item-${blog.id}'); if(el) el.scrollIntoView({behavior: 'smooth'}); else window.location.href='flicks.html?id=${blog.id}'; }, 100);`;
+
+                    item.onclick = new Function('event', targetAction);
+                    
+                    item.innerHTML = `
+                        ${thumbHtml}
+                        <button onclick="event.stopPropagation(); window.removeFlickHistoryItem('${blog.id}', this.parentElement)" style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,0,80,0.9)'" onmouseout="this.style.background='rgba(0,0,0,0.7)'"><i data-lucide="x" style="width: 14px; height: 14px;"></i></button>
+                        <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 4px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center;"><i data-lucide="play" class="lucide-fill" style="color: #fff; width: 12px; height: 12px;"></i></div>
+                        <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 15px 10px 10px 10px; box-sizing: border-box;">
+                            <div style="color: white; font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px black;">${blog.title || 'Untitled'}</div>
+                            <div style="color: #aaa; font-size: 0.75rem; text-shadow: 1px 1px 2px black;">@${blog.author || 'User'}</div>
+                        </div>
+                    `;
+                    historyList.appendChild(item);
+                });
+                if(window.lucide) window.lucide.createIcons();
+            } catch (e) {
+                console.error("Error loading flicks history:", e);
+                loading.style.display = 'none';
+                historyList.innerHTML = `<p style="color:red; text-align:center; grid-column: 1/-1;">Error loading history.</p>`;
+            }
+        };
+
+        window.clearFlicksHistory = async function() {
+            if (!auth.currentUser) return;
+            if (!confirm("Are you sure you want to clear your Flicks history?")) return;
+            
+            try {
+                const historyRef = collection(db, "users", auth.currentUser.uid, "watchHistory");
+                const snap = await getDocs(historyRef);
+                
+                let historyItems = [];
+                snap.forEach(d => historyItems.push({ docRef: d.ref, blogId: d.data().blogId }));
+                
+                const docPromises = historyItems.map(item => getDoc(doc(db, "blogs", item.blogId)));
+                const docSnaps = await Promise.all(docPromises);
+                
+                const batch = writeBatch(db);
+                let deleteCount = 0;
+                docSnaps.forEach((d, idx) => {
+                    // Only delete from watchHistory if it's a Flicker video
+                    if (!d.exists() || d.data().isFlicker === true) {
+                        batch.delete(historyItems[idx].docRef);
+                        deleteCount++;
+                    }
+                });
+                
+                if (deleteCount > 0) {
+                    await batch.commit();
+                }
+                alert("Flicks history cleared.");
+                window.loadFlicksHistory();
+            } catch (e) {
+                console.error("Error clearing history:", e);
+                alert("Failed to clear history.");
+            }
+        };
+
+        window.removeFlickHistoryItem = async function(blogId, itemElement) {
+            if (!auth.currentUser) return;
+            try {
+                await deleteDoc(doc(db, "users", auth.currentUser.uid, "watchHistory", blogId));
+                if (itemElement) itemElement.remove();
+            } catch (e) { console.error("Error removing flicks history item:", e); }
+        };
+
+        window.toggleFlicksHistoryPause = async function() {
+            if (!auth.currentUser) return;
+            const newState = !window.isHistoryPaused;
+            try {
+                await setDoc(doc(db, "users", auth.currentUser.uid), { historyPaused: newState }, { merge: true });
+                window.isHistoryPaused = newState;
+                window.updatePauseFlicksHistoryBtnUI();
+            } catch (e) { console.error("Error toggling history pause:", e); }
+        };
+
+        window.updatePauseFlicksHistoryBtnUI = function() {
+            const btn = document.getElementById('pause-flicks-history-btn');
+            if (btn) {
+                if (window.isHistoryPaused) { 
+                    btn.innerHTML = '<i data-lucide="play-circle" style="vertical-align: middle; width: 16px; height: 16px;"></i> <span id="pause-flicks-history-text">Resume</span>'; 
+                } else { 
+                    btn.innerHTML = '<i data-lucide="pause-circle" style="vertical-align: middle; width: 16px; height: 16px;"></i> <span id="pause-flicks-history-text">Pause</span>'; 
+                }
+                if (window.lucide) window.lucide.createIcons({ root: btn });
+            }
         };
     </script>
 </body>
