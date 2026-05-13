@@ -4284,6 +4284,8 @@
             const a = document.createElement('a'); a.href = url;
             a.download = `Viyou_Story_${Date.now()}.${result.ext}`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            localStorage.removeItem('viyou_story_draft');
+            window.showToast("Export successful! Draft deleted.", "success");
         } catch(e) {
             if (e.message !== "Export cancelled") {
                 console.error(e);
@@ -4426,6 +4428,7 @@
 
                 overlay.style.display = 'none';
                 alert("Story posted successfully!");
+                localStorage.removeItem('viyou_story_draft');
                 window.location.href = "profile.html";
             } catch (e) {
                 console.error("Error posting story:", e);
@@ -4456,6 +4459,7 @@
                 }
 
                 await window.saveVideoToIndexedDB(result.blob);
+                localStorage.removeItem('viyou_story_draft');
                 
                 window.location.href = `write-blog.html?importVideo=true&type=${type}`;
             } catch(e) {

@@ -1833,10 +1833,6 @@
                     </div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
-                    <div style="display: flex; gap: 5px;">
-                        <input type="number" id="override-followers-${uid}" value="${followersCount}" placeholder="Followers" style="width: 100px; padding: 5px; border-radius: 4px; background: #333; color: white; border: 1px solid #555;">
-                        <button class="btn" style="background-color: #f59e0b; padding: 6px 10px; margin: 0; font-size: 0.85rem;" onclick="window.updateFollowerCount('${uid}')">Set Followers</button>
-                    </div>
                     <button class="btn" style="background-color: ${isMonetized ? '#dc3545' : '#198754'}; margin: 0; display: flex; align-items: center; gap: 5px;" onclick="window.toggleMonetization('${uid}', ${!isMonetized})">
                         ${isMonetized ? '<i data-lucide="ban"></i> Revoke Monetization' : '<i data-lucide="check"></i> Monetize User'}
                     </button>
@@ -1844,27 +1840,6 @@
             `;
             container.appendChild(card);
         }
-
-        window.updateFollowerCount = async (uid) => {
-            const input = document.getElementById(`override-followers-${uid}`);
-            if (!input) return;
-            const val = parseInt(input.value);
-            if (isNaN(val) || val < 0) {
-                showToast("Please enter a valid number.", "error");
-                return;
-            }
-            try {
-                await updateDoc(doc(db, "users", uid), { 
-                    followerCountOverride: val,
-                    isVerified: val >= 200
-                });
-                showToast("Follower count updated successfully!");
-                if (document.getElementById('user-search-input').value.trim()) { window.searchUserForMonetization(); } else { window.loadMonetizedUsers(); }
-            } catch(e) {
-                console.error(e);
-                showToast("Error updating followers.", "error");
-            }
-        };
 
         window.toggleMonetization = async (uid, makeMonetized) => {
             if (!confirm(`Are you sure you want to ${makeMonetized ? 'MONETIZE' : 'REVOKE monetization for'} this user?`)) return;

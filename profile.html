@@ -112,7 +112,9 @@
             <div id="my-liked-single-content"></div>
         </div>
     </div>
-
+   <footer>
+            <p>&copy; Viyou.in Empowering Creators.</p>
+        </footer>
 </div> <!-- Close profile-main-view -->
 
     <!-- Cropper Modal -->
@@ -1014,6 +1016,11 @@
 
             // --- New Instagram Style Flicks Grid Layout ---
             if (category === 'flicks') {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.gap = '8px';
+
                 const item = document.createElement('div');
                 item.className = 'flick-grid-item';
                 item.onclick = () => window.location.href = `flicks.html?id=${blog.id}`;
@@ -1036,8 +1043,12 @@
                 let editDelHtml = '';
                 if (isOwner) {
                     editDelHtml = `
-                        <div class="flick-grid-actions" style="z-index: 2;">
+                        <div class="flick-grid-actions" style="z-index: 2; flex-direction: column;">
+                            <button onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" class="flick-grid-action-btn" title="Edit" style="color: #f59e0b;"><i data-lucide="pen" style="width: 14px; height: 14px;"></i></button>
                             <button onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" class="flick-grid-action-btn" title="Delete" style="color: #ff6b6b;"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i></button>
+                        <div style="display: flex; gap: 10px; justify-content: space-around; padding-bottom: 5px;">
+                            <button onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#f59e0b; cursor:pointer; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 4px;" title="Edit"><i data-lucide="pen" style="width: 14px; height: 14px;"></i> Edit</button>
+                            <button onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 4px;" title="Delete"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete</button>
                         </div>
                     `;
                 }
@@ -1058,6 +1069,15 @@
                     ${editDelHtml}
                 `;
                 flicksGrid.appendChild(item);
+                
+                wrapper.appendChild(item);
+                if (editDelHtml) {
+                    const actionDiv = document.createElement('div');
+                    actionDiv.innerHTML = editDelHtml;
+                    wrapper.appendChild(actionDiv);
+                }
+                
+                flicksGrid.appendChild(wrapper);
                 flicksCount++;
                 return; // Stop here, skip the default blog/video card layout
             }
@@ -1727,7 +1747,7 @@
     };
 
     window.deleteMyBlog = async (id) => {
-        if(confirm("Are you sure you want to delete this blog?")) {
+        if(await window.viyouConfirm("Are you sure you want to delete this post?")) {
             try {
                 await deleteDoc(doc(db, "blogs", id));
                 if(currentUser) renderUserBlogs(currentUser.uid, true);

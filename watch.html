@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch - Viyou</title>
+    <title>Watch - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
     <!-- Modern Icons (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -31,7 +31,7 @@
                     <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
                     <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
                     <a href="advertise.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="megaphone" style="width: 16px;"></i> Advertise with Us</a>
-                    <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou. All Rights Reserved.</div>
+                    <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou.in All Rights Reserved.</div>
                 </div>
             </div>
     </div>
@@ -44,7 +44,9 @@
             <div id="suggestions"><div style="color: #aaa;">Loading suggestions...</div></div>
         </div>
     </div>
-
+<footer>
+    <p>&copy; Viyou.in Empowering Creators.</p>
+</footer>
     <script type="module">
         import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -705,7 +707,9 @@
                     lucide.createIcons();
                 }
 
-                muteBtn.addEventListener('click', () => {
+            muteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                     videoElement.muted = !videoElement.muted;
                     if (videoElement.muted) {
                         volumeSlider.value = 0;
@@ -859,7 +863,9 @@
 
                 // Picture-in-Picture (Miniplayer) Logic
                 if ('pictureInPictureEnabled' in document) {
-                    pipBtn.addEventListener('click', async () => {
+                pipBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                         try {
                             if (document.pictureInPictureElement) {
                                 await document.exitPictureInPicture();
@@ -894,7 +900,9 @@
                 }
 
                 // Fullscreen & Mobile Rotation Logic
-                fullscreenBtn.addEventListener('click', async () => {
+            fullscreenBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                     if (!document.fullscreenElement) {
                         try {
                             await container.requestFullscreen();

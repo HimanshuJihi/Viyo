@@ -8,7 +8,7 @@ body {
             margin: 0;
             padding: 0;
             line-height: 1.6;
-            padding-bottom: 75px; /* Global Bottom Nav Space */
+            padding-bottom: 95px; /* Global Bottom Nav Space with extra scroll padding */
             background: #050505; /* Deep futuristic black */
             color: #e2e8f0;
             transition: background 0.3s, color 0.3s;
@@ -432,14 +432,14 @@ body {
         .watch-suggestion-info h4 { margin: 0 0 5px 0; font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; color: #fff; }
         .watch-suggestion-info p { margin: 0; font-size: 0.85rem; color: #aaa; }
         
-        .controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 20px 15px 15px 15px; display: flex; flex-direction: column; gap: 10px; opacity: 0; transition: opacity 0.3s ease; }
-        .watch-video-container:hover .controls, .watch-video-container.paused .controls { opacity: 1; }
+        .controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 20px 15px 15px 15px; display: flex; flex-direction: column; gap: 10px; opacity: 0; pointer-events: none; z-index: 25; transition: opacity 0.3s ease; }
+        .watch-video-container:hover .controls, .watch-video-container.paused .controls, .watch-video-container.show-controls .controls { opacity: 1; pointer-events: auto; }
         .progress-bar { width: 100%; -webkit-appearance: none; background: rgba(255, 255, 255, 0.2); height: 5px; border-radius: 5px; outline: none; cursor: pointer; transition: height 0.1s ease; }
         .progress-bar:hover { height: 7px; }
         .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #0d6efd; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .control-buttons { display: flex; align-items: center; justify-content: space-between; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 15px; }
-        .watch-video-container button { background: none; border: none; color: white; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, color 0.2s; }
+.watch-video-container button { background: none; border: none; color: white; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, color 0.2s; pointer-events: auto; z-index: 100; }
         .watch-video-container button:hover { transform: scale(1.1); color: #0d6efd; }
         .watch-video-container button i, .watch-video-container button svg { pointer-events: none; }
         .settings-wrapper { position: relative; }
@@ -483,24 +483,30 @@ body {
         #view-watch.miniplayer-mode .watch-sidebar, #view-watch.miniplayer-mode .watch-info, #view-watch.miniplayer-mode #watch-comments-section { display: none !important; }
         #view-watch.miniplayer-mode .watch-video-container { border-radius: 0; box-shadow: none; border: none; padding-bottom: 56.25%; }
         #view-watch.miniplayer-mode .controls { display: none !important; }
-        #view-watch.miniplayer-mode .miniplayer-expand-btn, #view-watch.miniplayer-mode .miniplayer-close-btn { display: flex; }
-        .miniplayer-expand-btn, .miniplayer-close-btn { display: none; position: absolute; top: 8px; background: rgba(0,0,0,0.6); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; align-items: center; justify-content: center; cursor: pointer; z-index: 100; transition: background 0.2s; }
-        .miniplayer-expand-btn:hover, .miniplayer-close-btn:hover { background: rgba(0,0,0,0.9); }
-        .miniplayer-expand-btn { left: 8px; }
-        .miniplayer-close-btn { right: 8px; }
+        .miniplayer-controls-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 90; background: transparent; transition: background 0.3s; pointer-events: none; }
+        #view-watch.miniplayer-mode .miniplayer-controls-overlay { pointer-events: auto; cursor: pointer; }
+        #view-watch.miniplayer-mode:hover .miniplayer-controls-overlay, #view-watch.miniplayer-mode.show-mini-controls .miniplayer-controls-overlay { background: rgba(0,0,0,0.4); }
+        #view-watch.miniplayer-mode .miniplayer-expand-btn, #view-watch.miniplayer-mode .miniplayer-close-btn, #view-watch.miniplayer-mode .miniplayer-play-btn { display: flex; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s; }
+        #view-watch.miniplayer-mode:hover .miniplayer-expand-btn, #view-watch.miniplayer-mode:hover .miniplayer-close-btn, #view-watch.miniplayer-mode:hover .miniplayer-play-btn, #view-watch.miniplayer-mode.show-mini-controls .miniplayer-expand-btn, #view-watch.miniplayer-mode.show-mini-controls .miniplayer-close-btn, #view-watch.miniplayer-mode.show-mini-controls .miniplayer-play-btn, #view-watch.miniplayer-mode .watch-video-container.paused .miniplayer-play-btn { opacity: 1; pointer-events: auto; }
+        .miniplayer-expand-btn, .miniplayer-close-btn, .miniplayer-play-btn { display: none; position: absolute; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; align-items: center; justify-content: center; cursor: pointer; z-index: 100; }
+        .miniplayer-expand-btn:hover, .miniplayer-close-btn:hover { background: rgba(0,0,0,0.9); transform: scale(1.1); }
+        .miniplayer-play-btn:hover { background: rgba(0,0,0,0.9); transform: translate(-50%, -50%) scale(1.1) !important; }
+        .miniplayer-expand-btn { top: 8px; left: 8px; width: 30px; height: 30px; }
+        .miniplayer-close-btn { top: 8px; right: 8px; width: 30px; height: 30px; }
+        .miniplayer-play-btn { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; font-size: 1.5rem; }
 
         @media (max-width: 768px) { #view-watch.miniplayer-mode { bottom: 70px; right: 10px; width: 250px; } }
 
         footer {
             text-align: center;
-            padding: 20px 15px;
+        padding: 20px 15px 110px 15px; /* Ensures clearance above bottom nav */
             margin-top: 40px;
-            background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            color: #eee;
-            border-top: 1px solid #dee2e6;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        color: #aaa;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
         }
 
         footer p {
@@ -742,7 +748,7 @@ body {
         body.light-mode .article-meta { color: #666; }
         body.light-mode .blog-action-btn:hover { background-color: rgba(0, 0, 0, 0.05); }
         body.light-mode .shayari-p { color: #444; background: #f8f9fa; }
-        body.light-mode footer { background: #fff; color: #666; border-top-color: #ddd; }
+        body.light-mode footer { background: rgba(0,0,0,0.03); color: #666; border-top-color: #ddd; }
         body.light-mode .comment-actions { color: #666; }
         body.light-mode .comment-action-btn:hover { color: #000; }
         body.light-mode .search-input-container { background: #fff; border-color: #ccc; }
@@ -863,7 +869,6 @@ body {
     -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS */
     touch-action: pan-y; /* allow vertical page scroll while enabling horizontal drag on the bar */
     -ms-touch-action: pan-y;
-    scroll-behavior: smooth;
 }
 
 .category-scroll::-webkit-scrollbar {

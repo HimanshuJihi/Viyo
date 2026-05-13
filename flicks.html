@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flicks - Viyou</title>
+    <title>Flicks - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
     <!-- Modern Icons (Lucide) -->
     <script src="https://unpkg.com/lucide@latest" defer></script>
@@ -67,10 +67,29 @@
             .flick-item { scroll-snap-align: start; }
         }
 
+        /* Global Navbar styling for Flicks (Mobile + PC) */
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;
+            display: flex; align-items: center; padding: 15px 20px; box-sizing: border-box;
+            background: linear-gradient(rgba(0,0,0,0.8), transparent);
+            pointer-events: none;
+        }
+        .navbar a, .navbar span, .navbar .theme-dropdown-container { pointer-events: auto; }
+        .navbar a {
+            color: white; text-decoration: none; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.5); border-radius: 50%; padding: 8px; transition: background 0.2s;
+        }
+        .navbar a:hover { background: rgba(0,0,0,0.8); }
+        .navbar span {
+            margin-left: 15px; font-size: 1.2rem; font-weight: bold; color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+        .navbar .theme-dropdown-container { margin-left: auto; }
+
         /* Desktop/PC Flicks Layout Fix (Instagram Reels Style) */
         @media screen and (min-width: 769px) {
             body { background: #050505; overflow: hidden; } /* Prevents double scrollbar */
-            .navbar { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.8); backdrop-filter: blur(0px); border-bottom: 0px solid #333; }
+            .navbar { background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #333; pointer-events: auto; }
             .flicks-container {
                 display: flex;
                 flex-direction: column;
@@ -125,7 +144,7 @@
 </head>
 <body>
     <div class="navbar">
-        <a href="index.html"><i data-lucide="arrow-left"></i></a>
+        <a href="javascript:history.back()"><i data-lucide="arrow-left"></i></a>
         <span>Flicks</span>
         <div class="theme-dropdown-container">
             <button id="main-menu-toggle" class="theme-btn"><i data-lucide="menu"></i></button>
@@ -174,6 +193,9 @@
             <div id="flicks-history-loading" style="text-align: center; color: #aaa; padding: 20px; display: none;"><i data-lucide="loader" style="width: 32px; height: 32px; color: #ff0050; animation: spin 1s linear infinite;"></i><p>Loading...</p></div>
             <div id="flicks-history-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding-bottom: 30px;"></div>
             <div id="flicks-history-empty" style="text-align: center; padding: 40px; color: #aaa; display: none;">No flicks history found.</div>
+            <footer>
+                <p>&copy; Viyou.in Empowering Creators.</p>
+            </footer>
         </div>
     </div>
 

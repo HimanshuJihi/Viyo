@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publish - Viyou</title>
+    <title>Publish - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
     <!-- Modern Futuristic Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -605,6 +605,10 @@
                 
                 if (blog.isFlicker) {
                     window.switchPostType('flick');
+                    if (blog.thumbnail) {
+                        document.getElementById('thumbnail-preview').src = blog.thumbnail;
+                        document.getElementById('thumbnail-preview').style.display = 'block';
+                    }
                 } else if (blog.video) {
                     window.switchPostType('video');
                     if (blog.thumbnail) {

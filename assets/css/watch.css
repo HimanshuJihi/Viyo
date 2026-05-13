@@ -41,7 +41,10 @@
         }
 .video-container:hover .controls, 
 .video-container.paused .controls,
-.video-container.show-controls .controls {
+        .video-container.show-controls .controls,
+        .watch-video-container:hover .controls, 
+        .watch-video-container.paused .controls,
+        .watch-video-container.show-controls .controls {
             opacity: 1; /* Show controls on hover or pause */
             pointer-events: auto;
         }
@@ -87,6 +90,8 @@
             align-items: center;
             justify-content: center;
             transition: transform 0.2s, color 0.2s;
+    pointer-events: auto;
+    z-index: 100;
         }
         .video-container button:hover {
             transform: scale(1.1);

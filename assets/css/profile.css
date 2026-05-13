@@ -142,6 +142,21 @@
         transform: scale(1.05);
         box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3);
     }
+
+    footer {
+        text-align: center;
+        padding: 20px 15px 110px 15px;
+        margin-top: 40px;
+        background: rgba(255, 255, 255, 0.03);
+        color: #aaa;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+    }
+    body.light-mode footer {
+        background: rgba(0, 0, 0, 0.03);
+        border-top-color: #ddd;
+        color: #666;
+    }
     body.light-mode .theme-btn { color: #333 !important; }
     body.light-mode .btn-transparent { color: #333 !important; }
 
