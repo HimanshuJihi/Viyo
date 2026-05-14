@@ -116,6 +116,24 @@
                     <label id="video-upload-label" for="video-upload">वीडियो अपलोड करें (Video - Max 800KB)</label>
                     <input type="file" id="video-upload" accept="video/mp4,video/webm,video/ogg">
                     <video id="video-preview" controls style="width: 100%; max-height: 250px; display: none; margin-top: 10px; border-radius: 8px; border: 1px solid #555; background: #000;"></video>
+                    
+                    <!-- Flicks Video Trimmer UI -->
+                    <div id="flick-trim-group" style="display: none; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                        <label style="color: #f59e0b; margin-bottom: 10px;"><i data-lucide="scissors"></i> फ़्लिक का हिस्सा चुनें (Max 30s)</label>
+                        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 40px; margin: 0; font-size: 0.85rem; color: #aaa;">Start</label>
+                                <input type="range" id="flick-trim-start" min="0" max="100" value="0" step="0.1" style="flex: 1;">
+                                <span id="trim-start-val" style="width: 45px; text-align: right; font-size: 0.85rem; color: #fff; font-weight: bold;">0.0s</span>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 40px; margin: 0; font-size: 0.85rem; color: #aaa;">End</label>
+                                <input type="range" id="flick-trim-end" min="0" max="100" value="30" step="0.1" style="flex: 1;">
+                                <span id="trim-end-val" style="width: 45px; text-align: right; font-size: 0.85rem; color: #fff; font-weight: bold;">30.0s</span>
+                            </div>
+                        </div>
+                        <p id="trim-duration-display" style="font-size: 0.85rem; color: #10b981; margin-top: 15px; font-weight: bold; text-align: center; background: rgba(16, 185, 129, 0.1); padding: 5px; border-radius: 4px;">Selected Duration: 30.0s</p>
+                    </div>
                 </div>
                 <div class="form-group" id="thumbnail-group" style="display: none;">
                     <label for="thumbnail-upload">थंबनेल (Thumbnail - Auto Compress &lt; 500KB)</label>
@@ -162,6 +180,7 @@
         window.maxUploadSizeMB = 5; // Default max upload size
         window.maxVideoUploadSizeMB = 500;
         window.maxFlickUploadSizeMB = 50;
+        let videoDurationForTrim = 0;
 
         // --- Toast Notification Logic ---
         function showToast(message, type = 'info') {
@@ -306,6 +325,28 @@
             
             document.getElementById('video-preview').style.display = 'none';
             document.getElementById('video-preview').src = '';
+            const trimGroup = document.getElementById('flick-trim-group');
+            if (trimGroup) trimGroup.style.display = 'none';
+            
+            const vidPreview = document.getElementById('video-preview');
+            const thumbPreview = document.getElementById('thumbnail-preview');
+            if (type === 'flick') {
+                vidPreview.style.objectFit = 'cover';
+                vidPreview.style.aspectRatio = '9/16';
+                vidPreview.style.width = '140px';
+                vidPreview.style.margin = '10px auto';
+                thumbPreview.style.objectFit = 'cover';
+                thumbPreview.style.aspectRatio = '9/16';
+                thumbPreview.style.width = '100px';
+            } else {
+                vidPreview.style.objectFit = 'contain';
+                vidPreview.style.aspectRatio = 'auto';
+                vidPreview.style.width = '100%';
+                vidPreview.style.margin = '10px 0';
+                thumbPreview.style.objectFit = 'contain';
+                thumbPreview.style.aspectRatio = 'auto';
+                thumbPreview.style.width = 'auto';
+            }
             
             document.getElementById('tab-blog').style.color = type === 'blog' ? 'red' : '#888';
             document.getElementById('tab-blog').style.borderBottomColor = type === 'blog' ? '#6366f1' : 'transparent';
@@ -519,6 +560,57 @@
             }
         });
 
+        // --- Flicks Trimmer UI Logic ---
+        document.getElementById('flick-trim-start').addEventListener('input', (e) => {
+            let start = parseFloat(e.target.value);
+            let end = parseFloat(document.getElementById('flick-trim-end').value);
+            if (start >= end) {
+                end = Math.min(videoDurationForTrim, start + 1);
+                document.getElementById('flick-trim-end').value = end;
+            }
+            if (end - start > 30) {
+                end = start + 30;
+                document.getElementById('flick-trim-end').value = end;
+            }
+            updateTrimDisplay();
+            document.getElementById('video-preview').currentTime = start;
+        });
+
+        document.getElementById('flick-trim-end').addEventListener('input', (e) => {
+            let end = parseFloat(e.target.value);
+            let start = parseFloat(document.getElementById('flick-trim-start').value);
+            if (end <= start) {
+                start = Math.max(0, end - 1);
+                document.getElementById('flick-trim-start').value = start;
+            }
+            if (end - start > 30) {
+                start = end - 30;
+                document.getElementById('flick-trim-start').value = start;
+            }
+            updateTrimDisplay();
+            document.getElementById('video-preview').currentTime = end - 1;
+        });
+
+        function updateTrimDisplay() {
+            const start = parseFloat(document.getElementById('flick-trim-start').value);
+            const end = parseFloat(document.getElementById('flick-trim-end').value);
+            document.getElementById('trim-start-val').innerText = start.toFixed(1) + 's';
+            document.getElementById('trim-end-val').innerText = end.toFixed(1) + 's';
+            document.getElementById('trim-duration-display').innerText = `Selected Duration: ${(end - start).toFixed(1)}s`;
+        }
+
+        const vidPreviewEl = document.getElementById('video-preview');
+        vidPreviewEl.addEventListener('timeupdate', function() {
+            if (currentPostType === 'flick') {
+                const end = parseFloat(document.getElementById('flick-trim-end').value) || videoDurationForTrim;
+                const start = parseFloat(document.getElementById('flick-trim-start').value) || 0;
+                if (vidPreviewEl.currentTime >= end || vidPreviewEl.currentTime < start) {
+                    vidPreviewEl.currentTime = start;
+                    vidPreviewEl.play().catch(()=>{});
+                }
+            }
+        });
+
         // Aspect Ratio Validation for Video Uploads
         document.getElementById('video-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -539,15 +631,8 @@
                 let expectedRatioText = "";
 
                 if (currentPostType === 'flick') {
-                    // Check for roughly 9:16 (0.5625)
-                    if (ratio < 0.45 || ratio > 0.65) {
-                        isValid = false;
-                        expectedRatioText = "9:16 (Vertical)";
-                    }
-                    if (duration > 31) { // 1 second safety buffer
-                        isValid = false;
-                        expectedRatioText = expectedRatioText ? expectedRatioText + " & Max 30 seconds duration" : "Max 30 seconds duration";
-                    }
+                    // No validation needed for flicks; it will automatically center-crop
+                    // visually via CSS object-fit: cover and aspect-ratio: 9/16
                 } else if (currentPostType === 'video') {
                     // Check for roughly 16:9 (1.77) or 1:1 (1.0)
                     const is16by9 = (ratio >= 1.6 && ratio <= 1.9);
@@ -560,7 +645,7 @@
 
                 if (!isValid) {
                     let alertMsg = `Invalid video for ${currentPostType === 'flick' ? 'Flick' : 'Long Video'}.\nExpected: ${expectedRatioText}`;
-                    if (ratio < 0.45 || ratio > 0.65 || (currentPostType === 'video' && !is16by9 && !is1by1)) {
+                    if (currentPostType === 'video' && !is16by9 && !is1by1) {
                          alertMsg += `\nSelected video ratio is approx: ${(ratio).toFixed(2)}:1`;
                     }
                     alert(alertMsg);
@@ -571,6 +656,19 @@
                 } else {
                     preview.src = video.src;
                     preview.style.display = 'block';
+                    videoDurationForTrim = duration;
+                    
+                    if (currentPostType === 'flick') {
+                        document.getElementById('flick-trim-group').style.display = 'block';
+                        const startSlider = document.getElementById('flick-trim-start');
+                        const endSlider = document.getElementById('flick-trim-end');
+                        startSlider.max = duration;
+                        endSlider.max = duration;
+                        startSlider.value = 0;
+                        endSlider.value = Math.min(duration, 30);
+                        updateTrimDisplay();
+                        preview.currentTime = 0;
+                    }
                 }
             };
 
@@ -812,9 +910,17 @@
                 const processBlog = async (imagesData, youtubeUrl, pollData, videoBase64, thumbnailBase64) => {
                     try {
                         let videoDuration = 0;
-                        const vidPreview = document.getElementById('video-preview');
-                        if (vidPreview && vidPreview.src && vidPreview.duration) {
-                            videoDuration = vidPreview.duration;
+                        let fStart = 0;
+                        let fEnd = 30;
+                        if (isFlicks) {
+                            fStart = parseFloat(document.getElementById('flick-trim-start').value) || 0;
+                            fEnd = parseFloat(document.getElementById('flick-trim-end').value) || 30;
+                            videoDuration = fEnd - fStart;
+                        } else {
+                            const vidPreview = document.getElementById('video-preview');
+                            if (vidPreview && vidPreview.src && vidPreview.duration) {
+                                videoDuration = vidPreview.duration;
+                            }
                         }
 
                         // --- Smart Search: Create keywords from title and content ---
@@ -853,6 +959,10 @@
                             };
                             updateData.authorVerified = isUserVerified;
                             updateData.isFlicker = isFlicks;
+                            if (isFlicks) {
+                                updateData.flickStartTime = fStart;
+                                updateData.flickEndTime = fEnd;
+                            }
                             if (imagesData && imagesData.length > 0) {
                                 updateData.images = imagesData;
                             }
@@ -894,6 +1004,8 @@
                             image: thumbnailBase64 ? thumbnailBase64 : ((imagesData && imagesData.length > 0) ? imagesData[0] : 'logo.png'), // Default image
                             video: videoBase64 || null,
                             duration: videoDuration,
+                            flickStartTime: isFlicks ? fStart : null,
+                            flickEndTime: isFlicks ? fEnd : null,
                             thumbnail: thumbnailBase64 || null,
                             youtubeUrl: youtubeUrl || null,
                             poll: pollData,

@@ -25,6 +25,25 @@
                 }
             });
             observer.observe(document.body, { childList: true, subtree: true });
+
+        window.timeAgo = function(dateParam) {
+            if (!dateParam) return '';
+            const date = new Date(dateParam);
+            const seconds = Math.max(0, Math.floor((new Date() - date) / 1000));
+            let interval = seconds / 31536000;
+            if (interval >= 1) return Math.floor(interval) + " year" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 2592000;
+            if (interval >= 1) return Math.floor(interval) + " month" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 604800;
+            if (interval >= 1) return Math.floor(interval) + " week" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 86400;
+            if (interval >= 1) return Math.floor(interval) + " day" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 3600;
+            if (interval >= 1) return Math.floor(interval) + " hour" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 60;
+            if (interval >= 1) return Math.floor(interval) + " minute" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            return "Just now";
+        };
         });
     </script>
     <link rel="stylesheet" href="assets/css/search.css">
@@ -64,6 +83,13 @@
         const searchDropdown = document.getElementById('search-dropdown');
         let searchTimeout = null;
         const searchCache = new Map();
+
+        window.enableYoutubeLinks = true;
+        const globalSettingsPromise = getDoc(doc(db, "settings", "general")).then(snap => {
+            if(snap.exists() && snap.data().enableYoutubeLinks !== undefined) {
+                window.enableYoutubeLinks = snap.data().enableYoutubeLinks;
+            }
+        }).catch(e=>console.error(e));
 
         // --- Recent Searches Logic ---
         function getRecentSearches() {
@@ -118,6 +144,8 @@
             }
 
             searchTimeout = setTimeout(async () => {
+                await globalSettingsPromise;
+
                 if (searchCache.has(term)) {
                     renderDropdown(searchCache.get(term), term);
                     return;
@@ -180,6 +208,7 @@
                             if (renderedDocs.has(doc.id)) return;
                             renderedDocs.add(doc.id);
                             const blog = doc.data();
+                            if (!window.enableYoutubeLinks && blog.youtubeUrl) return;
                             resultsHTML += `
                                 <div class="search-result-item" onclick="window.location.href='search.html?q=${encodeURIComponent(blog.title)}'">
                                     <i data-lucide="newspaper" style="color:#ccc; width: 30px; text-align: center;"></i>
@@ -252,6 +281,8 @@
         });
 
         async function performSearch() {
+            await globalSettingsPromise;
+
             const urlParams = new URLSearchParams(window.location.search);
             const searchTerm = urlParams.get('q');
 
@@ -335,6 +366,7 @@
                     renderedDocs.add(doc.id);
                     
                     const blog = doc.data();
+                    if (!window.enableYoutubeLinks && blog.youtubeUrl) return;
                     const div = document.createElement('div');
                     div.className = 'result-item';
                     
@@ -356,7 +388,7 @@
                         <img src="${thumb}">
                         <div class="result-item-info">
                             <h3>${highlight(blog.title)} ${isKeywordMatch ? '<span style="font-size:0.7rem; background:#6366f1; padding:2px 6px; border-radius:10px; vertical-align:middle; margin-left:5px;">Tag Match</span>' : ''}</h3>
-                            <p>by @${highlight(blog.author || '')} &bull; ${new Date(blog.date).toLocaleDateString()}</p>
+                            <p>by @${highlight(blog.author || '')} &bull; ${window.timeAgo(blog.date)}</p>
                         </div>
                     `;
                     contentSection.appendChild(div);

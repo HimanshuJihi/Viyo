@@ -179,11 +179,34 @@
         /* Light Mode */
         body.light-mode { background: #f4f7f6; color: #333; }
     body.light-mode .chat-container { background: transparent; border: none; }
-        body.light-mode .chat-header h2 { color: #0d6efd; }
-        body.light-mode .chat-header .back-btn { color: #333; }
+    
+    body.light-mode [style*="color: white"],
+    body.light-mode [style*="color: #fff"],
+    body.light-mode [style*="color:#fff"],
+    body.light-mode [style*="color:white"],
+    body.light-mode [style*="color: #ffffff"],
+    body.light-mode [style*="color:#ffffff"],
+    body.light-mode [style*="color: #eee"],
+    body.light-mode [style*="color:#eee"],
+    body.light-mode [style*="color: #ddd"],
+    body.light-mode [style*="color:#ddd"],
+    body.light-mode [style*="rgb(255, 255, 255)"],
+    body.light-mode [style*="rgb(238, 238, 238)"],
+    body.light-mode [style*="rgb(221, 221, 221)"] { color: #333 !important; }
+    
+    body.light-mode .link-preview-title, body.light-mode .link-preview-desc { color: #333 !important; }
+    body.light-mode .chat-header [style*="color"],
+    body.light-mode .message-sent .message-text,
+    body.light-mode .message-sent .message-text [style*="color"],
+    body.light-mode .btn,
+    body.light-mode .btn[style*="color"] { color: #fff !important; }
+    
+    body.light-mode .chat-header h2 { color: #0d6efd !important; }
+    body.light-mode .chat-header .back-btn { color: #fff !important; }
         body.light-mode .chat-messages { border-color: #eee; }
         body.light-mode .message-received .message-text { background-color: #e9ecef; color: #333; }
-        body.light-mode .message-input-area input { background: #f0f0f0; color: #333; border: 1px solid #ccc; }
+    body.light-mode .message-input-area { background: #fff !important; border-top-color: #ddd !important; }
+    body.light-mode .message-input-area input { background: #f8f9fa !important; color: #333 !important; border: 1px solid #ccc !important; }
         body.light-mode .message-input-area #attach-btn { color: #555; }
         body.light-mode .message-input-area #send-message-btn { color: #333; }
         body.light-mode .edit-msg-btn {
@@ -195,12 +218,20 @@
         body.light-mode .edited-indicator { color: #666; }
         body.light-mode .forward-msg-btn { color: #888; }
         body.light-mode .btn-transparent { color: #333 !important; }
-        body.light-mode #forward-modal > div { background: #fff; border-color: #ddd; color: #333; }
-        body.light-mode #forward-modal-title { color: #0d6efd; }
-        body.light-mode #forward-user-list > div { border-bottom-color: #eee; }
-        body.light-mode #forward-user-list strong { color: #000; }
-        body.light-mode #edit-message-modal > div { background: #fff !important; border-color: #ddd !important; }
-        body.light-mode #delete-message-modal > div { background: #fff !important; border-color: #ddd !important; }
+    
+    body.light-mode .theme-dropdown { background: rgba(255, 255, 255, 0.95) !important; border-color: #ddd !important; color: #333 !important; }
+    body.light-mode .theme-option { border-color: #eee !important; color: #333 !important; }
+    body.light-mode .theme-option:hover { background: rgba(0,0,0,0.05) !important; }
+
+    body.light-mode #forward-modal > div,
+    body.light-mode #delete-message-modal > div,
+    body.light-mode #edit-message-modal > div,
+    body.light-mode #user-list-modal > div { background: #fff !important; border-color: #ddd !important; color: #333 !important; }
+    body.light-mode .modal-content h3,
+    body.light-mode #forward-modal-title,
+    body.light-mode #user-list-title { color: #0d6efd !important; }
+    body.light-mode #forward-user-list > div { border-bottom-color: #eee !important; }
+    body.light-mode #forward-user-list strong { color: #333 !important; }
         body.light-mode #edit-message-input { background: #f4f7f6 !important; color: #333 !important; border-color: #ccc !important; }
         /* Reaction Styles */
         .reaction-picker {

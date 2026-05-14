@@ -27,6 +27,25 @@
                 }
             });
             observer.observe(document.body, { childList: true, subtree: true });
+
+        window.timeAgo = function(dateParam) {
+            if (!dateParam) return '';
+            const date = new Date(dateParam);
+            const seconds = Math.max(0, Math.floor((new Date() - date) / 1000));
+            let interval = seconds / 31536000;
+            if (interval >= 1) return Math.floor(interval) + " year" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 2592000;
+            if (interval >= 1) return Math.floor(interval) + " month" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 604800;
+            if (interval >= 1) return Math.floor(interval) + " week" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 86400;
+            if (interval >= 1) return Math.floor(interval) + " day" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 3600;
+            if (interval >= 1) return Math.floor(interval) + " hour" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 60;
+            if (interval >= 1) return Math.floor(interval) + " minute" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            return "Just now";
+        };
         });
     </script>
 
@@ -89,6 +108,7 @@
         <button id="btn-tab-blogs" class="profile-tab-btn active" onclick="window.switchProfileTab('blogs')">Blogs</button>
         <button id="btn-tab-videos" class="profile-tab-btn" onclick="window.switchProfileTab('videos')">Videos</button>
         <button id="btn-tab-flicks" class="profile-tab-btn" onclick="window.switchProfileTab('flicks')">Flicks</button>
+        <button id="btn-tab-drafts" class="profile-tab-btn" onclick="window.switchProfileTab('drafts')" style="display: none;">Drafts</button>
         <button id="btn-tab-liked" class="profile-tab-btn" onclick="window.switchProfileTab('liked')" style="display: none;"><i data-lucide="heart" class="lucide-fill"></i> Liked</button>
     </div>
 
@@ -104,6 +124,9 @@
     </div>
     <div id="tab-flicks" class="profile-tab-content">
         <div id="my-flicks-list"></div>
+    </div>
+    <div id="tab-drafts" class="profile-tab-content">
+        <div id="my-drafts-list" class="videos-grid"></div>
     </div>
     <div id="tab-liked" class="profile-tab-content">
         <div id="my-liked-list" class="videos-grid"></div>
@@ -238,6 +261,13 @@
     let isProfileOwner = false;
 
     let globalAdConfig = { showAds: false, vastUrl: '' };
+
+    window.enableYoutubeLinks = true;
+    const globalSettingsPromise = getDoc(doc(db, "settings", "general")).then(snap => {
+        if(snap.exists() && snap.data().enableYoutubeLinks !== undefined) {
+            window.enableYoutubeLinks = snap.data().enableYoutubeLinks;
+        }
+    }).catch(e=>console.error(e));
 
     async function loadAdSettings() {
         try {
@@ -506,6 +536,7 @@
                 document.getElementById('create-story-btn').style.display = 'inline-block';
                 document.getElementById('profile-action-buttons').style.display = 'none';
                 document.getElementById('btn-tab-liked').style.display = 'inline-block';
+                document.getElementById('btn-tab-drafts').style.display = 'inline-block';
                 
                 const settingsBtn = document.getElementById('open-settings-btn');
                 if(settingsBtn) settingsBtn.style.display = 'flex';
@@ -746,14 +777,22 @@
     window.playFlickPreview = function(el) {
         const vid = el.querySelector('video');
         const img = el.querySelector('.flick-thumb-img');
-        if (vid) vid.play().catch(e => {});
+        if (vid) {
+            const start = parseFloat(vid.getAttribute('data-start')) || 0;
+            vid.currentTime = start;
+            vid.play().catch(e => {});
+            vid.ontimeupdate = () => {
+                const end = parseFloat(vid.getAttribute('data-end')) || vid.duration;
+                if (vid.currentTime >= end) { vid.currentTime = start; vid.play().catch(()=>{}); }
+            };
+        }
         if (img) img.style.opacity = '0';
     };
 
     window.stopFlickPreview = function(el) {
         const vid = el.querySelector('video');
         const img = el.querySelector('.flick-thumb-img');
-        if (vid) { vid.pause(); vid.currentTime = 0; }
+        if (vid) { vid.pause(); vid.ontimeupdate = null; vid.currentTime = parseFloat(vid.getAttribute('data-start')) || 0; }
         if (img) img.style.opacity = '1';
     };
 
@@ -890,6 +929,7 @@
         list.innerHTML = '<p style="text-align:center; color:#aaa; grid-column: 1 / -1;">Loading liked posts...</p>';
 
         try {
+            await globalSettingsPromise;
             // Query liked posts (using array-contains, sorting locally to avoid complex index requirements)
             const q = query(collection(db, "blogs"), where("likes", "array-contains", uid));
             const querySnapshot = await getDocs(q);
@@ -902,6 +942,7 @@
 
             let likedPosts = [];
             querySnapshot.forEach(doc => {
+                if (!window.enableYoutubeLinks && doc.data().youtubeUrl) return;
                 likedPosts.push({ id: doc.id, ...doc.data() });
             });
 
@@ -941,7 +982,21 @@
                 else if (category === 'videos') targetAction = `window.location.href='watch.html?id=${blog.id}'`;
                 else targetAction = `window.viewLikedBlog('${blog.id}')`;
 
-                item.innerHTML = `<div style="position: relative;" onclick="${targetAction}">${thumbHtml}<div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.8rem;">${icon}</div></div><h4 onclick="${targetAction}">${blog.title || 'Untitled'}</h4><p>@${blog.author || 'User'} • ❤️ ${Array.isArray(blog.likes) ? blog.likes.length : 0}</p>`;
+                const authorPhoto = (blog.authorPhoto && blog.authorPhoto !== 'null') ? blog.authorPhoto : 'logo.png';
+                item.innerHTML = `
+                    <div style="position: relative;" onclick="${targetAction}">
+                        ${thumbHtml}
+                        <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.8rem;">${icon}</div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <img src="${authorPhoto}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; flex-shrink: 0; border: 1px solid #444;" onclick="event.stopPropagation(); window.location.href='profile.html?uid=${blog.authorUid}'" alt="DP">
+                        <div style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
+                            <h4 class="grid-title-text" onclick="${targetAction}" style="margin: 0 0 4px 0; cursor: pointer;">${blog.title || 'Untitled'}</h4>
+                            <p style="margin: 0; font-size: 0.85rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" onclick="event.stopPropagation(); window.location.href='profile.html?uid=${blog.authorUid}'">@${blog.author || 'User'}</p>
+                            <p style="margin: 0; font-size: 0.8rem; color: #888;">❤️ ${Array.isArray(blog.likes) ? blog.likes.length : 0}</p>
+                        </div>
+                    </div>
+                `;
                 list.appendChild(item);
             });
         } catch (e) {
@@ -958,6 +1013,7 @@
         document.getElementById('my-flicks-list').innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
 
         try {
+            await globalSettingsPromise;
             await loadAdSettings();
             const constraints = [where("authorUid", "==", uid)];
             if (!isOwner) {
@@ -979,6 +1035,7 @@
 
             profilePageBlogs = [];
             querySnapshot.forEach(doc => {
+                if (!window.enableYoutubeLinks && doc.data().youtubeUrl) return;
                 profilePageBlogs.push({ id: doc.id, ...doc.data() });
             });
 
@@ -997,22 +1054,28 @@
         const blogsGrid = document.getElementById('my-blogs-list');
         const videosGrid = document.getElementById('my-videos-list');
         const flicksGrid = document.getElementById('my-flicks-list');
+        const draftsGrid = document.getElementById('my-drafts-list');
         
         videosGrid.className = 'videos-grid';
         flicksGrid.className = 'flicks-grid';
         blogsGrid.className = 'videos-grid';
+        if (draftsGrid) draftsGrid.className = 'videos-grid';
 
         blogsGrid.innerHTML = '';
         videosGrid.innerHTML = '';
         flicksGrid.innerHTML = '';
+        if (draftsGrid) draftsGrid.innerHTML = '';
         
         const user = auth.currentUser;
-        let blogsCount = 0, videosCount = 0, flicksCount = 0;
+        let blogsCount = 0, videosCount = 0, flicksCount = 0, draftsCount = 0;
 
         profilePageBlogs.forEach(blog => {
             let category = 'blogs';
             if (blog.isFlicker) category = 'flicks';
             else if (blog.video || blog.youtubeUrl) category = 'videos';
+            
+            const isDraft = blog.status === 'draft';
+            const draftBadgeHTML = isDraft ? `<div style="position: absolute; top: 8px; left: 8px; background: #f59e0b; color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; z-index: 3;">DRAFT</div>` : '';
 
             // --- New Instagram Style Flicks Grid Layout ---
             if (category === 'flicks') {
@@ -1023,15 +1086,20 @@
 
                 const item = document.createElement('div');
                 item.className = 'flick-grid-item';
-                item.onclick = () => window.location.href = `flicks.html?id=${blog.id}`;
-                item.onmouseenter = (e) => window.playFlickPreview(e.currentTarget);
-                item.onmouseleave = (e) => window.stopFlickPreview(e.currentTarget);
+                let targetAction = isDraft ? `event.stopPropagation(); window.editMyBlog('${blog.id}')` : `window.location.href='flicks.html?id=${blog.id}'`;
+                item.onclick = new Function('event', targetAction);
+                if (!isDraft) {
+                    item.onmouseenter = (e) => window.playFlickPreview(e.currentTarget);
+                    item.onmouseleave = (e) => window.stopFlickPreview(e.currentTarget);
+                }
                 
                 let thumbUrl = blog.thumbnail || (blog.image && blog.image !== 'logo.png') ? (blog.thumbnail || blog.image) : '';
                 let mediaHtml = '';
+                let fStart = blog.flickStartTime || 0.1;
+                let fEnd = blog.flickEndTime || blog.duration || 30;
                 
                 if (blog.video) {
-                    mediaHtml += `<video src="${blog.video}#t=0.1" muted playsinline loop preload="metadata" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:inherit;"></video>`;
+                    mediaHtml += `<video src="${blog.video}#t=${fStart},${fEnd}" data-start="${fStart}" data-end="${fEnd}" muted playsinline loop preload="metadata" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:inherit;"></video>`;
                 }
                 
                 if (thumbUrl) {
@@ -1063,10 +1131,10 @@
 
                 const views = blog.views || 0;
                 item.innerHTML = `
+                    ${draftBadgeHTML}
                     ${mediaHtml}
                     <div class="flick-grid-stats" style="z-index: 2;"><i data-lucide="play" style="width: 14px; height: 14px;" class="lucide-fill"></i> ${views.toLocaleString()}</div>
                     ${durationHtml}
-                    ${editDelHtml}
                 `;
                 flicksGrid.appendChild(item);
                 
@@ -1077,8 +1145,11 @@
                     wrapper.appendChild(actionDiv);
                 }
                 
-                flicksGrid.appendChild(wrapper);
-                flicksCount++;
+                if (isDraft && draftsGrid) {
+                    draftsGrid.appendChild(wrapper); draftsCount++;
+                } else {
+                    flicksGrid.appendChild(wrapper); flicksCount++;
+                }
                 return; // Stop here, skip the default blog/video card layout
             }
 
@@ -1263,7 +1334,7 @@
                 <img src="${blog.authorPhoto || 'logo.png'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #87ceeb; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">
                 <div style="flex: 1;">
                     <strong style="color: #87ceeb; font-size: 1.1rem; cursor: pointer;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
-                    <span style="font-size: 0.8rem; color: #aaa; margin-top: 4px; display: block;">${blog.date ? new Date(blog.date).toLocaleDateString() : ''}</span>
+                        <span style="font-size: 0.8rem; color: #aaa; margin-top: 4px; display: block;">${blog.date ? window.timeAgo(blog.date) : ''}</span>
                 </div>
                 ${optionsDropdown}
             </div>
@@ -1301,8 +1372,11 @@
                                 <div style="display: flex; gap: 10px; align-items: flex-start;">
                                     <img src="${c.photo || 'logo.png'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
                                     <div style="flex: 1;">
-                                        <strong style="color: #87ceeb; font-size: 0.9rem;">${c.author}</strong>
-                                        <p style="font-size: 0.95rem; color: #eee; margin: 5px 0;">${c.text}</p>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <strong style="color: #87ceeb; font-size: 0.9rem;">${c.author}</strong>
+                                            <span style="font-size: 0.75rem; color: #888;">${c.date ? window.timeAgo(c.date) : ''}</span>
+                                        </div>
+                                        <p style="font-size: 1.05rem; color: #eee; margin: 5px 0;">${c.text}</p>
                                         <div class="comment-actions" id="comment-actions-${blog.id}-${commentId}">
                                             <button onclick="window.toggleCommentLike('${blog.id}', '${commentId}')" class="comment-action-btn">${commentLikeIcon} ${commentLikes.length}</button>
                                             ${editDelBtns}

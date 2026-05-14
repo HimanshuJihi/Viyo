@@ -71,7 +71,7 @@
             top: 0; right: 0; bottom: 0; left: 0;
             border-radius: 30px;
             padding: 1.5px;
-            background: linear-gradient(45deg, #00f3ff, #b5179e);
+        background: linear-gradient(45deg, #6366f1, #a855f7);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -80,7 +80,7 @@
         }
         .btn-transparent:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3);
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
         }
 
         .theme-btn {
@@ -143,20 +143,22 @@
             color: #aaa;
         }
         /* Light Mode */
-        body.light-mode { background: #f4f7f6; color: #333; }
+    body.light-mode { background: #f4f7f6; color: #333; }
     body.light-mode .messages-container { background: transparent; border: none; }
-        body.light-mode .header h1 { color: #333; }
+    body.light-mode .header h1 { color: #fff !important; } /* Header text stays white */
         body.light-mode .conversation-item { border-bottom-color: #eee; }
         body.light-mode .conversation-item:hover { background-color: #f0f0f0; }
-        body.light-mode .conversation-info h3 { color: #0d6efd; }
-        body.light-mode .conversation-info p { color: #555; }
-        body.light-mode .last-message-time { color: #666; }
+    body.light-mode .conversation-info h3 { color: #333 !important; }
+    body.light-mode .conversation-info p { color: #555 !important; }
+    body.light-mode .last-message-time { color: #888 !important; }
+    body.light-mode #no-conversations, body.light-mode #loading-indicator-msgs { color: #555 !important; }
         /* New styles for modal in light mode */
         body.light-mode #user-list-modal > div { background: #fff; border-color: #ddd; color: #333; }
         body.light-mode #user-list-title { color: #0d6efd; }
         body.light-mode #user-list-content > div { border-bottom-color: #eee; }
         body.light-mode #user-list-content strong { color: #000; }
         body.light-mode .btn-transparent { color: #333 !important; }
+    body.light-mode .btn-transparent::before, body.light-mode .theme-btn::before { background: linear-gradient(45deg, #0d6efd, #a855f7); }
 
         /* Light Mode Gold Color Fix */
         .gold-text { color: #f59e0b !important; }
@@ -179,17 +181,22 @@
         body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
         body.cyberpunk-mode .container { border-color: rgba(255, 0, 124, 0.2); }
         body.cyberpunk-mode .btn { background: linear-gradient(135deg, #f72585, #4361ee); box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3); }
+    body.cyberpunk-mode .btn-transparent::before, body.cyberpunk-mode .theme-btn::before { background: linear-gradient(45deg, #f72585, #4361ee); }
         body.cyberpunk-mode .conversation-info h3 { color: #f72585; }
         body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
         body.matrix-mode .container { border-color: rgba(0, 255, 65, 0.2); }
         body.matrix-mode .btn { background: linear-gradient(135deg, #00b4d8, #00ff41); box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3); color: #000; }
+    body.matrix-mode .btn-transparent::before, body.matrix-mode .theme-btn::before { background: linear-gradient(45deg, #00b4d8, #00ff41); }
         body.matrix-mode .conversation-info h3 { color: #00ff41; }
         body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
         body.ocean-mode .btn { background: linear-gradient(135deg, #0077b6, #00b4d8); box-shadow: 0 4px 15px rgba(0, 119, 182, 0.3); }
+    body.ocean-mode .btn-transparent::before, body.ocean-mode .theme-btn::before { background: linear-gradient(45deg, #0077b6, #00b4d8); }
         body.ocean-mode .conversation-info h3 { color: #00e5ff; }
         body.dracula-mode { background: #282a36; color: #f8f8f2; }
         body.dracula-mode .btn { background: linear-gradient(135deg, #bd93f9, #ff79c6); box-shadow: 0 4px 15px rgba(189, 147, 249, 0.3); }
+    body.dracula-mode .btn-transparent::before, body.dracula-mode .theme-btn::before { background: linear-gradient(45deg, #bd93f9, #ff79c6); }
         body.dracula-mode .conversation-info h3 { color: #ff79c6; }
         body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
         body.solar-mode .btn { background: linear-gradient(135deg, #dc2f02, #ffba08); box-shadow: 0 4px 15px rgba(220, 47, 2, 0.3); }
+    body.solar-mode .btn-transparent::before, body.solar-mode .theme-btn::before { background: linear-gradient(45deg, #dc2f02, #ffba08); }
         body.solar-mode .conversation-info h3 { color: #ffb703; }

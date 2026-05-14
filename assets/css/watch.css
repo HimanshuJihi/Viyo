@@ -228,9 +228,12 @@
         .actions { display: flex; gap: 10px; }
         .btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; display:block; align-items: center; gap: 8px; transition: background 0.2s; }
         .btn:hover { background: rgba(255,255,255,0.2); }
-        .desc-box { background: rgba(20,20,20,0.6); padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; line-height: 1.5; color: #ddd; }
-        .suggestion-card { display: flex; gap: 10px; cursor: pointer; border-radius: 12px; padding: 8px; transition: all 0.2s; background: rgba(20,20,20,0.4); border: 1px solid rgba(255,255,255,0.02); }
-        .suggestion-card:hover { background: rgba(20,20,20,0.8); border-color: rgba(255,255,255,0.1); transform: translateX(4px); }
+        .watch-desc-box { background: transparent; padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; line-height: 1.5; color: #ddd; }
+        .watch-suggestion-card { display: flex; gap: 10px; cursor: pointer; border-radius: 12px; padding: 8px; transition: all 0.2s; background: transparent; border: 1px solid rgba(255,255,255,0.02); }
+        .watch-suggestion-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); transform: translateX(4px); }
+        .desc-box { background: transparent; padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; line-height: 1.5; color: #ddd; }
+        .suggestion-card { display: flex; gap: 10px; cursor: pointer; border-radius: 12px; padding: 8px; transition: all 0.2s; background: transparent; border: 1px solid rgba(255,255,255,0.02); }
+        .suggestion-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); transform: translateX(4px); }
         .suggestion-card img { width: 168px; height: 94px; border-radius: 8px; object-fit: cover; }
         .suggestion-info h4 { margin: 0 0 5px 0; font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
         .suggestion-info p { margin: 0; font-size: 0.85rem; color: #aaa; }
@@ -247,7 +250,7 @@
         .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .comment-author { font-weight: bold; color: #f1f1f1; font-size: 0.9rem; text-decoration: none; cursor: pointer; }
         .comment-date { font-size: 0.75rem; color: #888; }
-        .comment-text { font-size: 0.95rem; color: #ddd; margin: 0 0 6px 0; word-wrap: break-word; line-height: 1.4; }
+        .comment-text { font-size: 1.05rem; color: #eee; margin: 0 0 6px 0; word-wrap: break-word; line-height: 1.4; }
         .comment-actions { display: flex; gap: 16px; align-items: center; font-size: 0.8rem; color: #aaa; }
         .comment-action-btn { background: transparent; border: none; color: #aaa; cursor: pointer; padding: 0; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 4px; }
         .comment-action-btn:hover { color: #fff; }
@@ -320,6 +323,84 @@
                 gap: 15px;
             }
         }
+
+    /* Light Mode */
+    body.light-mode { background: #f4f7f6; color: #333; }
+    body.light-mode .navbar { background: rgba(255,255,255,0.9); border-bottom-color: #ddd; }
+    body.light-mode .navbar a, body.light-mode .navbar .theme-btn { color: #333 !important; }
+    body.light-mode .title, body.light-mode .watch-title { color: #333 !important; }
+    body.light-mode .author-info strong, body.light-mode .watch-author-info strong { color: #333 !important; }
+    body.light-mode .suggestion-info h4, body.light-mode .watch-suggestion-info h4 { color: #333 !important; }
+    body.light-mode .comment-author { color: #333 !important; }
+    
+    body.light-mode .desc-box, body.light-mode .watch-desc-box { background: transparent !important; border-color: #ddd !important; color: #444 !important; }
+    body.light-mode .suggestion-card, body.light-mode .watch-suggestion-card { background: transparent !important; border-color: #ddd !important; }
+    body.light-mode .suggestion-card:hover, body.light-mode .watch-suggestion-card:hover { background: #f0f0f0 !important; }
+    
+    body.light-mode #comments-section > div, body.light-mode #watch-comments-section > div { background: transparent !important; border-color: transparent !important; }
+    body.light-mode #comments-section h3, body.light-mode #watch-comments-section h3 { color: #333 !important; border-bottom-color: #ddd !important; }
+    
+    body.light-mode #comment-input, body.light-mode #watch-comment-input, body.light-mode .reply-input-container input { background: #f0f0f0 !important; color: #333 !important; border-color: #ccc !important; }
+    
+    body.light-mode .btn { background: rgba(0,0,0,0.05) !important; color: #333 !important; }
+    body.light-mode .btn:hover { background: rgba(0,0,0,0.1) !important; }
+    body.light-mode .btn[id^="like-btn"] i.lucide-fill { color: #ff0050 !important; }
+    
+    /* Universal white text overrides */
+    body.light-mode [style*="color: #fff"], 
+    body.light-mode [style*="color: white"],
+    body.light-mode [style*="color:#fff"], 
+    body.light-mode [style*="color:white"],
+    body.light-mode [style*="color: #ffffff"],
+    body.light-mode [style*="color:#ffffff"],
+    body.light-mode [style*="color: #eee"],
+    body.light-mode [style*="color:#eee"],
+    body.light-mode [style*="color: #ddd"],
+    body.light-mode [style*="color:#ddd"] {
+        color: #333 !important;
+    }
+    body.light-mode .video-container [style*="color"],
+    body.light-mode .watch-video-container [style*="color"],
+    body.light-mode .video-container button,
+    body.light-mode .watch-video-container button,
+    body.light-mode .time-display {
+        color: #fff !important; /* Keep video player controls white */
+    }
+    
+    body.light-mode .theme-dropdown { background: rgba(255,255,255,0.95) !important; border-color: #ddd !important; color: #333 !important; }
+    body.light-mode .theme-option { border-color: #eee !important; color: #333 !important; }
+    body.light-mode .theme-option:hover { background: rgba(0,0,0,0.05) !important; }
+    
+    body.light-mode .comment-wrapper { border-color: #ddd !important; }
+    body.light-mode .comment-actions { color: #666 !important; }
+    body.light-mode .comment-action-btn { color: #666 !important; }
+    body.light-mode .comment-action-btn:hover { color: #333 !important; }
+
+    /* 5 New Futuristic Themes */
+    body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
+    body.cyberpunk-mode .navbar { border-bottom-color: rgba(255, 0, 124, 0.2); }
+    body.cyberpunk-mode .title, body.cyberpunk-mode .watch-title { color: #f72585; }
+    body.cyberpunk-mode .btn { background: linear-gradient(135deg, #f72585, #4361ee); color: #fff; border: none; }
+    
+    body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
+    body.matrix-mode .navbar { border-bottom-color: rgba(0, 255, 65, 0.2); }
+    body.matrix-mode .title, body.matrix-mode .watch-title { color: #00ff41; }
+    body.matrix-mode .btn { background: linear-gradient(135deg, #00b4d8, #00ff41); color: #000; border: none; }
+    
+    body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
+    body.ocean-mode .navbar { border-bottom-color: rgba(144, 224, 239, 0.2); }
+    body.ocean-mode .title, body.ocean-mode .watch-title { color: #00b4d8; }
+    body.ocean-mode .btn { background: linear-gradient(135deg, #0077b6, #00b4d8); color: #fff; border: none; }
+    
+    body.dracula-mode { background: #282a36; color: #f8f8f2; }
+    body.dracula-mode .navbar { border-bottom-color: rgba(255, 121, 198, 0.2); }
+    body.dracula-mode .title, body.dracula-mode .watch-title { color: #ff79c6; }
+    body.dracula-mode .btn { background: linear-gradient(135deg, #bd93f9, #ff79c6); color: #fff; border: none; }
+    
+    body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
+    body.solar-mode .navbar { border-bottom-color: rgba(255, 186, 8, 0.2); }
+    body.solar-mode .title, body.solar-mode .watch-title { color: #ffba08; }
+    body.solar-mode .btn { background: linear-gradient(135deg, #dc2f02, #ffba08); color: #fff; border: none; }
 
         /* Mobile specific sticky player */
         @media (max-width: 768px) {

@@ -48,7 +48,7 @@
     <p>&copy; Viyou.in Empowering Creators.</p>
 </footer>
     <script type="module">
-        import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where, setDoc, serverTimestamp, startAfter } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { db, auth } from "./firebase-config.js";
 
@@ -68,6 +68,13 @@
         const globalVastPromise = loadVastAdConfig();
         const globalPreRollPromise = loadPreRollAdConfig();
         const globalVideoSnapPromise = blogId ? getDoc(doc(db, "blogs", blogId)) : null;
+
+        window.enableYoutubeLinks = true;
+        const globalSettingsPromise = getDoc(doc(db, "settings", "general")).then(snap => {
+            if(snap.exists() && snap.data().enableYoutubeLinks !== undefined) {
+                window.enableYoutubeLinks = snap.data().enableYoutubeLinks;
+            }
+        }).catch(e=>console.error(e));
 
         // --- Menu Logic ---
         const mainMenuToggleBtn = document.getElementById('main-menu-toggle');
@@ -165,12 +172,20 @@
         }
 
         async function loadVideo() {
+            await globalSettingsPromise;
+
             if (!blogId) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
             const docRef = doc(db, "blogs", blogId);
             const snap = await globalVideoSnapPromise; // Wait for pre-fetched data
             if (!snap || !snap.exists()) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
 
             const blog = snap.data();
+            
+            if (!window.enableYoutubeLinks && blog.youtubeUrl) {
+                document.getElementById('main-content').innerHTML = '<div style="padding: 50px; text-align: center; color: #aaa; font-size: 1.2rem;">This video is currently unavailable due to platform settings.</div>';
+                return;
+            }
+
             currentBlog = { id: blogId, ...blog };
             
             if (auth.currentUser) {
@@ -373,7 +388,7 @@
                             <img src="${blog.authorPhoto || 'https://via.placeholder.com/45'}" alt="${blog.author}" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">
                             <div>
                                 <strong style="cursor:pointer; font-size: 1.1rem;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
-                                <div style="font-size: 0.85rem; color: #aaa;">${views.toLocaleString()} views • ${new Date(blog.date).toLocaleDateString()}</div>
+                                    <div style="font-size: 0.85rem; color: #aaa;">${views.toLocaleString()} views • ${window.timeAgo(blog.date)}</div>
                             </div>
                         </div>
                         <div class="actions">                            
@@ -1011,64 +1026,122 @@
             window.renderComments();
         }
 
-        async function loadSuggestions() {
+        let lastSuggestionDoc = null;
+        let isFetchingSuggestions = false;
+        let suggestionObserver = null;
+
+        async function loadSuggestions(isLoadMore = false) {
+            if (isFetchingSuggestions) return;
+            isFetchingSuggestions = true;
+
             const container = document.getElementById('suggestions');
-            container.innerHTML = '<div style="color: #aaa;">Loading suggestions...</div>';
+            let trigger = document.getElementById('suggestions-load-trigger');
             
-            try {
-                // 50 recent videos मंगा रहे हैं ताकि लोकल लेवल पर फ़िल्टर कर सकें बिना Index Error के
-                const q = query(collection(db, "blogs"), orderBy("date", "desc"), limit(50));
-                const snap = await getDocs(q);
-                
-                let relatedBlogs = [];
-                let otherBlogs = [];
-
-                snap.forEach(doc => {
-                    const blog = doc.data();
-                    if (doc.id === blogId || blog.isFlicker || (!blog.video && !blog.youtubeUrl)) return;
-                    
-                    // अगर केटेगरी मैच करती है, तो उसे Related लिस्ट में डालें
-                    if (currentBlog && currentBlog.category && blog.category === currentBlog.category) {
-                        relatedBlogs.push({ id: doc.id, ...blog });
-                    } else {
-                        otherBlogs.push({ id: doc.id, ...blog });
-                    }
-                });
-
-                // पहले 10 related content, फिर बचे हुए को random/recent से भरें (कुल 20 वीडियो)
-                const finalSuggestions = [...relatedBlogs.slice(0, 10), ...otherBlogs].slice(0, 20);
-
+            if (!isLoadMore) {
                 container.innerHTML = '';
+                lastSuggestionDoc = null;
+            } else {
+                if (trigger) trigger.style.display = 'block';
+            }
+
+            try {
+                let fetchedVideos = [];
+                let hasMore = true;
                 
-                if (finalSuggestions.length === 0) {
-                    container.innerHTML = '<div style="color: #aaa;">No suggestions found.</div>';
-                    return;
+                // Fetch in chunks until we find at least 20 videos (ignoring text blogs/flicks)
+                while (fetchedVideos.length < 20 && hasMore) {
+                    let qConstraints = [orderBy("date", "desc"), limit(50)];
+                    if (lastSuggestionDoc) {
+                        qConstraints.push(startAfter(lastSuggestionDoc));
+                    }
+                    const q = query(collection(db, "blogs"), ...qConstraints);
+                    const snap = await getDocs(q);
+                    
+                    if (snap.empty) {
+                        hasMore = false;
+                        break;
+                    }
+                    
+                    lastSuggestionDoc = snap.docs[snap.docs.length - 1];
+                    
+                    snap.forEach(docSnap => {
+                        const blog = docSnap.data();
+                        if (!window.enableYoutubeLinks && blog.youtubeUrl) return;
+                        if (docSnap.id === blogId || blog.isFlicker || (!blog.video && !blog.youtubeUrl) || blog.status === 'draft') return;
+                        fetchedVideos.push({ id: docSnap.id, ...blog });
+                    });
+                    
+                    if (snap.docs.length < 50) hasMore = false;
                 }
 
-                finalSuggestions.forEach(blog => {
-                    let thumb = blog.thumbnail || 'game-logo.png';
+                // Move same category videos to top ONLY on the initial load
+                if (!isLoadMore && currentBlog && currentBlog.category) {
+                    let related = fetchedVideos.filter(b => b.category === currentBlog.category);
+                    let others = fetchedVideos.filter(b => b.category !== currentBlog.category);
+                    fetchedVideos = [...related, ...others];
+                }
+
+                if (fetchedVideos.length === 0 && !isLoadMore) {
+                    container.innerHTML = '<div style="color: #aaa;">No suggestions found.</div>';
+                } else {
+                    fetchedVideos.forEach(blog => {
+                    let thumb = blog.thumbnail || 'logo.png';
                     if (blog.youtubeUrl) {
                         const vidId = getYoutubeVideoId(blog.youtubeUrl);
                         if (vidId) thumb = `https://img.youtube.com/vi/${vidId}/mqdefault.jpg`;
                     }
 
+                        let durationHtml = '';
+                        if (blog.duration) {
+                            const mins = Math.floor(blog.duration / 60);
+                            const secs = Math.floor(blog.duration % 60);
+                            const durationStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                            durationHtml = `<div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; line-height: 1;">${durationStr}</div>`;
+                        }
+
                     const div = document.createElement('div');
                     div.className = 'suggestion-card';
                     div.onclick = () => window.location.href = `watch.html?id=${blog.id}`;
                     div.innerHTML = `
-                        <img src="${thumb}">
-                        <div class="suggestion-info">
+                            <div style="position: relative; width: 168px; height: 94px; flex-shrink: 0;">
+                                <img src="${thumb}" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;">
+                                ${durationHtml}
+                            </div>
+                            <div class="suggestion-info" style="flex: 1; min-width: 0;">
                             <h4>${blog.title}</h4>
                             <p>${blog.author}</p>
                             <p>${(blog.views || 0).toLocaleString()} views</p>
-                        </div>
+                            </div>
                     `;
                     container.appendChild(div);
                 });
+                
+                // Setup trigger for Infinite Scroll
+                if (hasMore) {
+                    if (!trigger) {
+                        trigger = document.createElement('div');
+                        trigger.id = 'suggestions-load-trigger';
+                        trigger.style.cssText = "text-align: center; color: #aaa; padding: 20px; width: 100%;";
+                        trigger.innerHTML = '<i data-lucide="loader" class="fa-spin" style="width: 24px; height: 24px;"></i> Loading more...';
+                        container.appendChild(trigger);
+                        
+                        suggestionObserver = new IntersectionObserver((entries) => {
+                            if (entries[0].isIntersecting) loadSuggestions(true);
+                        }, { rootMargin: '0px 0px 300px 0px' });
+                        suggestionObserver.observe(trigger);
+                    } else {
+                        trigger.style.display = 'block';
+                        container.appendChild(trigger); // Always push it to the bottom
+                    }
+                } else {
+                    if (trigger) trigger.style.display = 'none';
+                }
+            }
             } catch (e) {
                 console.error("Error loading suggestions:", e);
-                container.innerHTML = '<div style="color: #aaa;">Error loading suggestions.</div>';
+                if (!isLoadMore) container.innerHTML = '<div style="color: #aaa;">Error loading suggestions.</div>';
             }
+            isFetchingSuggestions = false;
         }
 
         window.toggleDescription = function() {
@@ -1212,7 +1285,7 @@
                                     <span class="comment-author" onclick="window.location.href='profile.html?uid=${r.userUid}'">${r.author}</span>
                                     ${r.userUid === currentBlog.authorUid ? '<span style="background: #555; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 4px;">Author</span>' : ''}
                                 </div>
-                                <span class="comment-date">${new Date(r.date).toLocaleDateString()} ${r.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
+                                <span class="comment-date">${window.timeAgo(r.date)} ${r.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
                             </div>
                             <p class="comment-text">${renderMentionsText(r.text, r.mentionMap)}</p>
                             <div class="comment-actions">
@@ -1233,7 +1306,7 @@
                                 <span class="comment-author" onclick="window.location.href='profile.html?uid=${c.userUid}'">${c.author}</span>
                                 ${c.userUid === currentBlog.authorUid ? '<span style="background: #555; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 4px;">Author</span>' : ''}
                             </div>
-                            <span class="comment-date">${new Date(c.date).toLocaleDateString()} ${c.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
+                                <span class="comment-date">${window.timeAgo(c.date)} ${c.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
                         </div>
                         <p class="comment-text">${renderMentionsText(c.text, c.mentionMap)}</p>
                         <div class="comment-actions">
@@ -1253,7 +1326,8 @@
             }).join('');
 
             commentsSection.innerHTML = `
-                <div style="background: rgba(20,20,20,0.6); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="background: transparent; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="background: transparent; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
                     <h3 style="font-size: 1.2rem; margin-top: 0; color: #ddd; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 20px;">Comments (${comments.length})</h3>
                     ${user ? `
                     <div style="position: relative; margin-bottom: 30px;">

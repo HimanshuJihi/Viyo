@@ -132,6 +132,13 @@
         let messageToDelete = null;
         const TYPING_TIMEOUT_DURATION = 2000; // 2 seconds
 
+        window.enableYoutubeLinks = true;
+        getDoc(doc(db, "settings", "general")).then(snap => {
+            if(snap.exists() && snap.data().enableYoutubeLinks !== undefined) {
+                window.enableYoutubeLinks = snap.data().enableYoutubeLinks;
+            }
+        }).catch(e=>console.error(e));
+
         const chatMessages = document.getElementById('chat-messages');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-message-btn');
@@ -436,15 +443,11 @@
                         </div>`;
                     break;
                 case 'youtube':
-                    messageContent = `${forwardedIndicator}
-                        <div class="youtube-embed">
-                            <iframe 
-                                src="https://www.youtube.com/embed/${data.content}" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen>
-                            </iframe>
-                        </div>`;
+                    if (!window.enableYoutubeLinks) {
+                        messageContent = `${forwardedIndicator}<div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #aaa; font-style: italic; font-size: 0.9rem;"><i data-lucide="youtube" style="vertical-align: middle; margin-right: 5px;"></i> YouTube videos are currently disabled.</div>`;
+                    } else {
+                        messageContent = `${forwardedIndicator}<div class="youtube-embed"><iframe src="https://www.youtube.com/embed/${data.content}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+                    }
                     break;
                 case 'story_reply':
                     let storyPreviewHtml = '';

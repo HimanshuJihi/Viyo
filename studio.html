@@ -334,6 +334,13 @@ window.showToast = function(message, type = 'info') {
         let currentEarnings = 0;
         let currentUserTotalViews = 0;
 
+        window.enableYoutubeLinks = true;
+        const globalSettingsPromise = getDoc(doc(db, "settings", "general")).then(snap => {
+            if(snap.exists() && snap.data().enableYoutubeLinks !== undefined) {
+                window.enableYoutubeLinks = snap.data().enableYoutubeLinks;
+            }
+        }).catch(e=>console.error(e));
+
         // Load monetization config from Firestore
         async function loadMonetizationConfig() {
             try {
@@ -374,6 +381,8 @@ window.showToast = function(message, type = 'info') {
 
         async function loadCreatorData(uid) {
             try {
+                await globalSettingsPromise;
+
                 // Get user data (followers, monetization status)
                 const userDocRef = doc(db, "users", uid);
                 const userDocSnap = await getDoc(userDocRef);
@@ -402,6 +411,7 @@ window.showToast = function(message, type = 'info') {
 
                 blogsSnapshot.forEach(blogDoc => {
                     const blogData = blogDoc.data();
+                    if (!window.enableYoutubeLinks && blogData.youtubeUrl) return;
                     if (blogData.status !== 'draft') {
                         allUserContent.push({ id: blogDoc.id, ...blogData });
                         totalViews += Number(blogData.views) || 0;

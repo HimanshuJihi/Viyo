@@ -133,6 +133,25 @@
                 }
             });
             observer.observe(document.body, { childList: true, subtree: true });
+
+        window.timeAgo = function(dateParam) {
+            if (!dateParam) return '';
+            const date = new Date(dateParam);
+            const seconds = Math.max(0, Math.floor((new Date() - date) / 1000));
+            let interval = seconds / 31536000;
+            if (interval >= 1) return Math.floor(interval) + " year" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 2592000;
+            if (interval >= 1) return Math.floor(interval) + " month" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 604800;
+            if (interval >= 1) return Math.floor(interval) + " week" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 86400;
+            if (interval >= 1) return Math.floor(interval) + " day" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 3600;
+            if (interval >= 1) return Math.floor(interval) + " hour" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            interval = seconds / 60;
+            if (interval >= 1) return Math.floor(interval) + " minute" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+            return "Just now";
+        };
         });
     </script>
     <!-- Fluid Player for VAST Ads -->
@@ -286,6 +305,8 @@
                     div.id = `flick-item-${flick.id}`;
                     const likesCount = Array.isArray(flick.likes) ? flick.likes.length : (flick.likes || 0);
                     
+                    const fStart = flick.flickStartTime || 0;
+                    const fEnd = flick.flickEndTime || flick.duration || 30;
                     const isLiked = auth.currentUser && Array.isArray(flick.likes) && flick.likes.includes(auth.currentUser.uid);
                     const heartColor = isLiked ? '#ff0050' : 'white';
                     const fillClass = isLiked ? 'lucide-fill' : '';
@@ -311,7 +332,7 @@
                     safeTitleHtml = safeTitleHtml.replace(hashtagRegex, '<a href="search.html?q=%23$1" style="color: #0d6efd; text-decoration: none; font-weight: bold;" onclick="event.stopPropagation()">#$1</a>');
 
                     div.innerHTML = `
-                        <video src="${flick.video}" loop playsinline muted preload="auto" data-id="${flick.id}"></video>
+                        <video src="${flick.video}#t=${fStart},${fEnd}" loop playsinline muted preload="auto" data-id="${flick.id}" data-start="${fStart}" data-end="${fEnd}"></video>
                         <div class="double-tap-heart" id="dt-heart-${flick.id}"><i data-lucide="heart" class="lucide-fill"></i></div>
                         <div class="overlay">
                             <div class="author-row" style="display: flex; align-items: center; width: 100%; margin-bottom: 12px; pointer-events: auto;">
@@ -393,7 +414,7 @@
                     <img src="${flick.authorPhoto || 'https://via.placeholder.com/45'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);" onclick="window.location.href='profile.html?uid=${flick.authorUid}'">
                     <div style="cursor: pointer;" onclick="window.location.href='profile.html?uid=${flick.authorUid}'">
                         <strong style="color: #fff; font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">@${flick.author}</strong>
-                        <div style="color: #ccc; font-size: 0.85rem;">${new Date(flick.date).toLocaleDateString()}</div>
+                        <div style="color: #ccc; font-size: 0.85rem;">${window.timeAgo(flick.date)}</div>
                     </div>
                 </div>
                 <h3 style="margin-top: 0; color: #fff; font-size: 1.15rem; line-height: 1.4;">${safeTitleHtml}</h3>
@@ -577,6 +598,14 @@
                                     }
                                     viewedFlicks.add(id);
                                     vid.removeEventListener('timeupdate', vid._viewTimerFn);
+                                }
+                                
+                                // Trimming loop enforcer
+                                const endT = parseFloat(vid.getAttribute('data-end')) || vid.duration;
+                                const startT = parseFloat(vid.getAttribute('data-start')) || 0;
+                                if (vid.currentTime >= endT) {
+                                    vid.currentTime = startT;
+                                    vid.play().catch(()=>{});
                                 }
                             };
                             vid.addEventListener('timeupdate', vid._viewTimerFn);
@@ -813,7 +842,7 @@
                                             <span class="comment-author" onclick="window.location.href='profile.html?uid=${r.userUid}'">${r.author}</span>
                                             ${r.userUid === flick.authorUid ? '<span style="background: #555; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 4px;">Author</span>' : ''}
                                         </div>
-                                        <span class="comment-date">${new Date(r.date).toLocaleDateString()} ${r.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
+                                        <span class="comment-date">${window.timeAgo(r.date)} ${r.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
                                     </div>
                                     <p class="comment-text">${renderMentionsText(r.text, r.mentionMap)}</p>
                                     <div class="comment-actions">
@@ -834,7 +863,7 @@
                                         <span class="comment-author" onclick="window.location.href='profile.html?uid=${c.userUid}'">${c.author}</span>
                                         ${c.userUid === flick.authorUid ? '<span style="background: #555; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 4px;">Author</span>' : ''}
                                     </div>
-                                    <span class="comment-date">${new Date(c.date).toLocaleDateString()} ${c.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
+                                    <span class="comment-date">${window.timeAgo(c.date)} ${c.isEdited ? '<span style="font-style: italic; font-size: 0.7rem;">(edited)</span>' : ''}</span>
                                 </div>
                                 <p class="comment-text">${renderMentionsText(c.text, c.mentionMap)}</p>
                                 <div class="comment-actions">
