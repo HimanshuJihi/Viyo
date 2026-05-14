@@ -692,6 +692,17 @@
         </div>
     </div>
 
+    <!-- PDF Viewer Modal -->
+    <div id="pdf-viewer-modal" class="lightbox-modal" style="display:none; padding: 0; align-items: center; justify-content: center; z-index: 9999;" onclick="if(event.target === this) window.closePdfViewer()">
+        <span class="close-lightbox" style="z-index: 3000; right: 20px; top: 20px;" onclick="window.closePdfViewer()">&times;</span>
+        <div style="position: relative; width: 95%; max-width: 1000px; height: 90vh; background: #222; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+            <div style="padding: 15px; background: #333; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: white; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;"><i data-lucide="file-text" style="color: #ff4757;"></i> Document Viewer</h3>
+            </div>
+            <iframe id="pdf-viewer-iframe" style="flex: 1; width: 100%; border: none; background: #fff;"></iframe>
+        </div>
+    </div>
+
     <!-- Edit Modal -->
     <div id="edit-modal" class="lightbox-modal" onclick="if(event.target === this) document.getElementById('edit-modal').style.display='none'">
         <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; color: white; position: relative; margin: auto; border: 1px solid #444;">
@@ -772,7 +783,8 @@
     <script type="module">
         import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, getDoc, query, orderBy, arrayUnion, arrayRemove, addDoc, where, onSnapshot, limit, startAfter, setDoc, writeBatch, serverTimestamp, increment, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile, deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { db, auth } from "./firebase-config.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { db, auth, storage } from "./firebase-config.js";
         const provider = new GoogleAuthProvider();
         let currentUserFollowing = [];
         
@@ -2651,6 +2663,78 @@
             else return msgDate.toLocaleDateString([], { day: 'numeric', month: 'short' });
         }
 
+        window.downloadChatMedia = async function(url, filename, msgId, event, type = 'image') {
+            if (event) event.stopPropagation();
+            const btn = document.getElementById('dl-btn-' + msgId);
+            const prog = document.getElementById('dl-prog-' + msgId);
+            if (btn) btn.style.display = 'none';
+            if (prog) { prog.style.display = 'flex'; prog.innerText = '0%'; }
+        let success = false;
+            try {
+                if (url.startsWith('data:')) {
+                    const a = document.createElement('a'); a.href = url; a.download = filename;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                success = true;
+                } else {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error("Network error");
+                    const contentLength = response.headers.get('content-length');
+                    const total = contentLength ? parseInt(contentLength, 10) : 0;
+                    let loaded = 0; const chunks = [];
+                    const reader = response.body.getReader();
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        chunks.push(value); loaded += value.byteLength;
+                        if (total && prog) prog.innerText = Math.round((loaded / total) * 100) + '%';
+                    }
+                    const blob = new Blob(chunks);
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = blobUrl; a.download = filename;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+                success = true;
+                }
+            } catch (e) {
+                console.error("Download failed, using fallback", e);
+                const a = document.createElement('a'); a.href = url; a.download = filename; a.target = '_blank';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            success = true;
+            } finally {
+                if (prog) prog.style.display = 'none';
+            if (btn && !success) btn.style.display = 'flex';
+            if (btn && success) btn.remove();
+            
+            if (success) {
+                localStorage.setItem('dl_' + msgId, 'true');
+                if (type === 'image') {
+                    const img = document.getElementById('img-' + msgId);
+                    if (img) {
+                        img.style.filter = 'none';
+                        img.style.pointerEvents = 'auto';
+                        img.onclick = () => window.openLightbox(url);
+                    }
+                    const overlay = document.getElementById('dl-overlay-' + msgId);
+                    if (overlay) overlay.remove();
+                } else if (type === 'pdf') {
+                    const viewBtn = document.getElementById('view-btn-' + msgId);
+                    if (viewBtn) viewBtn.style.display = 'flex';
+                }
+            }
+            }
+        };
+
+        window.viewPdf = function(url) {
+            const modal = document.getElementById('pdf-viewer-modal');
+            const iframe = document.getElementById('pdf-viewer-iframe');
+            iframe.src = url;
+            modal.style.display = 'flex';
+        };
+        window.closePdfViewer = function() {
+            document.getElementById('pdf-viewer-modal').style.display = 'none';
+            document.getElementById('pdf-viewer-iframe').src = '';
+        };
+
         // --- MESSAGES VIEW LOGIC ---
         window.initMessagesView = function() {
             const conversationList = document.getElementById('conversation-list');
@@ -2890,9 +2974,43 @@
 
             let fwdInd = data.forwarded ? '<span class="edited-indicator" style="display: block; margin-bottom: 4px;"><i>Forwarded</i></span>' : '';
             let content = '';
+            const isDownloaded = isSent || localStorage.getItem('dl_' + messageId) === 'true';
 
-            if (data.type === 'image') content = `<img src="${data.content}" alt="Image" onclick="window.openLightbox('${data.content}')">`;
-            else if (data.type === 'pdf') content = `${fwdInd}<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><i data-lucide="file-text" style="color:#ff4757;"></i><a href="${data.content}" download="document.pdf" target="_blank" style="color:white;text-decoration:none;font-weight:bold;">📄 View PDF</a></div>`;
+            if (data.type === 'image') {
+                if (isDownloaded) {
+                    content = `
+                        <div style="position: relative; display: inline-block;">
+                            <img id="img-${messageId}" src="${data.content}" alt="Image" onclick="window.openLightbox('${data.content}')" style="max-width: 100%; border-radius: 10px; cursor: pointer;">
+                        </div>`;
+                } else {
+                    content = `
+                        <div style="position: relative; display: inline-block;">
+                            <img id="img-${messageId}" src="${data.content}" alt="Image" style="max-width: 100%; border-radius: 10px; filter: blur(15px) brightness(0.8); pointer-events: none;">
+                            <div id="dl-overlay-${messageId}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center;">
+                                <button id="dl-btn-${messageId}" onclick="window.downloadChatMedia('${data.content}', 'Image_${messageId}.jpg', '${messageId}', event, 'image')" style="background: rgba(0,0,0,0.6); color: white; border: none; padding: 12px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);" title="Download"><i data-lucide="arrow-down" style="width: 24px; height: 24px;"></i></button>
+                                <div id="dl-prog-${messageId}" style="display: none; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; backdrop-filter: blur(4px);">0%</div>
+                            </div>
+                        </div>`;
+                }
+            } else if (data.type === 'pdf') {
+                if (isDownloaded) {
+                    content = `${fwdInd}
+                        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:8px; flex-wrap: wrap;">
+                            <i data-lucide="file-text" style="color:#ff4757; width: 24px; height: 24px;"></i>
+                            <div style="flex: 1; color: white; font-weight: bold; word-break: break-all;">Document PDF</div>
+                            <button id="view-btn-${messageId}" onclick="window.viewPdf('${data.content}')" class="btn" style="background: #10b981; padding: 6px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> View</button>
+                        </div>`;
+                } else {
+                    content = `${fwdInd}
+                        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:8px; flex-wrap: wrap;">
+                            <i data-lucide="file-text" style="color:#ff4757; width: 24px; height: 24px;"></i>
+                            <div style="flex: 1; color: white; font-weight: bold; word-break: break-all;">Document PDF</div>
+                            <button id="view-btn-${messageId}" onclick="window.viewPdf('${data.content}')" class="btn" style="display: none; background: #10b981; padding: 6px 12px; font-size: 0.85rem; align-items: center; gap: 5px;"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> View</button>
+                            <button id="dl-btn-${messageId}" onclick="window.downloadChatMedia('${data.content}', 'Document_${messageId}.pdf', '${messageId}', event, 'pdf')" class="btn" style="background: #0d6efd; padding: 6px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;"><i data-lucide="arrow-down" style="width: 14px; height: 14px;"></i> Download</button>
+                            <div id="dl-prog-${messageId}" style="display: none; background: #0d6efd; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; align-items: center; justify-content: center;">0%</div>
+                        </div>`;
+                }
+            }
             else if (data.type === 'youtube') content = `${fwdInd}<div class="youtube-embed"><iframe src="https://www.youtube.com/embed/${data.content}" frameborder="0" allowfullscreen></iframe></div>`;
             else if (data.type === 'story_reply') {
                 let storyPrev = data.storyImage ? `<div class="story-reply-preview" onclick="window.openLightbox('${data.storyImage}')"><img src="${data.storyImage}"><span style="font-size:0.8rem; flex:1; font-style:italic;">Replied to story</span></div>` : `<div class="story-reply-preview text-only"><span style="font-size:0.75rem; color:#aaa; display:block;">Replied to story</span><span style="font-size:0.85rem; font-style:italic;">"${data.storyMessage}"</span></div>`;
@@ -2956,18 +3074,18 @@
         window.sendChatFile = async function(e) {
             const file = e.target.files[0];
             if (!file || !auth.currentUser) return;
-            const btn = document.getElementById('send-message-btn');
-            btn.disabled = true; btn.innerHTML = '<i data-lucide="loader" class="fa-spin"></i>';
-            if (window.lucide) window.lucide.createIcons({root: btn});
             
+            const tempId = 'temp_' + Date.now();
+            let previewUrl = '';
+            let type = 'image', lastMsg = '[Image]';
+            let fileToUpload = file;
+
             try {
-                let fileDataUrl, type = 'image', lastMsg = '[Image]';
                 if (file.type === 'application/pdf') {
-                    if (file.size > 800 * 1024) { window.viyouAlert("PDF max size is 800KB."); btn.disabled = false; btn.innerHTML = '<img src="send-icon.png" style="width:22px; height:22px;">'; e.target.value = ''; return; }
-                    fileDataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+                    if (file.size > 5 * 1024 * 1024) { window.viyouAlert("PDF max size is 5MB."); e.target.value = ''; return; }
                     type = 'pdf'; lastMsg = '[PDF Document]';
                 } else {
-                    fileDataUrl = await new Promise((res, rej) => {
+                    const compressedDataUrl = await new Promise((res, rej) => {
                         const r = new FileReader(); r.readAsDataURL(file);
                         r.onload = ev => {
                             const img = new Image(); img.src = ev.target.result;
@@ -2980,12 +3098,56 @@
                             };
                         };
                     });
+                    const resFetch = await fetch(compressedDataUrl);
+                    const blob = await resFetch.blob();
+                    fileToUpload = new File([blob], file.name || 'image.jpg', { type: 'image/jpeg' });
+                    previewUrl = compressedDataUrl;
                 }
-                const msgPayload = { type, content: fileDataUrl, senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false };
-                await addDoc(collection(db, "conversations", window.chatConversationId, "messages"), msgPayload);
-                await updateDoc(doc(db, "conversations", window.chatConversationId), { "lastMessage.text": lastMsg, "lastMessage.senderUid": auth.currentUser.uid, "lastMessage.timestamp": serverTimestamp(), "lastMessage.isRead": false });
-            } catch(err) { console.error(err); window.viyouAlert("Failed to send file."); }
-            finally { btn.disabled = false; btn.innerHTML = '<img src="send-icon.png" style="width:22px; height:22px;">'; e.target.value = ''; }
+                
+                const chatContainer = document.getElementById('chat-messages-container');
+                const tempDiv = document.createElement('div');
+                tempDiv.className = `message-item message-sent`;
+                tempDiv.id = tempId;
+                tempDiv.innerHTML = `
+                    <div class="message-text" style="position: relative; opacity: 0.7;">
+                        ${type === 'pdf' ? `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><i data-lucide="file-text" style="color:#ff4757;"></i><span>Uploading PDF...</span></div>` : `<img src="${previewUrl}" style="max-width: 100%; border-radius: 10px;">`}
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); padding: 10px; border-radius: 50%; color: white; display: flex; flex-direction: column; align-items: center; z-index: 10;">
+                            <i data-lucide="loader" class="fa-spin" style="width: 24px; height: 24px;"></i>
+                            <span id="prog-${tempId}" style="font-size: 0.8rem; font-weight: bold; margin-top: 5px;">0%</span>
+                        </div>
+                    </div>`;
+                chatContainer.appendChild(tempDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                if (window.lucide) window.lucide.createIcons();
+
+                const storageRef = ref(storage, `chat_media/${window.chatConversationId}/${Date.now()}_${fileToUpload.name.replace(/[^a-zA-Z0-9.]/g, '')}`);
+                const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        const progEl = document.getElementById(`prog-${tempId}`);
+                        if (progEl) progEl.innerText = Math.round(progress) + '%';
+                    },
+                    (error) => {
+                        console.error("Upload error:", error);
+                        document.getElementById(tempId)?.remove();
+                        window.viyouAlert("Upload failed.");
+                    },
+                    async () => {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        const msgPayload = { type, content: downloadURL, senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false };
+                        await addDoc(collection(db, "conversations", window.chatConversationId, "messages"), msgPayload);
+                        const myName = window.currentUserData?.name || "User";
+                        const myPic = window.currentUserData?.photoURL || null;
+                        const pName = document.getElementById('chat-partner-name').innerText;
+                        const pPic = document.getElementById('chat-partner-pic').src;
+                        await setDoc(doc(db, "conversations", window.chatConversationId), { participants: [auth.currentUser.uid, window.currentChatPartnerUid], participantDetails: { [auth.currentUser.uid]: { name: myName, photoURL: myPic }, [window.currentChatPartnerUid]: { name: pName, photoURL: pPic } }, lastMessage: { text: lastMsg, senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } }, { merge: true });
+                        document.getElementById(tempId)?.remove();
+                    }
+                );
+            } catch(err) { console.error(err); document.getElementById(tempId)?.remove(); window.viyouAlert("Failed to process file."); }
+            finally { e.target.value = ''; }
         };
 
         window.toggleChatReaction = async function(msgId, emoji) {
