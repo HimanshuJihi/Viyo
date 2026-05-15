@@ -1,0 +1,4 @@
+# Ignore Node Dependencies
+node_modules/
+npm-debug.log
+service-account-key.json

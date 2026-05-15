@@ -4,3 +4,6 @@
 # Dependencies
 node_modules/
 npm-debug.log
+
+# Google Drive Service Account Key (Security)
+service-account-key.json
