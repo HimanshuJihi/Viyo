@@ -158,6 +158,42 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
     }
 });
 
+// 🎬 Proxy Stream Endpoint for Video Playback (Bypasses Drive CORS/Virus Scan restrictions)
+app.get('/api/stream/:fileId', async (req, res) => {
+    try {
+        const fileId = req.params.fileId;
+        const range = req.headers.range;
+
+        const options = { responseType: 'stream' };
+        if (range) {
+            options.headers = { Range: range };
+        }
+
+            const response = await drive.files.get({ fileId: fileId, alt: 'media', acknowledgeAbuse: true }, options);
+
+        // Forward necessary headers to browser for seamless video seeking/playing
+        const headersToForward = ['content-length', 'content-range', 'content-type', 'accept-ranges'];
+        for (const header of headersToForward) {
+            if (response.headers[header]) res.setHeader(header, response.headers[header]);
+         }
+            
+            // Force accept-ranges and content-type if missing
+            if (!response.headers['accept-ranges']) res.setHeader('accept-ranges', 'bytes');
+            if (!response.headers['content-type'] || response.headers['content-type'] === 'application/octet-stream') {
+                res.setHeader('content-type', 'video/mp4');
+            
+        }
+        
+        res.status(response.status);
+        response.data.pipe(res);
+        
+        response.data.on('error', (err) => { console.error('Stream pipe error:', err.message); res.end(); });
+    } catch (error) {
+        console.error('Streaming Error:', error.message);
+        if (!res.headersSent) res.status(500).send('Video stream failed');
+    }
+});
+
 // 🕒 Keep-Alive Ping Endpoint (Taaki server kabhi soye nahi)
 app.get('/api/ping', (req, res) => {
     res.status(200).send('Pong! Server is awake 🚀');

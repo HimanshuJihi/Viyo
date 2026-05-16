@@ -300,6 +300,19 @@
                 }
 
                 flicks.forEach((flick) => {
+                    let videoSrc = flick.video;
+                    if (videoSrc) {
+                        const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+                        if (driveMatch && driveMatch[1]) {
+                            videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
+                        } else if (videoSrc.includes('drive.google.com/uc')) {
+                            const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
+                            if (ucMatch && ucMatch[1]) {
+                                videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
+                            }
+                        }
+                        flick.video = videoSrc;
+                    }
                     const div = document.createElement('div');
                     div.className = 'flick-item';
                     div.id = `flick-item-${flick.id}`;

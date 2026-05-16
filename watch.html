@@ -252,12 +252,25 @@
                 if (eligibleAds.length > 0) preRollAdToPlay = eligibleAds[Math.floor(Math.random() * eligibleAds.length)];
             }
 
+            let videoSrc = blog.video;
+            if (videoSrc) {
+                const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+                if (driveMatch && driveMatch[1]) {
+                    videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
+                } else if (videoSrc.includes('drive.google.com/uc')) {
+                    const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
+                    if (ucMatch && ucMatch[1]) {
+                        videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
+                    }
+                }
+            }
+
             let mediaHtml = '';
             if (blog.youtubeUrl) {
                 const videoId = getYoutubeVideoId(blog.youtubeUrl);
                 mediaHtml = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
                 setTimeout(window.countVideoView, 10000); // 10-second timer for YouTube iframe
-            } else if (blog.video) {
+            } else if (videoSrc) {
                 mediaHtml = `
                     <video id="custom-video" playsinline preload="auto"></video>
                     
@@ -426,7 +439,7 @@
                 const playMainVideo = () => {
                     if (adOverlay) adOverlay.style.display = 'none';
                     if (controlsContainer) controlsContainer.style.display = 'flex';
-                    videoElement.src = blog.video;
+                    videoElement.src = videoSrc;
                     window.isPlayingMainVideo = true;
                     videoElement.play().catch(e => console.log("Main video play blocked", e));
                     videoElement.onended = playNextVideo; // Auto-play next video on end

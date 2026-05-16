@@ -508,6 +508,14 @@
             const formData = new FormData();
             formData.append('video', file);
 
+            // ==========================================
+            // 1️⃣ LOCAL TESTING URL (Mobile/PC local test ke liye is line se // hatayein aur Live wale ko comment karein)
+            // const BACKEND_URL = 'http://192.168.1.5:3000/api/upload'; 
+
+            // 2️⃣ LIVE PRODUCTION URL (Live internet par publish karne ke liye isko on rakhein)
+            const BACKEND_URL = 'https://viyou-in-backend.onrender.com/api/upload'; 
+            // ==========================================
+
             const cancelUpload = () => {
                 xhr.abort();
                 overlay.style.display = 'none';
@@ -545,12 +553,14 @@
                         const response = JSON.parse(xhr.responseText);
                         if (response.success) {
                             text.innerText = "Video Uploaded! Finalizing Post...";
-                            // Drive ka direct stream link use karein taaki website par video play ho sake
-                            let streamLink = response.webContentLink;
-                            if (!streamLink && response.webViewLink) {
+                            
+                            // Viyo Server Proxy Stream Link use karein (Bypasses Google Drive limits & CORS)
+                            let streamLink = response.webContentLink; // Fallback
+                            if (response.webViewLink) {
                                 const match = response.webViewLink.match(/\/file\/d\/(.*?)\/view/);
                                 if (match && match[1]) {
-                                    streamLink = `https://drive.google.com/uc?id=${match[1]}&export=download`;
+                                    const serverBase = BACKEND_URL.replace('/api/upload', '');
+                                    streamLink = `${serverBase}/api/stream/${match[1]}`;
                                 }
                             }
                             resolve(streamLink || response.webViewLink);
@@ -576,14 +586,6 @@
                 cancelBtn.removeEventListener('click', cancelUpload);
                 reject(new Error("Network error (or server waking up). Wait 30 seconds and try again."));
             };
-
-            // ==========================================
-            // 1️⃣ LOCAL TESTING URL (Mobile/PC local test ke liye is line se // hatayein aur Live wale ko comment karein)
-            // const BACKEND_URL = 'http://192.168.1.5:3000/api/upload'; 
-
-            // 2️⃣ LIVE PRODUCTION URL (Live internet par publish karne ke liye isko on rakhein)
-            const BACKEND_URL = 'https://viyo-backend.onrender.com/api/upload'; 
-            // ==========================================
 
             xhr.open('POST', BACKEND_URL, true);
             xhr.send(formData);
