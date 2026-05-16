@@ -1,7 +1,18 @@
 require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const multer = require('multer');
 const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
+
+// --- Express Server Setup ---
+const app = express();
+const port = 3000;
+app.use(cors()); // Frontend ko access dene ke liye
+
+// Uploads folder setup jahan files temporarily save hongi
+const upload = multer({ dest: 'uploads/' });
 
 // --- OAuth2 Configuration ---
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -28,21 +39,20 @@ const drive = google.drive({ version: 'v3', auth: oauth2Client });
  * @param {string} folderId - Destination folder ID in Google Drive
  * @returns {object} The uploaded file metadata containing its ID
  */
-async function uploadVideoToDrive(filePath, folderId) {
-    const fileName = path.basename(filePath);
+async function uploadVideoToDrive(filePath, originalName, mimeType, folderId) {
     
     const fileMetadata = {
-        name: fileName,
+        name: originalName,
         parents: [folderId],
     };
 
     const media = {
-        mimeType: 'video/mp4', // Adjust if you are uploading .webm, .mkv, etc.
+        mimeType: mimeType, 
         body: fs.createReadStream(filePath),
     };
 
     try {
-        console.log(`Uploading ${fileName}...`);
+        console.log(`Uploading ${originalName}...`);
         const response = await drive.files.create({
             resource: fileMetadata,
             media: media,
@@ -73,7 +83,11 @@ async function generatePublicUrl(fileId) {
                 type: 'anyone',
             },
         });
+    } catch (permError) {
+        console.log('⚠️ Warning: Could not set public permissions. Proceeding anyway...');
+    }
 
+    try {
         // Fetch the file to get the URLs
         const result = await drive.files.get({
             fileId: fileId,
@@ -93,27 +107,49 @@ async function generatePublicUrl(fileId) {
     }
 }
 
-// --- Main Execution ---
-async function main() {
-    // Apni video file ka sahi naam yahan dalein, jo d:\Viyo\function folder mein hi ho.
-    const videoFilePath = path.join(__dirname, 'sample-video.mp4'); 
-
-    if (!fs.existsSync(videoFilePath)) {
-        console.error(`❌ Could not find video file at ${videoFilePath}`);
-        console.log('Please make sure "sample-video.mp4" exists in the "function" folder.');
-        return;
+// --- API Endpoint (Frontend yahan video bhejega) ---
+app.post('/api/upload', upload.single('video'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No video file uploaded' });
     }
 
     try {
-        // 1. Upload the video
-        const uploadedFile = await uploadVideoToDrive(videoFilePath, FOLDER_ID);
+        const filePath = req.file.path;
+        const originalName = req.file.originalname;
+        const mimeType = req.file.mimetype;
 
-        // 2. Generate and print the public URLs using the uploaded file's ID
-        await generatePublicUrl(uploadedFile.id);
+        // 1. Google Drive par upload karein
+        const uploadedFile = await uploadVideoToDrive(filePath, originalName, mimeType, FOLDER_ID);
         
-    } catch (error) {
-        console.error('Process failed:', error.message);
-    }
-}
+        // 2. Public link banayein
+        const links = await generatePublicUrl(uploadedFile.id);
 
-main();
+        // 3. Computer se temporary file delete kar dein (Storage bachane ke liye)
+        try {
+            fs.unlinkSync(filePath);
+        } catch (e) {
+            console.log('⚠️ Temporary file locked by Windows, skipped deletion.');
+        }
+
+        // Frontend (Website) ko response bhej dein
+        res.json({
+            success: true,
+            webViewLink: links.webViewLink,
+            webContentLink: links.webContentLink
+        });
+
+    } catch (error) {
+        console.error('API Error:', error.message);
+        try {
+            if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        } catch(e) {}
+        res.status(500).json({ error: 'Upload failed' });
+    }
+});
+
+const server = app.listen(port, () => {
+    console.log(`🚀 Viyo Backend API is running on http://localhost:${port}`);
+});
+
+// ⏱️ Timeout disable kar diya taaki badi videos Drive par aaram se upload ho sakein
+server.setTimeout(0);

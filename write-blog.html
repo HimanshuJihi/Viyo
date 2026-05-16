@@ -495,7 +495,7 @@
             });
         }
 
-    function uploadFileToStorage(file, path) {
+    function uploadVideoToServer(file) {
         return new Promise((resolve, reject) => {
             const overlay = document.getElementById('upload-progress-overlay');
             const bar = document.getElementById('upload-progress-bar');
@@ -503,11 +503,13 @@
             const cancelBtn = document.getElementById('cancel-upload-btn');
             overlay.style.display = 'flex';
 
-            const storageRef = ref(storage, path);
-            const uploadTask = uploadBytesResumable(storageRef, file);
+            const xhr = new XMLHttpRequest();
+            xhr.timeout = 0; // Prevent browser from dropping connection on large files
+            const formData = new FormData();
+            formData.append('video', file);
 
             const cancelUpload = () => {
-                uploadTask.cancel();
+                xhr.abort();
                 overlay.style.display = 'none';
                 reject(new Error("Upload cancelled by user"));
                 cancelBtn.removeEventListener('click', cancelUpload);
@@ -516,35 +518,65 @@
 
             let startTime = Date.now();
 
-            uploadTask.on('state_changed', 
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const progress = (event.loaded / event.total) * 100;
                     bar.style.width = progress + '%';
                     
                     const timeElapsed = (Date.now() - startTime) / 1000;
-                    if (timeElapsed > 0.5 && snapshot.bytesTransferred > 0) {
-                        const speedBps = snapshot.bytesTransferred / timeElapsed;
+                    if (progress >= 100) {
+                        text.innerText = "100%  •  Processing on Google Drive... Please wait.";
+                    } else if (timeElapsed > 0.5 && event.loaded > 0) {
+                        const speedBps = event.loaded / timeElapsed;
                         let speedText = speedBps > 1048576 ? (speedBps / 1048576).toFixed(2) + ' MB/s' : (speedBps / 1024).toFixed(0) + ' KB/s';
-                        const secRemaining = (snapshot.totalBytes - snapshot.bytesTransferred) / speedBps;
+                        const secRemaining = (event.total - event.loaded) / speedBps;
                         let etaText = secRemaining > 60 ? Math.floor(secRemaining / 60) + 'm ' + Math.floor(secRemaining % 60) + 's left' : Math.ceil(secRemaining) + 's left';
                         text.innerText = `${Math.round(progress)}%  •  ${speedText}  •  ${etaText}`;
                     } else {
                         text.innerText = Math.round(progress) + '%';
                     }
-                }, 
-                (error) => { 
-                    overlay.style.display = 'none'; 
-                    cancelBtn.removeEventListener('click', cancelUpload);
-                    reject(error); 
-                }, 
-                () => { 
-                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => { 
-                        overlay.style.display = 'none'; 
-                        cancelBtn.removeEventListener('click', cancelUpload);
-                        resolve(downloadURL); 
-                    }); 
                 }
-            );
+            };
+
+            xhr.onload = () => {
+                cancelBtn.removeEventListener('click', cancelUpload);
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            text.innerText = "Video Uploaded! Finalizing Post...";
+                            // Drive ka direct stream link use karein taaki website par video play ho sake
+                            let streamLink = response.webContentLink;
+                            if (!streamLink && response.webViewLink) {
+                                const match = response.webViewLink.match(/\/file\/d\/(.*?)\/view/);
+                                if (match && match[1]) {
+                                    streamLink = `https://drive.google.com/uc?id=${match[1]}&export=download`;
+                                }
+                            }
+                            resolve(streamLink || response.webViewLink);
+                        } else {
+                            overlay.style.display = 'none';
+                            reject(new Error(response.error || "Upload failed on server"));
+                        }
+                    } catch (e) {
+                        overlay.style.display = 'none';
+                        reject(new Error("Invalid response from server"));
+                    }
+                } else {
+                    overlay.style.display = 'none';
+                    reject(new Error(`Server error: ${xhr.status}`));
+                }
+            };
+
+            xhr.onerror = () => {
+                overlay.style.display = 'none';
+                cancelBtn.removeEventListener('click', cancelUpload);
+                reject(new Error("Network error during upload"));
+            };
+
+            // Hamare local API par request bhejna
+            xhr.open('POST', 'http://localhost:3000/api/upload', true);
+            xhr.send(formData);
         });
     }
 
@@ -918,8 +950,10 @@
                             videoDuration = fEnd - fStart;
                         } else {
                             const vidPreview = document.getElementById('video-preview');
-                            if (vidPreview && vidPreview.src && vidPreview.duration) {
+                            if (vidPreview && vidPreview.src && !isNaN(vidPreview.duration) && vidPreview.duration > 0) {
                                 videoDuration = vidPreview.duration;
+                            } else {
+                                videoDuration = videoDurationForTrim || 0;
                             }
                         }
 
@@ -966,7 +1000,7 @@
                             if (imagesData && imagesData.length > 0) {
                                 updateData.images = imagesData;
                             }
-                            if (videoDuration > 0) updateData.duration = videoDuration;
+                                if (!isNaN(videoDuration) && videoDuration > 0) updateData.duration = videoDuration;
                             if (videoBase64) updateData.video = videoBase64;
                             if (thumbnailBase64) updateData.thumbnail = thumbnailBase64;
                             updateData.youtubeUrl = youtubeUrl || null;
@@ -989,7 +1023,7 @@
                         }
 
                         // Create new blog
-                            await addDoc(collection(db, "blogs"), {
+                            const newBlogRef = await addDoc(collection(db, "blogs"), {
                             title: title,
                             titleLower: title.toLowerCase(),
                             category: category,
@@ -1003,7 +1037,7 @@
                             images: imagesData || [],
                             image: thumbnailBase64 ? thumbnailBase64 : ((imagesData && imagesData.length > 0) ? imagesData[0] : 'logo.png'), // Default image
                             video: videoBase64 || null,
-                            duration: videoDuration,
+                                duration: isNaN(videoDuration) ? 0 : videoDuration,
                             flickStartTime: isFlicks ? fStart : null,
                             flickEndTime: isFlicks ? fEnd : null,
                             thumbnail: thumbnailBase64 || null,
@@ -1038,12 +1072,17 @@
                     
                         const successMessage = submissionStatus === 'draft' ? 'Draft Saved Successfully!' : (editId ? 'Blog Updated Successfully!' : 'Blog Published Successfully!');
                         showToast(successMessage, 'success');
+                        
+                        const overlayText = document.getElementById('upload-progress-text');
+                        if (overlayText) overlayText.innerText = "Post Published Successfully! Redirecting...";
                         setTimeout(() => {
+                            document.getElementById('upload-progress-overlay').style.display = 'none';
                             window.location.href = 'index.html';
                         }, 1500);
 
                     } catch (e) {
                         console.error("Error:", e);
+                        document.getElementById('upload-progress-overlay').style.display = 'none';
                         showToast('Error saving blog: ' + e.message, 'error');
                         submitBtn.innerHTML = originalBtnContent;
                         submitBtn.disabled = false;
@@ -1080,7 +1119,7 @@
                             submitBtn.disabled = false;
                             return;
                         }
-                        videoPromise = uploadFileToStorage(vFile, `videos/${auth.currentUser.uid}_${Date.now()}_${vFile.name.replace(/[^a-zA-Z0-9.]/g, '')}`);
+                    videoPromise = uploadVideoToServer(vFile);
                     }
                 }
 
@@ -1101,6 +1140,7 @@
                     processBlog(imageResults.length > 0 ? imageResults : null, youtubeUrl, pollData, videoResult, thumbnailResult);
                 }).catch(err => {
                     console.error(err);
+                    document.getElementById('upload-progress-overlay').style.display = 'none';
                     showToast("Error processing media: " + err.message, 'error');
                     submitBtn.innerHTML = originalBtnContent;
                     submitBtn.disabled = false;
