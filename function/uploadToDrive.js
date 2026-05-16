@@ -1,20 +1,26 @@
+require('dotenv').config();
 const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
 
-// --- Configuration ---
-// Path to your service account key file
-const KEYFILEPATH = path.join(__dirname, 'service-account-key.json');
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
+// --- OAuth2 Configuration ---
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = 'https://developers.google.com/oauthplayground';
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
+
 const FOLDER_ID = '1n3cRNiqozwNBDeAjVA2FZH7JQwF7FnLE';
 
-// --- Initialize Google Auth and Drive API ---
-const auth = new google.auth.GoogleAuth({
-    keyFile: KEYFILEPATH,
-    scopes: SCOPES,
-});
+// --- Initialize Google OAuth2 ---
+const oauth2Client = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REDIRECT_URI
+);
 
-const drive = google.drive({ version: 'v3', auth });
+oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+
+const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
 /**
  * Uploads a video file to the specified Google Drive folder.
