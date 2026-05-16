@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Viyou-v34'; // Cache version updated
+const CACHE_NAME = 'Viyou-v35'; // Cache version updated for API bypass
 const urlsToCache = [
   '/',
   '/index.html',
@@ -27,6 +27,13 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // API requests, POST requests aur Render URLs ko Service Worker se bypass karein
+  if (event.request.method !== 'GET' || 
+      event.request.url.includes('/api/') || 
+      event.request.url.includes('onrender.com')) {
+      return; // Inhe direct browser aur network handle karega
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {

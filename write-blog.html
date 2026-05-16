@@ -562,6 +562,9 @@
                         overlay.style.display = 'none';
                         reject(new Error("Invalid response from server"));
                     }
+                } else if (xhr.status === 503) {
+                    overlay.style.display = 'none';
+                    reject(new Error("Free server is waking up! Please wait 30 seconds and click Publish again."));
                 } else {
                     overlay.style.display = 'none';
                     reject(new Error(`Server error: ${xhr.status}`));
@@ -571,13 +574,18 @@
             xhr.onerror = () => {
                 overlay.style.display = 'none';
                 cancelBtn.removeEventListener('click', cancelUpload);
-                reject(new Error("Network error during upload"));
+                reject(new Error("Network error (or server waking up). Wait 30 seconds and try again."));
             };
 
-            // Hamare local API par request bhejna
-            // LIVE BACKEND URL (Render.com se jo link milega, usko yahan dalein)
-            const LIVE_BACKEND_URL = 'https://viyo-backend.onrender.com/api/upload'; 
-            xhr.open('POST', LIVE_BACKEND_URL, true);
+            // ==========================================
+            // 1️⃣ LOCAL TESTING URL (Mobile/PC local test ke liye is line se // hatayein aur Live wale ko comment karein)
+            // const BACKEND_URL = 'http://192.168.1.5:3000/api/upload'; 
+
+            // 2️⃣ LIVE PRODUCTION URL (Live internet par publish karne ke liye isko on rakhein)
+            const BACKEND_URL = 'https://viyo-backend.onrender.com/api/upload'; 
+            // ==========================================
+
+            xhr.open('POST', BACKEND_URL, true);
             xhr.send(formData);
         });
     }

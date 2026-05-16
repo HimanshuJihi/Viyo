@@ -9,7 +9,18 @@ const path = require('path');
 // --- Express Server Setup ---
 const app = express();
 const port = process.env.PORT || 3000; // Cloud server apna port khud chunega
-app.use(cors()); // Frontend ko access dene ke liye
+
+// 🌐 UNIVERSAL CORS FIX: Kisi bhi device aur network se allow karein
+app.use(cors({ origin: '*' }));
+
+// 🛡️ Manual Preflight Fallback (Strict headers)
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    next();
+});
 
 // Cloud servers mein temporary files /tmp/ mein save karni chahiye
 const upload = multer({ dest: '/tmp/' });
@@ -147,8 +158,14 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
     }
 });
 
-const server = app.listen(port, () => {
-    console.log(`🚀 Viyo Backend API is running on http://localhost:${port}`);
+// 🕒 Keep-Alive Ping Endpoint (Taaki server kabhi soye nahi)
+app.get('/api/ping', (req, res) => {
+    res.status(200).send('Pong! Server is awake 🚀');
+});
+
+// 🌐 '0.0.0.0' lagana zaroori hai taaki cloud external requests accept kare
+const server = app.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 Viyo Backend API is running on port ${port}`);
 });
 
 // ⏱️ Timeout disable kar diya taaki badi videos Drive par aaram se upload ho sakein
