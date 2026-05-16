@@ -525,7 +525,7 @@
                     
                     const timeElapsed = (Date.now() - startTime) / 1000;
                     if (progress >= 100) {
-                        text.innerText = "100%  •  Processing on Google Drive... Please wait.";
+                        text.innerText = "100%  •  Publishing on Viyou.in... Please wait.";
                     } else if (timeElapsed > 0.5 && event.loaded > 0) {
                         const speedBps = event.loaded / timeElapsed;
                         let speedText = speedBps > 1048576 ? (speedBps / 1048576).toFixed(2) + ' MB/s' : (speedBps / 1024).toFixed(0) + ' KB/s';
