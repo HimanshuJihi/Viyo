@@ -4190,6 +4190,7 @@
         // Get the button
         
         let fetchedBlogs = [];
+        let isFetchingBlogs = false;
 
         // New functions for feed toggle
         function updateFeedToggleUI() {
@@ -4230,7 +4231,7 @@
         await Promise.all([globalAdPromise, globalPromosPromise, globalSettingsPromise]); 
         
             loadMainHeadline(); // Load main headline
-            loadBlogs(false); // Start loading from the beginning
+            await loadBlogs(false); // Start loading from the beginning
             setupInfiniteScroll(); // Setup scroll observer after auth resolves
 
             // Defer loading of non-critical sections to improve initial load time
@@ -4432,6 +4433,9 @@
                 }
             }
 
+            if (isFetchingBlogs) return;
+            isFetchingBlogs = true;
+
             try {
                 let newBlogs = [];
                 let hasMoreDocs = true;
@@ -4536,9 +4540,13 @@
                 }
 
                 if (!isLoadMore) fetchedBlogs = [];
-                fetchedBlogs = [...fetchedBlogs, ...newBlogs];
                 
-                if (newBlogs.length > 0 || fetchedBlogs.length > 0) {
+                // Duplicate videos ko prevent karne ke liye filter
+                const existingIds = new Set(fetchedBlogs.map(b => b.id));
+                const uniqueNewBlogs = newBlogs.filter(b => !existingIds.has(b.id));
+                fetchedBlogs = [...fetchedBlogs, ...uniqueNewBlogs];
+                
+                if (uniqueNewBlogs.length > 0 || fetchedBlogs.length > 0) {
                     renderBlogs(auth.currentUser);
                 }
 
@@ -4553,6 +4561,9 @@
                     grid.innerHTML = `<p style="text-align: center; color: #ff6b6b; padding: 20px;">${errorMsg}</p>`;
                 }
                 if(loadMoreContainer) loadMoreContainer.style.display = 'none';
+            }
+            finally {
+                isFetchingBlogs = false;
             }
         }
 

@@ -575,7 +575,9 @@
             };
 
             // Hamare local API par request bhejna
-            xhr.open('POST', 'http://localhost:3000/api/upload', true);
+            // LIVE BACKEND URL (Render.com se jo link milega, usko yahan dalein)
+            const LIVE_BACKEND_URL = 'https://viyo-backend.onrender.com/api/upload'; 
+            xhr.open('POST', LIVE_BACKEND_URL, true);
             xhr.send(formData);
         });
     }

@@ -8,11 +8,11 @@ const path = require('path');
 
 // --- Express Server Setup ---
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Cloud server apna port khud chunega
 app.use(cors()); // Frontend ko access dene ke liye
 
-// Uploads folder setup jahan files temporarily save hongi
-const upload = multer({ dest: 'uploads/' });
+// Cloud servers mein temporary files /tmp/ mein save karni chahiye
+const upload = multer({ dest: '/tmp/' });
 
 // --- OAuth2 Configuration ---
 const CLIENT_ID = process.env.CLIENT_ID;
