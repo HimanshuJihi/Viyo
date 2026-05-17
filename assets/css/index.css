@@ -476,15 +476,15 @@ body {
         }
 
         /* Miniplayer Mode */
-        #view-watch.miniplayer-mode { display: block !important; position: fixed; bottom: 80px; right: 20px; width: 320px; height: auto; z-index: 3500; background: #000; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: slideInMiniplayer 0.3s ease-out; }
+        #view-watch.miniplayer-mode { display: block !important; position: fixed; bottom: 80px; right: 20px; width: 320px; height: auto; z-index: 3500; background: #000; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: slideInMiniplayer 0.3s ease-out; touch-action: none; }
         @keyframes slideInMiniplayer { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         #view-watch.miniplayer-mode .watch-container { padding: 0; max-width: 100%; display: block; gap: 0; }
         #view-watch.miniplayer-mode .watch-main-content { width: 100%; flex: none; }
         #view-watch.miniplayer-mode .watch-sidebar, #view-watch.miniplayer-mode .watch-info, #view-watch.miniplayer-mode #watch-comments-section, #view-watch.miniplayer-mode footer { display: none !important; }
         #view-watch.miniplayer-mode .watch-video-container { border-radius: 0; box-shadow: none; border: none; padding-bottom: 56.25%; }
         #view-watch.miniplayer-mode .controls { display: none !important; }
-        .miniplayer-controls-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 90; background: transparent; transition: background 0.3s; pointer-events: none; }
-        #view-watch.miniplayer-mode .miniplayer-controls-overlay { pointer-events: auto; cursor: pointer; }
+        .miniplayer-controls-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 90; background: transparent; transition: background 0.3s; pointer-events: none; }
+        #view-watch.miniplayer-mode .miniplayer-controls-overlay { display: block; pointer-events: auto; cursor: pointer; }
         #view-watch.miniplayer-mode:hover .miniplayer-controls-overlay, #view-watch.miniplayer-mode.show-mini-controls .miniplayer-controls-overlay { background: rgba(0,0,0,0.4); }
         #view-watch.miniplayer-mode .miniplayer-expand-btn, #view-watch.miniplayer-mode .miniplayer-close-btn, #view-watch.miniplayer-mode .miniplayer-play-btn { display: flex; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s; }
         #view-watch.miniplayer-mode:hover .miniplayer-expand-btn, #view-watch.miniplayer-mode:hover .miniplayer-close-btn, #view-watch.miniplayer-mode:hover .miniplayer-play-btn, #view-watch.miniplayer-mode.show-mini-controls .miniplayer-expand-btn, #view-watch.miniplayer-mode.show-mini-controls .miniplayer-close-btn, #view-watch.miniplayer-mode.show-mini-controls .miniplayer-play-btn, #view-watch.miniplayer-mode .watch-video-container.paused .miniplayer-play-btn { opacity: 1; pointer-events: auto; }

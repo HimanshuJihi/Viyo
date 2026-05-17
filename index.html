@@ -454,6 +454,7 @@
             <div style="padding: 0 5px; margin-bottom: 15px;">
                 <div style="display: flex; align-items: center; gap: 5px;">
                     <h2 id="display-name" style="margin: 0; font-size: 1.1rem; color: #fff;">User Name</h2>
+                    <span id="verified-indicator" class="verified-badge" style="display: none;" title="Verified">✔</span>
                 </div>
                 <p id="display-username" style="color: #aaa; margin: 2px 0 8px 0; font-size: 0.9rem;">@username</p>
                 <p id="display-bio" style="color: #ddd; font-size: 0.95rem; margin: 0; white-space: pre-wrap; word-wrap: break-word;"></p>
@@ -787,12 +788,38 @@
         const provider = new GoogleAuthProvider();
         let currentUserFollowing = [];
         
+        window.getProxiedVideoUrl = function(url) {
+            if (!url) return url;
+            let videoSrc = url;
+            if (videoSrc.includes('viyo-backend.onrender.com')) {
+                videoSrc = videoSrc.replace('viyo-backend.onrender.com', 'viyou-in-backend.onrender.com');
+            }
+            const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+            if (driveMatch && driveMatch[1]) {
+                videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
+            } else if (videoSrc.includes('drive.google.com/uc') || videoSrc.includes('drive.google.com/open')) {
+                const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
+                if (ucMatch && ucMatch[1]) {
+                    videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
+                }
+            }
+            return videoSrc;
+        };
+        
         // --- Watch SPA Logic (Miniplayer Integration) ---
         window.closeMiniplayer = function(e) {
             if(e) e.stopPropagation();
             const watchView = document.getElementById('view-watch');
             watchView.classList.remove('miniplayer-mode');
+            watchView.classList.remove('active'); // SPA mode ki active class hatana zaroori hai
             watchView.style.display = 'none';
+            
+            // Miniplayer ko drag hone ke baad default jagah lane ke liye styles reset
+            watchView.style.top = '';
+            watchView.style.left = '';
+            watchView.style.bottom = '';
+            watchView.style.right = '';
+            watchView.style.animation = '';
             
             const customVideo = document.getElementById('custom-video');
             if (customVideo) customVideo.pause();
@@ -802,7 +829,78 @@
             window.currentWatchBlogId = null;
         };
 
+        // Miniplayer Drag & Drop Engine (PC & Mobile)
+        window.hasDraggedMiniplayer = false;
+        let isDraggingMiniplayer = false;
+        let miniplayerStartX, miniplayerStartY, initialLeft, initialTop;
+
+        document.addEventListener('pointerdown', (e) => {
+            const watchView = document.getElementById('view-watch');
+            if (!watchView || !watchView.classList.contains('miniplayer-mode')) return;
+            if (e.target.closest('.miniplayer-btn')) return; // Button par click ho to drag na karein
+            if (!watchView.contains(e.target)) return; // Sirf tabhi drag ho jab miniplayer par click ho
+
+            isDraggingMiniplayer = true;
+            window.hasDraggedMiniplayer = false;
+            miniplayerStartX = e.clientX;
+            miniplayerStartY = e.clientY;
+
+            const rect = watchView.getBoundingClientRect();
+            if (!watchView.style.top || watchView.style.bottom !== 'auto') {
+                watchView.style.top = rect.top + 'px';
+                watchView.style.left = rect.left + 'px';
+                watchView.style.bottom = 'auto';
+                watchView.style.right = 'auto';
+                watchView.style.animation = 'none'; 
+            }
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            watchView.style.transition = 'none'; // Drag smooth karne ke liye
+            
+            try { watchView.setPointerCapture(e.pointerId); } catch(err) {}
+        });
+
+        document.addEventListener('pointermove', (e) => {
+            if (!isDraggingMiniplayer) return;
+            if (e.cancelable) e.preventDefault(); // Stop mobile screen from scrolling!
+            const watchView = document.getElementById('view-watch');
+            if (!watchView) return;
+
+            const dx = e.clientX - miniplayerStartX;
+            const dy = e.clientY - miniplayerStartY;
+
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) window.hasDraggedMiniplayer = true;
+
+            let newLeft = initialLeft + dx;
+            let newTop = initialTop + dy;
+
+            // Screen se bahar na jane dein
+            const maxX = window.innerWidth - watchView.offsetWidth;
+            const maxY = window.innerHeight - watchView.offsetHeight;
+            if (newLeft < 0) newLeft = 0; if (newTop < 0) newTop = 0;
+            if (newLeft > maxX) newLeft = maxX; if (newTop > maxY) newTop = maxY;
+
+            watchView.style.left = newLeft + 'px';
+            watchView.style.top = newTop + 'px';
+        }, { passive: false });
+
+        const endMiniplayerDrag = (e) => {
+            if (isDraggingMiniplayer) {
+                isDraggingMiniplayer = false;
+                const watchView = document.getElementById('view-watch');
+                if (watchView) {
+                    watchView.style.transition = ''; 
+                    try { watchView.releasePointerCapture(e.pointerId); } catch(err) {}
+                }
+                setTimeout(() => { window.hasDraggedMiniplayer = false; }, 50);
+            }
+        };
+        
+        document.addEventListener('pointerup', endMiniplayerDrag);
+        document.addEventListener('pointercancel', endMiniplayerDrag);
+
         window.toggleMiniplayerControls = function(e) {
+            if(window.hasDraggedMiniplayer) return; // Drag karte waqt controls na khulein
             if(e) e.stopPropagation();
             const watchView = document.getElementById('view-watch');
             if (watchView) {
@@ -818,7 +916,6 @@
             if(e) { e.preventDefault(); e.stopPropagation(); }
             const customVideo = document.getElementById('custom-video');
             const mainPlayBtn = document.getElementById('play-pause-btn');
-            const miniPlayBtn = e.currentTarget;
             if (customVideo) {
                 if (customVideo.paused) {
                     const p = customVideo.play();
@@ -852,6 +949,38 @@
                 const blog = snap.data();
                 window.currentWatchBlog = { id: id, ...blog };
                 window.addToWatchHistory(id);
+                
+                let isAuthorMonetized = false;
+                try {
+                    const authorDoc = await getDoc(doc(db, "users", blog.authorUid));
+                    if (authorDoc.exists() && authorDoc.data().isMonetized) {
+                        isAuthorMonetized = true;
+                    }
+                } catch(e) {}
+
+            let followBtnHtml = '';
+            if (auth.currentUser && blog.authorUid && blog.authorUid !== auth.currentUser.uid) {
+                const isFollowing = currentUserFollowing.includes(blog.authorUid);
+                followBtnHtml = `<button id="watch-follow-btn" onclick="window.toggleFollow('${blog.authorUid}')" class="follow-btn ${isFollowing ? 'following' : ''}" style="margin-left: 10px; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; border: none; background: ${isFollowing ? 'rgba(255,255,255,0.2)' : '#ff0050'}; color: #fff; cursor: pointer; transition: all 0.2s;">${isFollowing ? 'Following' : 'Follow'}</button>`;
+            }
+
+                window.watchViewAlreadyCounted = false;
+                window.countWatchVideoView = function() {
+                    if (window.watchViewAlreadyCounted) return;
+                    
+                    const viewKey = `viyou_view_count_${id}`;
+                    let currentViews = parseInt(localStorage.getItem(viewKey) || '0');
+                    if (currentViews >= 5) return;
+                    
+                    window.watchViewAlreadyCounted = true;
+                    localStorage.setItem(viewKey, currentViews + 1);
+
+                    if (blog.video && !blog.youtubeUrl) {
+                        updateDoc(docRef, { views: increment(1), longVideoViews: increment(1) }).catch(e => {});
+                    } else {
+                        updateDoc(docRef, { views: increment(1) }).catch(e => {});
+                    }
+                };
 
                 const miniplayerBtnsHtml = `
                     <div class="miniplayer-controls-overlay" onclick="window.toggleMiniplayerControls(event)">
@@ -862,18 +991,7 @@
                 `;
 
                 let mediaHtml = '';
-                let videoSrc = blog.video;
-                if (videoSrc) {
-                    const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-                    if (driveMatch && driveMatch[1]) {
-                        videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
-                    } else if (videoSrc.includes('drive.google.com/uc')) {
-                        const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
-                        if (ucMatch && ucMatch[1]) {
-                            videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
-                        }
-                    }
-                }
+                let videoSrc = window.getProxiedVideoUrl(blog.video);
 
                 if (blog.youtubeUrl) {
                     const videoId = getYoutubeVideoId(blog.youtubeUrl);
@@ -982,7 +1100,10 @@
                             <div class="watch-author-info">
                                 <img src="${blog.authorPhoto || 'https://via.placeholder.com/45'}" alt="${blog.author}" onclick="window.navigateTo('profile', event, '${blog.authorUid}')">
                                 <div>
-                                    <strong style="cursor:pointer; font-size: 1.1rem; color: #fff;" onclick="window.navigateTo('profile', event, '${blog.authorUid}')">${blog.author}</strong>
+                                    <div style="display: flex; align-items: center;">
+                                        <strong style="cursor:pointer; font-size: 1.1rem; color: #fff;" onclick="window.navigateTo('profile', event, '${blog.authorUid}')">${blog.author}</strong>
+                                        ${followBtnHtml}
+                                    </div>
                                     <div style="font-size: 0.85rem; color: #aaa;">${views.toLocaleString()} views • ${new Date(blog.date).toLocaleDateString()}</div>
                                 </div>
                             </div>
@@ -1008,6 +1129,19 @@
                         const firstSuggestion = document.querySelector('.watch-suggestion-card');
                         if (firstSuggestion) firstSuggestion.click();
                     };
+                    
+                    const handleAutoPlayUI = (playPromise) => {
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                const ppBtn = document.getElementById('play-pause-btn');
+                                if (ppBtn) ppBtn.innerHTML = '<i data-lucide="pause"></i>';
+                                document.querySelectorAll('.miniplayer-play-btn').forEach(btn => btn.innerHTML = '<i data-lucide="pause"></i>');
+                                const vc = document.getElementById('video-container');
+                                if (vc) vc.classList.remove('paused');
+                                if (window.lucide) window.lucide.createIcons();
+                            }).catch(e => console.log("Autoplay blocked", e));
+                        }
+                    };
 
                     const playMainVideo = () => {
                         const adOverlay = document.getElementById('watch-ad-overlay');
@@ -1016,9 +1150,8 @@
                         if (controlsContainer) controlsContainer.style.display = 'flex';
                         videoElement.src = videoSrc;
                         window.isPlayingMainVideo = true;
-                        videoElement.play().catch(e => console.log("Main video play blocked", e));
+                        handleAutoPlayUI(videoElement.play());
                         videoElement.onended = playNextVideo;
-                        if (window.lucide) window.lucide.createIcons();
                     };
 
                     let sessionViews = parseInt(sessionStorage.getItem('viyou_video_views') || '0');
@@ -1062,7 +1195,7 @@
                         }, 1000);
                         if (adSkipBtn) adSkipBtn.onclick = (e) => { e.stopPropagation(); clearInterval(skipInterval); playMainVideo(); };
                         videoElement.onended = () => { clearInterval(skipInterval); playMainVideo(); };
-                        videoElement.play().catch(e => console.log("Ad autoplay blocked", e));
+                        handleAutoPlayUI(videoElement.play());
                     } else {
                         playMainVideo();
                     }
@@ -1106,6 +1239,9 @@
                     if(playPauseBtn) playPauseBtn.onclick = togglePlay;
                     
                     videoElement.addEventListener('timeupdate', () => {
+                        if (window.isPlayingMainVideo && videoElement.currentTime >= 10) {
+                            if (typeof window.countWatchVideoView === 'function') window.countWatchVideoView();
+                        }
                         if(progressBar) progressBar.value = (videoElement.currentTime / videoElement.duration) * 100 || 0;
                         if(currentTimeDisplay) currentTimeDisplay.textContent = formatTime(videoElement.currentTime);
                     });
@@ -1143,14 +1279,40 @@
                         fullscreenBtn.onclick = async () => {
                             const container = document.getElementById('video-container');
                             if (!document.fullscreenElement) {
-                                await container.requestFullscreen();
-                                fullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
+                                try {
+                                    await container.requestFullscreen();
+                                    fullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
+                                    // Mobile mein YouTube ki tarah Landscape Mode
+                                    if (window.innerWidth <= 768 && screen.orientation && screen.orientation.lock) {
+                                        await screen.orientation.lock('landscape').catch(e => console.log(e));
+                                    }
+                                } catch(e) { console.error(e); }
                             } else {
-                                await document.exitFullscreen();
-                                fullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
+                                try {
+                                    await document.exitFullscreen();
+                                    fullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
+                                    if (screen.orientation && screen.orientation.unlock) {
+                                        screen.orientation.unlock();
+                                    }
+                                } catch(e) { console.error(e); }
                             }
                             if(window.lucide) window.lucide.createIcons();
-            };
+                        };
+                    }
+
+                    // Escape Button ya Mobile Back button dabane par orientation theek karne ke liye
+                    if (!window.hasFullscreenChangeListener) {
+                        document.addEventListener('fullscreenchange', () => {
+                            if (!document.fullscreenElement) {
+                                const btn = document.getElementById('fullscreen-btn');
+                                if (btn) btn.innerHTML = '<i data-lucide="maximize"></i>';
+                                if (screen.orientation && screen.orientation.unlock) {
+                                    screen.orientation.unlock();
+                                }
+                                if (window.lucide) window.lucide.createIcons();
+                            }
+                        });
+                        window.hasFullscreenChangeListener = true;
                     }
 
                     // --- Double Tap to Skip & Like Logic ---
@@ -1496,6 +1658,7 @@
                 
                 // Smart Up Next Suggestions (Infinite Scroll 20 at a time)
                 window.loadWatchSuggestions(id, blog.category, false);
+                window.showAllWatchComments = false;
                 window.renderWatchComments();
 
             } catch (err) {
@@ -1521,13 +1684,26 @@
         window.currentStoryAudio = null;
         window.storyViewTimer = null; // Timer for 3-second story view logic
         
+        window.toggleWatchCommentsLimit = function() {
+            window.showAllWatchComments = !window.showAllWatchComments;
+            window.renderWatchComments();
+        };
+
         // --- WATCH SPA COMMENTS SYSTEM ---
         window.renderWatchComments = function() {
             const commentsSection = document.getElementById('watch-comments-section');
             if (!commentsSection || !window.currentWatchBlog) return;
             const user = auth.currentUser;
             const comments = window.currentWatchBlog.comments || [];
-            const sortedComments = [...comments].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const sortedComments = [...comments].sort((a, b) => {
+                const aLikes = a.likes ? a.likes.length : 0;
+                const bLikes = b.likes ? b.likes.length : 0;
+                if (bLikes !== aLikes) return bLikes - aLikes; // Most Liked First
+                return new Date(b.date) - new Date(a.date); // Then Newest
+            });
+
+            const limit = window.showAllWatchComments ? sortedComments.length : 4;
+            const commentsToShow = sortedComments.slice(0, limit);
 
             const renderMentionsText = (text, mentionMap) => {
                 let safeText = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
@@ -1541,7 +1717,7 @@
                 return safeText;
             };
 
-            let commentsHtml = sortedComments.map(c => {
+            let commentsHtml = commentsToShow.map(c => {
                 const isOwner = user && c.userUid === user.uid;
                 const isLiked = user && (c.likes || []).includes(user.uid);
                 const authorLiked = (c.likes || []).includes(window.currentWatchBlog.authorUid);
@@ -1618,6 +1794,13 @@
                     ` : '<p style="text-align:center; color:#aaa; margin-bottom: 30px;">Please login to comment.</p>'}
                     <div id="watch-comments-list" style="max-height: 600px; overflow-y: auto; padding-right: 10px;">
                         ${commentsHtml || '<p style="color:#aaa; text-align: center;">No comments yet. Be the first to comment!</p>'}
+                        ${sortedComments.length > 4 ? `
+                            <div style="text-align: center; margin-top: 15px;">
+                                <button onclick="window.toggleWatchCommentsLimit()" class="btn btn-transparent" style="color: #87ceeb; border: 1px solid rgba(135,206,235,0.3); width: 100%; border-radius: 8px;">
+                                    ${window.showAllWatchComments ? 'Show less' : `Show more (${sortedComments.length - 4})`}
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -1663,9 +1846,16 @@
             let isVideoPlaying = (customVideo && !customVideo.paused) || (ytIframe && ytIframe.src !== '');
 
             if (page === 'watch') {
-                if (watchView) watchView.classList.remove('miniplayer-mode');
+                if (watchView) {
+                    watchView.classList.remove('miniplayer-mode');
+                    watchView.style.top = '';
+                    watchView.style.left = '';
+                    watchView.style.bottom = '';
+                    watchView.style.right = '';
+                    watchView.style.animation = '';
+                }
             } else {
-                if (watchView && watchView.classList.contains('active')) {
+                if (watchView && watchView.classList.contains('active') && window.currentWatchBlogId) {
                     if (page !== 'flicks') {
                         watchView.classList.add('miniplayer-mode');
                     } else {
@@ -1842,7 +2032,8 @@
             document.getElementById('btn-tab-drafts').style.display = 'none';
             document.getElementById('open-settings-btn').style.display = 'none';
             document.getElementById('photo-hint').style.display = 'none';
-            document.getElementById('verified-indicator').style.display = 'none';
+                const verifiedIndicator = document.getElementById('verified-indicator');
+                if (verifiedIndicator) verifiedIndicator.style.display = 'none';
 
             if (user) {
                 const viewerDoc = await getDoc(doc(db, "users", user.uid));
@@ -2394,8 +2585,9 @@
                     const videoId = getYoutubeVideoId(blog.youtubeUrl);
                     thumbHtml = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                 } else if (blog.video) {
+                    let vidSrc = window.getProxiedVideoUrl(blog.video);
                     if (blog.thumbnail) thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
-                    else thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
+                    else thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
                 } else if (blog.images && blog.images.length > 0) { thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; } 
                 else if (blog.image && blog.image !== 'logo.png') { thumbHtml = `<img src="${blog.image}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; } 
                 else { thumbHtml = `<div class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" style="display:flex; align-items:center; justify-content:center; background:#222; border: 1px solid #444;"><i data-lucide="newspaper" style="font-size:2rem; color:#555;"></i></div>`; }
@@ -3031,6 +3223,7 @@
                 content = fwdInd + storyPrev + tDiv.innerHTML.replace(/\n/g, '<br>') + (data.edited ? ' <span class="edited-indicator">(edited)</span>' : '');
             }
             else if (data.type === 'flick') {
+                let vidSrc = window.getProxiedVideoUrl(data.videoUrl);
                 content = `${fwdInd}<div class="story-reply-preview text-only" style="margin-bottom: 5px; cursor: pointer;" onclick="window.navigateTo('home', event); setTimeout(()=>window.location.href='flicks.html?id=${data.flickId}', 500)"><span style="font-size:0.75rem; color:#aaa; display:block;"><i data-lucide="zap" style="color:#ff0050; width:12px;height:12px;"></i> Shared a Flick</span></div><video src="${data.videoUrl}" controls style="max-width: 100%; border-radius: 8px; max-height: 250px; background: #000;"></video>${data.title ? `<div style="font-size:0.85rem; font-weight:bold; margin-top:5px;">${data.title}</div>` : ''}`;
             }
             else {
@@ -4383,10 +4576,11 @@
                             thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${thumbClass}" alt="Thumbnail">`;
                             iconHtml = '<i class="fa-brands fa-youtube" style="color: #ff0000;"></i>';
                         } else if (blog.video) {
+                            let vidSrc = window.getProxiedVideoUrl(blog.video);
                             if (blog.thumbnail) {
                                 thumbHtml = `<img src="${blog.thumbnail}" class="${thumbClass}" alt="Thumbnail">`;
                             } else {
-                                thumbHtml = `<video src="${blog.video}#t=0.1" class="${thumbClass}" muted playsinline preload="metadata"></video>`;
+                                thumbHtml = `<video src="${vidSrc}#t=0.1" class="${thumbClass}" muted playsinline preload="metadata"></video>`;
                             }
                             iconHtml = blog.isFlicker ? '<i class="fa-solid fa-bolt" style="color: #ff0050;"></i>' : '<i class="fa-solid fa-play"></i>';
                         } else if (blog.images && blog.images.length > 0) {
@@ -4656,19 +4850,8 @@
                     reel.innerHTML = '';
                     window.globalFlicks = flicks; // Store globally for viewer operations
                     flicks.forEach((flick, idx) => {
-                        let videoSrc = flick.video;
-                        if (videoSrc) {
-                            const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-                            if (driveMatch && driveMatch[1]) {
-                                videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
-                            } else if (videoSrc.includes('drive.google.com/uc')) {
-                                const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
-                                if (ucMatch && ucMatch[1]) {
-                                    videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
-                                }
-                            }
-                            flick.video = videoSrc;
-                        }
+                        let videoSrc = window.getProxiedVideoUrl(flick.video);
+                        flick.video = videoSrc;
                         const div = document.createElement('div');
                         div.style.cssText = "flex: 0 0 140px; height: 240px; background: #000; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; border: 1px solid #444; transition: transform 0.2s;";
                         
@@ -4780,11 +4963,20 @@
 
             // Video Display
             if (blog.video) {
+                let vidSrc = window.getProxiedVideoUrl(blog.video);
+                if (blog.thumbnail) {
                 mediaHtml += `
                     <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; margin-bottom: 0; background: #222; display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: pointer;" onclick="window.navigateTo('watch', event, '${blog.id}')">
-                        <img src="${blog.thumbnail || 'logo.png'}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+                            <img src="${blog.thumbnail}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
                         <div style="position: absolute; color: rgba(255,255,255,0.9); text-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: none;"><i data-lucide="play-circle" class="lucide-fill" style="width: 48px; height: 48px;"></i></div>
                     </div>`;
+                } else {
+                    mediaHtml += `
+                        <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; margin-bottom: 0; background: #222; display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: pointer;" onclick="window.navigateTo('watch', event, '${blog.id}')">
+                            <video src="${vidSrc}#t=0.1" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" muted playsinline preload="metadata"></video>
+                            <div style="position: absolute; color: rgba(255,255,255,0.9); text-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: none;"><i data-lucide="play-circle" class="lucide-fill" style="width: 48px; height: 48px;"></i></div>
+                        </div>`;
+                }
             }
 
             if (blog.images && blog.images.length > 0) {
@@ -5137,10 +5329,11 @@
                         const videoId = getYoutubeVideoId(blog.youtubeUrl);
                         thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else if (blog.video) {
+                    let vidSrc = window.getProxiedVideoUrl(blog.video);
                         if (blog.thumbnail) {
                             thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                         } else {
-                            thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
+                        thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
                         }
                     } else if (blog.images && blog.images.length > 0) {
                         thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
@@ -5525,6 +5718,14 @@
             }
 
             if(await viyouConfirm('Are you sure you want to delete this blog post?')) {
+                if (blog.video && blog.video.includes('api/stream/')) {
+                    const match = blog.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+                    if (match && match[1]) {
+                        try {
+                            await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' });
+                        } catch(e) { console.error("Drive delete error:", e); }
+                    }
+                }
                 await deleteDoc(docRef);
                 location.reload();
             }
@@ -5549,6 +5750,18 @@
             if (document.getElementById('flicks-viewer-modal') && document.getElementById('flicks-viewer-modal').style.display === 'flex') {
                 window.updateFlicksView();
             }
+            
+            document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
+                if (isUnfollowing) {
+                    btn.innerText = 'Follow';
+                    btn.classList.remove('following');
+                    if (btn.id === 'watch-follow-btn') btn.style.background = '#ff0050';
+                } else {
+                    btn.innerText = 'Following';
+                    btn.classList.add('following');
+                    if (btn.id === 'watch-follow-btn') btn.style.background = 'rgba(255,255,255,0.2)';
+                }
+            });
 
             // Background DB update
             (async () => {
@@ -8225,10 +8438,11 @@
                         const videoId = getYoutubeVideoId(blog.youtubeUrl);
                         thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else if (blog.video) {
+                        let vidSrc = window.getProxiedVideoUrl(blog.video);
                         if (blog.thumbnail) {
                             thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                         } else {
-                            thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
+                            thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
                         }
                     } else if (blog.images && blog.images.length > 0) {
                         thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;

@@ -188,6 +188,23 @@
 
             currentBlog = { id: blogId, ...blog };
             
+            let isAuthorMonetized = false;
+            try {
+                const authorDoc = await getDoc(doc(db, "users", blog.authorUid));
+                if (authorDoc.exists() && authorDoc.data().isMonetized) {
+                    isAuthorMonetized = true;
+                }
+            } catch(e) {}
+            
+            window.currentUserFollowing = [];
+            if (auth.currentUser) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                    if (userDoc.exists()) {
+                        window.currentUserFollowing = userDoc.data().following || [];
+                    }
+                } catch(e) {}
+            }
             if (auth.currentUser) {
                 try {
                     const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
@@ -215,10 +232,10 @@
             window.countVideoView = function() {
                 if (window.viewAlreadyCounted) return;
                 
-                // --- Max 4 Views Per User/Device Logic ---
+                // --- Max 5 Views Per User/Device Logic ---
                 const viewKey = `viyou_view_count_${blogId}`;
                 let currentViews = parseInt(localStorage.getItem(viewKey) || '0');
-                if (currentViews >= 4) return; // 4 Views Limit Reached
+                if (currentViews >= 5) return; // 5 Views Limit Reached
                 
                 window.viewAlreadyCounted = true;
                 localStorage.setItem(viewKey, currentViews + 1); // Update local count
@@ -252,18 +269,7 @@
                 if (eligibleAds.length > 0) preRollAdToPlay = eligibleAds[Math.floor(Math.random() * eligibleAds.length)];
             }
 
-            let videoSrc = blog.video;
-            if (videoSrc) {
-                const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-                if (driveMatch && driveMatch[1]) {
-                    videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
-                } else if (videoSrc.includes('drive.google.com/uc')) {
-                    const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
-                    if (ucMatch && ucMatch[1]) {
-                        videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
-                    }
-                }
-            }
+            let videoSrc = window.getProxiedVideoUrl(blog.video);
 
             let mediaHtml = '';
             if (blog.youtubeUrl) {
@@ -380,6 +386,12 @@
             const likesCount = Array.isArray(likes) ? likes.length : (typeof likes === 'number' ? likes : 0);
             const isLiked = auth.currentUser && Array.isArray(likes) && likes.includes(auth.currentUser.uid);            
 
+            let followBtnHtml = '';
+            if (auth.currentUser && blog.authorUid && blog.authorUid !== auth.currentUser.uid) {
+                const isFollowing = window.currentUserFollowing.includes(blog.authorUid);
+                followBtnHtml = `<button id="watch-follow-btn" onclick="window.toggleFollow('${blog.authorUid}')" class="follow-btn ${isFollowing ? 'following' : ''}" style="margin-left: 10px; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; border: none; background: ${isFollowing ? 'rgba(255,255,255,0.2)' : '#ff0050'}; color: #fff; cursor: pointer; transition: all 0.2s;">${isFollowing ? 'Following' : 'Follow'}</button>`;
+            }
+
             const categoryBadge = blog.category ? `<span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ddd; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; display: inline-block;">🏷️ ${blog.category}</span>` : '';
 
             // Formatting links in description
@@ -400,7 +412,10 @@
                         <div class="author-info">
                             <img src="${blog.authorPhoto || 'https://via.placeholder.com/45'}" alt="${blog.author}" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">
                             <div>
-                                <strong style="cursor:pointer; font-size: 1.1rem;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
+                                <div style="display: flex; align-items: center;">
+                                    <strong style="cursor:pointer; font-size: 1.1rem;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
+                                    ${followBtnHtml}
+                                </div>
                                     <div style="font-size: 0.85rem; color: #aaa;">${views.toLocaleString()} views • ${window.timeAgo(blog.date)}</div>
                             </div>
                         </div>
@@ -435,15 +450,26 @@
                         firstSuggestion.click(); // Autoplays the very first "Up Next" video
                     }
                 };
+                
+                const handleAutoPlayUI = (playPromise) => {
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            const ppBtn = document.getElementById('play-pause-btn');
+                            if (ppBtn) ppBtn.innerHTML = '<i data-lucide="pause"></i>';
+                            const vc = document.getElementById('video-container');
+                            if (vc) vc.classList.remove('paused');
+                            if (window.lucide) window.lucide.createIcons();
+                        }).catch(e => console.log("Autoplay blocked", e));
+                    }
+                };
 
                 const playMainVideo = () => {
                     if (adOverlay) adOverlay.style.display = 'none';
                     if (controlsContainer) controlsContainer.style.display = 'flex';
                     videoElement.src = videoSrc;
                     window.isPlayingMainVideo = true;
-                    videoElement.play().catch(e => console.log("Main video play blocked", e));
+                    handleAutoPlayUI(videoElement.play());
                     videoElement.onended = playNextVideo; // Auto-play next video on end
-                    if (window.lucide) lucide.createIcons();
                 };
                 
                 // NEW: VAST Ad Player function
@@ -476,7 +502,9 @@
                         });
                         
                         // Track Ad View (Impression) for Creator
-                        updateDoc(doc(db, "blogs", blogId), { adImpressions: increment(1) }).catch(e => console.error(e));
+                        if (isAuthorMonetized) {
+                            updateDoc(doc(db, "blogs", blogId), { adImpressions: increment(1) }).catch(e => console.error(e));
+                        }
 
                         videoElement.src = adVideoUrl;
                         if (adOverlay) adOverlay.style.display = 'block';
@@ -499,7 +527,7 @@
                         const skipInterval = setInterval(() => { if (--skipTimer <= 0) { clearInterval(skipInterval); if (adCountdown) adCountdown.style.display = 'none'; if (adSkipBtn) adSkipBtn.style.display = 'block'; } else if (adCountdown) adCountdown.innerText = `Skip in ${skipTimer}`; }, 1000);
                         if (adSkipBtn) adSkipBtn.onclick = (e) => { e.stopPropagation(); clearInterval(skipInterval); playMainVideo(); };
                         videoElement.onended = () => { clearInterval(skipInterval); playMainVideo(); };
-                        videoElement.play().catch(e => { console.log("VAST Ad autoplay blocked", e); playMainVideo(); });
+                        handleAutoPlayUI(videoElement.play());
                     } catch (error) { console.error("Error processing VAST ad:", error); playMainVideo(); }
                 }
 
@@ -513,7 +541,9 @@
                     if (!window.userAdImpressionTracked) {
                         updateDoc(doc(db, "promotions", preRollAdToPlay.id), { impressions_served: increment(1) }).catch(e => console.error(e));
                         // Track Ad View (Impression) for Creator
-                        updateDoc(docRef, { adImpressions: increment(1) }).catch(e => console.error(e));
+                        if (isAuthorMonetized) {
+                            updateDoc(docRef, { adImpressions: increment(1) }).catch(e => console.error(e));
+                        }
                         window.userAdImpressionTracked = true;
                     }
 
@@ -554,7 +584,7 @@
                         clearInterval(skipInterval);
                         playMainVideo();
                     };
-                    videoElement.play().catch(e => console.log("Ad autoplay blocked", e));
+                    handleAutoPlayUI(videoElement.play());
                 } else {
                     playMainVideo(); // Play main video directly if no ads
                 }
@@ -1036,6 +1066,7 @@
                 };
             }
 
+            window.showAllWatchComments = false;
             window.renderComments();
         }
 
@@ -1204,6 +1235,43 @@
 
         window.shareVideo = () => { navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard!'); };
 
+        window.toggleFollow = async function(targetUid) {
+            if (!auth.currentUser) { alert("Please login to follow!"); return; }
+            const myUid = auth.currentUser.uid;
+            const isUnfollowing = window.currentUserFollowing.includes(targetUid);
+
+            if (isUnfollowing) {
+                window.currentUserFollowing = window.currentUserFollowing.filter(id => id !== targetUid);
+            } else {
+                window.currentUserFollowing.push(targetUid);
+            }
+
+            document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
+                if (isUnfollowing) {
+                    btn.innerText = 'Follow';
+                    btn.classList.remove('following');
+                    if (btn.id === 'watch-follow-btn') btn.style.background = '#ff0050';
+                } else {
+                    btn.innerText = 'Following';
+                    btn.classList.add('following');
+                    if (btn.id === 'watch-follow-btn') btn.style.background = 'rgba(255,255,255,0.2)';
+                }
+            });
+
+            try {
+                const userRef = doc(db, "users", myUid);
+                const targetRef = doc(db, "users", targetUid);
+                if (isUnfollowing) {
+                    await updateDoc(userRef, { following: arrayRemove(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayRemove(myUid) });
+                } else {
+                    await updateDoc(userRef, { following: arrayUnion(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayUnion(myUid) });
+                    await addDoc(collection(db, "notifications"), { recipientUid: targetUid, senderUid: myUid, senderName: auth.currentUser.displayName || "Someone", type: "follow", date: new Date().toISOString(), read: false });
+                }
+            } catch(e) { console.error("Follow error:", e); }
+        };
+
         // --- MODERN COMMENT SYSTEM ---
 
         async function parseMentions(text) {
@@ -1271,14 +1339,27 @@
             }
         };
 
+        window.toggleWatchCommentsLimit = function() {
+            window.showAllWatchComments = !window.showAllWatchComments;
+            window.renderComments();
+        };
+
         window.renderComments = function() {
             const commentsSection = document.getElementById('comments-section');
             if (!commentsSection || !currentBlog) return;
             const user = auth.currentUser;
             const comments = currentBlog.comments || [];
-            const sortedComments = [...comments].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const sortedComments = [...comments].sort((a, b) => {
+                const aLikes = a.likes ? a.likes.length : 0;
+                const bLikes = b.likes ? b.likes.length : 0;
+                if (bLikes !== aLikes) return bLikes - aLikes; // Most Liked First
+                return new Date(b.date) - new Date(a.date); // Then Newest
+            });
 
-            let commentsHtml = sortedComments.map(c => {
+            const limit = window.showAllWatchComments ? sortedComments.length : 4;
+            const commentsToShow = sortedComments.slice(0, limit);
+
+            let commentsHtml = commentsToShow.map(c => {
                 const isOwner = user && c.userUid === user.uid;
                 const isLiked = user && (c.likes || []).includes(user.uid);
                 const authorLiked = (c.likes || []).includes(currentBlog.authorUid);
@@ -1358,6 +1439,13 @@
                     ` : '<p style="text-align:center; color:#aaa; margin-bottom: 30px;">Please <a href="index.html" style="color:#0d6efd;">login</a> to comment.</p>'}
                     <div id="comments-list" style="max-height: 600px; overflow-y: auto; padding-right: 10px;">
                         ${commentsHtml || '<p style="color:#aaa; text-align: center;">No comments yet. Be the first to comment!</p>'}
+                        ${sortedComments.length > 4 ? `
+                            <div style="text-align: center; margin-top: 15px;">
+                                <button onclick="window.toggleWatchCommentsLimit()" class="btn btn-transparent" style="color: #87ceeb; border: 1px solid rgba(135,206,235,0.3); width: 100%; border-radius: 8px;">
+                                    ${window.showAllWatchComments ? 'Show less' : `Show more (${sortedComments.length - 4})`}
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;

@@ -194,6 +194,34 @@ app.get('/api/stream/:fileId', async (req, res) => {
     }
 });
 
+// 🔍 Proxy Check Endpoint: Detect if a file still exists in Google Drive
+app.get('/api/check/:fileId', async (req, res) => {
+    try {
+        await drive.files.get({ fileId: req.params.fileId, fields: 'id' });
+        res.json({ exists: true });
+    } catch (error) {
+        if (error.code === 404 || error.status === 404) {
+            res.json({ exists: false });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
+    }
+});
+
+// 🗑️ Delete Endpoint: Automatically free up Drive space when site post is deleted
+app.delete('/api/file/:fileId', async (req, res) => {
+    try {
+        await drive.files.delete({ fileId: req.params.fileId });
+        res.json({ success: true });
+    } catch (error) {
+        if (error.code === 404 || error.status === 404) {
+            res.json({ success: true, message: 'Already deleted' });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
+    }
+});
+
 // 🕒 Keep-Alive Ping Endpoint (Taaki server kabhi soye nahi)
 app.get('/api/ping', (req, res) => {
     res.status(200).send('Pong! Server is awake 🚀');

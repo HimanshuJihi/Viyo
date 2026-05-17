@@ -265,6 +265,13 @@
 
                     <button class="btn" style="background-color: #0d6efd;" onclick="window.saveHeadlines()">Save Headlines</button>
                 </div>
+
+                <div class="report-card" style="border-color: #ef4444;">
+                    <h3 style="color: #ef4444; margin-top: 0;"><i data-lucide="trash-2"></i> Drive Storage Sync</h3>
+                    <p style="color: #aaa; font-size: 0.85rem; margin-top: 0; margin-bottom: 15px;">If you manually deleted videos from your Google Drive to free up space, click here to automatically scan and remove those broken posts from the website and user profiles.</p>
+                    <button class="btn" style="background-color: #ef4444;" id="sync-drive-btn" onclick="window.syncDriveAndSite()"><i data-lucide="refresh-cw"></i> Scan & Delete Broken Posts</button>
+                    <div id="sync-drive-status" style="margin-top: 10px; color: #87ceeb; font-size: 0.9rem; font-weight: bold;"></div>
+                </div>
             </div>
 
             <!-- VAST Ads Section -->
@@ -1397,6 +1404,14 @@
         window.deleteBlog = async (blogId, reportId) => {
             if (!confirm("Are you sure you want to DELETE this blog permanently? This action cannot be undone.")) return;
             try {
+                const docSnap = await getDoc(doc(db, "blogs", blogId));
+                if (docSnap.exists() && docSnap.data().video && docSnap.data().video.includes('api/stream/')) {
+                    const match = docSnap.data().video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+                    if (match && match[1]) {
+                        await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
+                    }
+                }
+                
                 // Delete the blog
                 await deleteDoc(doc(db, "blogs", blogId));
                 
@@ -1486,6 +1501,14 @@
         window.deleteBlogFromClaim = async (blogId, claimId) => {
             if (!confirm("Are you sure you want to DELETE this blog permanently due to a copyright strike? This action cannot be undone.")) return;
             try {
+                const docSnap = await getDoc(doc(db, "blogs", blogId));
+                if (docSnap.exists() && docSnap.data().video && docSnap.data().video.includes('api/stream/')) {
+                    const match = docSnap.data().video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+                    if (match && match[1]) {
+                        await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
+                    }
+                }
+                
                 await deleteDoc(doc(db, "blogs", blogId));
                 await deleteDoc(doc(db, "copyright_claims", claimId));
                 document.getElementById(`copyright-${claimId}`).remove();
@@ -1509,9 +1532,16 @@
                 const q = query(collection(db, "blogs"), where("authorUid", "==", uid));
                 const snap = await getDocs(q);
                 const batch = writeBatch(db);
+                const deletePromises = [];
                 snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.video && data.video.includes('api/stream/')) {
+                        const match = data.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+                        if (match && match[1]) deletePromises.push(fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{}));
+                    }
                     batch.delete(docSnap.ref);
                 });
+                await Promise.all(deletePromises);
                 await batch.commit();
 
                 showToast(`User ${username} has been banned and all their content removed.`);
@@ -1713,12 +1743,12 @@
                     const uid = userDoc.id;
                     const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid), where("status", "!=", "draft"));
                     const blogsSnap = await getDocs(blogsQuery);
-                    let totalViews = 0; let totalLongVideoViews = 0;
+                    let totalViews = 0; let totalAdImpressions = 0;
                     blogsSnap.forEach(blogDoc => {
                         const bData = blogDoc.data();
                         totalViews += Number(bData.views) || 0;
                         if (!bData.isFlicker && (bData.video && !bData.youtubeUrl)) { // Only count direct uploads for earnings
-                            totalLongVideoViews += bData.longVideoViews !== undefined ? Number(bData.longVideoViews) : (Number(bData.views) || 0);
+                            totalAdImpressions += Number(bData.adImpressions) || 0;
                         }
                     });
                     const actualFollowers = userData.followers ? userData.followers.length : 0;
@@ -1730,12 +1760,16 @@
                     else if (followersCount >= oldTierFollowers[2] && totalViews >= 1000000) { tier = 3; sharePercent = 0.60; }
                     else if (followersCount >= oldTierFollowers[1] && totalViews >= 100000) { tier = 2; sharePercent = 0.55; }
                     else if (followersCount >= oldTierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
-                    const paidViews = Number(userData.paidLongVideoViews) || 0;
-                    const unpaidViews = Math.max(0, totalLongVideoViews - paidViews);
-                    if (unpaidViews > 0) {
-                        const generatedRevenue = ((unpaidViews / oldFreq) / 1000) * oldRate;
+                    
+                    let paidAdImpressions = userData.paidAdImpressions !== undefined ? 
+                        Number(userData.paidAdImpressions) : 
+                        ((Number(userData.paidLongVideoViews) || 0) / oldFreq);
+                        
+                    const unpaidImpressions = Math.max(0, totalAdImpressions - paidAdImpressions);
+                    if (unpaidImpressions > 0) {
+                        const generatedRevenue = (unpaidImpressions / 1000) * oldRate;
                         const newWalletBalance = (userData.walletBalance || 0) + (generatedRevenue * sharePercent);
-                        batch.update(userDoc.ref, { walletBalance: newWalletBalance, paidLongVideoViews: totalLongVideoViews });
+                        batch.update(userDoc.ref, { walletBalance: newWalletBalance, paidAdImpressions: totalAdImpressions });
                     }
                 }
                 await batch.commit();
@@ -2394,6 +2428,56 @@
                 showToast("Promotion removed successfully.");
                 window.loadLivePromotions();
             } catch (e) { console.error(e); showToast("Error removing promotion.", "error"); }
+        };
+        
+        // --- Drive Sync Logic ---
+        window.syncDriveAndSite = async function() {
+            if (!confirm("This will scan ALL posts and permanently delete the ones where the Drive video is missing. This process may take a few minutes. Continue?")) return;
+            
+            const btn = document.getElementById('sync-drive-btn');
+            const status = document.getElementById('sync-drive-status');
+            btn.innerHTML = '<i data-lucide="loader" class="fa-spin"></i> Scanning...';
+            btn.disabled = true;
+            if (window.lucide) window.lucide.createIcons({root: btn.parentElement});
+            
+            try {
+                status.innerText = "Fetching all posts from database...";
+                const snapshot = await getDocs(collection(db, "blogs"));
+                let total = snapshot.size;
+                let checked = 0; let deleted = 0;
+                
+                for (const docSnap of snapshot.docs) {
+                    const data = docSnap.data();
+                    if (data.video && data.video.includes('api/stream/')) {
+                        let fileId = null;
+                        const streamMatch = data.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+                        if (streamMatch) fileId = streamMatch[1];
+                        
+                        if (fileId) {
+                            status.innerText = `Checking video ${checked + 1} of ${total}...`;
+                            try {
+                                const res = await fetch(`https://viyou-in-backend.onrender.com/api/check/${fileId}`);
+                                const result = await res.json();
+                                if (!result.exists) {
+                                    await deleteDoc(doc(db, "blogs", docSnap.id));
+                                    deleted++;
+                                }
+                            } catch(e) { console.error("Check failed for", fileId, e); }
+                        }
+                    }
+                    checked++;
+                }
+                status.innerText = `Scan complete! Deleted ${deleted} broken posts from the site.`;
+                showToast(`Sync complete! Removed ${deleted} broken posts.`, "success");
+            } catch(e) {
+                console.error(e);
+                status.innerText = "Error occurred during scan.";
+                showToast("Error scanning database.", "error");
+            } finally {
+                btn.innerHTML = '<i data-lucide="refresh-cw"></i> Scan & Delete Broken Posts';
+                btn.disabled = false;
+                if (window.lucide) window.lucide.createIcons({root: btn.parentElement});
+            }
         };
     </script>
 </body>

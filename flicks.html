@@ -248,6 +248,24 @@
         let currentFlickId = null;
         let viewedFlicks = new Set();
         let currentUserFollowing = [];
+        
+        window.getProxiedVideoUrl = function(url) {
+            if (!url) return url;
+            let videoSrc = url;
+            if (videoSrc.includes('viyo-backend.onrender.com')) {
+                videoSrc = videoSrc.replace('viyo-backend.onrender.com', 'viyou-in-backend.onrender.com');
+            }
+            const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+            if (driveMatch && driveMatch[1]) {
+                videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
+            } else if (videoSrc.includes('drive.google.com/uc') || videoSrc.includes('drive.google.com/open')) {
+                const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
+                if (ucMatch && ucMatch[1]) {
+                    videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
+                }
+            }
+            return videoSrc;
+        };
 
         // --- Menu Logic ---
         const mainMenuToggleBtn = document.getElementById('main-menu-toggle');
@@ -300,19 +318,8 @@
                 }
 
                 flicks.forEach((flick) => {
-                    let videoSrc = flick.video;
-                    if (videoSrc) {
-                        const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-                        if (driveMatch && driveMatch[1]) {
-                            videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
-                        } else if (videoSrc.includes('drive.google.com/uc')) {
-                            const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
-                            if (ucMatch && ucMatch[1]) {
-                                videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
-                            }
-                        }
-                        flick.video = videoSrc;
-                    }
+                    let videoSrc = window.getProxiedVideoUrl(flick.video);
+                    flick.video = videoSrc;
                     const div = document.createElement('div');
                     div.className = 'flick-item';
                     div.id = `flick-item-${flick.id}`;
@@ -602,10 +609,10 @@
                             if (vid._viewTimerFn) vid.removeEventListener('timeupdate', vid._viewTimerFn);
                             vid._viewTimerFn = function() {
                                 if (vid.currentTime >= 5 && !viewedFlicks.has(id)) {
-                                    // --- Max 4 Views Per User/Device Logic ---
+                                    // --- Max 5 Views Per User/Device Logic ---
                                     const viewKey = `viyou_view_count_${id}`;
                                     let currentViews = parseInt(localStorage.getItem(viewKey) || '0');
-                                    if (currentViews < 4) {
+                                    if (currentViews < 5) {
                                         localStorage.setItem(viewKey, currentViews + 1);
                                         updateDoc(doc(db, "blogs", id), { views: increment(1) }).catch(e=>{});
                                     }
@@ -1205,7 +1212,8 @@
                     } else if (blog.image && blog.image !== 'logo.png') {
                         thumbHtml = `<img src="${blog.image}" style="width:100%; height:100%; object-fit:cover;">`;
                     } else if (blog.video) {
-                        thumbHtml = `<video src="${blog.video}#t=0.1" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
+                        let vidSrc = window.getProxiedVideoUrl(blog.video);
+                        thumbHtml = `<video src="${vidSrc}#t=0.1" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
                     }
 
                     let targetAction = `window.navigateTo('feed', event); setTimeout(() => { const el = document.getElementById('flick-item-${blog.id}'); if(el) el.scrollIntoView({behavior: 'smooth'}); else window.location.href='flicks.html?id=${blog.id}'; }, 100);`;

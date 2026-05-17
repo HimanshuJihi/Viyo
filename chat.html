@@ -143,6 +143,24 @@
         let currentEditMessageId = null;
         let messageToDelete = null;
         const TYPING_TIMEOUT_DURATION = 2000; // 2 seconds
+        
+        window.getProxiedVideoUrl = function(url) {
+            if (!url) return url;
+            let videoSrc = url;
+            if (videoSrc.includes('viyo-backend.onrender.com')) {
+                videoSrc = videoSrc.replace('viyo-backend.onrender.com', 'viyou-in-backend.onrender.com');
+            }
+            const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+            if (driveMatch && driveMatch[1]) {
+                videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
+            } else if (videoSrc.includes('drive.google.com/uc') || videoSrc.includes('drive.google.com/open')) {
+                const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
+                if (ucMatch && ucMatch[1]) {
+                    videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
+                }
+            }
+            return videoSrc;
+        };
 
         window.enableYoutubeLinks = true;
         getDoc(doc(db, "settings", "general")).then(snap => {
@@ -511,11 +529,12 @@
                     break;
                 case 'flick':
                     let titleHtml = data.title ? `<div style="font-size:0.85rem; font-weight:bold; margin-top: 5px;">${data.title}</div>` : '';
+                    let vidSrc = window.getProxiedVideoUrl(data.videoUrl);
                     messageContent = `${forwardedIndicator}
                         <div class="story-reply-preview text-only" style="margin-bottom: 5px; cursor: pointer;" onclick="window.open('index.html?blogId=${data.flickId}', '_self')">
                             <span style="font-size:0.75rem; color:#aaa; display:block;"><i class="fa-solid fa-bolt" style="color:#ff0050;"></i> Shared a Flick</span>
                         </div>
-                        <video src="${data.videoUrl}" controls style="max-width: 100%; border-radius: 8px; max-height: 250px; background: #000;"></video>
+                        <video src="${vidSrc}" controls style="max-width: 100%; border-radius: 8px; max-height: 250px; background: #000;"></video>
                         ${titleHtml}`;
                     break;
                 case 'text':

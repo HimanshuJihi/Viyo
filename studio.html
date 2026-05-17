@@ -454,7 +454,7 @@ window.showToast = function(message, type = 'info') {
                 else if (followersCount >= tierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
 
                 window.cachedLifetimeData = {
-                    totalViews, totalLongVideoViews, totalFlicksViews, totalAdImpressions, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, walletBalance: userData.walletBalance || 0
+                    totalViews, totalLongVideoViews, totalFlicksViews, totalAdImpressions, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, paidAdImpressions: userData.paidAdImpressions, walletBalance: userData.walletBalance || 0
                 };
 
                 document.getElementById('current-tier').innerText = tier > 0 ? `Tier ${tier} (${Math.round(sharePercent * 100)}%)` : 'No Tier';
@@ -658,8 +658,7 @@ window.showToast = function(message, type = 'info') {
                 
                 let itemRevenue = 0;
                 if (isMonetized && isDirectVideo) {
-                    const vidViews = content.longVideoViews !== undefined ? Number(content.longVideoViews) : (Number(content.views) || 0);
-                    const impressions = vidViews / preRollFreq;
+                    const impressions = content.adImpressions || 0;
                     itemRevenue = (impressions / 1000) * preRollRate * sharePercent;
                 }
 
@@ -806,14 +805,17 @@ window.showToast = function(message, type = 'info') {
                 
                 if (filterVal === 'all') {
                     // Show standard wallet + pending
-                    const unpaidLongViews = Math.max(0, window.cachedLifetimeData.totalLongVideoViews - window.cachedLifetimeData.paidLongVideoViews);
-                    const adImpressions = unpaidLongViews / preRollFreq;
-                    const generatedRevenue = (adImpressions / 1000) * preRollRate;
+                    let paidAdImpressions = window.cachedLifetimeData.paidAdImpressions !== undefined ? 
+                        Number(window.cachedLifetimeData.paidAdImpressions) : 
+                        ((window.cachedLifetimeData.paidLongVideoViews || 0) / preRollFreq);
+                    
+                    const unpaidImpressions = Math.max(0, window.cachedLifetimeData.totalAdImpressions - paidAdImpressions);
+                    const generatedRevenue = (unpaidImpressions / 1000) * preRollRate;
                     window.currentUserPendingEarnings = generatedRevenue * sharePercent;
                     currentEarnings = window.cachedLifetimeData.walletBalance + window.currentUserPendingEarnings;
                     
                     document.getElementById('estimated-earnings').innerText = `₹${currentEarnings.toFixed(2)}`;
-                    document.getElementById('earning-note').innerHTML = `<strong>Tier ${window.cachedLifetimeData.tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong><br>Unpaid Long Video Views: ${unpaidLongViews.toLocaleString()}<br>Frequency: 1 Ad per ${preRollFreq} Views<br>Wallet Balance: ₹${window.cachedLifetimeData.walletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`;
+                    document.getElementById('earning-note').innerHTML = `<strong>Tier ${window.cachedLifetimeData.tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong><br>Unpaid Ad Views: ${unpaidImpressions.toLocaleString()}<br>Wallet Balance: ₹${window.cachedLifetimeData.walletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`;
                     
                     window.updateEarningsChart(window.cachedLifetimeData.walletBalance, window.currentUserPendingEarnings, false);
 
@@ -852,12 +854,11 @@ window.showToast = function(message, type = 'info') {
 
                 } else {
                     // Show estimated generated revenue for content in this period
-                    const adImpressions = periodLongViews / preRollFreq;
-                    const generatedRevenue = (adImpressions / 1000) * preRollRate;
+                    const generatedRevenue = (periodAdViews / 1000) * preRollRate;
                     const periodEarnings = generatedRevenue * sharePercent;
                     
                     document.getElementById('estimated-earnings').innerText = `₹${periodEarnings.toFixed(2)}`;
-                    document.getElementById('earning-note').innerHTML = `Estimated earnings from content published in the last ${filterVal} days.<br>Long Video Views: ${periodLongViews.toLocaleString()}<br><em>Note: Wallet balance and withdrawals are based on Lifetime metrics.</em>`;
+                    document.getElementById('earning-note').innerHTML = `Estimated earnings from content published in the last ${filterVal} days.<br>Ad Views: ${periodAdViews.toLocaleString()}<br><em>Note: Wallet balance and withdrawals are based on Lifetime metrics.</em>`;
                     
                     window.updateEarningsChart(0, periodEarnings, true);
                     withdrawBtn.style.display = 'none'; // Hide withdraw in period view to avoid confusion
@@ -1012,7 +1013,7 @@ window.showToast = function(message, type = 'info') {
 
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
                     walletBalance: remainingBalance,
-                    paidLongVideoViews: window.currentUserTotalLongVideoViews
+                    paidAdImpressions: window.cachedLifetimeData.totalAdImpressions
                 });
 
                 await addDoc(collection(db, "withdrawals"), {
