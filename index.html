@@ -54,6 +54,27 @@
         .page-view.active { display: block; }
     </style>
     <script>
+        window.saveStoryMediaToIndexedDB = function(file) {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("ViyouMediaDB", 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains("videos")) {
+                        db.createObjectStore("videos");
+                    }
+                };
+                request.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const tx = db.transaction("videos", "readwrite");
+                    const store = tx.objectStore("videos");
+                    store.put(file, "import_story_media");
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             let lucideTimeout;
@@ -119,6 +140,29 @@
                     // Custom drag-to-scroll JS removed to use native browser scrolling, as requested.
                 }
             });
+
+            // Story Media Import Logic (Direct Gallery)
+            const homeStoryInput = document.getElementById('home-story-file-input');
+            if (homeStoryInput) {
+                homeStoryInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const overlay = document.createElement('div');
+                        overlay.id = 'temp-story-loading';
+                        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; color:white; flex-direction:column; backdrop-filter: blur(5px);';
+                        overlay.innerHTML = '<i data-lucide="loader" class="fa-spin" style="width:40px;height:40px;color:#f59e0b;margin-bottom:15px;"></i><p style="font-family: Outfit, sans-serif; font-size: 1.1rem; font-weight: bold;">Loading media...</p>';
+                        document.body.appendChild(overlay);
+                        if(window.lucide) window.lucide.createIcons();
+                        try {
+                            await window.saveStoryMediaToIndexedDB(file);
+                            window.location.href = 'story-editor.html?importStoryMedia=true';
+                        } catch (err) {
+                            console.error(err); alert("Failed to load media"); document.getElementById('temp-story-loading').remove();
+                        }
+                    }
+                    e.target.value = '';
+                });
+            }
         });
     </script>
 
@@ -134,6 +178,9 @@
     <link rel="stylesheet" href="assets/css/watch.css">
 </head>
 <body>
+
+    <!-- Hidden input for story media import -->
+    <input type="file" id="home-story-file-input" accept="image/*,video/mp4,video/webm" style="display: none;">
 
     <!-- SVG Gradients for Icons -->
     <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
@@ -175,6 +222,7 @@
                         <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
                         <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
                         <a href="advertise.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="megaphone" style="width: 16px;"></i> Advertise with Us</a>
+                        <a href="#" class="theme-option" onclick="window.submitFeedback(event)" style="text-decoration: none; color: inherit;"><i data-lucide="message-square" style="width: 16px;"></i> Feedback</a>
                         <div style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 5px;">
                             <div style="padding: 5px 10px; font-size: 0.8rem; color: #888;">Themes</div>
                             <div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 5px 10px 10px 10px;">
@@ -281,6 +329,7 @@
                     <button class="category-chip active" data-category="All">All</button>
                     <button class="category-chip" data-category="Entertainment">Entertainment</button>
                     <button class="category-chip" data-category="Music">Music</button>
+                    <button class="category-chip" data-category="Vlogs">Vlogs</button>
                     <button class="category-chip" data-category="Gaming">Gaming</button>
                     <button class="category-chip" data-category="Education">Education</button>
                     <button class="category-chip" data-category="Sports">Sports</button>
@@ -716,6 +765,30 @@
         </div>
     </div>
 
+    <!-- Report Modal -->
+    <div id="report-modal" class="lightbox-modal" onclick="if(event.target === this) document.getElementById('report-modal').style.display='none'">
+        <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; color: white; position: relative; margin: auto; border: 1px solid #444;">
+            <span class="close-lightbox" onclick="document.getElementById('report-modal').style.display='none'" style="top: 10px; right: 15px; font-size: 24px; position: absolute; cursor: pointer;">&times;</span>
+            <h2 style="margin-top: 0; color: #ef4444; font-size: 1.5rem; text-align: left;"><i data-lucide="flag"></i> Report Content</h2>
+            <form id="report-form" onsubmit="window.submitReport(event)">
+                <input type="hidden" id="report-blog-id">
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left;">
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Sexual content"> Sexual content</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Violent or repulsive content"> Violent or repulsive content</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Hateful or abusive content"> Hateful or abusive content</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Harassment or bullying"> Harassment or bullying</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Spam or misleading"> Spam or misleading</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="custom" id="report-reason-custom"> Other (Please specify):</label>
+                    <input type="text" id="report-custom-text" placeholder="Write your reason..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; margin-top: 5px; display: none;">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" style="background-color: #6c757d;" onclick="document.getElementById('report-modal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn" style="background-color: #ef4444;" id="report-submit-btn">Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Profile specific Modals -->
     <div id="cropper-modal" style="display:none; position:fixed; top:0px; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:4000; flex-direction:column; align-items:center; justify-content:center; padding: 15px; box-sizing: border-box;">
         <div style="width:100%; max-width:350px; height:45vh; min-height:250px; background:#000; overflow:hidden; border-radius:8px; display:block;"><img id="cropper-image" style="max-width:100%; display:block;"></div>
@@ -974,6 +1047,13 @@
                     
                     window.watchViewAlreadyCounted = true;
                     localStorage.setItem(viewKey, currentViews + 1);
+                    
+                    // Real-time UI Update after 10 seconds
+                    const viewDisplay = document.getElementById('spa-watch-view-count-display');
+                    if (viewDisplay) {
+                        let currentDisplayViews = parseInt(viewDisplay.innerText.replace(/,/g, '')) || 0;
+                        viewDisplay.innerText = (currentDisplayViews + 1).toLocaleString();
+                    }
 
                     if (blog.video && !blog.youtubeUrl) {
                         updateDoc(docRef, { views: increment(1), longVideoViews: increment(1) }).catch(e => {});
@@ -1040,6 +1120,9 @@
                                                 <span style="display: flex; align-items: center;"><i data-lucide="moon" style="width: 16px; height: 16px; margin-right: 10px;"></i> Sleep Timer</span>
                                                 <span style="color: #aaa; font-size: 0.8rem; display: flex; align-items: center;"><span id="current-sleep-timer-text">Off</span> <i data-lucide="chevron-right" style="width: 16px; height: 16px; margin-left: 5px;"></i></span>
                                             </div>
+                                        <div class="settings-item nav-item" onclick="window.reportBlog('${id}'); document.getElementById('settings-menu').classList.remove('show');">
+                                            <span style="display: flex; align-items: center; color: #ef4444;"><i data-lucide="flag" style="width: 16px; height: 16px; margin-right: 10px;"></i> Report</span>
+                                        </div>
                                         </div>
                                         <!-- Quality Selection Panel -->
                                         <div class="menu-panel" id="panel-quality">
@@ -1079,7 +1162,7 @@
                     `;
                 }
 
-                const views = (blog.views || 0) + 1;
+                const views = (blog.views || 0);
                 const likesCount = Array.isArray(blog.likes) ? blog.likes.length : (typeof blog.likes === 'number' ? blog.likes : 0);
                 const isLiked = auth.currentUser && Array.isArray(blog.likes) && blog.likes.includes(auth.currentUser.uid);            
                 const categoryBadge = blog.category ? `<span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ddd; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; display: inline-block;">🏷️ ${blog.category}</span>` : '';
@@ -1104,7 +1187,7 @@
                                         <strong style="cursor:pointer; font-size: 1.1rem; color: #fff;" onclick="window.navigateTo('profile', event, '${blog.authorUid}')">${blog.author}</strong>
                                         ${followBtnHtml}
                                     </div>
-                                    <div style="font-size: 0.85rem; color: #aaa;">${views.toLocaleString()} views • ${new Date(blog.date).toLocaleDateString()}</div>
+                                    <div style="font-size: 0.85rem; color: #aaa;"><span id="spa-watch-view-count-display">${views.toLocaleString()}</span> views • ${new Date(blog.date).toLocaleDateString()}</div>
                                 </div>
                             </div>
                             <div class="watch-actions">                            
@@ -1492,12 +1575,37 @@
                         });
                     });
 
-        window.enableYoutubeLinks = true;
-        const globalSettingsPromise = getDoc(doc(db, "settings", "general")).then(snap => {
-            if(snap.exists() && snap.data().enableYoutubeLinks !== undefined) {
-                window.enableYoutubeLinks = snap.data().enableYoutubeLinks;
+                    // --- Miniplayer and Theater ---
+                    const pipBtn = document.getElementById('pip-btn');
+                    if (pipBtn) {
+                        pipBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.navigateTo('home', null);
+                        });
+                    }
+                    
+                    const theaterBtn = document.getElementById('theater-btn');
+                    if (theaterBtn) {
+                        theaterBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const wrapper = document.getElementById('watch-container-wrapper');
+                            if(wrapper) wrapper.classList.toggle('theater-mode');
+                        });
+                    }
+                }
+                
+                // Smart Up Next Suggestions (Infinite Scroll 20 at a time)
+                window.loadWatchSuggestions(id, blog.category, false);
+                window.showAllWatchComments = false;
+                window.renderWatchComments();
+
+            } catch (err) {
+                console.error("Watch View Error:", err);
+                mainContent.innerHTML = '<div style="padding: 20px; color: red;">Error loading video.</div>';
             }
-        }).catch(e=>console.error(e));
+        };
 
         window.lastWatchSuggestionDoc = null;
         window.isFetchingWatchSuggestions = false;
@@ -1630,45 +1738,6 @@
                 if (!isLoadMore) container.innerHTML = '<div style="color: #aaa;">Error loading suggestions.</div>';
             }
             window.isFetchingWatchSuggestions = false;
-        };
-
-                    // --- Miniplayer and Theater ---
-                    const pipBtn = document.getElementById('pip-btn');
-                    if (pipBtn) {
-                        pipBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            window.navigateTo('home', null);
-                        });
-                    }
-                    
-                    const theaterBtn = document.getElementById('theater-btn');
-                    if (theaterBtn) {
-                        theaterBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const wrapper = document.getElementById('watch-container-wrapper');
-                            if(wrapper) wrapper.classList.toggle('theater-mode');
-                        });
-                    }
-                    
-                    // View Counter
-                    setTimeout(() => {
-                        updateDoc(docRef, { views: increment(1), longVideoViews: increment(1) }).catch(e => {});
-                    }, 10000);
-                } else if (blog.youtubeUrl) {
-                    setTimeout(() => updateDoc(docRef, { views: increment(1) }).catch(e=>{}), 10000);
-                }
-                
-                // Smart Up Next Suggestions (Infinite Scroll 20 at a time)
-                window.loadWatchSuggestions(id, blog.category, false);
-                window.showAllWatchComments = false;
-                window.renderWatchComments();
-
-            } catch (err) {
-                console.error("Watch View Error:", err);
-                mainContent.innerHTML = '<div style="padding: 20px; color: red;">Error loading video.</div>';
-            }
         };
         let lastVisibleBlog = null;
         let currentUserBlocked = [];
@@ -4113,6 +4182,7 @@
             
             if (!e.target.closest('.post-options-container')) {
                 document.querySelectorAll('.post-options-dropdown').forEach(d => d.classList.remove('show'));
+                document.querySelectorAll('.news-card, .yt-grid-item').forEach(c => c.style.zIndex='1');
             }
         });
 
@@ -4772,9 +4842,9 @@
             } catch (e) {
                 console.error("Error loading blogs:", e);
                 if(grid) {
-                    let errorMsg = "पोस्ट लोड करते समय एक त्रुटि हुई।";
+                    let errorMsg = "error to load posts. Please Referesh the Page";
                     if (e.code === 'failed-precondition') {
-                        errorMsg = "त्रुटि: एक आवश्यक डेटाबेस इंडेक्स गायब है (उदा: category + date)। इसे बनाने के लिए लिंक हेतु कृपया ब्राउज़र के डेवलपर कंसोल (F12) की जाँच करें।";
+                        errorMsg = "please reload the page (उदा: category + date)";
                         console.error("This error usually means you need to create a composite index in Firestore for the 'category' or 'verified' feed. The error message from Firebase should contain a direct link to create it.");
                     }
                     grid.innerHTML = `<p style="text-align: center; color: #ff6b6b; padding: 20px;">${errorMsg}</p>`;
@@ -4937,23 +5007,24 @@
             actionButtons += `<button onclick='window.shareBlog(${JSON.stringify(blog.id)}, ${JSON.stringify(blog.title || "")})' class="blog-action-btn" style="color:#6366f1;"><i data-lucide="share-2"></i> Share</button>`;
 
             let menuItems = '';
-            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); readAloud('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="volume-2" style="color: #87ceeb; width: 16px;"></i> Read Aloud</button>`;
-            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); stopReadAloud()" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="stop-circle" style="color: #ff6b6b; width: 16px;"></i> Stop Audio</button>`;
-            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); reportBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="flag" style="color: #aaa; width: 16px;"></i> Report</button>`;
+            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.readAloud('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit; justify-content: flex-start; padding: 12px 15px;"><i data-lucide="volume-2" style="color: #87ceeb; width: 16px;"></i> Read Aloud</button>`;
+            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.stopReadAloud()" style="background:transparent; border:none; width:100%; color:inherit; justify-content: flex-start; padding: 12px 15px;"><i data-lucide="stop-circle" style="color: #ff6b6b; width: 16px;"></i> Stop Audio</button>`;
+            menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.reportBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit; justify-content: flex-start; padding: 12px 15px;"><i data-lucide="flag" style="color: #aaa; width: 16px;"></i> Report</button>`;
 
-            if (blog.video || blog.youtubeUrl) {
-                menuItems += `<button class="theme-option" onclick="event.stopPropagation(); submitCopyrightClaim('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="shield-alert" style="color: #ef4444; width: 16px;"></i> Copyright Claim</button>`;
+            const isMonetizedUser = window.currentUserData && window.currentUserData.isMonetized;
+            if ((blog.video || blog.youtubeUrl) && isMonetizedUser) {
+                menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.submitCopyrightClaim('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit; justify-content: flex-start; padding: 12px 15px;"><i data-lucide="shield-alert" style="color: #ef4444; width: 16px;"></i> Copyright Claim</button>`;
             }
             
             if (isOwner) {
-                menuItems += `<button class="theme-option" onclick="event.stopPropagation(); editUserBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="pen" style="color: #f59e0b; width: 16px;"></i> Edit</button>`;
-                menuItems += `<button class="theme-option" onclick="event.stopPropagation(); deleteUserBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="trash-2" style="color: #ff6b6b; width: 16px;"></i> Delete</button>`;
+                menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit; justify-content: flex-start; padding: 12px 15px;"><i data-lucide="pen" style="color: #f59e0b; width: 16px;"></i> Edit</button>`;
+                menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit; justify-content: flex-start; padding: 12px 15px;"><i data-lucide="trash-2" style="color: #ff6b6b; width: 16px;"></i> Delete</button>`;
             }
 
             const optionsDropdown = `
-                <div class="post-options-container" style="position: relative;">
-                    <button onclick="event.stopPropagation(); document.getElementById('post-menu-${blog.id}').classList.toggle('show')" style="background: none; border: none; color: #aaa; cursor: pointer; padding: 5px;"><i data-lucide="more-vertical"></i></button>
-                    <div id="post-menu-${blog.id}" class="theme-dropdown post-options-dropdown" style="top: 100%; right: 0; min-width: 180px; z-index: 100; margin-top: 5px;">
+                <div class="post-options-container" style="position: relative; margin-left: auto;">
+                    <button onclick="event.stopPropagation(); document.querySelectorAll('.news-card, .yt-grid-item').forEach(c => c.style.zIndex='1'); const card = this.closest('.news-card') || this.closest('.yt-grid-item'); if(card) card.style.zIndex='100'; document.querySelectorAll('.post-options-dropdown').forEach(d => { if(d.id !== 'post-menu-${blog.id}') d.classList.remove('show'); }); document.getElementById('post-menu-${blog.id}').classList.toggle('show');" style="background: none; border: none; color: #aaa; cursor: pointer; padding: 5px;"><i data-lucide="more-vertical"></i></button>
+                    <div id="post-menu-${blog.id}" class="theme-dropdown post-options-dropdown" style="top: 100%; bottom: auto; right: 0; min-width: 220px; z-index: 99999; margin-top: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
                         ${menuItems}
                     </div>
                 </div>
@@ -4998,7 +5069,7 @@
                 const arrows = blog.images.length > 1 ? `
                     <button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button>
                     <button class="carousel-btn next" onclick="window.scrollCarousel(this, 1)">&#10095;</button>` : '';
-                mediaHtml += `<div class="carousel-container">
+                mediaHtml += `<div class="carousel-container card-media-container">
                     ${arrows}
                     <div class="image-carousel" style="border-radius: 12px;">${imagesList}</div>
                 </div>`;
@@ -5938,26 +6009,97 @@
             }
         };
 
+        window.submitFeedback = async function(e) {
+            if(e) e.preventDefault();
+            if (!auth.currentUser) {
+                if(window.viyouAlert) await window.viyouAlert("Please login to submit feedback!");
+                else alert("Please login to submit feedback!");
+                if(document.getElementById('login-modal')) document.getElementById('login-modal').style.display = 'flex';
+                const dropdown = document.getElementById('main-menu-dropdown');
+                if(dropdown) dropdown.classList.remove('show');
+                return;
+            }
+            let promptFn = window.viyouPrompt || prompt;
+            const feedback = await promptFn("We value your feedback. Please share your suggestions or issues:", "");
+            if (feedback && feedback.trim() !== '') {
+                try {
+                    await addDoc(collection(db, "feedbacks"), {
+                        uid: auth.currentUser.uid,
+                        name: window.currentUserData?.name || auth.currentUser.displayName || "User",
+                        username: window.currentUserData?.username || "",
+                        text: feedback.trim(),
+                        date: new Date().toISOString()
+                    });
+                    if(window.showToast) window.showToast("Feedback submitted successfully. Thank you!", "success");
+                    else alert("Feedback submitted successfully. Thank you!");
+                } catch (err) { console.error("Feedback error:", err); }
+            }
+            const dropdown = document.getElementById('main-menu-dropdown');
+            if(dropdown) dropdown.classList.remove('show');
+        };
+
         window.reportBlog = async function(id) {
             if (!auth.currentUser) {
                 showToast("Please login to report!", 'info');
                 return;
             }
-            const reason = await viyouPrompt("Please provide a reason for reporting this post:");
-            if (reason) {
-                try {
-                    await addDoc(collection(db, "reports"), {
-                        blogId: id,
-                        reporterUid: auth.currentUser.uid,
-                        reason: reason,
-                        date: new Date().toISOString()
-                    });
-                    showToast("Report submitted successfully. We will review it.", 'success');
-                } catch(e) {
-                    console.error(e);
-                    showToast("Error submitting report.", 'error');
+            document.getElementById('report-blog-id').value = id;
+            document.getElementById('report-modal').style.display = 'flex';
+            const form = document.getElementById('report-form');
+            if (form) form.reset();
+            const customInput = document.getElementById('report-custom-text');
+            if (customInput) customInput.style.display = 'none';
+        };
+
+        document.addEventListener('change', (e) => {
+            if(e.target.name === 'report-reason') {
+                const customInput = document.getElementById('report-custom-text');
+                if(customInput) {
+                    if(e.target.value === 'custom') {
+                        customInput.style.display = 'block';
+                        customInput.required = true;
+                    } else {
+                        customInput.style.display = 'none';
+                        customInput.required = false;
+                    }
                 }
             }
+        });
+
+        window.submitReport = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('report-submit-btn');
+            btn.disabled = true; btn.innerText = 'Reporting...';
+            const id = document.getElementById('report-blog-id').value;
+            const reasonRadio = document.querySelector('input[name="report-reason"]:checked');
+            if (!reasonRadio) {
+                alert("Please select a reason.");
+                btn.disabled = false; btn.innerText = 'Report';
+                return;
+            }
+            let reason = reasonRadio.value;
+            if (reason === 'custom') {
+                reason = document.getElementById('report-custom-text').value.trim();
+                if (!reason) {
+                    alert("Please specify your reason.");
+                    btn.disabled = false; btn.innerText = 'Report';
+                    return;
+                }
+            }
+            try {
+                await addDoc(collection(db, "reports"), {
+                    blogId: id,
+                    reporterUid: auth.currentUser.uid,
+                    reason: reason,
+                    date: new Date().toISOString()
+                });
+                showToast("Report submitted successfully. We will review it.", 'success');
+                document.getElementById('report-modal').style.display = 'none';
+            } catch(err) {
+                console.error(err);
+                showToast("Error submitting report.", 'error');
+            }
+            btn.disabled = false; btn.innerText = 'Report';
         };
 
         window.submitCopyrightClaim = async function(id) {
@@ -8012,9 +8154,10 @@
                             <div class="${hasStory ? 'story-ring' : 'story-ring-empty'}">
                                 <img src="${userPhoto}" alt="Your story">
                             </div>
-                            <div class="add-story-badge" onclick="event.stopPropagation(); this.classList.add('badge-clicked'); setTimeout(() => window.location.href='story-editor.html', 350);" title="Add Story">+</div>
+                            <div class="add-story-badge" onclick="event.stopPropagation(); this.classList.add('badge-clicked'); document.getElementById('home-story-file-input').click();" title="Add Story">+</div>
                         </div>
                         <p>Your Story</p>
+                        <p style="display:inline-flex;justify-content:fit;align-items:center; color: #aaa; font-size:8px;">Tap + to add new story</p>
                     `;
                     
                     if (hasStory) {
@@ -8025,7 +8168,7 @@
                         userDiv.onclick = function() {
                             const badge = this.querySelector('.add-story-badge');
                             if (badge) badge.classList.add('badge-clicked');
-                            setTimeout(() => window.location.href = 'story-editor.html', 350);
+                            document.getElementById('home-story-file-input').click();
                         };
                     }
                     reel.appendChild(userDiv);

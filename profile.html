@@ -228,6 +228,7 @@
                         <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
                         <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
                         <a href="advertise.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="megaphone" style="width: 16px;"></i> Advertise</a>
+                        <a href="#" class="theme-option" onclick="window.submitFeedback(event)" style="text-decoration: none; color: inherit;"><i data-lucide="message-square" style="width: 16px;"></i> Feedback</a>
                     </div>
                 </div>
                 <div class="theme-dropdown-container" style="flex: 1; margin: 0;">
@@ -1279,7 +1280,8 @@
         menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.stopReadAloud()" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="stop-circle" style="color: #ff6b6b; width: 16px;"></i> Stop Audio</button>`;
         menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.reportBlog('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="flag" style="color: #aaa; width: 16px;"></i> Report</button>`;
 
-        if (blog.video || blog.youtubeUrl) {
+        const isMonetizedUser = window.viewerIsMonetized || false;
+        if ((blog.video || blog.youtubeUrl) && isMonetizedUser) {
             menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.submitCopyrightClaim('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit;"><i data-lucide="shield-alert" style="color: #ef4444; width: 16px;"></i> Copyright Claim</button>`;
         }
         
@@ -1530,6 +1532,34 @@
             content.innerHTML = '<p style="color:red;">Error loading list.</p>';
         }
     };
+
+        window.submitFeedback = async function(e) {
+            if(e) e.preventDefault();
+            if (!auth.currentUser) {
+                await window.viyouAlert("Please login to submit feedback!");
+                const dropdown = document.getElementById('main-menu-dropdown-settings');
+                if(dropdown) dropdown.classList.remove('show');
+                return;
+            }
+            const feedback = await window.viyouPrompt("We value your feedback. Please share your suggestions or issues:", "");
+            if (feedback && feedback.trim() !== '') {
+                try {
+                    await addDoc(collection(db, "feedbacks"), {
+                        uid: auth.currentUser.uid,
+                        name: window.viewerDataForFeedback?.name || auth.currentUser.displayName || "User",
+                        username: window.viewerDataForFeedback?.username || "",
+                        text: feedback.trim(),
+                        date: new Date().toISOString()
+                    });
+                    alert("Feedback submitted successfully. Thank you!");
+                } catch (err) {
+                    console.error("Feedback error:", err);
+                    alert("Failed to submit feedback.");
+                }
+            }
+            const dropdown = document.getElementById('main-menu-dropdown-settings');
+            if(dropdown) dropdown.classList.remove('show');
+        };
 
     window.likeUserBlog = async function(id) {
         if (!auth.currentUser) { alert("Please login to like posts!"); return; }
@@ -2048,7 +2078,7 @@
             loadProfileData(currentUser.uid, currentUser);
         } catch (error) {
             console.error("Error saving profile:", error);
-                await window.viyouAlert("Error saving profile You Can Change After 14 Days: " + error.message);
+                await window.viyouAlert("Error saving profile: " + error.message);
         } finally {
             saveBtn.innerHTML = originalBtnContent;
             saveBtn.disabled = false;

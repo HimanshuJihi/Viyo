@@ -229,6 +229,30 @@
         </div>
     </div>
 
+<!-- Report Modal -->
+<div id="report-modal" class="lightbox-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; align-items:center; justify-content:center; flex-direction: column;" onclick="if(event.target === this) document.getElementById('report-modal').style.display='none'">
+    <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; color: white; position: relative; margin: auto; border: 1px solid #444;">
+        <span class="close-lightbox" onclick="document.getElementById('report-modal').style.display='none'" style="top: 10px; right: 15px; font-size: 24px; position: absolute; cursor: pointer;">&times;</span>
+        <h2 style="margin-top: 0; color: #ef4444; font-size: 1.5rem; text-align: left;"><i data-lucide="flag"></i> Report Content</h2>
+        <form id="report-form" onsubmit="window.submitReport(event)">
+            <input type="hidden" id="report-blog-id">
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left;">
+                <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Sexual content"> Sexual content</label>
+                <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Violent or repulsive content"> Violent or repulsive content</label>
+                <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Hateful or abusive content"> Hateful or abusive content</label>
+                <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Harassment or bullying"> Harassment or bullying</label>
+                <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Spam or misleading"> Spam or misleading</label>
+                <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="custom" id="report-reason-custom"> Other (Please specify):</label>
+                <input type="text" id="report-custom-text" placeholder="Write your reason..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; margin-top: 5px; display: none;">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn feed-btn" style="background-color: #6c757d; border:none;" onclick="document.getElementById('report-modal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn feed-btn" style="background-color: #ef4444; border:none;" id="report-submit-btn">Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
     <script type="module">
         import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, setDoc, orderBy, limit, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -383,6 +407,10 @@
                                 <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="shareFlick('${flick.id}')"><i data-lucide="share-2"></i></button>
                                 <span style="font-size: 0.85rem; font-weight: bold;">Share</span>
                             </div>
+                        <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+                            <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="window.openReportModal('${flick.id}')"><i data-lucide="flag"></i></button>
+                            <span style="font-size: 0.85rem; font-weight: bold;">Report</span>
+                        </div>
                             <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
                                 <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="window.openSendFlickModal('${flick.id}')"><i data-lucide="send"></i></button>
                                 <span style="font-size: 0.85rem; font-weight: bold;">Send</span>
@@ -619,6 +647,13 @@
                                     if (currentViews < 5) {
                                         localStorage.setItem(viewKey, currentViews + 1);
                                         updateDoc(doc(db, "blogs", id), { views: increment(1) }).catch(e=>{});
+                                        
+                                        // Real-time UI update
+                                        const viewDisplay = document.getElementById(`view-count-${id}`);
+                                        if (viewDisplay) {
+                                            let currentDisplayViews = parseInt(viewDisplay.innerText.replace(/,/g, '')) || 0;
+                                            viewDisplay.innerText = (currentDisplayViews + 1).toLocaleString();
+                                        }
                                     }
                                     viewedFlicks.add(id);
                                     vid.removeEventListener('timeupdate', vid._viewTimerFn);
@@ -1086,6 +1121,51 @@
                 btnElement.innerText = "Sent!"; btnElement.style.background = "#198754"; btnElement.style.borderColor = "#198754"; btnElement.style.color = "white";
             } catch (e) { console.error(e); btnElement.innerText = "Error"; }
         };
+
+    document.addEventListener('change', (e) => {
+        if(e.target.name === 'report-reason') {
+            const customInput = document.getElementById('report-custom-text');
+            if(customInput) {
+                if(e.target.value === 'custom') {
+                    customInput.style.display = 'block';
+                    customInput.required = true;
+                } else {
+                    customInput.style.display = 'none';
+                    customInput.required = false;
+                }
+            }
+        }
+    });
+
+    window.openReportModal = function(id) {
+        if (!auth.currentUser) { alert("Please login to report!"); return; }
+        document.getElementById('report-blog-id').value = id;
+        document.getElementById('report-modal').style.display = 'flex';
+        const form = document.getElementById('report-form');
+        if (form) form.reset();
+        const customInput = document.getElementById('report-custom-text');
+        if (customInput) customInput.style.display = 'none';
+    };
+
+    window.submitReport = async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('report-submit-btn');
+        btn.disabled = true; btn.innerText = 'Reporting...';
+        const id = document.getElementById('report-blog-id').value;
+        const reasonRadio = document.querySelector('input[name="report-reason"]:checked');
+        if (!reasonRadio) { alert("Please select a reason."); btn.disabled = false; btn.innerText = 'Report'; return; }
+        let reason = reasonRadio.value;
+        if (reason === 'custom') {
+            reason = document.getElementById('report-custom-text').value.trim();
+            if (!reason) { alert("Please specify your reason."); btn.disabled = false; btn.innerText = 'Report'; return; }
+        }
+        try {
+            await addDoc(collection(db, "reports"), { blogId: id, reporterUid: auth.currentUser.uid, reason: reason, date: new Date().toISOString() });
+            alert("Report submitted successfully. We will review it.");
+            document.getElementById('report-modal').style.display = 'none';
+        } catch(err) { console.error(err); alert("Error submitting report."); }
+        btn.disabled = false; btn.innerText = 'Report';
+    };
 
         // PC Keyboard Navigation (Up/Down Arrows)
         document.addEventListener('keydown', (e) => {

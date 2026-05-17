@@ -31,6 +31,7 @@
                     <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
                     <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
                     <a href="advertise.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="megaphone" style="width: 16px;"></i> Advertise with Us</a>
+                    <a href="#" class="theme-option" onclick="window.submitFeedback(event)" style="text-decoration: none; color: inherit;"><i data-lucide="message-square" style="width: 16px;"></i> Feedback</a>
                     <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou.in All Rights Reserved.</div>
                 </div>
             </div>
@@ -47,6 +48,31 @@
 <footer>
     <p>&copy; Viyou.in Empowering Creators.</p>
 </footer>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="lightbox-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;" onclick="if(event.target === this) document.getElementById('report-modal').style.display='none'">
+        <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; color: white; position: relative; margin: auto; border: 1px solid #444;">
+            <span class="close-lightbox" onclick="document.getElementById('report-modal').style.display='none'" style="top: 10px; right: 15px; font-size: 24px; position: absolute; cursor: pointer;">&times;</span>
+            <h2 style="margin-top: 0; color: #ef4444; font-size: 1.5rem; text-align: left;"><i data-lucide="flag"></i> Report Content</h2>
+            <form id="report-form" onsubmit="window.submitReport(event)">
+                <input type="hidden" id="report-blog-id">
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left;">
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Sexual content"> Sexual content</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Violent or repulsive content"> Violent or repulsive content</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Hateful or abusive content"> Hateful or abusive content</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Harassment or bullying"> Harassment or bullying</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="Spam or misleading"> Spam or misleading</label>
+                    <label style="cursor: pointer; display: flex; gap: 8px; align-items: center;"><input type="radio" name="report-reason" value="custom" id="report-reason-custom"> Other (Please specify):</label>
+                    <input type="text" id="report-custom-text" placeholder="Write your reason..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; margin-top: 5px; display: none;">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" style="background-color: #6c757d;" onclick="document.getElementById('report-modal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn" style="background-color: #ef4444;" id="report-submit-btn">Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
         import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where, setDoc, serverTimestamp, startAfter } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -88,6 +114,10 @@
         document.addEventListener('click', (e) => {
             if (mainMenuDropdown && !mainMenuToggleBtn.contains(e.target) && !mainMenuDropdown.contains(e.target)) {
                 mainMenuDropdown.classList.remove('show');
+            }
+            if (!e.target.closest('.post-options-container')) {
+                document.querySelectorAll('.post-options-dropdown').forEach(d => d.classList.remove('show'));
+                document.querySelectorAll('.news-card, .yt-grid-item').forEach(c => c.style.zIndex='1');
             }
         });
         
@@ -172,6 +202,19 @@
         }
 
         async function loadVideo() {
+            let isViewerMonetized = false;
+            let viewerData = null;
+            if (auth.currentUser) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                    if (userDoc.exists()) {
+                        isViewerMonetized = userDoc.data().isMonetized || false;
+                        viewerData = userDoc.data();
+                    }
+                } catch(e) {}
+            }
+            window.viewerDataForFeedback = viewerData;
+
             await globalSettingsPromise;
 
             if (!blogId) { document.getElementById('main-content').innerHTML = '<div style="padding: 20px;">Video not found.</div>'; return; }
@@ -239,6 +282,13 @@
                 
                 window.viewAlreadyCounted = true;
                 localStorage.setItem(viewKey, currentViews + 1); // Update local count
+                
+                // Real-time UI Update after 10 seconds
+                const viewDisplay = document.getElementById('watch-view-count-display');
+                if (viewDisplay) {
+                    let currentDisplayViews = parseInt(viewDisplay.innerText.replace(/,/g, '')) || 0;
+                    viewDisplay.innerText = (currentDisplayViews + 1).toLocaleString();
+                }
 
                 if (blog.video && !blog.youtubeUrl) {
                     updateDoc(docRef, { views: increment(1), longVideoViews: increment(1) }).catch(e => {});
@@ -335,6 +385,9 @@
                                                 <span style="display: flex; align-items: center;"><i data-lucide="moon" style="width: 16px; height: 16px; margin-right: 10px;"></i> Sleep Timer</span>
                                                 <span style="color: #aaa; font-size: 0.8rem; display: flex; align-items: center;"><span id="current-sleep-timer-text">Off</span> <i data-lucide="chevron-right" style="width: 16px; height: 16px; margin-left: 5px;"></i></span>
                                             </div>
+                                        <div class="settings-item nav-item" onclick="window.openReportModal('${blogId}'); document.getElementById('settings-menu').classList.remove('show');">
+                                            <span style="display: flex; align-items: center; color: #ef4444;"><i data-lucide="flag" style="width: 16px; height: 16px; margin-right: 10px;"></i> Report</span>
+                                        </div>
                                         </div>
 
                                         <!-- Quality Selection Panel -->
@@ -381,7 +434,7 @@
                 mediaHtml = `<div style="padding: 50px; text-align: center; color: #aaa;">No video attached to this post.</div>`;
             }
 
-            const views = (blog.views || 0) + 1;
+            const views = (blog.views || 0);
             const likes = blog.likes || [];
             const likesCount = Array.isArray(likes) ? likes.length : (typeof likes === 'number' ? likes : 0);
             const isLiked = auth.currentUser && Array.isArray(likes) && likes.includes(auth.currentUser.uid);            
@@ -416,7 +469,7 @@
                                     <strong style="cursor:pointer; font-size: 1.1rem;" onclick="window.location.href='profile.html?uid=${blog.authorUid}'">${blog.author}</strong>
                                     ${followBtnHtml}
                                 </div>
-                                    <div style="font-size: 0.85rem; color: #aaa;">${views.toLocaleString()} views • ${window.timeAgo(blog.date)}</div>
+                                    <div style="font-size: 0.85rem; color: #aaa;"><span id="watch-view-count-display">${views.toLocaleString()}</span> views • ${window.timeAgo(blog.date)}</div>
                             </div>
                         </div>
                         <div class="actions">                            
@@ -1537,6 +1590,96 @@
             const c = currentBlog.comments.find(x => x.id === commentId);
             if (c) c.replies = c.replies.filter(x => x.id !== replyId); window.renderComments();
             try { await updateDoc(doc(db, "blogs", blogId), { comments: currentBlog.comments }); } catch(e) { console.error(e); }
+        };
+
+        window.submitFeedback = async function(e) {
+            if(e) e.preventDefault();
+            if (!auth.currentUser) {
+                alert("Please login to submit feedback!");
+                document.getElementById('main-menu-dropdown').classList.remove('show');
+                return;
+            }
+            const feedback = prompt("We value your feedback. Please share your suggestions or issues:");
+            if (feedback && feedback.trim() !== '') {
+                try {
+                    await addDoc(collection(db, "feedbacks"), {
+                        uid: auth.currentUser.uid,
+                        name: window.viewerDataForFeedback?.name || auth.currentUser.displayName || "User",
+                        username: window.viewerDataForFeedback?.username || "",
+                        text: feedback.trim(),
+                        date: new Date().toISOString()
+                    });
+                    alert("Feedback submitted successfully. Thank you!");
+                } catch (err) {
+                    console.error("Feedback error:", err);
+                    alert("Failed to submit feedback.");
+                }
+            }
+            document.getElementById('main-menu-dropdown').classList.remove('show');
+        };
+
+        window.submitCopyrightClaim = async function(id) {
+            if (!auth.currentUser) {
+                alert("Please login to submit a copyright claim!");
+                return;
+            }
+            const reason = prompt("Please provide a reason/region for the copyright strike:");
+            if (reason) {
+                try {
+                    await addDoc(collection(db, "copyright_claims"), {
+                        blogId: id,
+                        claimerUid: auth.currentUser.uid,
+                        reason: reason,
+                        date: new Date().toISOString()
+                    });
+                    alert("Copyright claim submitted successfully. The admin will review it.");
+                } catch(e) { console.error(e); alert("Error submitting copyright claim."); }
+            }
+        };
+
+        document.addEventListener('change', (e) => {
+            if(e.target.name === 'report-reason') {
+                const customInput = document.getElementById('report-custom-text');
+                if(customInput) {
+                    if(e.target.value === 'custom') {
+                        customInput.style.display = 'block';
+                        customInput.required = true;
+                    } else {
+                        customInput.style.display = 'none';
+                        customInput.required = false;
+                    }
+                }
+            }
+        });
+
+        window.openReportModal = function(id) {
+            if (!auth.currentUser) { alert("Please login to report!"); return; }
+            document.getElementById('report-blog-id').value = id;
+            document.getElementById('report-modal').style.display = 'flex';
+            const form = document.getElementById('report-form');
+            if (form) form.reset();
+            const customInput = document.getElementById('report-custom-text');
+            if (customInput) customInput.style.display = 'none';
+        };
+
+        window.submitReport = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('report-submit-btn');
+            btn.disabled = true; btn.innerText = 'Reporting...';
+            const id = document.getElementById('report-blog-id').value;
+            const reasonRadio = document.querySelector('input[name="report-reason"]:checked');
+            if (!reasonRadio) { alert("Please select a reason."); btn.disabled = false; btn.innerText = 'Report'; return; }
+            let reason = reasonRadio.value;
+            if (reason === 'custom') {
+                reason = document.getElementById('report-custom-text').value.trim();
+                if (!reason) { alert("Please specify your reason."); btn.disabled = false; btn.innerText = 'Report'; return; }
+            }
+            try {
+                await addDoc(collection(db, "reports"), { blogId: id, reporterUid: auth.currentUser.uid, reason: reason, date: new Date().toISOString() });
+                alert("Report submitted successfully. We will review it.");
+                document.getElementById('report-modal').style.display = 'none';
+            } catch(err) { console.error(err); alert("Error submitting report."); }
+            btn.disabled = false; btn.innerText = 'Report';
         };
 
         // Add a global click listener to close mention dropdowns when clicking outside
