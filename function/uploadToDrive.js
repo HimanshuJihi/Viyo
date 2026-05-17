@@ -164,30 +164,46 @@ app.get('/api/stream/:fileId', async (req, res) => {
         const fileId = req.params.fileId;
         const range = req.headers.range;
 
-        const options = { responseType: 'stream' };
+        // 1. Fetch File Metadata to get exact size and mimeType (Required for HTML5 Video)
+        const fileMeta = await drive.files.get({ fileId: fileId, fields: 'size, mimeType' });
+        const fileSize = parseInt(fileMeta.data.size, 10);
+        const mimeType = fileMeta.data.mimeType || 'video/mp4';
+
         if (range) {
-            options.headers = { Range: range };
-        }
+            const parts = range.replace(/bytes=/, "").split("-");
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+            const chunksize = (end - start) + 1;
 
-            const response = await drive.files.get({ fileId: fileId, alt: 'media', acknowledgeAbuse: true }, options);
+            res.writeHead(206, {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunksize,
+                'Content-Type': mimeType,
+            });
 
-        // Forward necessary headers to browser for seamless video seeking/playing
-        const headersToForward = ['content-length', 'content-range', 'content-type', 'accept-ranges'];
-        for (const header of headersToForward) {
-            if (response.headers[header]) res.setHeader(header, response.headers[header]);
-         }
-            
-            // Force accept-ranges and content-type if missing
-            if (!response.headers['accept-ranges']) res.setHeader('accept-ranges', 'bytes');
-            if (!response.headers['content-type'] || response.headers['content-type'] === 'application/octet-stream') {
-                res.setHeader('content-type', 'video/mp4');
-            
+            const response = await drive.files.get(
+                { fileId: fileId, alt: 'media', acknowledgeAbuse: true },
+                { responseType: 'stream', headers: { Range: `bytes=${start}-${end}` } }
+            );
+
+            response.data.pipe(res);
+            res.on('close', () => { if (response.data && typeof response.data.destroy === 'function') response.data.destroy(); });
+        } else {
+            res.writeHead(200, {
+                'Content-Length': fileSize,
+                'Content-Type': mimeType,
+                'Accept-Ranges': 'bytes'
+            });
+
+            const response = await drive.files.get(
+                { fileId: fileId, alt: 'media', acknowledgeAbuse: true },
+                { responseType: 'stream' }
+            );
+
+            response.data.pipe(res);
+            res.on('close', () => { if (response.data && typeof response.data.destroy === 'function') response.data.destroy(); });
         }
-        
-        res.status(response.status);
-        response.data.pipe(res);
-        
-        response.data.on('error', (err) => { console.error('Stream pipe error:', err.message); res.end(); });
     } catch (error) {
         console.error('Streaming Error:', error.message);
         if (!res.headersSent) res.status(500).send('Video stream failed');

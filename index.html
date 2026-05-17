@@ -1139,7 +1139,11 @@
                                 const vc = document.getElementById('video-container');
                                 if (vc) vc.classList.remove('paused');
                                 if (window.lucide) window.lucide.createIcons();
-                            }).catch(e => console.log("Autoplay blocked", e));
+                            }).catch(e => {
+                                if (e.name !== 'NotSupportedError' && e.name !== 'AbortError') {
+                                    console.log("Autoplay blocked or failed", e);
+                                }
+                            });
                         }
                     };
 
@@ -2724,15 +2728,29 @@
                     await updateProfile(auth.currentUser, { displayName: name });
                     if (username !== window.currentProfileData.username) {
                         if (!username) { await window.viyouAlert("Unique ID (Username) is required!"); return; }
-                        if (username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) { await window.viyouAlert("Username can only contain letters, numbers, and underscores, and be max 20 characters."); return; }
+                        if (username.length > 30) { await window.viyouAlert("Username can be max 30 characters."); return; }
+                        
+                        const now = Date.now();
+                        const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+                        let changeHistory = window.currentProfileData.usernameChangeHistory || [];
+                        changeHistory = changeHistory.filter(time => now - time < fourteenDaysMs);
+                        
+                        if (changeHistory.length >= 2) {
+                            await window.viyouAlert("You can only change your Unique ID 2 times within 14 days. Please try again later.");
+                            return;
+                        }
+
                         const q = query(collection(db, "users"), where("usernameLower", "==", username.toLowerCase()));
                         const snap = await getDocs(q);
                         let isTaken = false;
                         snap.forEach(d => { if (d.id !== auth.currentUser.uid) isTaken = true; });
                         if (isTaken) { await window.viyouAlert("Username '" + username + "' is already taken."); return; }
+                        
+                        changeHistory.push(now);
+                        window.currentProfileData.usernameChangeHistory = changeHistory;
                     } else if (!username) { await window.viyouAlert("Unique ID (Username) is required!"); return; }
 
-                    await setDoc(doc(db, "users", auth.currentUser.uid), { name: name, username: username, usernameLower: username.toLowerCase(), bio: bio, photoURL: photoURL, email: auth.currentUser.email, isVerified: isVerified }, { merge: true });
+                    await setDoc(doc(db, "users", auth.currentUser.uid), { name: name, username: username, usernameLower: username.toLowerCase(), bio: bio, photoURL: photoURL, email: auth.currentUser.email, isVerified: isVerified, usernameChangeHistory: window.currentProfileData.usernameChangeHistory || [] }, { merge: true });
 
                     const allBlogsSnapshot = await getDocs(collection(db, "blogs"));
                     const updatePromises = [];
@@ -3761,11 +3779,9 @@
             const lastCleanup = localStorage.getItem('lastStoryCleanup');
             const sixHours = 6 * 60 * 60 * 1000; // Run cleanup at most once every 6 hours per client.
             if (lastCleanup && (Date.now() - lastCleanup < sixHours)) {
-                console.log("Story cleanup ran within the last 6 hours. Skipping.");
                 return;
             }
 
-            console.log("Running cleanup for expired stories...");
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
             
             try {
@@ -3777,7 +3793,6 @@
                 const snapshot = await getDocs(q);
                 
                 if (snapshot.empty) {
-                    console.log("No expired stories to delete.");
                     localStorage.setItem('lastStoryCleanup', Date.now().toString());
                     return;
                 }
@@ -3789,14 +3804,11 @@
                 });
                 
                 await batch.commit();
-                console.log(`Successfully deleted ${snapshot.size} expired stories.`);
                 localStorage.setItem('lastStoryCleanup', Date.now().toString());
 
             } catch (e) {
-                console.error("Error during story cleanup:", e);
                 // To avoid repeated failed attempts on index error, we still set the timestamp.
                 if (e.code === 'failed-precondition') {
-                    console.error("This error means you need to create a composite index in Firestore for story cleanup. The error message from Firebase should contain a direct link to create it. It will likely be on 'timestamp' (ascending).");
                     localStorage.setItem('lastStoryCleanup', Date.now().toString());
                 }
             }

@@ -1953,6 +1953,9 @@
                         await window.viyouAlert("Username '" + username + "' is already taken. Please choose another.");
                     return;
                 }
+                            
+                            changeHistory.push(now);
+                            currentProfileData.usernameChangeHistory = changeHistory;
             } else if (!username) {
                 // Username is unchanged but empty. This is an error state for any user.
                     await window.viyouAlert("Unique ID (Username) is required!");
@@ -1967,7 +1970,8 @@
                 bio: bio,
                 photoURL: photoURL,
                 email: currentUser.email,
-                isVerified: isVerified
+                            isVerified: isVerified,
+                            usernameChangeHistory: currentProfileData.usernameChangeHistory || []
             }, { merge: true });
 
             // Update author details in all existing blogs AND comments
@@ -2044,7 +2048,7 @@
             loadProfileData(currentUser.uid, currentUser);
         } catch (error) {
             console.error("Error saving profile:", error);
-                await window.viyouAlert("Error saving profile: " + error.message);
+                await window.viyouAlert("Error saving profile You Can Change After 14 Days: " + error.message);
         } finally {
             saveBtn.innerHTML = originalBtnContent;
             saveBtn.disabled = false;

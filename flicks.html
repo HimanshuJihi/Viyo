@@ -588,7 +588,11 @@
                         if (playPromise !== undefined) {
                             playPromise.catch(error => {
                                 vid.muted = true; // Fallback to mute if browser blocks autoplay
-                                vid.play().catch(e => {});
+                                vid.play().catch(e => {
+                                    if (e.name !== 'NotSupportedError' && e.name !== 'AbortError') {
+                                        console.log("Flick autoplay blocked", e);
+                                    }
+                                });
                             });
                         }
                         const id = vid.getAttribute('data-id');
@@ -810,7 +814,7 @@
                         const u = docSnap.data();
                         const div = document.createElement('div');
                         div.className = 'mention-item';
-                        div.innerHTML = `<img src="${u.photoURL || 'game-logo.png'}" style="width:25px;height:25px;border-radius:50%;"><div style="font-size:0.85rem;"><strong>${u.name||'User'}</strong> <span style="color:#aaa;">@${u.username}</span></div>`;
+                        div.innerHTML = `<img src="${u.photoURL || 'logo.png'}" style="width:25px;height:25px;border-radius:50%;"><div style="font-size:0.85rem;"><strong>${u.name||'User'}</strong> <span style="color:#aaa;">@${u.username}</span></div>`;
                         div.onclick = (event) => {
                             event.stopPropagation();
                             const replaceText = `@${u.username} `;
@@ -846,13 +850,13 @@
                         const isOwner = user && c.userUid === user.uid;
                         const isLiked = user && (c.likes || []).includes(user.uid);
                         const authorLiked = (c.likes || []).includes(flick.authorUid);
-                        const authorLikeBadge = authorLiked ? `<span class="author-liked-badge"><img src="${flick.authorPhoto || 'game-logo.png'}"> Liked by author</span>` : '';
+                        const authorLikeBadge = authorLiked ? `<span class="author-liked-badge"><img src="${flick.authorPhoto || 'logo.png'}"> Liked by author</span>` : '';
                         
                         const repliesHtml = (c.replies || []).map(r => {
                             const rIsOwner = user && r.userUid === user.uid;
                             const rIsLiked = user && (r.likes || []).includes(user.uid);
                             const rAuthorLiked = (r.likes || []).includes(flick.authorUid);
-                            const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge"><img src="${flick.authorPhoto || 'game-logo.png'}"> Liked by author</span>` : '';
+                            const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge"><img src="${flick.authorPhoto || 'logo.png'}"> Liked by author</span>` : '';
                             return `
                             <div class="comment-wrapper" style="margin-bottom: 12px;">
                                 <img src="${r.photo || 'logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
