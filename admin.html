@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Viyou</title>
+    <title>Admin Panel - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="assets/css/admin.css">
 </head>
@@ -46,104 +46,18 @@
 
         <div id="admin-tabs" style="display: none; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">
             <button id="tab-reported" class="admin-tab-btn active">🚩 Reported Blogs</button>
-            <button id="tab-ads" class="admin-tab-btn">💰 Ad Management</button>
             <button id="tab-monetization" class="admin-tab-btn">💎 Creator Monetization</button>
             <button id="tab-copyright" class="admin-tab-btn">© Copyright Claims</button>
             <button id="tab-headlines" class="admin-tab-btn">📢 Headlines</button>
             <button id="tab-vast" class="admin-tab-btn">📺 VAST Ads</button>
             <button id="tab-promotions" class="admin-tab-btn">🚀 Promotions</button>
+            <button id="tab-payment-settings" class="admin-tab-btn" style="display: none;">💳 Payment Settings</button>
             <button id="tab-users" class="admin-tab-btn">👥 Users</button>
             <button id="tab-feedback" class="admin-tab-btn">💬 User Feedback</button>
             <button id="tab-team" class="admin-tab-btn">👥 Team Members</button>
         </div>
 
         <div id="admin-content" style="display: none;">
-            <!-- Ad Management Section -->
-            <div id="section-ads" style="display: none;">
-            <div class="report-card" style="border-color: gold;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 10px;">
-                    <h2 style="color: gold; margin-top: 0; border: none; padding: 0;">Ad Management</h2>
-                    <a id="view-earnings-btn" href="#" target="_blank" class="btn" style="display: none; background-color: #198754;">View Earnings</a>
-                </div>
-
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px;">
-                    <input type="checkbox" id="ad-toggle" style="width: 20px; height: 20px;"> 
-                    <strong style="font-size: 1.1rem;">Enable Ads across website (Master Switch)</strong>
-                </label>
-
-                <div id="individual-ad-controls" style="margin-left: 20px; border-left: 2px solid #444; padding-left: 15px; margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
-                        <input type="checkbox" id="enable-infeed-ads-toggle" style="width: 20px; height: 20px;">
-                        <strong style="font-size: 1rem;">Enable In-Feed Ads (Banners & Affiliate)</strong>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
-                        <input type="checkbox" id="enable-preroll-ads-toggle" style="width: 20px; height: 20px;">
-                        <strong style="font-size: 1rem;">Enable Pre-Roll Video Ads (YouTube & VAST)</strong>
-                    </label>
-                </label>
-                </div>
-
-                <label style="display: block; margin-bottom: 5px;">Ad Network Dashboard URL:</label>
-                <input type="text" id="ad-network-url" placeholder="e.g., https://monetag.com/dashboard" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                <label style="display: block; margin-bottom: 5px;">YouTube Video Ad URL (Embed):</label>
-                <input type="text" id="youtube-ad-url" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center;">
-                    <div style="flex: 1;">
-                        <label style="display: block; margin-bottom: 5px;">Duration (Hours):</label>
-                        <input type="number" id="video-ad-duration" value="24" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                    </div>
-                    <div style="flex: 1; margin-top: 20px;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" id="video-ad-always" style="width: 20px; height: 20px;"> 
-                            <strong style="font-size: 1rem;">Always Show</strong>
-                        </label>
-                    </div>
-                </div>
-
-                <label style="display: block; margin-bottom: 5px;">Video Ad Frequency (Show after every X blogs):</label>
-                <input type="number" id="video-frequency" value="4" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 10px;">
-                    <h3 style="color: #87ceeb; margin: 0; font-size: 1.1rem;">Rotating Banner Ads (Up to 10)</h3>
-                    <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.85rem; margin: 0;" onclick="window.clearAllBanners()"><i data-lucide="trash-2"></i> Delete All Banners</button>
-                </div>
-                <label style="display: block; margin-bottom: 5px;">Banner Ad Frequency (Show after every X blogs):</label>
-                <input type="number" id="banner-frequency" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                <p style="font-size: 0.85rem; color: #aaa; margin-top: 0; margin-bottom: 15px;">These banners will show sequentially and repeat.</p>
-                <div id="rotating-banners-container"></div>
-
-                <h3 style="color: #87ceeb; margin-top: 10px; margin-bottom: 10px; font-size: 1.1rem;">Affiliate Product Ad (Amazon etc.)</h3>
-                <label style="display: block; margin-bottom: 5px;">Product Image (Upload or URL):</label>
-                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
-                    <input type="file" id="affiliate-file" accept="image/*" style="width: 40%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
-                    <input type="text" id="affiliate-img" placeholder="e.g., Amazon product image link..." style="width: 60%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                </div>
-                <img id="affiliate-preview" src="" style="max-height: 100px; display: none; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555;">
-
-                <label style="display: block; margin-bottom: 5px;">Product Affiliate Link:</label>
-                <input type="text" id="affiliate-link" placeholder="e.g., Amazon affiliate URL..." style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center;">
-                    <div style="flex: 1;">
-                        <label style="display: block; margin-bottom: 5px;">Duration (Hours):</label>
-                        <input type="number" id="affiliate-duration" value="24" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                    </div>
-                    <div style="flex: 1; margin-top: 20px;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" id="affiliate-always" style="width: 20px; height: 20px;"> 
-                            <strong style="font-size: 1rem;">Always Show</strong>
-                        </label>
-                    </div>
-                </div>
-
-                <label style="display: block; margin-bottom: 5px;">Affiliate Ad Frequency (Show after every X blogs):</label>
-                <input type="number" id="affiliate-frequency" value="5" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                <button id="save-ads-btn" class="btn" style="background-color: #198754; width: 100%; margin-top: 10px;" onclick="window.saveAdSettings()">Save Ad Settings</button>
-            </div>
-            </div>
 
             <!-- Reported Blogs Section -->
             <div id="section-reported">
@@ -174,20 +88,33 @@
             <div id="section-monetization" style="display: none;">
                 <h2>Creator Monetization Management</h2>
 
+                <!-- Monetization Stats -->
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <h3>Total Paid Out</h3>
+                        <p id="total-paid-out" style="color: #10b981;">₹0.00</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Payouts</h3>
+                        <p id="total-pending-payout" style="color: #f59e0b;">₹0.00</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Monetized Creators</h3>
+                        <p id="total-monetized-creators" style="color: #a855f7;">0</p>
+                    </div>
+                </div>
+
                 <!-- Monetization Settings Card -->
                 <div class="report-card" style="border-color: gold; margin-bottom: 20px;">
                     <h3 style="color: gold;">Monetization Settings</h3>
                     <div style="margin-bottom: 15px;">
-                        <h4 style="margin-top: 0;">Pre-Roll Ad Settings (For Creator Earnings)</h4>
-                        <label for="preroll-rate" style="display: block; margin-bottom: 5px;">Ad Rate per 1000 Impressions (in ₹):</label>
-                        <input type="number" id="preroll-rate" value="200" min="0" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
-                        
-                        <label for="preroll-freq" style="display: block; margin-bottom: 5px;">Ad Frequency (1 Ad per X Long Video Views):</label>
-                        <input type="number" id="preroll-freq" value="3" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
-                        
-                        <label for="min-withdrawal" style="display: block; margin-bottom: 5px; margin-top: 15px;">Minimum Withdrawal Amount (in ₹):</label>
+                        <label for="min-withdrawal" style="display: block; margin-bottom: 5px;">Minimum Withdrawal Amount (in ₹):</label>
                         <input type="number" id="min-withdrawal" value="500" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                        <label for="blog-ad-limit" style="display: block; margin-bottom: 5px; margin-top: 15px;">Max Ads Per User Per Blog:</label>
+                        <input type="number" id="blog-ad-limit" value="3" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
                     </div>
+                    
                     <button class="btn" id="save-monetization-btn" style="background-color: #198754;" onclick="window.saveMonetizationSettings()">Save Monetization Settings</button>
                 </div>
                 
@@ -300,21 +227,26 @@
 
             <!-- Promotions Section -->
             <div id="section-promotions" style="display: none;">
+                <!-- Promotions Stats -->
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <h3>Total Promo Revenue</h3>
+                        <p id="total-promo-revenue" style="color: #10b981;">₹0.00</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Promotions</h3>
+                        <p id="total-active-promos" style="color: #f59e0b;">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Approvals</h3>
+                        <p id="total-pending-promos" style="color: #a855f7;">0</p>
+                    </div>
+                </div>
                 <div class="report-card" style="border-color: #8e44ad; margin-bottom: 20px;">
                     <h2 style="color: #8e44ad; margin-top: 0;">Promotions Management</h2>
-                    <p style="color: #aaa; font-size: 0.9rem;">Set your payment receiving details and manage user-promoted content.</p>
+                    <p style="color: #aaa; font-size: 0.9rem;">Manage promotion pricing and user-promoted content.</p>
                     
-                    <label style="display: block; margin-bottom: 5px; margin-top: 15px;">Your UPI ID (For receiving payments):</label>
-                    <input type="text" id="promo-upi-id" placeholder="e.g. himanshusainiaggarwal@okaxis" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                    
-                    <label style="display: block; margin-bottom: 5px;">QR Code Image (Upload or URL):</label>
-                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
-                        <input type="file" id="promo-qr-file" accept="image/*" style="width: 40%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
-                        <input type="text" id="promo-qr-url" placeholder="QR Image URL..." style="width: 60%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                    </div>
-                    <img id="promo-qr-preview" src="" style="max-height: 150px; display: none; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555;">
-                    
-                    <h3 style="color: #87ceeb; margin-top: 15px; margin-bottom: 10px; font-size: 1.1rem;">In-Feed Promotion Pricing</h3>
+                    <h3 style="color: #87ceeb; margin-top: 0; margin-bottom: 10px; font-size: 1.1rem;">In-Feed Promotion Pricing</h3>
                     <label style="display: block; margin-bottom: 5px;">Base Duration (Hours):</label>
                     <input type="number" id="promo-base-hours" value="50" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                     
@@ -347,6 +279,9 @@
                     <label style="display: block; margin-bottom: 5px;">Pre-Roll Ad Rate (₹ per 1000 impressions):</label>
                     <input type="number" id="promo-preroll-rate" value="100" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
 
+                    <label style="display: block; margin-bottom: 5px;">Blog Ad Rate (₹ per 1000 impressions):</label>
+                    <input type="number" id="promo-blogad-rate" value="100" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
                     <button class="btn" style="background-color: #8e44ad; width: 100%;" onclick="window.savePromoSettings()">Save Settings</button>
                 </div>
 
@@ -369,6 +304,23 @@
                     <div style="text-align: center; margin-top: 15px;">
                         <button id="load-more-promo-history-btn" class="btn btn-secondary" style="display: none;" onclick="window.loadMorePromoHistory()">Load More</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Payment Settings Section (Super Admins Only) -->
+            <div id="section-payment-settings" style="display: none;">
+                <div class="report-card" style="border-color: #10b981; margin-bottom: 20px;">
+                    <h2 style="color: #10b981; margin-top: 0;">Payment Receiving Details</h2>
+                    <p style="color: #aaa; font-size: 0.9rem;">Set your UPI ID and QR code to receive payments for promotions. Only main admins can access this.</p>
+                    <label style="display: block; margin-bottom: 5px; margin-top: 15px;">Your UPI ID (For receiving payments):</label>
+                    <input type="text" id="promo-upi-id" placeholder="e.g. himanshusainiaggarwal@okaxis" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    <label style="display: block; margin-bottom: 5px;">QR Code Image (Upload or URL):</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                        <input type="file" id="promo-qr-file" accept="image/*" style="width: 40%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                        <input type="text" id="promo-qr-url" placeholder="QR Image URL..." style="width: 60%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    </div>
+                    <img id="promo-qr-preview" src="" style="max-height: 150px; display: none; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555;">
+                    <button class="btn" style="background-color: #10b981; width: 100%; margin-top: 10px;" onclick="window.savePaymentReceivingSettings()">Save Payment Settings</button>
                 </div>
             </div>
 
@@ -435,11 +387,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc, orderBy, limit, startAfter, writeBatch, increment, getCountFromServer, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { firebaseConfig } from "./firebase-config.js";
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app);
 
         const adminContent = document.getElementById('admin-content');
         const authMessage = document.getElementById('auth-message');
@@ -447,13 +401,11 @@
 
         const adminTabs = document.getElementById('admin-tabs');
         const tabReported = document.getElementById('tab-reported');
-        const tabAds = document.getElementById('tab-ads');
         const tabMonetization = document.getElementById('tab-monetization');
         const tabCopyright = document.getElementById('tab-copyright');
         const tabHeadlines = document.getElementById('tab-headlines');
         const tabVast = document.getElementById('tab-vast');
         const sectionReported = document.getElementById('section-reported');
-        const sectionAds = document.getElementById('section-ads');
         const sectionMonetization = document.getElementById('section-monetization');
         const sectionCopyright = document.getElementById('section-copyright');
         const sectionHeadlines = document.getElementById('section-headlines');
@@ -461,14 +413,33 @@
         const tabPromotions = document.getElementById('tab-promotions');
         const tabTeam = document.getElementById('tab-team');
         const sectionPromotions = document.getElementById('section-promotions');
+        const tabPaymentSettings = document.getElementById('tab-payment-settings');
+        const sectionPaymentSettings = document.getElementById('section-payment-settings');
         const tabUsers = document.getElementById('tab-users');
         const sectionUsers = document.getElementById('section-users');
         const tabFeedback = document.getElementById('tab-feedback');
         const sectionFeedback = document.getElementById('section-feedback');
-        let currentAdConfig = {};
 
         window.adminIsSuperAdmin = false;
         window.adminPermissions = {};
+
+        window.getProxiedVideoUrl = function(url) {
+            if (!url) return url;
+            let videoSrc = url;
+            if (videoSrc.includes('viyo-backend.onrender.com')) {
+                videoSrc = videoSrc.replace('viyo-backend.onrender.com', 'viyou-in-backend.onrender.com');
+            }
+            const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+            if (driveMatch && driveMatch[1]) {
+                videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
+            } else if (videoSrc.includes('drive.google.com/uc') || videoSrc.includes('drive.google.com/open')) {
+                const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
+                if (ucMatch && ucMatch[1]) {
+                    videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
+                }
+            }
+            return videoSrc;
+        };
 
         // --- Custom Toast Notification ---
         function showToast(message, type = 'success') {
@@ -493,7 +464,6 @@
 
         tabReported.addEventListener('click', () => {
             tabReported.classList.add('active');
-            tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
@@ -503,30 +473,6 @@
             tabTeam.classList.remove('active');
             tabFeedback.classList.remove('active');
             sectionReported.style.display = 'block';
-            sectionAds.style.display = 'none';
-            sectionMonetization.style.display = 'none';
-            sectionCopyright.style.display = 'none';
-            sectionHeadlines.style.display = 'none';
-            sectionVast.style.display = 'none';
-            sectionPromotions.style.display = 'none';
-            sectionUsers.style.display = 'none';
-            sectionTeam.style.display = 'none';
-            sectionFeedback.style.display = 'none';
-        });
-
-        tabAds.addEventListener('click', () => {
-            tabAds.classList.add('active');
-            tabReported.classList.remove('active');
-            tabMonetization.classList.remove('active');
-            tabCopyright.classList.remove('active');
-            tabHeadlines.classList.remove('active');
-            tabVast.classList.remove('active');
-            tabPromotions.classList.remove('active');
-            tabUsers.classList.remove('active');
-            tabTeam.classList.remove('active');
-            tabFeedback.classList.remove('active');
-            sectionAds.style.display = 'block';
-            sectionReported.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
@@ -540,7 +486,6 @@
         tabMonetization.addEventListener('click', () => {
             tabMonetization.classList.add('active');
             tabReported.classList.remove('active');
-            tabAds.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
@@ -550,7 +495,6 @@
             tabFeedback.classList.remove('active');
             sectionMonetization.style.display = 'block';
             sectionReported.style.display = 'none';
-            sectionAds.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
@@ -558,6 +502,7 @@
             sectionUsers.style.display = 'none';
             sectionTeam.style.display = 'none';
             sectionFeedback.style.display = 'none';
+            window.loadMonetizationStats();
             window.loadPayoutRequests();
             window.loadMonetizedUsers();
         });
@@ -565,7 +510,6 @@
         tabCopyright.addEventListener('click', () => {
             tabCopyright.classList.add('active');
             tabReported.classList.remove('active');
-            tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabHeadlines.classList.remove('active');
             tabVast.classList.remove('active');
@@ -575,7 +519,6 @@
             tabFeedback.classList.remove('active');
             sectionCopyright.style.display = 'block';
             sectionReported.style.display = 'none';
-            sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionHeadlines.style.display = 'none';
             sectionVast.style.display = 'none';
@@ -589,7 +532,6 @@
         tabHeadlines.addEventListener('click', () => {
             tabHeadlines.classList.add('active');
             tabReported.classList.remove('active');
-            tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabVast.classList.remove('active');
@@ -599,7 +541,6 @@
             tabFeedback.classList.remove('active');
             sectionHeadlines.style.display = 'block';
             sectionReported.style.display = 'none';
-            sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionVast.style.display = 'none';
@@ -613,7 +554,6 @@
         tabVast.addEventListener('click', () => {
             tabVast.classList.add('active');
             tabReported.classList.remove('active');
-            tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
@@ -623,7 +563,6 @@
             tabFeedback.classList.remove('active');
             sectionVast.style.display = 'block';
             sectionReported.style.display = 'none';
-            sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
@@ -637,7 +576,6 @@
         tabPromotions.addEventListener('click', () => {
             tabPromotions.classList.add('active');
             tabReported.classList.remove('active');
-            tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
@@ -647,7 +585,6 @@
             tabFeedback.classList.remove('active');
             sectionPromotions.style.display = 'block';
             sectionReported.style.display = 'none';
-            sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
@@ -655,16 +592,48 @@
             sectionTeam.style.display = 'none';
             sectionUsers.style.display = 'none';
             sectionFeedback.style.display = 'none';
+            window.loadPromotionStats();
             window.loadPromoSettings();
             window.loadPromoRequests();
             window.loadPromoHistory();
             window.loadLivePromotions();
         });
 
+        tabPaymentSettings.addEventListener('click', () => {
+            tabPaymentSettings.classList.add('active');
+            tabReported.classList.remove('active');
+            tabMonetization.classList.remove('active');
+            tabCopyright.classList.remove('active');
+            tabHeadlines.classList.remove('active');
+            tabTeam.classList.remove('active');
+            tabVast.classList.remove('active');
+            tabUsers.classList.remove('active');
+            tabFeedback.classList.remove('active');
+            tabPromotions.classList.remove('active');
+            
+            sectionPaymentSettings.style.display = 'block';
+            sectionReported.style.display = 'none';
+            sectionMonetization.style.display = 'none';
+            sectionCopyright.style.display = 'none';
+            sectionHeadlines.style.display = 'none';
+            sectionVast.style.display = 'none';
+            sectionTeam.style.display = 'none';
+            sectionUsers.style.display = 'none';
+            sectionFeedback.style.display = 'none';
+            sectionPromotions.style.display = 'none';
+        });
+
+        // Handle hiding Payment Settings when other tabs are clicked
+        adminTabs.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('admin-tab-btn') && e.target.id !== 'tab-payment-settings') {
+                if (tabPaymentSettings) tabPaymentSettings.classList.remove('active');
+                if (sectionPaymentSettings) sectionPaymentSettings.style.display = 'none';
+            }
+        });
+
         tabUsers.addEventListener('click', () => {
             tabUsers.classList.add('active');
             tabReported.classList.remove('active');
-            tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
@@ -674,7 +643,6 @@
             tabFeedback.classList.remove('active');
             sectionUsers.style.display = 'block';
             sectionReported.style.display = 'none';
-            sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
@@ -690,7 +658,6 @@
             tabTeam.classList.add('active');
             // Hide all other tabs
             tabReported.classList.remove('active');
-            tabAds.classList.remove('active');
             tabMonetization.classList.remove('active');
             tabCopyright.classList.remove('active');
             tabHeadlines.classList.remove('active');
@@ -701,7 +668,6 @@
             // Show only the Team Members section
             sectionTeam.style.display = 'block';
             sectionReported.style.display = 'none';
-            sectionAds.style.display = 'none';
             sectionMonetization.style.display = 'none';
             sectionCopyright.style.display = 'none';
             sectionHeadlines.style.display = 'none';
@@ -726,11 +692,13 @@
             if (user) {
                 const adminEmails = ["nshuhima246@gmail.com", "manahoo09@zohomail.in", "himanshusainiaggarwal@gmail.com"];
                 let isSuperAdmin = false;
+                let isAbsoluteSuperAdmin = false;
                 let isTeamMember = false;
                 let permissions = {};
                 
                 if (user.email && adminEmails.includes(user.email.toLowerCase())) {
                     isSuperAdmin = true;
+                    isAbsoluteSuperAdmin = true;
                 } else {
                     const userDocRef = doc(db, "users", user.uid);
                     const userDocSnap = await getDoc(userDocRef);
@@ -758,7 +726,6 @@
                     
                     if (isSuperAdmin) {
                         document.getElementById('tab-reported').style.display = 'block';
-                        document.getElementById('tab-ads').style.display = 'block';
                         document.getElementById('tab-monetization').style.display = 'block';
                         document.getElementById('tab-copyright').style.display = 'block';
                         document.getElementById('tab-headlines').style.display = 'block';
@@ -767,9 +734,15 @@
                         document.getElementById('tab-users').style.display = 'block';
                         document.getElementById('tab-team').style.display = 'block';
                         document.getElementById('tab-feedback').style.display = 'block';
+                        
+                        if (isAbsoluteSuperAdmin) {
+                            if (document.getElementById('tab-payment-settings')) document.getElementById('tab-payment-settings').style.display = 'block';
+                        } else {
+                            if (document.getElementById('tab-payment-settings')) document.getElementById('tab-payment-settings').remove();
+                            if (document.getElementById('section-payment-settings')) document.getElementById('section-payment-settings').remove();
+                        }
                     } else {
                         if (!permissions.canAccessReported) { document.getElementById('tab-reported').remove(); sectionReported.remove(); }
-                        if (!permissions.canAccessAds) { document.getElementById('tab-ads').remove(); sectionAds.remove(); }
                         if (!permissions.canAccessMonetization) { document.getElementById('tab-monetization').remove(); sectionMonetization.remove(); }
                         if (!permissions.canAccessCopyright) { document.getElementById('tab-copyright').remove(); sectionCopyright.remove(); }
                         if (!permissions.canAccessHeadlines) { document.getElementById('tab-headlines').remove(); sectionHeadlines.remove(); }
@@ -779,6 +752,8 @@
                         if (!permissions.canAccessFeedbacks) { document.getElementById('tab-feedback').remove(); sectionFeedback.remove(); }
                         document.getElementById('tab-team').remove();
                         sectionTeam.remove();
+                        if (document.getElementById('tab-payment-settings')) document.getElementById('tab-payment-settings').remove();
+                        if (document.getElementById('section-payment-settings')) document.getElementById('section-payment-settings').remove();
 
                         // Click the first visible tab
                         if (adminTabs.children.length > 0) {
@@ -787,63 +762,6 @@
                             adminContent.innerHTML = '<p style="padding: 20px;">You do not have permission to view any sections.</p>';
                         }
                     }
-                    // Dynamically create banner input fields
-                    const bannersContainer = document.getElementById('rotating-banners-container');
-                    if (bannersContainer && bannersContainer.innerHTML === '') {
-                        let html = '';
-                        for(let i=1; i<=10; i++) {
-                            html += `
-                            <div style="background: rgba(0,0,0,0.2); border: 1px solid #444; padding: 10px; margin-bottom: 15px; border-radius: 4px;" id="banner-container-${i}">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                    <label style="font-weight: bold; color: gold; margin: 0;">Banner ${i}</label>
-                                    <button type="button" class="btn btn-danger" style="padding: 2px 8px; font-size: 0.8rem; margin: 0;" onclick="window.clearBanner(${i})"><i data-lucide="trash-2"></i> Delete</button>
-                                </div>
-                                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Image (Upload or URL):</label>
-                                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
-                                    <input type="file" id="banner-file-${i}" accept="image/*" style="width: 40%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
-                                    <input type="text" id="banner-img-${i}" placeholder="Image URL..." style="width: 60%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                                </div>
-                                <img id="banner-preview-${i}" src="" style="max-height: 80px; display: none; margin-bottom: 10px; border-radius: 4px; border: 1px solid #555;">
-                                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Target Link:</label>
-                                <input type="text" id="banner-link-${i}" placeholder="Link to open on click..." style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Custom Text (Optional):</label>
-                                <input type="text" id="banner-text-${i}" placeholder="Custom text for banner..." style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                                <div style="display: flex; gap: 15px; margin-top: 10px; align-items: center;">
-                                    <div style="flex: 1;">
-                                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Duration (Hours):</label>
-                                        <input type="number" id="banner-duration-${i}" value="24" min="1" style="width: 100%; padding: 8px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                                    </div>
-                                    <div style="flex: 1; margin-top: 20px;">
-                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                            <input type="checkbox" id="banner-always-${i}" style="width: 18px; height: 18px;">
-                                            <strong style="font-size: 0.9rem;">Always Show</strong>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            `;
-                        }
-                        bannersContainer.innerHTML = html;
-                        
-                        for(let i=1; i<=10; i++) {
-                            const fileInput = document.getElementById(`banner-file-${i}`);
-                            if (fileInput) {
-                                fileInput.addEventListener('change', async (e) => {
-                                    const file = e.target.files[0];
-                                    if (file) {
-                                        const saveBtn = document.getElementById('save-ads-btn');
-                                        saveBtn.innerText = "Processing Image...";
-                                        try {
-                                            const base64 = await compressImage(file);
-                                            document.getElementById(`banner-img-${i}`).value = base64;
-                                            document.getElementById(`banner-preview-${i}`).src = base64;
-                                            document.getElementById(`banner-preview-${i}`).style.display = 'block';
-                                        } catch(err) { showToast("Error processing image: " + err.message, "error"); }
-                                        saveBtn.innerText = "Save Ad Settings";
-                                    }
-                                });
-                            }
-                        }
                         
                         const promoQrFile = document.getElementById('promo-qr-file');
                         if (promoQrFile) {
@@ -857,7 +775,6 @@
                                 }
                             });
                         }
-                    }
 
                     // Show Global Search
                     document.getElementById('admin-search-container').style.display = 'block';
@@ -865,7 +782,10 @@
                     // Preload all lists so they are globally searchable immediately
                     // Preload all lists so they are globally searchable immediately and UI can be rendered
                     loadReports();
-                    loadAdminAds();
+                    // Preload stats for the two new sections
+                    if (isSuperAdmin || permissions.canAccessMonetization) window.loadMonetizationStats();
+                    if (isSuperAdmin || permissions.canAccessPromotions) window.loadPromotionStats();
+
                     loadMonetizationSettings();
                     window.loadHeadlines();
                     window.loadVastSettings();
@@ -919,21 +839,33 @@
                 resultsDiv.innerHTML = '';
                 results.forEach((userData, uid) => {
                     const card = document.createElement('div');
-                    card.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;";
+                    card.style.cssText = "display: flex; flex-direction: column; gap: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;";
                     const isTeamMember = userData.adminPermissions != null;
                     
+                    const actualFollowers = userData.followers ? userData.followers.length : 0;
+                    const currentOverride = userData.followerCountOverride !== undefined ? userData.followerCountOverride : '';
+
                     card.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
-                            <img src="${userData.photoURL || 'logo.png'}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid ${isTeamMember ? '#198754' : '#666'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 15px; flex: 1; min-width: 250px;">
+                                <img src="${userData.photoURL || 'logo.png'}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid ${isTeamMember ? '#198754' : '#666'};">
+                                <div>
+                                    <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'}</strong> <span style="color: #aaa; font-size: 0.9rem;">(@${userData.username || 'unknown'})</span>
+                                    <div style="font-size: 0.85rem; color: #ccc; margin-top: 5px;">Email: <strong>${userData.email || 'N/A'}</strong></div>
+                                </div>
+                            </div>
                             <div>
-                                <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'}</strong> <span style="color: #aaa; font-size: 0.9rem;">(@${userData.username || 'unknown'})</span>
-                                <div style="font-size: 0.85rem; color: #ccc; margin-top: 5px;">Email: <strong>${userData.email || 'N/A'}</strong></div>
+                                <button class="btn" style="background-color: #10b981; margin: 0;" onclick="window.openTeamMemberPermissions('${uid}', '${(userData.name || 'User').replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">
+                                    ${isTeamMember ? 'Edit Permissions' : 'Add to Team'}
+                                </button>
                             </div>
                         </div>
-                        <div>
-                            <button class="btn" style="background-color: #10b981; margin: 0;" onclick="window.openTeamMemberPermissions('${uid}', '${(userData.name || 'User').replace(/'/g, "\\'")}')">
-                                ${isTeamMember ? 'Edit Permissions' : 'Add to Team'}
-                            </button>
+                        <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label style="color: #aaa; font-size: 0.85rem; display: block; margin-bottom: 5px;">Real Followers: <strong>${actualFollowers}</strong></label>
+                                <input type="number" id="follower-override-${uid}" value="${currentOverride}" placeholder="Custom Follower Count (Leave empty for real)" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; box-sizing: border-box;">
+                            </div>
+                            <button class="btn" style="background-color: #0d6efd; padding: 8px 15px; margin: 0; align-self: flex-end;" onclick="window.saveFollowerOverride('${uid}')">Set Followers</button>
                         </div>
                     `;
                     resultsDiv.appendChild(card);
@@ -941,6 +873,23 @@
             } catch (e) {
                 console.error(e);
                 resultsDiv.innerHTML = '<p style="color: #ff6b6b;">Error searching user.</p>';
+            }
+        };
+
+        window.saveFollowerOverride = async (uid) => {
+            if (!await window.viyouConfirm("Are you sure you want to override the follower count for this user?")) return;
+            const val = document.getElementById(`follower-override-${uid}`).value;
+            try {
+                if (val === '') {
+                    await updateDoc(doc(db, "users", uid), { followerCountOverride: deleteField() });
+                    showToast("Follower override removed. Real count will be shown.", "success");
+                } else {
+                    await updateDoc(doc(db, "users", uid), { followerCountOverride: Number(val) });
+                    showToast("Follower count updated successfully!", "success");
+                }
+            } catch (e) {
+                console.error("Error updating follower count:", e);
+                showToast("Failed to update follower count.", "error");
             }
         };
 
@@ -962,10 +911,6 @@
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                         <input type="checkbox" id="perm-reported" ${perms.canAccessReported ? 'checked' : ''} style="width: 18px; height: 18px;">
                         Reported Blogs
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                        <input type="checkbox" id="perm-ads" ${perms.canAccessAds ? 'checked' : ''} style="width: 18px; height: 18px;">
-                        Ad Management
                     </label>
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                         <input type="checkbox" id="perm-monetization" ${perms.canAccessMonetization ? 'checked' : ''} style="width: 18px; height: 18px;">
@@ -1007,7 +952,6 @@
             
             const perms = {
                 canAccessReported: document.getElementById('perm-reported').checked,
-                canAccessAds: document.getElementById('perm-ads').checked,
                 canAccessMonetization: document.getElementById('perm-monetization').checked,
                 canAccessCopyright: document.getElementById('perm-copyright').checked,
                 canAccessHeadlines: document.getElementById('perm-headlines').checked,
@@ -1071,7 +1015,7 @@
         };
 
         window.clearAllFeedbacks = async () => {
-            if (!confirm("Are you sure you want to delete ALL user feedbacks?")) return;
+            if (!await window.viyouConfirm("Are you sure you want to delete ALL user feedbacks?")) return;
             try {
                 const snap = await getDocs(collection(db, "feedbacks"));
                 const batch = writeBatch(db);
@@ -1111,7 +1055,7 @@
                             </div>
                         </div>
                         <div>
-                            <button class="btn" style="background-color: #10b981; margin: 0;" onclick="window.openTeamMemberPermissions('${uid}', '${(userData.name || 'User').replace(/'/g, "\\'")}')">
+                            <button class="btn" style="background-color: #10b981; margin: 0;" onclick="window.openTeamMemberPermissions('${uid}', '${(userData.name || 'User').replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">
                                 Edit Permissions
                             </button>
                         </div>
@@ -1141,135 +1085,6 @@
             }
         };
 
-        // Load Ad Settings
-        async function loadAdminAds() {
-            try {
-                const adDoc = await getDoc(doc(db, "settings", "ads"));
-                if (adDoc.exists()) {
-                    const data = adDoc.data();
-                    currentAdConfig = data;
-                    document.getElementById('enable-infeed-ads-toggle').checked = data.enableInFeedAds !== false; // Default to true if not set
-                    document.getElementById('enable-preroll-ads-toggle').checked = data.enablePreRollAds !== false; // Default to true if not set
-                    document.getElementById('ad-toggle').checked = data.showAds || false;
-                    document.getElementById('ad-network-url').value = data.adNetworkUrl || '';
-                    document.getElementById('youtube-ad-url').value = data.youtubeAdUrl || '';
-                    document.getElementById('video-frequency').value = data.videoFrequency || 4;
-                    document.getElementById('banner-frequency').value = data.bannerFrequency || 3;
-                    document.getElementById('affiliate-frequency').value = data.affiliateFrequency || 5;
-                    
-                    document.getElementById('video-ad-duration').value = data.videoAdDuration || 24;
-                    document.getElementById('video-ad-always').checked = data.videoAdAlwaysShow || false;
-                    document.getElementById('affiliate-duration').value = data.affiliateDuration || 24;
-                    document.getElementById('affiliate-always').checked = data.affiliateAlwaysShow || false;
-
-                    if (data.banners && data.banners.length > 0) {
-                        data.banners.forEach((b, idx) => {
-                            if (idx < 10) {
-                                document.getElementById(`banner-img-${idx+1}`).value = b.img || '';
-                                document.getElementById(`banner-link-${idx+1}`).value = b.link || '';
-                                document.getElementById(`banner-text-${idx+1}`).value = b.text || '';
-                                document.getElementById(`banner-duration-${idx+1}`).value = b.duration || 24;
-                                document.getElementById(`banner-always-${idx+1}`).checked = b.alwaysShow || false;
-                                if (b.img) {
-                                    document.getElementById(`banner-preview-${idx+1}`).src = b.img;
-                                    document.getElementById(`banner-preview-${idx+1}`).style.display = 'block';
-                                }
-                            }
-                        });
-                    } else if (data.bannerImg) {
-                        document.getElementById('banner-img-1').value = data.bannerImg || '';
-                        document.getElementById('banner-link-1').value = data.bannerLink || '';
-                        document.getElementById('banner-preview-1').src = data.bannerImg;
-                        document.getElementById('banner-preview-1').style.display = 'block';
-                    }
-
-                    document.getElementById('affiliate-img').value = data.affiliateImg || '';
-                    document.getElementById('affiliate-link').value = data.affiliateLink || '';
-                    
-                    if (data.affiliateImg) {
-                        document.getElementById('affiliate-preview').src = data.affiliateImg;
-                        document.getElementById('affiliate-preview').style.display = 'block';
-                    }
-
-                    const viewEarningsBtn = document.getElementById('view-earnings-btn');
-                    if (data.adNetworkUrl) {
-                        viewEarningsBtn.href = data.adNetworkUrl;
-                        viewEarningsBtn.style.display = 'inline-block';
-                    }
-                }
-            } catch(e) {
-                console.error("Error fetching ad configuration:", e);
-            }
-        }
-
-        // Save Ad Settings
-        window.saveAdSettings = async () => {
-            const saveBtn = document.getElementById('save-ads-btn');
-            saveBtn.innerText = "Saving...";
-            saveBtn.disabled = true;
-            
-            const now = Date.now();
-            const showAdsMaster = document.getElementById('ad-toggle').checked;
-
-            const banners = [];
-            for(let i=1; i<=10; i++) {
-                const img = document.getElementById(`banner-img-${i}`).value.trim();
-                const link = document.getElementById(`banner-link-${i}`).value.trim();
-                const text = document.getElementById(`banner-text-${i}`).value.trim();
-                const duration = parseInt(document.getElementById(`banner-duration-${i}`).value) || 24;
-                const alwaysShow = document.getElementById(`banner-always-${i}`).checked;
-                let startTime = now;
-                if (currentAdConfig.banners && currentAdConfig.banners[i-1] && currentAdConfig.banners[i-1].img === img) {
-                    startTime = currentAdConfig.banners[i-1].startTime || now;
-                    if (currentAdConfig.banners[i-1].text) startTime = currentAdConfig.banners[i-1].startTime || now; // Preserve start time if text is same
-                }
-                if (img) banners.push({ img, link, duration, alwaysShow, startTime });
-            }
-
-            const adData = {
-                showAds: showAdsMaster,
-                // Individual toggles are only effective if the master switch is on
-                enableInFeedAds: showAdsMaster && document.getElementById('enable-infeed-ads-toggle').checked,
-                enablePreRollAds: showAdsMaster && document.getElementById('enable-preroll-ads-toggle').checked,
-                adNetworkUrl: document.getElementById('ad-network-url').value.trim(),
-                youtubeAdUrl: document.getElementById('youtube-ad-url').value.trim(),
-                videoFrequency: parseInt(document.getElementById('video-frequency').value) || 4,
-                bannerFrequency: parseInt(document.getElementById('banner-frequency').value) || 3,
-                banners: banners,
-                bannerImg: banners.length > 0 ? banners[0].img : '',
-                bannerLink: banners.length > 0 ? banners[0].link : '',
-                affiliateImg: document.getElementById('affiliate-img').value.trim(),
-                affiliateLink: document.getElementById('affiliate-link').value.trim(),
-                affiliateFrequency: parseInt(document.getElementById('affiliate-frequency').value) || 5,
-
-                videoAdDuration: parseInt(document.getElementById('video-ad-duration').value) || 24,
-                videoAdAlwaysShow: document.getElementById('video-ad-always').checked,
-                videoAdStartTime: (currentAdConfig.youtubeAdUrl === document.getElementById('youtube-ad-url').value.trim()) ? (currentAdConfig.videoAdStartTime || now) : now,
-
-                affiliateDuration: parseInt(document.getElementById('affiliate-duration').value) || 24,
-                affiliateAlwaysShow: document.getElementById('affiliate-always').checked,
-                affiliateStartTime: (currentAdConfig.affiliateImg === document.getElementById('affiliate-img').value.trim()) ? (currentAdConfig.affiliateStartTime || now) : now
-            };
-
-            try {
-                currentAdConfig = adData;
-                await setDoc(doc(db, "settings", "ads"), adData);
-                showToast("Ads configuration updated successfully!");
-                // Update the earnings button visibility immediately after saving
-                const viewEarningsBtn = document.getElementById('view-earnings-btn');
-                if (adData.adNetworkUrl) {
-                    viewEarningsBtn.href = adData.adNetworkUrl;
-                    viewEarningsBtn.style.display = 'inline-block';
-                } else { viewEarningsBtn.style.display = 'none'; }
-            } catch(e) {
-                console.error("Error saving ads:", e);
-                showToast("Failed to save ad settings.", "error");
-            } finally {
-                saveBtn.innerText = "Save Ad Settings";
-                saveBtn.disabled = false;
-            }
-        };
-
         // VAST Settings Logic
         window.loadVastSettings = async () => {
             try {
@@ -1287,7 +1102,7 @@
                             div.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; margin-bottom: 5px; font-size: 0.9rem;";
                             div.innerHTML = `
                                 <span style="color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">${url}</span>
-                                <button class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.8rem; margin: 0;" onclick="window.reuseVastUrl('${url.replace(/'/g, "\\'")}')">Use</button>
+                                <button class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.8rem; margin: 0;" onclick="window.reuseVastUrl('${url.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">Use</button>
                             `;
                             historyList.appendChild(div);
                         });
@@ -1328,35 +1143,6 @@
             finally { btn.innerText = "Save VAST Settings"; btn.disabled = false; }
         };
 
-        // Clear Banner Functions
-        window.clearBanner = (i) => {
-            const fileInput = document.getElementById(`banner-file-${i}`);
-            const imgInput = document.getElementById(`banner-img-${i}`);
-            const linkInput = document.getElementById(`banner-link-${i}`);
-            const textInput = document.getElementById(`banner-text-${i}`);
-            const preview = document.getElementById(`banner-preview-${i}`);
-            const durationInput = document.getElementById(`banner-duration-${i}`);
-            const alwaysInput = document.getElementById(`banner-always-${i}`);
-            
-            if (fileInput) fileInput.value = '';
-            if (imgInput) imgInput.value = '';
-            if (linkInput) linkInput.value = '';
-            if (textInput) textInput.value = '';
-            if (preview) {
-                preview.src = '';
-                preview.style.display = 'none';
-            }
-            if (durationInput) durationInput.value = '24';
-            if (alwaysInput) alwaysInput.checked = false;
-        };
-
-        window.clearAllBanners = () => {
-            if(!confirm("Are you sure you want to delete all 10 banner ads?")) return;
-            for(let i=1; i<=10; i++) {
-                window.clearBanner(i);
-            }
-        };
-
         // Image Compression Function
         function compressImage(file) {
             return new Promise((resolve, reject) => {
@@ -1395,23 +1181,6 @@
             });
         }
 
-        // Setup File Upload Listeners
-
-        document.getElementById('affiliate-file').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const saveBtn = document.getElementById('save-ads-btn');
-                saveBtn.innerText = "Processing Image...";
-                try {
-                    const base64 = await compressImage(file);
-                    document.getElementById('affiliate-img').value = base64;
-                    document.getElementById('affiliate-preview').src = base64;
-                    document.getElementById('affiliate-preview').style.display = 'block';
-                } catch(err) { showToast("Error processing image: " + err.message, "error"); }
-                saveBtn.innerText = "Save Ad Settings";
-            }
-        });
-
         async function loadReports() {
             reportsList.innerHTML = '<p>Loading reports...</p>';
             try {
@@ -1443,7 +1212,7 @@
 
                     if (blogDoc.exists()) {
                         const blog = blogDoc.data();
-                        const safeAuthor = blog.author ? blog.author.replace(/'/g, "\\'") : 'Unknown';
+                        const safeAuthor = blog.author ? blog.author.replace(/'/g, "\\'").replace(/"/g, "&quot;") : 'Unknown';
                         card.innerHTML = `
                             <h3>${blog.title}</h3>
                             <p><strong>Author:</strong> ${blog.author} ${blog.authorVerified ? '<span style="color: #1da1f2;" title="Verified">✔</span>' : ''}</p>
@@ -1477,7 +1246,7 @@
         }
 
         window.dismissReport = async (reportId) => {
-            if (!confirm("Are you sure you want to dismiss this report?")) return;
+            if (!await window.viyouConfirm("Are you sure you want to dismiss this report?")) return;
             try {
                 await deleteDoc(doc(db, "reports", reportId));
                 document.getElementById(`report-${reportId}`).remove();
@@ -1493,7 +1262,7 @@
         };
 
         window.deleteBlog = async (blogId, reportId) => {
-            if (!confirm("Are you sure you want to DELETE this blog permanently? This action cannot be undone.")) return;
+            if (!await window.viyouConfirm("Are you sure you want to DELETE this blog permanently? This action cannot be undone.")) return;
             try {
                 const docSnap = await getDoc(doc(db, "blogs", blogId));
                 if (docSnap.exists() && docSnap.data().video && docSnap.data().video.includes('api/stream/')) {
@@ -1543,7 +1312,7 @@
 
                     if (blogDoc.exists()) {
                         const blog = blogDoc.data();
-                        const safeAuthor = blog.author ? blog.author.replace(/'/g, "\\'") : 'Unknown';
+                        const safeAuthor = blog.author ? blog.author.replace(/'/g, "\\'").replace(/"/g, "&quot;") : 'Unknown';
                         card.innerHTML = `
                             <h3>${blog.title}</h3>
                             <p><strong>Author:</strong> ${blog.author}</p>
@@ -1576,7 +1345,7 @@
         };
 
         window.dismissCopyrightClaim = async (claimId) => {
-            if (!confirm("Are you sure you want to dismiss this copyright claim?")) return;
+            if (!await window.viyouConfirm("Are you sure you want to dismiss this copyright claim?")) return;
             try {
                 await deleteDoc(doc(db, "copyright_claims", claimId));
                 document.getElementById(`copyright-${claimId}`).remove();
@@ -1590,7 +1359,7 @@
         };
 
         window.deleteBlogFromClaim = async (blogId, claimId) => {
-            if (!confirm("Are you sure you want to DELETE this blog permanently due to a copyright strike? This action cannot be undone.")) return;
+            if (!await window.viyouConfirm("Are you sure you want to DELETE this blog permanently due to a copyright strike? This action cannot be undone.")) return;
             try {
                 const docSnap = await getDoc(doc(db, "blogs", blogId));
                 if (docSnap.exists() && docSnap.data().video && docSnap.data().video.includes('api/stream/')) {
@@ -1613,7 +1382,7 @@
         };
 
         window.banUser = async (uid, username) => {
-            if (!confirm(`Are you sure you want to BAN the user "${username}" AND delete all their posts? They will not be able to log in.`)) return;
+            if (!await window.viyouConfirm(`Are you sure you want to BAN the user "${username}" AND delete all their posts? They will not be able to log in.`)) return;
             try {
                 // 1. Ban the user
                 const userRef = doc(db, "users", uid);
@@ -1643,7 +1412,7 @@
         };
 
         window.unbanUser = async (uid, username) => {
-            if (!confirm(`Are you sure you want to UNBAN the user "${username}"? They will be able to use the app normally.`)) return;
+            if (!await window.viyouConfirm(`Are you sure you want to UNBAN the user "${username}"? They will be able to use the app normally.`)) return;
             try {
                 const userRef = doc(db, "users", uid);
                 await updateDoc(userRef, { isBanned: false });
@@ -1655,7 +1424,7 @@
         };
 
         window.migrateUsernames = async () => {
-            if (!confirm("This will add 'usernameLower' to all users who don't have it yet. Proceed?")) return;
+            if (!await window.viyouConfirm("This will add 'usernameLower' to all users who don't have it yet. Proceed?")) return;
             
             const btn = document.getElementById('migrate-btn');
             btn.innerText = "Migrating...";
@@ -1782,14 +1551,8 @@
                 const settingsDoc = await getDoc(doc(db, "settings", "monetization"));
                 if (settingsDoc.exists()) {
                     const data = settingsDoc.data();
-                    if(document.getElementById('preroll-rate')) document.getElementById('preroll-rate').value = data.preRollRate || 200;
-                    if(document.getElementById('preroll-freq')) document.getElementById('preroll-freq').value = data.preRollFreq || 3;
                     if(document.getElementById('min-withdrawal')) document.getElementById('min-withdrawal').value = data.minWithdrawal || 500;
-                    if(document.getElementById('tier1-followers')) document.getElementById('tier1-followers').value = data.tierFollowers ? data.tierFollowers[0] : 200;
-                    if(document.getElementById('tier2-followers')) document.getElementById('tier2-followers').value = data.tierFollowers ? data.tierFollowers[1] : 1000;
-                    if(document.getElementById('tier3-followers')) document.getElementById('tier3-followers').value = data.tierFollowers ? data.tierFollowers[2] : 50000;
-                    if(document.getElementById('tier4-followers')) document.getElementById('tier4-followers').value = data.tierFollowers ? data.tierFollowers[3] : 100000;
-                    if(document.getElementById('tier5-followers')) document.getElementById('tier5-followers').value = data.tierFollowers ? data.tierFollowers[4] : 1000000;
+                    if(document.getElementById('blog-ad-limit')) document.getElementById('blog-ad-limit').value = data.blogAdLimit || 3;
                 }
             } catch (e) {
                 console.error("Error loading monetization settings:", e);
@@ -1801,18 +1564,10 @@
             btn.innerText = "Processing & Saving...";
             btn.disabled = true;
 
-            const newRate = parseFloat(document.getElementById('preroll-rate').value);
-            const newFreq = parseFloat(document.getElementById('preroll-freq').value);
             const minWithdrawal = parseFloat(document.getElementById('min-withdrawal').value);
-            const tierFollowers = [
-                parseInt(document.getElementById('tier1-followers').value),
-                parseInt(document.getElementById('tier2-followers').value),
-                parseInt(document.getElementById('tier3-followers').value),
-                parseInt(document.getElementById('tier4-followers').value),
-                parseInt(document.getElementById('tier5-followers').value)
-            ];
+            const newBlogLimit = parseFloat(document.getElementById('blog-ad-limit').value) || 3;
 
-            if (isNaN(newRate) || newRate < 0 || isNaN(newFreq) || newFreq < 1 || isNaN(minWithdrawal) || minWithdrawal < 1) {
+            if (isNaN(minWithdrawal) || minWithdrawal < 1) {
                 showToast("Please enter valid positive values for all fields.", "error");
                 btn.innerText = "Save Monetization Settings";
                 btn.disabled = false;
@@ -1824,6 +1579,9 @@
                 const oldSettings = currentSettingsDoc.exists() ? currentSettingsDoc.data() : { preRollRate: 200, preRollFreq: 3 };
                 const oldRate = oldSettings.preRollRate || 200;
                 const oldFreq = oldSettings.preRollFreq || 3;
+                const oldBlogRate = oldSettings.blogAdRate || 150;
+                const oldBlogFreq = oldSettings.blogAdFreq || 3;
+                const tierFollowers = oldSettings.tierFollowers || [200, 1000, 50000, 100000, 1000000];
 
                 const monetizedQuery = query(collection(db, "users"), where("isMonetized", "==", true));
                 const usersSnap = await getDocs(monetizedQuery);
@@ -1834,12 +1592,18 @@
                     const uid = userDoc.id;
                     const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid), where("status", "!=", "draft"));
                     const blogsSnap = await getDocs(blogsQuery);
-                    let totalViews = 0; let totalAdImpressions = 0;
+                    let totalViews = 0; 
+                    let totalVideoAdImpressions = 0;
+                    let totalBlogAdImpressions = 0;
                     blogsSnap.forEach(blogDoc => {
                         const bData = blogDoc.data();
                         totalViews += Number(bData.views) || 0;
-                        if (!bData.isFlicker && (bData.video && !bData.youtubeUrl)) { // Only count direct uploads for earnings
-                            totalAdImpressions += Number(bData.adImpressions) || 0;
+                        if (!bData.isFlicker) {
+                            if (bData.video && !bData.youtubeUrl) {
+                                totalVideoAdImpressions += Number(bData.adImpressions) || 0;
+                            } else if (!bData.video && !bData.youtubeUrl) {
+                                totalBlogAdImpressions += Number(bData.adImpressions) || 0;
+                            }
                         }
                     });
                     const actualFollowers = userData.followers ? userData.followers.length : 0;
@@ -1852,21 +1616,24 @@
                     else if (followersCount >= oldTierFollowers[1] && totalViews >= 100000) { tier = 2; sharePercent = 0.55; }
                     else if (followersCount >= oldTierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
                     
-                    let paidAdImpressions = userData.paidAdImpressions !== undefined ? 
+                    let paidVideoAdImpressions = userData.paidAdImpressions !== undefined ? 
                         Number(userData.paidAdImpressions) : 
                         ((Number(userData.paidLongVideoViews) || 0) / oldFreq);
+                    let paidBlogAdImpressions = Number(userData.paidBlogAdImpressions) || 0;
                         
-                    const unpaidImpressions = Math.max(0, totalAdImpressions - paidAdImpressions);
-                    if (unpaidImpressions > 0) {
-                        const generatedRevenue = (unpaidImpressions / 1000) * oldRate;
+                    const unpaidVideoImpressions = Math.max(0, totalVideoAdImpressions - paidVideoAdImpressions);
+                    const unpaidBlogImpressions = Math.max(0, totalBlogAdImpressions - paidBlogAdImpressions);
+                    if (unpaidVideoImpressions > 0 || unpaidBlogImpressions > 0) {
+                        const generatedRevenue = ((unpaidVideoImpressions / 1000) * oldRate) + ((unpaidBlogImpressions / 1000) * oldBlogRate);
                         const newWalletBalance = (userData.walletBalance || 0) + (generatedRevenue * sharePercent);
-                        batch.update(userDoc.ref, { walletBalance: newWalletBalance, paidAdImpressions: totalAdImpressions });
+                        batch.update(userDoc.ref, { walletBalance: newWalletBalance, paidAdImpressions: totalVideoAdImpressions, paidBlogAdImpressions: totalBlogAdImpressions });
                     }
                 }
                 await batch.commit();
 
-                const settingsData = { preRollRate: newRate, preRollFreq: newFreq, currency: 'INR', minWithdrawal: minWithdrawal, tierFollowers: tierFollowers };
-                await setDoc(doc(db, "settings", "monetization"), settingsData);
+                const settingsData = { preRollRate: oldRate, preRollFreq: oldFreq, blogAdRate: oldBlogRate, blogAdFreq: oldBlogFreq, blogAdLimit: newBlogLimit, currency: 'INR', minWithdrawal: minWithdrawal, tierFollowers: tierFollowers };
+                await setDoc(doc(db, "settings", "monetization"), settingsData, { merge: true });
+
                 showToast("Monetization settings saved successfully!");
             } catch (e) {
                 console.error("Error saving monetization settings:", e);
@@ -1967,7 +1734,7 @@
         }
 
         window.toggleMonetization = async (uid, makeMonetized) => {
-            if (!confirm(`Are you sure you want to ${makeMonetized ? 'MONETIZE' : 'REVOKE monetization for'} this user?`)) return;
+            if (!await window.viyouConfirm(`Are you sure you want to ${makeMonetized ? 'MONETIZE' : 'REVOKE monetization for'} this user?`)) return;
             try {
                 await updateDoc(doc(db, "users", uid), { isMonetized: makeMonetized });
                 showToast(`User status updated to ${makeMonetized ? 'Monetized' : 'Not Monetized'} successfully.`);
@@ -2018,7 +1785,7 @@
         };
 
         window.markAsPaid = async (reqId, uid, viewsCalculated, clicksCalculated, amount) => {
-            if (!confirm("Are you sure you have transferred the money? This will mark the request as paid and reset their estimated earnings.")) return;
+            if (!await window.viyouConfirm("Are you sure you have transferred the money? This will mark the request as paid and reset their estimated earnings.")) return;
             try {
                 await updateDoc(doc(db, "withdrawals", reqId), { status: 'paid', paidDate: new Date().toISOString() });
                 
@@ -2042,7 +1809,7 @@
         };
         
         window.rejectPayout = async (reqId, uid, amount) => {
-            const reason = prompt("Enter reason for rejection (e.g., Invalid UPI ID, Wrong Bank details):");
+            const reason = await window.viyouPrompt("Enter reason for rejection (e.g., Invalid UPI ID, Wrong Bank details):");
             if (reason === null) return; // User cancelled
             
             try {
@@ -2148,6 +1915,7 @@
                     document.getElementById('promo-daily-limit').value = data.dailyLimit || 3;
                     document.getElementById('promo-preroll-frequency').value = data.prerollFrequency || 3;
                     document.getElementById('promo-preroll-rate').value = data.prerollRate || 100;
+                    document.getElementById('promo-blogad-rate').value = data.blogAdRate || 100;
                     if (data.pricing) {
                         document.getElementById('promo-base-hours').value = data.pricing.baseHours || 50;
                         document.getElementById('promo-price-tier4').value = data.pricing.tier4 || 50;
@@ -2160,6 +1928,7 @@
                     document.getElementById('promo-daily-limit').value = 3;
                     document.getElementById('promo-preroll-frequency').value = 3;
                     document.getElementById('promo-preroll-rate').value = 100;
+                    document.getElementById('promo-blogad-rate').value = 100;
                     document.getElementById('promo-base-hours').value = 50;
                     document.getElementById('promo-price-tier4').value = 50;
                     document.getElementById('promo-price-tier3').value = 70;
@@ -2169,12 +1938,20 @@
             } catch (e) { console.error("Error loading promo settings:", e); }
         };
 
-        window.savePromoSettings = async () => {
+        window.savePaymentReceivingSettings = async () => {
             const upiId = document.getElementById('promo-upi-id').value.trim();
             const qrCodeUrl = document.getElementById('promo-qr-url').value.trim();
+            try {
+                await setDoc(doc(db, "settings", "promotions"), { upiId, qrCodeUrl }, { merge: true });
+                showToast("Payment receiving settings saved successfully!");
+            } catch (e) { console.error("Error saving payment settings:", e); showToast("Failed to save settings.", "error"); }
+        };
+
+        window.savePromoSettings = async () => {
             const dailyLimit = parseInt(document.getElementById('promo-daily-limit').value) || 3;
             const prerollFrequency = parseInt(document.getElementById('promo-preroll-frequency').value) || 3;
             const prerollRate = parseInt(document.getElementById('promo-preroll-rate').value) || 100;
+            const blogAdRate = parseInt(document.getElementById('promo-blogad-rate').value) || 100;
             
             const pricing = {
                 baseHours: parseInt(document.getElementById('promo-base-hours').value) || 50,
@@ -2184,7 +1961,12 @@
                 tier1: parseInt(document.getElementById('promo-price-tier1').value) || 100
             };
             try {
-                await setDoc(doc(db, "settings", "promotions"), { upiId, qrCodeUrl, dailyLimit, prerollFrequency, prerollRate, pricing }, { merge: true });
+                await setDoc(doc(db, "settings", "promotions"), { upiId, qrCodeUrl, dailyLimit, prerollFrequency, prerollRate, blogAdRate, pricing }, { merge: true });
+                await setDoc(doc(db, "settings", "promotions"), { dailyLimit, prerollFrequency, prerollRate, blogAdRate, pricing }, { merge: true });
+                
+                // Sync to Monetization so Creator Earnings match Advertiser Pricing
+                await setDoc(doc(db, "settings", "monetization"), { preRollRate: prerollRate, blogAdRate: blogAdRate }, { merge: true });
+                
                 showToast("Promotion settings saved successfully!");
             } catch (e) { console.error("Error saving promo settings:", e); showToast("Failed to save settings.", "error"); }
         };
@@ -2291,8 +2073,12 @@
                         } else {
                             adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Media Preview:</strong><br><img src="${req.mediaData}" style="max-height: 150px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 5px; max-width: 100%;" onclick="window.open('${req.mediaData}', '_blank')"></div>`;
                         }
-                    } else if (req.type === 'preroll' && req.mediaData) {
-                        adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Video Preview:</strong><br><video src="${req.mediaData}" controls style="max-height: 150px; border-radius: 4px; border: 1px solid #555; margin-top: 5px; max-width: 100%;"></video></div>`;
+            } else if ((req.type === 'preroll' || req.type === 'blog_ad') && req.mediaData) {
+                let trimText = '';
+                    if (req.adStartTime !== undefined && req.adEndTime !== undefined) {
+                    trimText = ` <span style="color:#ffc107;">(Trimmed: ${req.adStartTime}s - ${req.adEndTime}s)</span>`;
+                    }
+                adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Video Preview${trimText}:</strong><br><video src="${req.mediaData}" controls style="max-height: 150px; border-radius: 4px; border: 1px solid #555; margin-top: 5px; max-width: 100%;"></video></div>`;
                     } else if (req.blogId) {
                         // For content promotion (not custom product)
                         adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Content Promotion:</strong><br><span style="font-size: 0.9rem; color: #ccc;">Preview available via Content ID link above.</span></div>`;
@@ -2305,11 +2091,12 @@
                             <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
                             req.type === 'preroll' ? `<strong>Pre-Roll Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
+                        req.type === 'blog_ad' ? `<strong>Blog Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
                             req.type === 'external' ? `<strong>In-Feed Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a>` : 
                             `Content ID: <a href="index.html?blogId=${req.blogId}" target="_blank" style="color: gold;">${req.blogId}</a>`
                         }</div>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
-                            req.type === 'preroll' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
+                        req.type === 'preroll' || req.type === 'blog_ad' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
                             `Requested: <strong style="color: #198754;">${req.hours} Hours</strong> | Show every <strong style="color: #ff9900;">${req.frequency} posts</strong>`
                         }</div>
                             <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount paid: <strong style="color: #198754;">₹${req.price}</strong></div>
@@ -2320,7 +2107,7 @@
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                             <button class="btn" style="background-color: #198754; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.approvePromotion('${reqDoc.id}', '${req.blogId}', ${req.frequency}, ${req.hours})"><i data-lucide="check"></i> Approve</button>
-                            <button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPromotion('${reqDoc.id}', '${req.uid}', '${(req.title || '').replace(/'/g, "\\'")}')"><i data-lucide="x"></i> Reject</button>
+                            <button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPromotion('${reqDoc.id}', '${req.uid}', '${(req.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;')}')"><i data-lucide="x"></i> Reject</button>
                         </div>
                     `;
                     listDiv.appendChild(div);
@@ -2349,8 +2136,12 @@
                     } else {
                         adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Media Preview:</strong><br><img src="${req.mediaData}" style="max-height: 150px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 5px; max-width: 100%;" onclick="window.open('${req.mediaData}', '_blank')"></div>`;
                     }
-                } else if (req.type === 'preroll' && req.mediaData) {
-                    adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Video Preview:</strong><br><video src="${req.mediaData}" controls style="max-height: 150px; border-radius: 4px; border: 1px solid #555; margin-top: 5px; max-width: 100%;"></video></div>`;
+                } else if ((req.type === 'preroll' || req.type === 'blog_ad') && req.mediaData) {
+                let trimText = '';
+                if (req.adStartTime !== undefined && req.adEndTime !== undefined) {
+                    trimText = ` <span style="color:#ffc107;">(Trimmed: ${req.adStartTime}s - ${req.adEndTime}s)</span>`;
+                }
+                adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Video Preview${trimText}:</strong><br><video src="${req.mediaData}" controls style="max-height: 150px; border-radius: 4px; border: 1px solid #555; margin-top: 5px; max-width: 100%;"></video></div>`;
                 } else if (req.blogId) {
                     adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Content Promotion:</strong><br><span style="font-size: 0.9rem; color: #ccc;">Preview available via Content ID link above.</span></div>`;
                 }
@@ -2366,12 +2157,13 @@
                     <div>
                         <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
-                            req.type === 'preroll' ? `<strong>Pre-Roll Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
+                        req.type === 'preroll' ? `<strong>Pre-Roll Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
+                        req.type === 'blog_ad' ? `<strong>Blog Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
                             req.type === 'external' ? `<strong>In-Feed Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a>` : 
                             `Content ID: <a href="index.html?blogId=${req.blogId}" target="_blank" style="color: gold;">${req.blogId}</a>`
                         }</div>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
-                            req.type === 'preroll' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
+                        req.type === 'preroll' || req.type === 'blog_ad' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
                             `Requested: <strong style="color: #198754;">${req.hours} Hours</strong> | Show every <strong style="color: #ff9900;">${req.frequency} posts</strong>`
                         }</div>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount paid: <strong style="color: #198754;">₹${req.price}</strong></div>
@@ -2389,17 +2181,23 @@
         };
 
         window.approvePromotion = async (reqId, blogId, freq, hours) => {
-            if (!confirm("Are you sure you want to approve this promotion? It will go live immediately.")) return;
+            if (!await window.viyouConfirm("Are you sure you want to approve this promotion? It will go live immediately.")) return;
             try {
+                const promoDocRef = doc(db, "promotions", reqId);
+                const promoDoc = await getDoc(doc(db, "promotions", reqId));
+                const promoData = promoDoc.data();
+
                 if (blogId && blogId !== 'undefined') {
                     const expiryTime = new Date(Date.now() + (hours * 60 * 60 * 1000)).toISOString();
-                    await updateDoc(doc(db, "promotions", reqId), { status: 'approved', approvedAt: new Date().toISOString() });
+                    await updateDoc(promoDocRef, { status: 'approved', approvedAt: new Date().toISOString() });
                     await updateDoc(doc(db, "blogs", blogId), { isPromoted: true, promoFrequency: freq, promoExpiry: expiryTime });
                 } else {
-                    // This handles both 'external' (in-feed) and 'preroll' ads
-                    const promoDoc = await getDoc(doc(db, "promotions", reqId));
-                    const expiryTime = promoDoc.data().type === 'preroll' ? null : new Date(Date.now() + (hours * 60 * 60 * 1000)).toISOString();
-                    await updateDoc(doc(db, "promotions", reqId), { status: 'approved', approvedAt: new Date().toISOString(), promoExpiry: expiryTime });
+                    const expiryTime = (promoData.type === 'preroll' || promoData.type === 'blog_ad') ? null : new Date(Date.now() + (hours * 60 * 60 * 1000)).toISOString();
+                    await updateDoc(promoDocRef, { 
+                        status: 'approved', 
+                        approvedAt: new Date().toISOString(), 
+                        promoExpiry: expiryTime
+                    });
                 }
                 showToast("Promotion approved and goes live!");
                 window.loadPromoRequests();
@@ -2409,10 +2207,20 @@
         };
         
         window.rejectPromotion = async (reqId, uid, title) => {
-            const reason = prompt("Enter reason for rejection (e.g., Invalid UTR, Inappropriate Content):");
+            const reason = await window.viyouPrompt("Enter reason for rejection (e.g., Invalid UTR, Inappropriate Content):");
             if (reason === null) return; // User cancelled
             
             try {
+                const promoDoc = await getDoc(doc(db, "promotions", reqId));
+                const promoData = promoDoc.data();
+
+                if (promoData.mediaData && promoData.mediaData.includes('firebasestorage.googleapis.com')) {
+                    try {
+                        const fileRef = ref(storage, promoData.mediaData);
+                        await deleteObject(fileRef);
+                    } catch(e) {}
+                }
+
                 await updateDoc(doc(db, "promotions", reqId), { 
                     status: 'rejected', 
                     rejectedAt: new Date().toISOString(),
@@ -2485,12 +2293,13 @@
                             <div><button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.removeLivePromotion('${docSnap.id}', true)"><i data-lucide="trash-2"></i> Remove</button></div>
                         `;
                         listDiv.appendChild(div);
-                    } else if (ext.type === 'preroll' && (ext.impressions_served || 0) < (ext.impressions_goal || 1)) {
+                } else if ((ext.type === 'preroll' || ext.type === 'blog_ad') && (ext.impressions_served || 0) < (ext.impressions_goal || 1)) {
                         liveCount++;
+                    const labelText = ext.type === 'preroll' ? 'Pre-Roll Ad' : 'Blog Ad';
                         const div = document.createElement('div'); div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;";
                         div.innerHTML = `
                             <div>
-                                <strong style="color: #87ceeb; font-size: 1.1rem;">${ext.title} <span style="color: #ff0050;">(External Ad)</span></strong>
+                            <strong style="color: #87ceeb; font-size: 1.1rem;">${ext.title} <span style="color: #ff0050;">(${labelText})</span></strong>
                                 <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Link: <a href="${ext.targetUrl}" target="_blank" style="color: gold;">${ext.targetUrl}</a> | <strong style="color: #198754;">Clicks: ${ext.adClicks || 0}</strong></div>
                                 <div style="font-size: 0.95rem; color: #ffc107; margin-top: 5px;">Target: <strong>${ext.targetCategories ? ext.targetCategories.join(', ') : 'All'}</strong></div>
                                 <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Shows every <strong style="color: #ff9900;">${ext.frequency} posts</strong></div>
@@ -2509,7 +2318,7 @@
         };
 
         window.removeLivePromotion = async (id, isExternal) => {
-            if (!confirm("Are you sure you want to stop this promotion? It will be removed from the feed immediately.")) return;
+            if (!await window.viyouConfirm("Are you sure you want to stop this promotion? It will be removed from the feed immediately.")) return;
             try {
                 if (isExternal) {
                     await updateDoc(doc(db, "promotions", id), { status: 'expired', promoExpiry: null });
@@ -2569,6 +2378,130 @@
                 btn.disabled = false;
                 if (window.lucide) window.lucide.createIcons({root: btn.parentElement});
             }
+        };
+
+        // --- New function for Monetization Stats ---
+        window.loadMonetizationStats = async () => {
+            const paidEl = document.getElementById('total-paid-out');
+            const pendingEl = document.getElementById('total-pending-payout');
+            const creatorsEl = document.getElementById('total-monetized-creators');
+
+            if (!paidEl || !pendingEl || !creatorsEl) return;
+
+            paidEl.innerText = 'Loading...';
+            pendingEl.innerText = 'Loading...';
+            creatorsEl.innerText = 'Loading...';
+
+            try {
+                const paidQuery = query(collection(db, "withdrawals"), where("status", "==", "paid"));
+                const pendingQuery = query(collection(db, "withdrawals"), where("status", "==", "pending"));
+                const monetizedQuery = query(collection(db, "users"), where("isMonetized", "==", true));
+
+                const [paidSnap, pendingSnap, monetizedSnap] = await Promise.all([
+                    getDocs(paidQuery),
+                    getDocs(pendingQuery),
+                    getDocs(monetizedQuery)
+                ]);
+
+                let totalPaid = 0;
+                paidSnap.forEach(doc => { totalPaid += Number(doc.data().amount) || 0; });
+
+                let totalPending = 0;
+                pendingSnap.forEach(doc => { totalPending += Number(doc.data().amount) || 0; });
+
+                paidEl.innerText = `₹${totalPaid.toFixed(2)}`;
+                pendingEl.innerText = `₹${totalPending.toFixed(2)}`;
+                creatorsEl.innerText = monetizedSnap.size.toLocaleString();
+
+            } catch (e) {
+                console.error("Error loading monetization stats:", e);
+                paidEl.innerText = 'Error';
+                pendingEl.innerText = 'Error';
+                creatorsEl.innerText = 'Error';
+            }
+        };
+
+        // --- New function for Promotion Stats ---
+        window.loadPromotionStats = async () => {
+            const revenueEl = document.getElementById('total-promo-revenue');
+            const activeEl = document.getElementById('total-active-promos');
+            const pendingEl = document.getElementById('total-pending-promos');
+
+            if (!revenueEl || !activeEl || !pendingEl) return;
+
+            revenueEl.innerText = 'Loading...';
+            activeEl.innerText = 'Loading...';
+            pendingEl.innerText = 'Loading...';
+
+            try {
+                const approvedSnap = await getDocs(query(collection(db, "promotions"), where("status", "==", "approved")));
+                const pendingSnap = await getDocs(query(collection(db, "promotions"), where("status", "==", "pending")));
+                const liveContentSnap = await getDocs(query(collection(db, "blogs"), where("isPromoted", "==", true)));
+
+                let totalRevenue = 0;
+                let activeCount = 0;
+                const now = new Date().toISOString();
+                approvedSnap.forEach(doc => { const promo = doc.data(); totalRevenue += Number(promo.price) || 0; if ((promo.type === 'external' && promo.promoExpiry && promo.promoExpiry > now) || ((promo.type === 'preroll' || promo.type === 'blog_ad') && (promo.impressions_served || 0) < (promo.impressions_goal || 1))) { activeCount++; } });
+                liveContentSnap.forEach(doc => { const blog = doc.data(); if (blog.promoExpiry && blog.promoExpiry > now) { activeCount++; } });
+
+                revenueEl.innerText = `₹${totalRevenue.toFixed(2)}`;
+                activeEl.innerText = activeCount.toLocaleString();
+                pendingEl.innerText = pendingSnap.size.toLocaleString();
+
+            } catch (e) { console.error("Error loading promotion stats:", e); revenueEl.innerText = 'Error'; activeEl.innerText = 'Error'; pendingEl.innerText = 'Error'; }
+        };
+    </script>
+
+    <!-- Custom Viyou Popup -->
+    <div id="viyou-custom-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999999; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+        <div style="background:#1e1e1e; padding:25px; border-radius:12px; width:90%; max-width:400px; text-align:center; border:1px solid #444; box-shadow:0 10px 30px rgba(0,0,0,0.5); color:#fff; font-family:'Outfit', sans-serif;">
+            <h3 id="viyou-popup-title" style="margin-top:0; color:#f59e0b; font-size:1.3rem;">Notification</h3>
+            <p id="viyou-popup-message" style="margin-bottom:20px; color:#ddd; font-size:1rem; line-height:1.4; word-wrap:break-word;"></p>
+            <input type="text" id="viyou-popup-input" style="display:none; width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:1px solid #555; background:#333; color:#fff; box-sizing:border-box; font-size:1rem; outline:none;" autocomplete="off">
+            <div style="display:flex; justify-content:center; gap:15px;">
+                <button id="viyou-popup-cancel" style="display:none; flex:1; padding:12px; background:#444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; transition:0.2s;">Cancel</button>
+                <button id="viyou-popup-ok" style="flex:1; padding:12px; background:linear-gradient(135deg, #6366f1, #a855f7); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; transition:0.2s;">OK</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.viyouAlert = function(message, title = "Notification") {
+            return new Promise(resolve => {
+                const popup = document.getElementById('viyou-custom-popup');
+                document.getElementById('viyou-popup-title').innerText = title;
+                document.getElementById('viyou-popup-message').innerText = message;
+                document.getElementById('viyou-popup-input').style.display = 'none';
+                document.getElementById('viyou-popup-cancel').style.display = 'none';
+                document.getElementById('viyou-popup-ok').onclick = () => { popup.style.display = 'none'; resolve(); };
+                popup.style.display = 'flex';
+            });
+        };
+        window.viyouConfirm = function(message, title = "Confirm") {
+            return new Promise(resolve => {
+                const popup = document.getElementById('viyou-custom-popup');
+                document.getElementById('viyou-popup-title').innerText = title;
+                document.getElementById('viyou-popup-message').innerText = message;
+                document.getElementById('viyou-popup-input').style.display = 'none';
+                document.getElementById('viyou-popup-cancel').style.display = 'block';
+                document.getElementById('viyou-popup-cancel').onclick = () => { popup.style.display = 'none'; resolve(false); };
+                document.getElementById('viyou-popup-ok').onclick = () => { popup.style.display = 'none'; resolve(true); };
+                popup.style.display = 'flex';
+            });
+        };
+        window.viyouPrompt = function(message, defaultText = "", title = "Input Required") {
+            return new Promise(resolve => {
+                const popup = document.getElementById('viyou-custom-popup');
+                document.getElementById('viyou-popup-title').innerText = title;
+                document.getElementById('viyou-popup-message').innerText = message;
+                const input = document.getElementById('viyou-popup-input');
+                input.style.display = 'block';
+                input.value = defaultText;
+                document.getElementById('viyou-popup-cancel').style.display = 'block';
+                document.getElementById('viyou-popup-cancel').onclick = () => { popup.style.display = 'none'; resolve(null); };
+                document.getElementById('viyou-popup-ok').onclick = () => { popup.style.display = 'none'; resolve(input.value); };
+                popup.style.display = 'flex';
+                input.focus();
+            });
         };
     </script>
 </body>

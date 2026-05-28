@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Story - Viyou</title>
+    <title>Create Story - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -139,6 +139,9 @@
     <div style="background: #1e1e1e; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
         <h2 style="margin-top: 0; color: gold; border-bottom: 1px solid #444; padding-bottom: 15px;">Publish As</h2>
         <p style="color: #aaa; margin-bottom: 20px;">How would you like to publish this 9:16 video?</p>
+        <label style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom: 20px; color: #ccc; font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" id="story-allow-remix" checked style="width:16px;height:16px;"> Allow others to use your audio
+        </label>
         <div style="display: flex; gap: 15px;">
             <button class="panel-btn" style="flex: 1; padding: 15px; background: #0d6efd; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; justify-content: center;" onclick="window.processPost('story')"><i data-lucide="loader"></i> Story</button>
             <button class="panel-btn" style="flex: 1; padding: 15px; background: #ff0050; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; justify-content: center;" onclick="window.processPost('flick')"><i data-lucide="zap" class="lucide-fill"></i> Flick</button>
@@ -194,7 +197,7 @@
 
 <div class="editor-layout">
     <div class="editor-header">
-        <button class="cancel-btn" onclick="window.location.href='profile.html'"><i data-lucide="x"></i></button>
+        <button class="cancel-btn" onclick="window.location.href='index.html?view=profile'"><i data-lucide="x"></i></button>
         <span class="title">Create Story</span>
         <div style="display: flex; gap: 10px; align-items: center; position: relative; z-index: 1000000;">
             <button id="export-story-btn" class="post-btn" style="background: linear-gradient(45deg, #198754, #20c997); box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);" title="Download Video" onclick="window.triggerExport()"><i data-lucide="download"></i> Export</button>
@@ -673,10 +676,13 @@
             </div>
         </div>
     </div>
+    <footer>
+            <p>&copy; Viyou.in Empowering Creators.</p>
+        </footer>
 </div>
 
 <script type="module">
-    import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs, limit, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
     import { db, auth, app, storage } from "./firebase-config.js";
@@ -4371,6 +4377,7 @@
 
         if (type === 'story') {
             // --- Original Story Posting Logic ---
+            const allowAudioRemix = document.getElementById('story-allow-remix').checked;
             const statusMessage = document.getElementById('status-message').value.trim();
             const legacyStatusImage = (storyTimeline.length > 0 && storyTimeline[0].type === 'image') ? storyTimeline[0].src : null;
             const legacyStatusVideo = (storyTimeline.length > 0 && storyTimeline[0].type === 'video') ? storyTimeline[0].src : null;
@@ -4449,6 +4456,8 @@
                     imageFilter: imageFilter,
                     mediaTransition: 'custom',
                     storyGradient: storyGradient,
+                    allowAudioRemix: allowAudioRemix,
+                    isOriginalAudio: true,
                     texts: finalTexts,
                     mediaOverlays: mediaOverlays,
                     mentionedUids: mentionedUids,

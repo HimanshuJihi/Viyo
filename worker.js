@@ -11,6 +11,7 @@ const urlsToCache = [
   '/advertise.html',
   '/studio.html',
   '/story-editor.html',
+  '/audio.html',
   '/manifest.json',
   '/logo.png', // Main App Logo & PWA Icon
   '/favicon.ico' // Favicon

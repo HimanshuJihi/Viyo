@@ -7,7 +7,7 @@
     <link rel="icon" href="logo.png" type="image/png">
     <!-- Modern Futuristic Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Pacifico&family=Permanent+Marker&display=swap" rel="stylesheet">
     <!-- Modern Icons (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -16,6 +16,45 @@
         .theme-dropdown { max-height: 75vh; overflow-y: auto; overflow-x: hidden; }
         .theme-dropdown::-webkit-scrollbar { width: 4px; }
         .theme-dropdown::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        
+        /* YouTube Shorts Style Tool Icons */
+        .fs-tool-icon { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); z-index: 50; }
+        .fs-tool-icon button { background: rgba(0,0,0,0.4); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; backdrop-filter: blur(5px); }
+        .fs-tool-icon span { font-size: 0.75rem; font-weight: bold; }
+        .fs-tool-icon.bottom { gap: 2px; }
+        .fs-tool-icon.bottom button { background: transparent; width: auto; height: auto; padding: 5px; backdrop-filter: none; }
+        .fs-tool-icon.bottom span { font-weight: normal; font-size: 0.7rem; }
+
+        /* Advanced Text Editor Styles */
+        #fs-text-input-modal .icon-btn { background: transparent; border: none; color: white; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-shadow: 0 2px 10px rgba(0,0,0,0.5); filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); padding: 5px; }
+        #fs-text-input-area { width: 100%; background: transparent; border: none; color: white; text-align: center; font-size: 2.5rem; outline: none; resize: none; overflow: hidden; font-family: 'Outfit', sans-serif; font-weight: bold; min-height: 60px; line-height: 1.2; }
+        #fs-text-input-area::placeholder { color: rgba(255,255,255,0.5); }
+        .font-selector { padding: 15px; display: flex; gap: 15px; overflow-x: auto; scrollbar-width: none; background: rgba(0,0,0,0.5); }
+        .font-selector::-webkit-scrollbar { display: none; }
+        .font-circle { width: 40px; height: 40px; border-radius: 50%; background: white; color: black; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; }
+        .font-circle.active { border-color: #f59e0b; transform: scale(1.1); }
+        
+        .font-classic { font-family: Arial, sans-serif; }
+        .font-modern { font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 2px; }
+        .font-neon { font-family: 'Pacifico', cursive; text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        .font-typewriter { font-family: 'Courier New', monospace; font-weight: bold; }
+        .font-strong { font-family: 'Impact', sans-serif; text-transform: uppercase; }
+        #fs-color-selector { padding: 10px 15px; display: none; gap: 12px; overflow-x: auto; scrollbar-width: none; background: rgba(0,0,0,0.5); }
+        #fs-color-selector::-webkit-scrollbar { display: none; }
+        .color-circle { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; flex-shrink: 0; }
+        .fs-text.bg-active { background-color: rgba(0,0,0,0.7); }
+        .fs-text.bg-inverted { background-color: white; color: black !important; }
+        .fs-draggable { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1); z-index: 100; cursor: move; padding: 5px 10px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; font-size: 2rem; transform-origin: center; user-select: none; touch-action: none; text-shadow: 0 1px 4px rgba(0,0,0,0.8); pointer-events: auto; }
+        .fs-draggable.fs-text { border: 2px solid transparent; }
+        .fs-draggable.fs-text:active { border: 2px dashed rgba(255,255,255,0.5); }
+        
+        #fs-text-size-slider-container { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); height: 50%; display: flex; align-items: center; z-index: 200; }
+        #fs-text-size-slider { -webkit-appearance: none; appearance: none; width: 4px; height: 100%; background: rgba(255,255,255,0.3); border-radius: 4px; outline: none; writing-mode: vertical-lr; direction: rtl; }
+        #fs-text-size-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: white; cursor: pointer; border: 2px solid #aaa; }
+
+        .mention-dropdown { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(20,20,20,0.95); border: 1px solid #444; border-radius: 12px; width: 90%; max-width: 350px; max-height: 200px; overflow-y: auto; z-index: 200; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); display: none; margin-bottom: 10px; }
+        .mention-item { padding: 12px 15px; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; color: white; cursor: pointer; }
+        .mention-item img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -36,7 +75,7 @@
 </head>
 <body>
     <!-- Upload Progress Overlay -->
-    <div id="upload-progress-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; flex-direction: column;">
+    <div id="upload-progress-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000000; align-items: center; justify-content: center; flex-direction: column;">
         <h2 style="color: white; margin-bottom: 15px;">Uploading Video...</h2>
         <div style="width: 80%; max-width: 400px; background: #333; border-radius: 10px; height: 20px; overflow: hidden; border: 1px solid #555;">
             <div id="upload-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #a855f7); transition: width 0.3s;"></div>
@@ -48,10 +87,10 @@
     <div class="container">
         <h1>Add Your Post</h1>
         
-        <div class="tabs-container" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #df1616; padding-bottom: 10px;">
-            <button type="button" id="tab-blog" onclick="window.switchPostType('blog')" style="flex: 1; padding: 12px; background: transparent; color: #a70000; border: none; border-bottom: 2px solid #6366f1; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="edit-3"></i> Blog Post</button>
-            <button type="button" id="tab-video" onclick="window.switchPostType('video')" style="flex: 1; padding: 12px; background: transparent; color: #af0404; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="play-circle"></i> Long Video</button>
-            <button type="button" id="tab-flick" onclick="window.switchPostType('flick')" style="flex: 1; padding: 12px; background: transparent; color: #af0303; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="zap"></i> Flick</button>
+        <div class="tabs-container" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+            <button type="button" id="tab-blog" onclick="window.switchPostType('blog')" style="flex: 1; padding: 12px; background: transparent; color: white; border: none; border-bottom: 2px solid #6366f1; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="edit-3"></i> Blog Post</button>
+            <button type="button" id="tab-video" onclick="window.switchPostType('video')" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="play-circle"></i> Long Video</button>
+            <button type="button" id="tab-flick" onclick="window.switchPostType('flick')" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="zap"></i> Flick</button>
         </div>
 
         <form id="blogForm">
@@ -85,8 +124,8 @@
 
             <input type="hidden" id="author" required>
             <div class="form-group">
-                <label for="content"><span id="content-label-text">सामग्री (Content)</span> <span id="char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 5000)</span></label>
-                <textarea id="content" required maxlength="5000" placeholder="यहाँ अपने विचार लिखें..."></textarea>
+                <label for="content"><span id="content-label-text">सामग्री (Content)</span> <span id="char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 10000)</span></label>
+                <textarea id="content" required maxlength="10000" placeholder="यहाँ अपने विचार लिखें..."></textarea>
             </div>
 
             <div id="blog-specific-fields">
@@ -114,8 +153,11 @@
 
             <div id="video-specific-fields" style="display: none;">
                 <div class="form-group">
-                    <label id="video-upload-label" for="video-upload">वीडियो अपलोड करें (Video - Max 800KB)</label>
-                    <input type="file" id="video-upload" accept="video/mp4,video/webm,video/ogg">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label id="video-upload-label" for="video-upload" style="margin-bottom: 0;">वीडियो अपलोड करें (Video - Max 800KB)</label>
+                        <button type="button" id="open-flick-cam-btn" class="btn" style="display: none; padding: 4px 12px; font-size: 0.85rem; background: linear-gradient(135deg, #ff0050, #a855f7); margin-top: 0; box-shadow: 0 4px 10px rgba(255,0,80,0.3);" onclick="window.openFlickCamera()"><i data-lucide="video" style="width: 14px; height: 14px;"></i> Record</button>
+                    </div>
+                    <input type="file" id="video-upload" accept="video/mp4,video/webm,video/ogg,video/quicktime">
                     <video id="video-preview" controls style="width: 100%; max-height: 250px; display: none; margin-top: 10px; border-radius: 8px; border: 1px solid #555; background: #000;"></video>
                     
                     <!-- Flicks Video Trimmer UI -->
@@ -141,6 +183,15 @@
                     <input type="file" id="thumbnail-upload" accept="image/*">
                     <img id="thumbnail-preview" src="" style="max-height: 150px; display: none; margin-top: 10px; border-radius: 8px; border: 1px solid #555;">
                 </div>
+                
+                <!-- Audio Remix Permission Toggle -->
+                <div class="form-group" id="audio-remix-group" style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3); margin-top: 15px;">
+                    <label style="display:flex; align-items:center; gap:10px; margin: 0; cursor: pointer;">
+                        <input type="checkbox" id="allow-audio-remix" checked style="width:20px; height:20px;"> 
+                        <span style="color: #10b981;">Allow others to remix and use this audio</span>
+                    </label>
+                    <p style="font-size: 0.8rem; color: #aaa; margin: 5px 0 0 30px; font-weight: normal;">Other creators will be able to create Flicks and Stories using your original sound.</p>
+                </div>
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -154,20 +205,177 @@
                     <div id="theme-dropdown" class="theme-dropdown">
                         <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
                         <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
-                        <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
-                        <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
-                        <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
-                        <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
-                        <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+                            <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #2b0b4a; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
+                            <button type="button" class="theme-option" data-theme="matrix" style="background: #003300; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
+                            <button type="button" class="theme-option" data-theme="ocean" style="background: #003b66; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
+                            <button type="button" class="theme-option" data-theme="dracula" style="background: #32354b; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
+                            <button type="button" class="theme-option" data-theme="solar" style="background: #4a0c16; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
                     </div>
                 </div>
             </div>
         </form>
     </div>
 
+    <!-- Advanced Flicks Studio SPA View -->
+    <div id="flicks-studio-spa" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 100000; display: none; flex-direction: column; font-family: 'Outfit', sans-serif;">
+        <!-- View 1: Camera -->
+        <div id="fs-cam-view" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: hidden; background: #000; border-radius: 16px;">
+            <!-- Progress Bar -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.2); z-index: 60; border-radius: 4px 4px 0 0;">
+                <div id="fs-cam-progress" style="width: 0%; height: 100%; background: #ff0000; transition: width 0.1s linear;"></div>
+            </div>
+
+            <!-- Top Bar -->
+            <div style="position: absolute; top: 20px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 50;">
+                <button class="btn-transparent" onclick="window.closeFlicksStudio()" style="background: rgba(0,0,0,0.4) !important; padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);"><i data-lucide="x"></i></button>
+                <div id="fs-audio-pill" onclick="window.openFSAudioLibrary()" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);">
+                    <i data-lucide="music" style="width: 14px; height: 14px;"></i> <span id="fs-audio-name">Add Sound</span>
+                </div>
+                <div style="width: 40px;"></div> <!-- Spacer -->
+            </div>
+
+            <!-- Right Toolbar -->
+            <div style="position: absolute; top: 80px; right: 15px; display: flex; flex-direction: column; gap: 15px; z-index: 50; align-items: center;">
+                <div class="fs-tool-icon" onclick="window.switchFSCamera()"><button><i data-lucide="refresh-cw"></i></button><span>Flip</span></div>
+                <div class="fs-tool-icon" onclick="window.toggleFSFilter()"><button><i data-lucide="wand-2"></i></button><span>Filter</span></div>
+            </div>
+
+            <video id="fs-camera-feed" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+            
+            <!-- Bottom Controls -->
+            <div style="position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-between; align-items: center; z-index: 50; padding: 0 40px; box-sizing: border-box;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer;" onclick="document.getElementById('fs-gallery-input').click()">
+                    <div style="width: 45px; height: 45px; border-radius: 8px; border: 2px solid white; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                        <i data-lucide="image" style="width: 24px; color: white;"></i>
+                    </div>
+                    <input type="file" id="fs-gallery-input" accept="image/*,video/*,image/gif" style="display: none;">
+                </div>
+
+                <div id="fs-record-btn" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <div id="fs-record-inner" style="width: 65px; height: 65px; background: #ff0000; border-radius: 50%; transition: all 0.2s;"></div>
+                </div>
+
+                <div id="fs-next-to-edit-btn" onclick="window.goToFSEditor()" style="display: none; width: 45px; height: 45px; border-radius: 50%; background: white; color: black; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                    <i data-lucide="check" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div id="fs-next-spacer" style="width: 45px; height: 45px; display: block;"></div>
+            </div>
+            
+            <!-- Segment Indicator -->
+            <div id="fs-segments-list" style="position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 50; overflow-x: auto; max-width: 90%;"></div>
+        </div>
+
+        <!-- View 2: Insta/YT Shorts-style Editor -->
+        <div id="fs-edit-view" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none; background: #000; border-radius: 16px; overflow: hidden;">
+            <video id="fs-preview-video" playsinline loop style="width: 100%; height: 100%; object-fit: cover;"></video>
+            
+            <!-- Play/Pause Icon Overlay -->
+            <div id="fs-play-pause-overlay" onclick="window.toggleFSPreviewPlay(event)" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 45; cursor: pointer; background: rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.2s;">
+                <i data-lucide="play" style="width: 80px; height: 80px; color: rgba(255,255,255,0.8); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));"></i>
+            </div>
+
+            <div id="fs-overlays-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 46;"></div>
+            
+            <!-- Editor Top Bar -->
+            <div style="position: absolute; top: 20px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 50;">
+                <button class="btn-transparent" onclick="window.backToFSCamera()" style="background: rgba(0,0,0,0.4) !important; padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);"><i data-lucide="arrow-left"></i></button>
+                <button class="btn" style="padding: 8px 24px; font-size: 1.05rem; background: white; color: black; border-radius: 25px; font-weight: bold; box-shadow: 0 4px 15px rgba(255,255,255,0.2);" onclick="window.fsRenderVideo()">Next</button>
+            </div>
+
+            <!-- Filmstrip Trimmer -->
+            <div id="fs-trimmer-container" style="position: absolute; bottom: 90px; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px; z-index: 40; display: flex; flex-direction: column; box-sizing: border-box;">
+                <div style="display: flex; justify-content: space-between; color: white; font-size: 0.8rem; font-weight: bold; text-shadow: 1px 1px 2px black; margin-bottom: 8px;">
+                    <span id="fs-trim-start-lbl">0.0s</span>
+                    <span id="fs-trim-dur-lbl" style="color: white;">0.0s</span>
+                    <span id="fs-trim-end-lbl">0.0s</span>
+                </div>
+                <div id="fs-filmstrip-track" style="position: relative; width: 100%; height: 50px; background: #222; border-radius: 8px; display: flex; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                    <div id="fs-filmstrip-images" style="display: flex; width: 100%; height: 100%;"></div>
+                    <div id="fs-trim-left-overlay" style="position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: rgba(0,0,0,0.7); pointer-events: none;"></div>
+                    <div id="fs-trim-right-overlay" style="position: absolute; right: 0; top: 0; height: 100%; width: 0%; background: rgba(0,0,0,0.7); pointer-events: none;"></div>
+                    <div id="fs-trim-box" style="position: absolute; left: 0%; right: 0%; top: 0; height: 100%; border: 3px solid #fff; border-left: none; border-right: none; pointer-events: none; box-sizing: border-box;"></div>
+                    <div id="fs-handle-left" style="position: absolute; left: 0%; top: 0; height: 100%; width: 15px; background: #fff; cursor: ew-resize; display: flex; align-items: center; justify-content: center; transform: translateX(-50%); z-index: 10; border-radius: 4px 0 0 4px;"><div style="width:2px; height:20px; background:#000;"></div></div>
+                    <div id="fs-handle-right" style="position: absolute; left: 100%; top: 0; height: 100%; width: 15px; background: #fff; cursor: ew-resize; display: flex; align-items: center; justify-content: center; transform: translateX(-50%); z-index: 10; border-radius: 0 4px 4px 0;"><div style="width:2px; height:20px; background:#000;"></div></div>
+                    <div id="fs-playhead" style="position: absolute; left: 0%; top: 0; height: 100%; width: 2px; background: #ff0000; pointer-events: none; z-index: 15; box-shadow: 0 0 5px black;"></div>
+                </div>
+            </div>
+
+            <!-- Editor Bottom Toolbar (YT Style) -->
+            <div style="position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: space-around; z-index: 50; padding: 0 10px;">
+                <div class="fs-tool-icon bottom" onclick="document.getElementById('fs-audio-library').style.display='flex'"><button><i data-lucide="music"></i></button><span>Sound</span></div>
+                <div class="fs-tool-icon bottom" onclick="window.addFSText()"><button><i data-lucide="type"></i></button><span>Text</span></div>
+                <div class="fs-tool-icon bottom" onclick="document.getElementById('fs-stickers-layer').style.display='flex'"><button><i data-lucide="smile"></i></button><span>Stickers</span></div>
+                <div class="fs-tool-icon bottom" onclick="window.toggleFSFilter()"><button><i data-lucide="wand-2"></i></button><span>Filter</span></div>
+                <div class="fs-tool-icon bottom" onclick="document.getElementById('fs-volume-layer').style.display='flex'"><button><i data-lucide="sliders-horizontal"></i></button><span>Volume</span></div>
+            </div>
+        </div>
+        <audio id="fs-bg-audio" loop crossorigin="anonymous" style="display: none;"></audio>
+    </div>
+
+    <div id="fs-stickers-layer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100005; background: rgba(0,0,0,0.85); flex-direction: column; backdrop-filter: blur(10px); display: none;">
+        <div style="display: flex; justify-content: space-between; padding: 20px; align-items: center;"><h3 style="color: white; margin: 0; font-size: 1.5rem;">Stickers</h3><button onclick="document.getElementById('fs-stickers-layer').style.display='none'" style="background:none; border:none; color:white; font-weight:bold; font-size:1.1rem; cursor:pointer;">Done</button></div>
+        <div id="fs-emoji-list" style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; font-size: 45px; overflow-y: auto; justify-content: center; align-content: flex-start; flex: 1;"></div>
+    </div>
+
+    <div id="fs-audio-library" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100005; background: rgba(0,0,0,0.95); flex-direction: column; backdrop-filter: blur(10px); display: none;">
+        <div style="display: flex; justify-content: space-between; padding: 20px; align-items: center; border-bottom: 1px solid #333;"><h3 style="color: white; margin: 0; font-size: 1.5rem;">Audio Library</h3><button onclick="document.getElementById('fs-audio-library').style.display='none'; document.getElementById('fs-audio-preview-player').pause(); document.querySelectorAll('.play-overlay').forEach(function(o){ o.innerHTML = '<i data-lucide=&quot;play&quot; style=&quot;color: white; width: 20px; height: 20px; fill: white;&quot;></i>'; }); if(window.lucide) window.lucide.createIcons();" style="background:none; border:none; color:white; font-weight:bold; font-size:1.1rem; cursor:pointer;">Close</button></div>
+        <div style="padding: 15px; border-bottom: 1px solid #333;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button id="fs-audio-tab-all" style="flex: 1; padding: 8px; border-radius: 8px; border: none; background: #6366f1; color: white; font-weight: bold; cursor: pointer;" onclick="window.fsSwitchAudioTab('all')">All Music</button>
+                <button id="fs-audio-tab-saved" style="flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #555; background: #222; color: white; font-weight: bold; cursor: pointer;" onclick="window.fsSwitchAudioTab('saved')"><i data-lucide="bookmark" style="width: 14px; height: 14px;"></i> Saved</button>
+            </div>
+            <input type="text" id="fs-audio-search" placeholder="Search music..." style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #222; color: white; font-size: 1rem;" oninput="window.searchFSAudio(this.value)">
+        </div>
+        <div id="fs-audio-list" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;"></div>
+        <audio id="fs-audio-preview-player" crossorigin="anonymous" style="display: none;"></audio>
+    </div>
+    
+    <!-- Volume Adjust Layer -->
+    <div id="fs-volume-layer" style="position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100005; background: rgba(20,20,20,0.95); flex-direction: column; backdrop-filter: blur(10px); display: none; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-sizing: border-box; box-shadow: 0 -10px 30px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3 style="color: white; margin: 0; font-size: 1.2rem;">Audio Mix</h3><button onclick="document.getElementById('fs-volume-layer').style.display='none'" style="background:none; border:none; color:white; font-weight:bold; font-size:1.1rem; cursor:pointer;">Done</button></div>
+        
+        <label style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold;"><i data-lucide="video"></i> Original Video Volume</label>
+        <input type="range" id="fs-vol-original" min="0" max="1" step="0.05" value="1" style="width: 100%; margin-bottom: 20px;" oninput="window.updateFSVolumes()">
+        
+        <label style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold;"><i data-lucide="music"></i> Added Music Volume</label>
+        <input type="range" id="fs-vol-music" min="0" max="1" step="0.05" value="1" style="width: 100%; margin-bottom: 10px;" oninput="window.updateFSVolumes()">
+    </div>
+
+    <!-- Custom Text Input Modal -->
+    <div id="fs-text-input-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100006; flex-direction: column; backdrop-filter: blur(2px);">
+        <div style="display: flex; justify-content: space-between; padding: 40px 20px 20px 20px; align-items: center;">
+            <button id="fs-text-align-btn" onclick="window.fsToggleTextAlign()" class="icon-btn"><i data-lucide="align-center"></i></button>
+            <div style="display: flex; gap: 15px;">
+                <button id="fs-text-bg-btn" onclick="window.fsToggleTextBg()" class="icon-btn"><i data-lucide="square"></i></button>
+                <button id="fs-text-color-btn" onclick="window.fsToggleColorPicker()" class="icon-btn" style="color: white;"><i data-lucide="palette"></i></button>
+            </div>
+            <button onclick="window.fsCloseTextEditor()" style="background: none; border: none; color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer;">Done</button>
+        </div>
+
+        <div id="fs-text-size-slider-container">
+            <input type="range" id="fs-text-size-slider" min="0.5" max="4" step="0.1" value="1" oninput="window.updateFSTextSize(this.value)">
+        </div>
+
+        <div id="fs-mention-dropdown" class="mention-dropdown"></div>
+
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;">
+            <textarea id="fs-text-input-area" placeholder="Type something..." oninput="handleFSTextareaInput(this)"></textarea>
+        </div>
+
+        <div id="fs-color-selector" style="padding: 10px 15px; display: none; gap: 12px; overflow-x: auto; scrollbar-width: none; background: rgba(0,0,0,0.5);"></div>
+
+        <div class="font-selector" style="padding: 15px; display: flex; gap: 15px; overflow-x: auto; scrollbar-width: none; background: rgba(0,0,0,0.5);">
+            <div class="font-circle active font-classic" onclick="window.fsSetFont('font-classic', this)">Aa</div>
+            <div class="font-circle font-modern" onclick="window.fsSetFont('font-modern', this)">Aa</div>
+            <div class="font-circle font-neon" onclick="window.fsSetFont('font-neon', this)">Aa</div>
+            <div class="font-circle font-typewriter" onclick="window.fsSetFont('font-typewriter', this)">Aa</div>
+            <div class="font-circle font-strong" onclick="window.fsSetFont('font-strong', this)">Aa</div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc, query, where, getDocs, orderBy, limit, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { firebaseConfig, storage } from "./firebase-config.js";
@@ -182,6 +390,29 @@
         window.maxVideoUploadSizeMB = 500;
         window.maxFlickUploadSizeMB = 50;
         let videoDurationForTrim = 0;
+        
+        // Flicks Studio Variables
+        let fsSegments = [];
+        let fsRecorder = null;
+        let fsStream = null;
+        let fsTotalTimeMs = 0;
+        let fsChunks = [];
+        let fsTime = 0;
+        let fsFacingMode = 'user';
+        let fsTimeThisSegment = 0;
+        let fsTimerInterval = null;
+        let fsAudioAdded = false;
+        let fsOriginalAudioVolume = 0.2;
+        let fsMusicVolume = 1;
+        let fsVideoDuration = 0;
+        let fsTrimStart = 0;
+        let fsTrimEnd = 100;
+        let fsTrimStartPercent = 0;
+        let fsTrimEndPercent = 100;
+        let fsCurrentFilterIdx = 0;
+        let fsFilters = ['none', 'grayscale(100%)', 'sepia(100%)', 'contrast(150%)', 'invert(100%)', 'hue-rotate(90deg)'];
+        const FS_MAX_TIME = 30000;
+        let fsAllAudios = [];
 
         // --- Toast Notification Logic ---
         function showToast(message, type = 'info') {
@@ -349,11 +580,11 @@
                 thumbPreview.style.width = 'auto';
             }
             
-            document.getElementById('tab-blog').style.color = type === 'blog' ? 'red' : '#888';
+            document.getElementById('tab-blog').style.color = type === 'blog' ? 'white' : '#888';
             document.getElementById('tab-blog').style.borderBottomColor = type === 'blog' ? '#6366f1' : 'transparent';
-            document.getElementById('tab-video').style.color = type === 'video' ? 'red' : '#888';
+            document.getElementById('tab-video').style.color = type === 'video' ? 'white' : '#888';
             document.getElementById('tab-video').style.borderBottomColor = type === 'video' ? '#6366f1' : 'transparent';
-            document.getElementById('tab-flick').style.color = type === 'flick' ? 'red' : '#888';
+            document.getElementById('tab-flick').style.color = type === 'flick' ? 'white' : '#888';
             document.getElementById('tab-flick').style.borderBottomColor = type === 'flick' ? '#6366f1' : 'transparent';
 
             const blogFields = document.getElementById('blog-specific-fields');
@@ -366,7 +597,7 @@
                 document.getElementById('content-label-text').innerText = 'सामग्री (Content)';
                 document.getElementById('title').required = true;
                 document.getElementById('content').required = true;
-                document.getElementById('content').setAttribute('maxlength', '5000');
+                document.getElementById('content').setAttribute('maxlength', '10000');
                 document.getElementById('title').placeholder = 'Ex: भारत की शानदार जीत...';
                 document.getElementById('content').placeholder = 'यहाँ अपने विचार लिखें...';
             } else if (type === 'video') {
@@ -380,6 +611,7 @@
                 document.getElementById('content').setAttribute('maxlength', '1000');
                 document.getElementById('title').placeholder = 'Ex: My Long Video Title (Optional)';
                 document.getElementById('content').placeholder = 'Description for your video... (Optional 1000 characters max)';
+                document.getElementById('open-flick-cam-btn').style.display = 'none';
             } else if (type === 'flick') {
                 blogFields.style.display = 'none';
                 videoFields.style.display = 'block';
@@ -391,6 +623,12 @@
                 document.getElementById('content').setAttribute('maxlength', '1000');
                 document.getElementById('title').placeholder = 'Ex: My Flick Title (Optional - Max 100 characters)';
                 document.getElementById('content').placeholder = 'Description for your flick... (Optional 1000 characters max)';
+                document.getElementById('open-flick-cam-btn').style.display = 'block';
+                
+                // Auto open shorts camera if no video is selected yet
+                if (!document.getElementById('video-upload').value && fsSegments.length === 0) {
+                    window.openFlickCamera();
+                }
             }
             updateCharCounter();
         };
@@ -503,8 +741,21 @@
             const text = document.getElementById('upload-progress-text');
             const cancelBtn = document.getElementById('cancel-upload-btn');
             overlay.style.display = 'flex';
+            
+            const xhr = new XMLHttpRequest(); // Moved declaration to the top
 
-            const xhr = new XMLHttpRequest();
+            const cancelUpload = () => {
+                xhr.abort();
+            };
+            cancelBtn.addEventListener('click', cancelUpload);
+            cancelBtn.onclick = cancelUpload;
+
+            xhr.upload.onloadstart = () => {
+                bar.style.width = '0%';
+                text.innerText = '0% • Starting upload...';
+                cancelBtn.style.display = 'block';
+            };
+
             xhr.timeout = 0; // Prevent browser from dropping connection on large files
             const formData = new FormData();
             formData.append('video', file);
@@ -517,14 +768,6 @@
             const BACKEND_URL = 'https://viyou-in-backend.onrender.com/api/upload'; 
             // ==========================================
 
-            const cancelUpload = () => {
-                xhr.abort();
-                overlay.style.display = 'none';
-                reject(new Error("Upload cancelled by user"));
-                cancelBtn.removeEventListener('click', cancelUpload);
-            };
-            cancelBtn.addEventListener('click', cancelUpload);
-
             let startTime = Date.now();
 
             xhr.upload.onprogress = (event) => {
@@ -534,7 +777,7 @@
                     
                     const timeElapsed = (Date.now() - startTime) / 1000;
                     if (progress >= 100) {
-                        text.innerText = "100%  •  Publishing on Viyou.in... Please wait.";
+                        text.innerText = "100%  •  Finalizing on server... Please wait.";
                     } else if (timeElapsed > 0.5 && event.loaded > 0) {
                         const speedBps = event.loaded / timeElapsed;
                         let speedText = speedBps > 1048576 ? (speedBps / 1048576).toFixed(2) + ' MB/s' : (speedBps / 1024).toFixed(0) + ' KB/s';
@@ -549,6 +792,7 @@
 
             xhr.onload = () => {
                 cancelBtn.removeEventListener('click', cancelUpload);
+                cancelBtn.onclick = null;
                 if (xhr.status === 200) {
                     try {
                         const response = JSON.parse(xhr.responseText);
@@ -585,7 +829,15 @@
             xhr.onerror = () => {
                 overlay.style.display = 'none';
                 cancelBtn.removeEventListener('click', cancelUpload);
+                cancelBtn.onclick = null;
                 reject(new Error("Network error (or server waking up). Wait 30 seconds and try again."));
+            };
+
+            xhr.onabort = () => {
+                overlay.style.display = 'none';
+                cancelBtn.removeEventListener('click', cancelUpload);
+                cancelBtn.onclick = null;
+                reject(new Error("Upload cancelled by user"));
             };
 
             xhr.open('POST', BACKEND_URL, true);
@@ -878,7 +1130,12 @@
             const pollOptions = Array.from(document.querySelectorAll('.poll-option'))
                                      .map(input => input.value.trim())
                                      .filter(option => option !== '');
+                                     
+            const allowAudioRemix = document.getElementById('allow-audio-remix') ? document.getElementById('allow-audio-remix').checked : true;
             
+            const importedAudioUrl = localStorage.getItem('viyou_import_audio_url');
+            const importedAudioName = localStorage.getItem('viyou_import_audio_name');
+
             let isFlicks = currentPostType === 'flick';
             
             // --- Abusive & Sexual Content Filter (Client-Side) ---
@@ -911,6 +1168,11 @@
 
             if (currentPostType === 'blog' && (!title || !content)) {
                 showToast("Title and Content are required for a Blog Post.", 'error');
+                return;
+            }
+            
+            if (currentPostType === 'blog' && content.length < 1200) {
+                showToast("Blog content must be at least 1200 characters long.", 'error');
                 return;
             }
 
@@ -976,6 +1238,39 @@
                         const keywords = [...new Set(allTextForKeywords.replace(/[.,!?;:"'()]/g, "").split(/\s+/).filter(word => word.length > 2))];
                         // --- End Smart Search ---
 
+                        let audioId = null;
+                        let authorName = author;
+                        
+                        let audioUrlToSave = null;
+                        let audioTitleToSave = null;
+                        let isOriginalAudioToSave = false;
+
+                        if (importedAudioUrl) {
+                            audioUrlToSave = importedAudioUrl;
+                            audioTitleToSave = importedAudioName || "Imported Audio";
+                            isOriginalAudioToSave = false;
+                        } else if (videoBase64 && !youtubeUrl) {
+                            audioUrlToSave = videoBase64;
+                            audioTitleToSave = `Original Audio - @${authorName}`;
+                            isOriginalAudioToSave = true;
+                        }
+
+                        if (videoBase64 && !youtubeUrl) {
+                            try {
+                                const audioRef = await addDoc(collection(db, "audios"), {
+                                    title: audioTitleToSave,
+                                    ownerUid: auth.currentUser.uid,
+                                    ownerName: authorName,
+                                    audioUrl: videoBase64, // Using the proxy stream URL as base audio source
+                                    coverImage: thumbnailBase64 || 'logo.png',
+                                    allowRemix: allowAudioRemix,
+                                    usageCount: 1,
+                                    timestamp: new Date().toISOString()
+                                });
+                                audioId = audioRef.id;
+                            } catch(err) { console.error("Failed to generate audio document", err); }
+                        }
+
                         const mentionRegex = /@([\w_]+)/g;
                         const allText = title + " " + content;
                         const mentions = [...new Set([...allText.matchAll(mentionRegex)].map(m => m[1].toLowerCase()))];
@@ -1002,7 +1297,8 @@
                                 status: submissionStatus, // Allow saving draft on update
                                 mentionedUids: mentionedUids,
                                 mentionMap: mentionMap,
-                                keywords: keywords // Add keywords for searching
+                                keywords: keywords, // Add keywords for searching
+                                allowAudioRemix: allowAudioRemix
                             };
                             updateData.authorVerified = isUserVerified;
                             updateData.isFlicker = isFlicks;
@@ -1018,12 +1314,15 @@
                             if (thumbnailBase64) updateData.thumbnail = thumbnailBase64;
                             updateData.youtubeUrl = youtubeUrl || null;
                             updateData.poll = pollData; // Can add/update/remove poll
+                            if (audioId) { updateData.audioId = audioId; }
+                            if (audioUrlToSave) { updateData.audioUrl = audioUrlToSave; }
+                            if (audioTitleToSave) { updateData.audioTitle = audioTitleToSave; }
+                            updateData.isOriginalAudio = isOriginalAudioToSave;
                             
                             updateData.status = submissionStatus;
                             await updateDoc(blogRef, updateData);
                     } else {
                         // Fetch latest user profile for author details
-                        let authorName = author;
                         let authorPhoto = null;
                         if (auth.currentUser) {
                             try {
@@ -1056,6 +1355,11 @@
                             thumbnail: thumbnailBase64 || null,
                             youtubeUrl: youtubeUrl || null,
                             poll: pollData,
+                            audioId: audioId,
+                            audioUrl: audioUrlToSave,
+                            audioTitle: audioTitleToSave,
+                            isOriginalAudio: isOriginalAudioToSave,
+                            allowAudioRemix: allowAudioRemix,
                                 comments: [],
                                 views: 0,
                                 likes: [],
@@ -1088,6 +1392,10 @@
                         
                         const overlayText = document.getElementById('upload-progress-text');
                         if (overlayText) overlayText.innerText = "Post Published Successfully! Redirecting...";
+
+                        localStorage.removeItem('viyou_import_audio_url');
+                        localStorage.removeItem('viyou_import_audio_name');
+
                         setTimeout(() => {
                             document.getElementById('upload-progress-overlay').style.display = 'none';
                             window.location.href = 'index.html';
@@ -1160,6 +1468,978 @@
                 });
             }
         });
+
+        const emojis = ['😀','😂','😍','😎','🥺','😭','😡','🔥','✨','💯','❤️','💔','🎉','👑','💸','🍕','🍔','📸','🚀','✈️'];
+        const emojiList = document.getElementById('fs-emoji-list');
+        if (emojiList) {
+            emojis.forEach(e => {
+                const span = document.createElement('span');
+                span.innerText = e; span.style.cursor = 'pointer';
+                span.onclick = () => { window.addFSSticker(e); document.getElementById('fs-stickers-layer').style.display='none'; };
+                emojiList.appendChild(span);
+            });
+        }
+
+        window.openFlickCamera = async function() {
+            document.getElementById('flicks-studio-spa').style.display = 'flex';
+            document.getElementById('fs-cam-view').style.display = 'block';
+            document.getElementById('fs-edit-view').style.display = 'none';
+            document.getElementById('fs-audio-pill').style.display = 'flex';
+            
+            fsTime = 0; fsChunks = [];
+            fsSegments = []; fsTotalTimeMs = 0;
+            document.getElementById('fs-cam-progress').style.width = '0%';
+            document.getElementById('fs-next-to-edit-btn').style.display = 'none';
+            document.getElementById('fs-segments-list').innerHTML = '';
+            
+            updateFSRecordBtnUI(false, true);
+            await startFSCamera();
+            if (window.lucide) window.lucide.createIcons();
+        };
+
+        window.closeFlicksStudio = function() {
+            if (fsRecorder && fsRecorder.state !== 'inactive') fsRecorder.stop();
+            if (fsStream) { fsStream.getTracks().forEach(t => t.stop()); fsStream = null; }
+            clearInterval(fsTimerInterval);
+            document.getElementById('fs-preview-video').pause();
+            document.getElementById('fs-preview-video').removeAttribute('src');
+            document.getElementById('fs-bg-audio').pause();
+            document.getElementById('flicks-studio-spa').style.display = 'none';
+            document.getElementById('fs-overlays-container').innerHTML = ''; // clear text/stickers
+        };
+
+        window.backToFSCamera = async function() {
+            document.getElementById('fs-edit-view').style.display = 'none';
+            document.getElementById('fs-cam-view').style.display = 'block';
+            document.getElementById('fs-preview-video').pause();
+            document.getElementById('fs-bg-audio').pause();
+            await startFSCamera();
+        };
+
+        async function startFSCamera() {
+            if (fsStream) fsStream.getTracks().forEach(t => t.stop());
+            try {
+                fsStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: fsFacingMode }, audio: true });
+                document.getElementById('fs-camera-feed').srcObject = fsStream;
+            } catch (e) { console.error(e); showToast("Camera access denied.", "error"); window.closeFlicksStudio(); }
+        }
+
+        window.switchFSCamera = function() { fsFacingMode = fsFacingMode === "environment" ? "user" : "environment"; startFSCamera(); };
+
+        const fsRecordBtn = document.getElementById('fs-record-btn');
+        if (fsRecordBtn) {
+            fsRecordBtn.addEventListener('mousedown', startFSRecord); fsRecordBtn.addEventListener('touchstart', startFSRecord, {passive: true});
+            window.addEventListener('mouseup', stopFSRecord); window.addEventListener('touchend', stopFSRecord);
+        }
+
+        function startFSRecord(e) {
+            if (fsTotalTimeMs >= FS_MAX_TIME) return;            
+            let options = { mimeType: 'video/webm; codecs=vp8,opus' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
+            
+            fsChunks = []; fsTimeThisSegment = 0;
+            fsRecorder = new MediaRecorder(fsStream, options);
+            fsRecorder.ondataavailable = ev => { if (ev.data.size > 0) fsChunks.push(ev.data); };
+            
+            fsRecorder.onstop = () => {
+                if (fsChunks.length > 0) {
+                    const blob = new Blob(fsChunks, { type: fsRecorder.mimeType || 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    fsSegments.push({ type: 'video', url: url, duration: fsTimeThisSegment });
+                    fsTotalTimeMs += fsTimeThisSegment;
+                    updateFSSegmentsUI(url, 'video');
+                    updateFSRecordBtnUI(false);
+                }
+            };
+            
+            fsRecorder.start();
+            if (fsAudioAdded) document.getElementById('fs-bg-audio').play().catch(e=>{});
+            
+            fsTimerInterval = setInterval(() => {
+                fsTimeThisSegment += 100;
+                let percent = ((fsTotalTimeMs + fsTimeThisSegment) / FS_MAX_TIME) * 100;
+                document.getElementById('fs-cam-progress').style.width = percent + '%';
+                if (fsTotalTimeMs + fsTimeThisSegment >= FS_MAX_TIME) {
+                    stopFSRecord();
+                    setTimeout(window.goToFSEditor, 200);
+                }
+            }, 100);
+            updateFSRecordBtnUI(true);
+        }
+
+        function stopFSRecord() {
+            if (fsRecorder && fsRecorder.state === 'recording') {
+                fsRecorder.stop();
+                clearInterval(fsTimerInterval);
+                if (fsAudioAdded) document.getElementById('fs-bg-audio').pause();
+            }
+        }
+
+        function updateFSRecordBtnUI(isRecording, isReset = false) {
+            const inner = document.getElementById('fs-record-inner');
+            const btn = document.getElementById('fs-record-btn');
+            if (isRecording) {
+                inner.style.borderRadius = '8px';
+                inner.style.transform = 'scale(0.5)';
+            btn.style.borderColor = 'rgba(255,255,255,0.4)';
+            } else {
+                inner.style.borderRadius = '50%';
+                inner.style.transform = 'scale(1)';
+                if (isReset) {
+                btn.style.borderColor = 'rgba(255,255,255,0.8)';
+                } else {
+                btn.style.borderColor = 'rgba(255,255,255,0.8)';
+                }
+            }
+            
+            const nextBtn = document.getElementById('fs-next-to-edit-btn');
+            const spacer = document.getElementById('fs-next-spacer');
+            if (fsSegments.length > 0 || fsTotalTimeMs > 0) {
+                nextBtn.style.display = 'flex';
+                spacer.style.display = 'none';
+            } else {
+                nextBtn.style.display = 'none';
+                spacer.style.display = 'block';
+            }
+        }
+
+        document.getElementById('fs-gallery-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (fsTotalTimeMs >= FS_MAX_TIME) return;
+            const blobUrl = URL.createObjectURL(file);
+            
+            if (file.type.startsWith('video/')) {
+                const vid = document.createElement('video');
+                vid.src = blobUrl;
+                vid.onloadedmetadata = () => {
+                    let durMs = vid.duration * 1000;
+                    let allowedMs = FS_MAX_TIME - fsTotalTimeMs;
+                    let finalDur = Math.min(durMs, allowedMs);
+                    fsSegments.push({ type: 'video', url: blobUrl, duration: finalDur });
+                    fsTotalTimeMs += finalDur;
+                    updateFSSegmentsUI(blobUrl, 'video');
+                    document.getElementById('fs-cam-progress').style.width = (fsTotalTimeMs / FS_MAX_TIME) * 100 + '%';
+                    document.getElementById('fs-next-to-edit-btn').style.display = 'block';
+                    if (fsTotalTimeMs >= FS_MAX_TIME) window.goToFSEditor();
+                };
+            } else {
+                let allowedMs = FS_MAX_TIME - fsTotalTimeMs;
+                let finalDur = Math.min(3000, allowedMs); // Default 3s for images
+                fsSegments.push({ type: 'image', url: blobUrl, duration: finalDur });
+                fsTotalTimeMs += finalDur;
+                updateFSSegmentsUI(blobUrl, 'image');
+                document.getElementById('fs-cam-progress').style.width = (fsTotalTimeMs / FS_MAX_TIME) * 100 + '%';
+                document.getElementById('fs-next-to-edit-btn').style.display = 'block';
+                if (fsTotalTimeMs >= FS_MAX_TIME) window.goToFSEditor();
+            }
+            e.target.value = '';
+        });
+
+        function updateFSSegmentsUI(url, type) {
+            const container = document.getElementById('fs-segments-list');
+            const div = document.createElement('div');
+            div.style.cssText = 'width: 35px; height: 35px; border-radius: 4px; overflow: hidden; border: 1px solid white; flex-shrink: 0; background: #222;';
+            if (type === 'video') div.innerHTML = `<video src="${url}#t=0.1" style="width:100%;height:100%;object-fit:cover;"></video>`;
+            else div.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+            container.appendChild(div);
+        }
+
+        window.goToFSEditor = function() {
+            document.getElementById('upload-progress-overlay').style.display = 'flex';
+            document.getElementById('upload-progress-text').innerText = "Preparing...";
+
+            if (fsRecorder && fsRecorder.state === 'recording') {
+                fsRecorder.stop();
+            }
+
+            setTimeout(() => {
+                if (fsSegments.length === 0) {
+                    document.getElementById('upload-progress-overlay').style.display = 'none';
+                    return;
+                }
+                
+                if (fsSegments.length === 1 && fsSegments[0].type === 'video') {
+                    loadMediaToFSEditor(fsSegments[0].url);
+                } else {
+                    document.getElementById('upload-progress-text').innerText = "Processing clips...";
+                    mergeSegmentsToSingleVideo(fsSegments).then(mergedBlob => {
+                        loadMediaToFSEditor(URL.createObjectURL(mergedBlob));
+                    }).catch(err => {
+                        console.error("Merging error:", err);
+                        alert("Failed to process clips.");
+                        overlay.style.display = 'none';
+                    });
+                }
+            }, 200); // 200ms delay to ensure chunks are properly saved before moving to next screen
+        };
+        
+        async function mergeSegmentsToSingleVideo(segments) {
+            document.getElementById('upload-progress-overlay').style.display = 'flex';
+            const progressText = document.getElementById('upload-progress-text');
+            const progressBar = document.getElementById('upload-progress-bar');
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 720; canvas.height = 1280;
+            const ctx = canvas.getContext('2d');
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const dest = audioCtx.createMediaStreamDestination();
+            
+            let options = { mimeType: 'video/webm; codecs=vp8,opus' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
+            
+            const stream = new MediaStream([...canvas.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+            const recorder = new MediaRecorder(stream, options);
+            
+            const chunks = [];
+            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            recorder.start();
+            
+            for (let i = 0; i < segments.length; i++) {
+                const seg = segments[i];
+                const progress = Math.round(((i + 1) / segments.length) * 100);
+                progressText.innerText = `Processing clip ${i+1}/${segments.length}...`;
+                progressBar.style.width = `${progress}%`;
+                
+                if (seg.type === 'video') {
+                    await new Promise(resolve => {
+                        const vid = document.createElement('video');
+                        vid.src = seg.url; vid.muted = false; vid.crossOrigin = "anonymous";
+                        vid.onloadedmetadata = () => {
+                            if (vid.captureStream || vid.mozCaptureStream) {
+                                try {
+                                    const vs = vid.captureStream ? vid.captureStream() : vid.mozCaptureStream();
+                                    if (vs.getAudioTracks().length > 0) { const source = audioCtx.createMediaStreamSource(vs); source.connect(dest); }
+                                } catch (err) { console.warn("Failed to capture video segment stream:", err); }
+                            }
+                            vid.play();
+                            const draw = () => {
+                                if (vid.ended || vid.paused || vid.currentTime * 1000 >= seg.duration) { resolve(); return; }
+                                const ratio = Math.max(canvas.width / vid.videoWidth, canvas.height / vid.videoHeight);
+                                const w = vid.videoWidth * ratio; const h = vid.videoHeight * ratio;
+                                ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(vid, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
+                                requestAnimationFrame(draw);
+                            };
+                            draw();
+                        };
+                    });
+                } else {
+                    await new Promise(resolve => {
+                        const img = new Image(); img.src = seg.url; img.crossOrigin = "anonymous";
+                        img.onload = () => {
+                            const startTime = performance.now();
+                            const draw = (now) => {
+                                if (now - startTime > seg.duration) { resolve(); return; }
+                                const ratio = Math.max(canvas.width / img.width, canvas.height / img.height);
+                                const w = img.width * ratio; const h = img.height * ratio;
+                                ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(img, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
+                                requestAnimationFrame(draw);
+                            };
+                            requestAnimationFrame(draw);
+                        };
+                    });
+                }
+            }
+            
+            recorder.stop();
+            return new Promise(resolve => {
+                recorder.onstop = () => {
+                    resolve(new Blob(chunks, { type: recorder.mimeType }));
+                };
+            });
+        }
+
+        window.toggleFSPreviewPlay = function(event) {
+            if (event) event.stopPropagation();
+            const vid = document.getElementById('fs-preview-video');
+            const bgAudio = document.getElementById('fs-bg-audio');
+            if (vid.paused) {
+                vid.play().catch(e=>{});
+                if (fsAudioAdded) bgAudio.play().catch(e=>{});
+            } else {
+                vid.pause();
+                if (fsAudioAdded) bgAudio.pause();
+            }
+        };
+
+        function loadMediaToFSEditor(url) {
+            if (fsStream) { fsStream.getTracks().forEach(t => t.stop()); fsStream = null; }
+            document.getElementById('fs-cam-view').style.display = 'none';
+            document.getElementById('fs-edit-view').style.display = 'block';
+            document.getElementById('fs-next-to-edit-btn').style.display = 'none';
+            document.getElementById('fs-audio-pill').style.display = 'none';
+
+            const vid = document.getElementById('fs-preview-video');
+            const playPauseOverlay = document.getElementById('fs-play-pause-overlay');
+            vid.src = url;
+            
+            vid.onloadedmetadata = () => {
+                fsVideoDuration = vid.duration;
+                fsTrimStart = 0;
+                fsTrimEnd = Math.min(fsVideoDuration, 30);
+                fsTrimStartPercent = 0;
+                fsTrimEndPercent = (fsTrimEnd / fsVideoDuration) * 100;
+                
+                window.updateFSVolumes(); // Apply volumes
+                
+                generateFilmstrip(url);
+                updateHandles();
+                vid.play().catch(e=>{});
+                
+                document.getElementById('upload-progress-overlay').style.display = 'none';
+            };
+            
+            vid.onplay = () => { if (playPauseOverlay) playPauseOverlay.style.opacity = '0'; };
+            vid.onpause = () => { if (playPauseOverlay) playPauseOverlay.style.opacity = '1'; };
+            
+            vid.ontimeupdate = () => {
+                if (vid.currentTime >= fsTrimEnd || vid.currentTime < fsTrimStart) {
+                    vid.currentTime = fsTrimStart;
+                    vid.play().catch(e=>{});
+                    if (fsAudioAdded) {
+                        const aud = document.getElementById('fs-bg-audio');
+                        aud.currentTime = 0; aud.play().catch(e=>{});
+                    }
+                }
+                // Update playhead
+                const currentPercent = ((vid.currentTime) / fsVideoDuration) * 100;
+                document.getElementById('fs-playhead').style.left = currentPercent + '%';
+            };
+        }
+
+        async function generateFilmstrip(url) {
+            const container = document.getElementById('fs-filmstrip-images');
+            container.innerHTML = '';
+            const tempVid = document.createElement('video');
+            tempVid.src = url; tempVid.muted = true; tempVid.crossOrigin = "anonymous";
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 100; canvas.height = 150;
+            const ctx = canvas.getContext('2d');
+            
+            tempVid.onloadedmetadata = async () => {
+                const dur = tempVid.duration;
+                if (!isFinite(dur) || dur <= 0) {
+                    console.error("Cannot generate filmstrip due to invalid video duration:", dur);
+                    // Optionally, show a placeholder or error in the filmstrip container
+                    return;
+                }
+                const count = 6;
+                for (let i = 0; i < count; i++) {
+                    await new Promise(r => {
+                        tempVid.currentTime = (dur / count) * i + 0.1;
+                        tempVid.onseeked = () => {
+                            ctx.drawImage(tempVid, 0, 0, canvas.width, canvas.height);
+                            const img = new Image(); img.src = canvas.toDataURL('image/jpeg', 0.5);
+                            img.style.flex = '1'; img.style.height = '100%'; img.style.objectFit = 'cover';
+                            container.appendChild(img);
+                            r();
+                        };
+                    });
+                }
+            };
+        }
+
+        // Trimmer Drag Logic
+        const handleL = document.getElementById('fs-handle-left');
+        const handleR = document.getElementById('fs-handle-right');
+        const track = document.getElementById('fs-filmstrip-track');
+        let dragHandle = null; let tWidth = 0; let tLeft = 0;
+
+        function onTStart(e, type) {
+            dragHandle = type;
+            const rect = track.getBoundingClientRect();
+            tWidth = rect.width; tLeft = rect.left;
+        }
+        handleL.addEventListener('mousedown', e => onTStart(e, 'L')); handleL.addEventListener('touchstart', e => onTStart(e, 'L'), {passive: true});
+        handleR.addEventListener('mousedown', e => onTStart(e, 'R')); handleR.addEventListener('touchstart', e => onTStart(e, 'R'), {passive: true});
+
+        function onTMove(e) {
+            if (!dragHandle) return;
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            let p = ((cx - tLeft) / tWidth) * 100;
+            p = Math.max(0, Math.min(100, p));
+            const maxP = (30 / fsVideoDuration) * 100;
+
+            if (dragHandle === 'L') {
+                if (p > fsTrimEndPercent - 2) p = fsTrimEndPercent - 2;
+                if (fsTrimEndPercent - p > maxP) { fsTrimEndPercent = p + maxP; updateHandles(); }
+                fsTrimStartPercent = p;
+            } else {
+                if (p < fsTrimStartPercent + 2) p = fsTrimStartPercent + 2;
+                if (p - fsTrimStartPercent > maxP) { fsTrimStartPercent = p - maxP; updateHandles(); }
+                fsTrimEndPercent = p;
+            }
+            updateHandles();
+            const vid = document.getElementById('fs-preview-video');
+            vid.currentTime = dragHandle === 'L' ? fsTrimStart : fsTrimEnd;
+        }
+        document.addEventListener('mousemove', onTMove); document.addEventListener('touchmove', onTMove, {passive: true});
+        document.addEventListener('mouseup', () => dragHandle = null); document.addEventListener('touchend', () => dragHandle = null);
+
+        function updateHandles() {
+            fsTrimStart = (fsTrimStartPercent / 100) * fsVideoDuration;
+            fsTrimEnd = (fsTrimEndPercent / 100) * fsVideoDuration;
+            
+            handleL.style.left = fsTrimStartPercent + '%';
+            document.getElementById('fs-trim-left-overlay').style.width = fsTrimStartPercent + '%';
+            
+            handleR.style.left = fsTrimEndPercent + '%';
+            document.getElementById('fs-trim-right-overlay').style.width = (100 - fsTrimEndPercent) + '%';
+            
+            document.getElementById('fs-trim-box').style.left = fsTrimStartPercent + '%';
+            document.getElementById('fs-trim-box').style.width = (fsTrimEndPercent - fsTrimStartPercent) + '%';
+            
+            document.getElementById('fs-trim-start-lbl').innerText = fsTrimStart.toFixed(1) + 's';
+            document.getElementById('fs-trim-end-lbl').innerText = fsTrimEnd.toFixed(1) + 's';
+            document.getElementById('fs-trim-dur-lbl').innerText = (fsTrimEnd - fsTrimStart).toFixed(1) + 's';
+        }
+
+        // Extra Tools
+        window.toggleFSFilter = function() {
+            fsCurrentFilterIdx = (fsCurrentFilterIdx + 1) % fsFilters.length;
+            document.getElementById('fs-preview-video').style.filter = fsFilters[fsCurrentFilterIdx];
+        };
+
+        // --- Advanced Text Editor Logic ---
+        let fsActiveTextState = { color: '#ffffff', font: 'font-classic', align: 'center', bgState: 0, scale: 1 }; // 0=None, 1=Translucent, 2=Inverted
+        let fsActiveTextElement = null;
+        let fsMentionTimer = null;
+
+        window.addFSText = function(event) {
+            if(event) event.stopPropagation();
+            fsActiveTextElement = null; // Reset for new text
+            fsActiveTextState.scale = 1;
+            document.getElementById('fs-text-size-slider').value = 1;
+            document.getElementById('fs-text-input-area').value = '';
+            document.getElementById('fs-text-input-modal').style.display = 'flex';
+            document.getElementById('fs-text-input-area').focus();
+            applyFSTextStylesToTextarea();
+        };
+
+        window.updateFSTextSize = function(val) {
+            fsActiveTextState.scale = parseFloat(val);
+            applyFSTextStylesToTextarea();
+        };
+
+        window.fsCloseTextEditor = function() {
+            const text = document.getElementById('fs-text-input-area').value.trim();
+            if (text) {
+                if (fsActiveTextElement) {
+                    // Update existing element
+                    fsActiveTextElement.innerText = text;
+                    fsActiveTextElement.className = `fs-draggable fs-text ${fsActiveTextState.font}`;
+                    fsActiveTextElement.style.textAlign = fsActiveTextState.align;
+                    fsActiveTextElement.style.fontSize = `${2 * fsActiveTextState.scale}rem`;
+                    fsActiveTextElement.style.transform = `translate(-50%, -50%)`;
+                    fsActiveTextElement.dataset.scale = fsActiveTextState.scale;
+                    
+                    fsActiveTextElement.classList.remove('bg-active', 'bg-inverted');
+                    if(fsActiveTextState.bgState === 1) fsActiveTextElement.classList.add('bg-active');
+                    else if(fsActiveTextState.bgState === 2) {
+                        fsActiveTextElement.classList.add('bg-inverted');
+                        fsActiveTextElement.style.backgroundColor = fsActiveTextState.color;
+                        fsActiveTextElement.style.color = (fsActiveTextState.color === '#ffffff' || fsActiveTextState.color === 'rgb(255, 255, 255)') ? '#000000' : '#ffffff';
+                    } else {
+                        fsActiveTextElement.style.color = fsActiveTextState.color;
+                        fsActiveTextElement.style.backgroundColor = 'transparent';
+                    }
+                } else {
+                    // Create new element
+                    renderFSTextOnCanvas(text);
+                }
+            } else if (fsActiveTextElement) {
+                fsActiveTextElement.remove(); // Delete if text is cleared
+            }
+            document.getElementById('fs-text-input-modal').style.display = 'none';
+            document.getElementById('fs-mention-dropdown').style.display = 'none';
+            fsActiveTextElement = null;
+        };
+
+        function renderFSTextOnCanvas(text) {
+            const div = document.createElement('div');
+            div.className = `fs-draggable fs-text ${fsActiveTextState.font}`;
+            div.innerText = text;
+            div.style.textAlign = fsActiveTextState.align;
+            div.style.fontSize = `${2 * fsActiveTextState.scale}rem`;
+            div.style.transform = `translate(-50%, -50%)`;
+            div.dataset.scale = fsActiveTextState.scale;
+            
+            if(fsActiveTextState.bgState === 1) div.classList.add('bg-active');
+            if(fsActiveTextState.bgState === 2) {
+                div.classList.add('bg-inverted');
+                div.style.backgroundColor = fsActiveTextState.color;
+                div.style.color = (fsActiveTextState.color === '#ffffff' || fsActiveTextState.color === 'rgb(255, 255, 255)') ? '#000000' : '#ffffff';
+            } else {
+                div.style.color = fsActiveTextState.color;
+            }
+            
+            let hasMoved = false; let sX, sY;
+            div.addEventListener('pointerdown', e => {
+                e.stopPropagation();
+                hasMoved = false;
+                const r = div.getBoundingClientRect();
+                sX = e.clientX - r.left - r.width/2;
+                sY = e.clientY - r.top - r.height/2;
+                div.setPointerCapture(e.pointerId);
+            });
+            div.addEventListener('pointermove', e => {
+                if (!div.hasPointerCapture(e.pointerId)) return;
+                hasMoved = true;
+                div.style.left = (e.clientX - sX) + 'px';
+                div.style.top = (e.clientY - sY) + 'px';
+            });
+            div.addEventListener('pointerup', e => {
+                div.releasePointerCapture(e.pointerId);
+                if (!hasMoved) {
+                    e.stopPropagation();
+                    editFSText(div);
+                }
+            });
+
+            document.getElementById('fs-overlays-container').appendChild(div);
+        }
+
+        window.editFSText = (div) => {
+            fsActiveTextElement = div;
+            document.getElementById('fs-text-input-area').value = div.innerText;
+            
+            fsActiveTextState.color = div.style.color || '#ffffff';
+            if (div.classList.contains('bg-active')) fsActiveTextState.bgState = 1;
+            else if (div.classList.contains('bg-inverted')) fsActiveTextState.bgState = 2;
+            else fsActiveTextState.bgState = 0;
+            fsActiveTextState.font = Array.from(div.classList).find(c => c.startsWith('font-')) || 'font-classic';
+            fsActiveTextState.align = div.style.textAlign || 'center';
+            fsActiveTextState.scale = parseFloat(div.dataset.scale) || 1;
+            document.getElementById('fs-text-size-slider').value = fsActiveTextState.scale;
+            
+            document.getElementById('fs-text-input-modal').style.display = 'flex';
+            document.getElementById('fs-text-input-area').focus();
+            applyFSTextStylesToTextarea();
+        };
+
+        window.handleFSTextareaInput = (el) => {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
+        };
+
+        window.fsSetTextColor = (hex) => {
+            fsActiveTextState.color = hex;
+            document.getElementById('fs-text-color-btn').style.color = hex;
+            applyFSTextStylesToTextarea();
+        };
+        
+        window.fsSetFont = (fontClass, btn) => {
+            document.querySelectorAll('#fs-text-input-modal .font-circle').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            fsActiveTextState.font = fontClass;
+            applyFSTextStylesToTextarea();
+        };
+
+        window.fsToggleTextAlign = () => {
+            const alignMap = { 'center': 'left', 'left': 'right', 'right': 'center' };
+            const iconMap = { 'center': 'align-center', 'left': 'align-left', 'right': 'align-right' };
+            fsActiveTextState.align = alignMap[fsActiveTextState.align];
+            document.getElementById('fs-text-align-btn').innerHTML = `<i data-lucide="${iconMap[fsActiveTextState.align]}"></i>`;
+            lucide.createIcons();
+            applyFSTextStylesToTextarea();
+        };
+
+        window.fsToggleTextBg = () => {
+            fsActiveTextState.bgState = (fsActiveTextState.bgState + 1) % 3;
+            applyFSTextStylesToTextarea();
+        };
+
+        window.fsToggleColorPicker = () => {
+            const picker = document.getElementById('fs-color-selector');
+            if (picker.style.display === 'none') {
+                const colors = ['#ffffff', '#000000', '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#a855f7', '#ec4899'];
+                picker.innerHTML = colors.map(c => `<div class="color-circle" style="background: ${c};" onclick="window.fsSetTextColor('${c}')"></div>`).join('');
+                picker.style.display = 'flex';
+            } else {
+                picker.style.display = 'none';
+            }
+        };
+
+        function applyFSTextStylesToTextarea() {
+            const ta = document.getElementById('fs-text-input-area');
+            ta.className = fsActiveTextState.font;
+            ta.style.textAlign = fsActiveTextState.align;
+            ta.style.fontSize = `${2.5 * fsActiveTextState.scale}rem`;
+            ta.style.transform = `none`;
+            ta.style.transformOrigin = 'center';
+            
+            if(fsActiveTextState.bgState === 0) {
+                ta.style.background = 'transparent';
+                ta.style.color = fsActiveTextState.color;
+            } else if (fsActiveTextState.bgState === 1) {
+                ta.style.background = 'rgba(0,0,0,0.7)';
+                ta.style.color = fsActiveTextState.color;
+            } else {
+                ta.style.background = fsActiveTextState.color;
+                ta.style.color = (fsActiveTextState.color === '#ffffff' || fsActiveTextState.color === 'rgb(255, 255, 255)') ? '#000000' : '#ffffff';
+            }
+        }
+
+        window.addFSSticker = function(emoji) {
+            const div = document.createElement('div');
+            div.className = 'fs-draggable fs-sticker';
+            div.innerText = emoji;
+            div.style.cssText = 'position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 80px; cursor: move; pointer-events: auto;';
+            
+            let hasMoved = false; let sX, sY;
+            div.addEventListener('pointerdown', e => {
+                e.stopPropagation();
+                hasMoved = false;
+                const r = div.getBoundingClientRect();
+                sX = e.clientX - r.left - r.width/2;
+                sY = e.clientY - r.top - r.height/2;
+                div.setPointerCapture(e.pointerId);
+            });
+            div.addEventListener('pointermove', e => {
+                if (!div.hasPointerCapture(e.pointerId)) return;
+                hasMoved = true;
+                div.style.left = (e.clientX - sX) + 'px';
+                div.style.top = (e.clientY - sY) + 'px';
+            });
+            div.addEventListener('pointerup', e => {
+                div.releasePointerCapture(e.pointerId);
+                if (!hasMoved) e.stopPropagation();
+            });
+
+            document.getElementById('fs-overlays-container').appendChild(div);
+        };
+
+        // Audio Library
+        let fsSavedAudios = [];
+        let fsCurrentAudioTab = 'all';
+
+        window.openFSAudioLibrary = async () => {
+            document.getElementById('fs-audio-library').style.display = 'flex';
+            const container = document.getElementById('fs-audio-list');
+            container.innerHTML = '<p style="text-align:center; color:#aaa;">Loading audios...</p>';
+            try {
+                if (auth.currentUser) {
+                    const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                    if (userDoc.exists()) fsSavedAudios = userDoc.data().savedAudios || [];
+                }
+                const q = query(collection(db, "audios"), orderBy("usageCount", "desc"), limit(30));
+                const snap = await getDocs(q);
+                let all = []; snap.forEach(d => all.push({id: d.id, ...d.data()}));
+                window.fsAllAudios = all;
+                fsCurrentAudioTab = 'all';
+                document.getElementById('fs-audio-tab-all').style.background = '#6366f1';
+                document.getElementById('fs-audio-tab-all').style.border = 'none';
+                document.getElementById('fs-audio-tab-saved').style.background = '#222';
+                document.getElementById('fs-audio-tab-saved').style.border = '1px solid #555';
+                renderFSAudios(all);
+            } catch(e) { console.error(e); }
+        };
+
+        window.fsSwitchAudioTab = (tab) => {
+            fsCurrentAudioTab = tab;
+            if (tab === 'all') {
+                document.getElementById('fs-audio-tab-all').style.background = '#6366f1';
+                document.getElementById('fs-audio-tab-all').style.border = 'none';
+                document.getElementById('fs-audio-tab-saved').style.background = '#222';
+                document.getElementById('fs-audio-tab-saved').style.border = '1px solid #555';
+                window.searchFSAudio(document.getElementById('fs-audio-search').value);
+            } else {
+                document.getElementById('fs-audio-tab-saved').style.background = '#6366f1';
+                document.getElementById('fs-audio-tab-saved').style.border = 'none';
+                document.getElementById('fs-audio-tab-all').style.background = '#222';
+                document.getElementById('fs-audio-tab-all').style.border = '1px solid #555';
+                window.searchFSAudio(document.getElementById('fs-audio-search').value);
+            }
+        };
+
+        window.searchFSAudio = (term) => {
+            let list = window.fsAllAudios || [];
+            if (fsCurrentAudioTab === 'saved') {
+                list = list.filter(a => fsSavedAudios.includes(a.id));
+            }
+            if (!term) return renderFSAudios(list);
+            const lower = term.toLowerCase();
+            const filtered = list.filter(a => a.title.toLowerCase().includes(lower));
+            renderFSAudios(filtered);
+        };
+
+        window.toggleFSAudioSave = async (audioId, event) => {
+            if (event) event.stopPropagation();
+            if (!auth.currentUser) {
+                showToast("Please login to save audio", "error");
+                return;
+            }
+            const isSaved = fsSavedAudios.includes(audioId);
+            if (isSaved) {
+                fsSavedAudios = fsSavedAudios.filter(id => id !== audioId);
+            } else {
+                fsSavedAudios.push(audioId);
+            }
+            window.searchFSAudio(document.getElementById('fs-audio-search').value); // Re-render
+            try {
+                const userRef = doc(db, "users", auth.currentUser.uid);
+                if (isSaved) {
+                    await updateDoc(userRef, { savedAudios: arrayRemove(audioId) });
+                } else {
+                    await updateDoc(userRef, { savedAudios: arrayUnion(audioId) });
+                }
+            } catch(e) { console.error("Error saving audio:", e); }
+        };
+
+        function renderFSAudios(audios) {
+            const container = document.getElementById('fs-audio-list');
+            container.innerHTML = '';
+            if (audios.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#aaa;">No audios found.</p>';
+                return;
+            }
+            audios.forEach(a => {
+                const isSaved = fsSavedAudios.includes(a.id);
+                const bookmarkIcon = isSaved ? '<i data-lucide="bookmark-minus" class="lucide-fill" style="color: #f59e0b;"></i>' : '<i data-lucide="bookmark"></i>';
+                
+                const div = document.createElement('div');
+                div.style.cssText = "display: flex; align-items: center; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid #333; cursor: pointer; transition: background 0.2s;";
+                div.onmouseover = () => div.style.background = 'rgba(255,255,255,0.05)';
+                div.onmouseout = () => div.style.background = 'transparent';
+                
+                const cover = a.coverImage || 'logo.png';
+                const creator = a.ownerName || 'Creator';
+                const uses = a.usageCount ? (a.usageCount > 1000 ? (a.usageCount/1000).toFixed(1)+'k' : a.usageCount) + ' uses' : 'New';
+
+                div.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 15px; flex: 1; overflow: hidden;" onclick="window.previewFSAudio('${a.audioUrl}', this)">
+                        <div style="position: relative; width: 50px; height: 50px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #333;">
+                            <img src="${cover}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <div class="play-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center;"><i data-lucide="play" style="color: white; width: 20px; height: 20px; fill: white;"></i></div>
+                        </div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div style="color: white; font-weight: bold; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.title}</div>
+                            <div style="color: #aaa; font-size: 0.85rem; display: flex; gap: 8px; align-items: center;">
+                                <span>${creator}</span>
+                                <span style="font-size: 0.5rem;">•</span>
+                                <span>${uses}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="window.toggleFSAudioSave('${a.id}', event)" style="background: transparent; border: none; color: white; cursor: pointer; padding: 5px; margin-left: 5px;">${bookmarkIcon}</button>
+                    <button onclick="window.selectFSAudio('${a.audioUrl}', '${a.title.replace(/'/g, "\\'")}')" style="background: white; color: black; border: none; padding: 6px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-left: 10px; font-size: 0.85rem;">Use</button>
+                `;
+                container.appendChild(div);
+            });
+            if(window.lucide) window.lucide.createIcons();
+        }
+
+    window.fsCurrentlyPlayingAudio = null;
+        window.previewFSAudio = (url, elem) => {
+            const player = document.getElementById('fs-audio-preview-player');
+            const overlay = elem.querySelector('.play-overlay');
+
+        player.onended = () => {
+            overlay.innerHTML = '<i data-lucide="play" style="color: white; width: 20px; height: 20px; fill: white;"></i>';
+            if (window.lucide) window.lucide.createIcons({ root: overlay });
+            window.fsCurrentlyPlayingAudio = null;
+        };
+
+        if (window.fsCurrentlyPlayingAudio === url && !player.paused) {
+                player.pause();
+                overlay.innerHTML = '<i data-lucide="play" style="color: white; width: 20px; height: 20px; fill: white;"></i>';
+            } else {
+                document.querySelectorAll('.play-overlay').forEach(o => o.innerHTML = '<i data-lucide="play" style="color: white; width: 20px; height: 20px; fill: white;"></i>');
+                overlay.innerHTML = '<i data-lucide="pause" style="color: white; width: 20px; height: 20px; fill: white;"></i>';
+                player.src = url;
+                player.play().catch(e => console.error(e));
+            window.fsCurrentlyPlayingAudio = url;
+            }
+            if(window.lucide) window.lucide.createIcons();
+        };
+        window.selectFSAudio = (url, title) => {
+            document.getElementById('fs-audio-name').innerText = title;
+            const aud = document.getElementById('fs-bg-audio');
+            aud.src = url;
+            fsAudioAdded = true;
+            fsOriginalAudioVolume = 0.2; // default dip original
+            fsMusicVolume = 1;
+            document.getElementById('fs-vol-original').value = 0.2;
+            document.getElementById('fs-vol-music').value = 1;
+            window.updateFSVolumes();
+            document.getElementById('fs-audio-library').style.display = 'none';
+        };
+        
+        window.updateFSVolumes = function() {
+            fsOriginalAudioVolume = parseFloat(document.getElementById('fs-vol-original').value);
+            fsMusicVolume = parseFloat(document.getElementById('fs-vol-music').value);
+            document.getElementById('fs-preview-video').volume = fsOriginalAudioVolume;
+            document.getElementById('fs-bg-audio').volume = fsMusicVolume;
+            if (fsAudioAdded && document.getElementById('fs-bg-audio').paused) document.getElementById('fs-bg-audio').play().catch(e=>{});
+        };
+
+        // Rendering the final Video
+        window.fsRenderVideo = async function() {
+            const overlay = document.getElementById('upload-progress-overlay');
+            const progressText = document.getElementById('upload-progress-text');
+            const progressBar = document.getElementById('upload-progress-bar');
+            const cancelBtn = document.getElementById('cancel-upload-btn');
+            
+            overlay.style.display = 'flex';
+            progressText.innerText = "Rendering Video...";
+            progressBar.style.width = '0%';
+            
+            let isCancelled = false;
+            let recorder = null;
+            const cancelRender = () => {
+                isCancelled = true;
+                if (recorder && recorder.state !== 'inactive') recorder.stop();
+                overlay.style.display = 'none';
+                cancelBtn.removeEventListener('click', cancelRender);
+                cancelBtn.onclick = null;
+            };
+            cancelBtn.addEventListener('click', cancelRender);
+            cancelBtn.onclick = cancelRender;
+            
+            const video = document.getElementById('fs-preview-video');
+            const audio = document.getElementById('fs-bg-audio');
+            const canvas = document.createElement('canvas');
+            canvas.width = 720;
+            canvas.height = 1280;
+            const ctx = canvas.getContext('2d');
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const dest = audioCtx.createMediaStreamDestination();
+            
+            if (video.captureStream || video.mozCaptureStream) {
+                try {
+                    const vs = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+                    if (vs.getAudioTracks().length > 0) {
+                        const src1 = audioCtx.createMediaStreamSource(vs);
+                        const gain1 = audioCtx.createGain();
+                        gain1.gain.value = fsOriginalAudioVolume;
+                        src1.connect(gain1).connect(dest);
+                    }
+                } catch (err) { console.warn("Failed to capture video stream:", err); }
+            }
+            
+            if (fsAudioAdded && (audio.captureStream || audio.mozCaptureStream)) {
+                try {
+                    const as = audio.captureStream ? audio.captureStream() : audio.mozCaptureStream();
+                    if (as.getAudioTracks().length > 0) {
+                        const src2 = audioCtx.createMediaStreamSource(as);
+                        const gain2 = audioCtx.createGain();
+                        gain2.gain.value = fsMusicVolume;
+                        src2.connect(gain2).connect(dest);
+                    }
+                } catch (err) { console.warn("Failed to capture audio stream:", err); }
+            }
+            
+            let options = { mimeType: 'video/webm; codecs=vp8,opus' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
+
+            const stream = new MediaStream([...canvas.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+            recorder = new MediaRecorder(stream, options);
+            const chunks = [];
+            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            
+            video.currentTime = fsTrimStart;
+            if (fsAudioAdded) { audio.currentTime = 0; audio.play().catch(e=>{}); }
+            try {
+                await video.play();
+            } catch (e) {
+                if (e.name !== 'AbortError') console.error("Error playing video for render:", e);
+            }
+            
+            recorder.start();
+            
+            const renderLoop = () => {
+                if (isCancelled || video.currentTime >= fsTrimEnd) {
+                    recorder.stop();
+                    video.pause();
+                    if (fsAudioAdded) audio.pause();
+                    return;
+                }
+                
+                ctx.filter = fsFilters[fsCurrentFilterIdx] || 'none';
+                const ratio = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+                const w = video.videoWidth * ratio; const h = video.videoHeight * ratio;
+                ctx.drawImage(video, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
+                ctx.filter = 'none';
+                
+                const container = document.getElementById('fs-overlays-container');
+                const scaleX = canvas.width / container.offsetWidth;
+                const scaleY = canvas.height / container.offsetHeight;
+                
+                document.querySelectorAll('.fs-draggable').forEach(el => {
+                    const rect = el.getBoundingClientRect(); const contRect = container.getBoundingClientRect();
+                    const cx = rect.left + rect.width/2 - contRect.left; const cy = rect.top + rect.height/2 - contRect.top;
+                    const exportX = cx * scaleX; const exportY = cy * scaleY;
+                    
+                    if (el.classList.contains('fs-text')) {
+                        const elScale = parseFloat(el.dataset.scale) || 1;
+                        const fontSize = (parseFloat(window.getComputedStyle(el).fontSize) || 30) * elScale;
+                        ctx.font = `bold ${fontSize * scaleX}px Outfit, sans-serif`;
+                        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'white';
+                        
+                        const lines = el.innerText.split('\n');
+                        const lineHeight = fontSize * 1.2 * scaleX;
+                        const totalHeight = lines.length * lineHeight;
+                        const startY = exportY - totalHeight / 2 + lineHeight / 2;
+                        
+                        lines.forEach((line, i) => { ctx.fillText(line, exportX, startY + i * lineHeight); });
+                    } else if (el.classList.contains('fs-sticker')) {
+                        const elScale = parseFloat(el.dataset.scale) || 1;
+                        const fontSize = (parseFloat(window.getComputedStyle(el).fontSize) || 80) * elScale;
+                        ctx.font = `${fontSize * scaleX}px sans-serif`;
+                        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                        ctx.fillText(el.innerText, exportX, exportY);
+                    }
+                });
+                
+                const progress = Math.round(((video.currentTime - fsTrimStart) / (fsTrimEnd - fsTrimStart)) * 100);
+                progressText.innerText = `Rendering: ${progress}%`;
+                progressBar.style.width = `${progress}%`;
+
+                requestAnimationFrame(renderLoop);
+            };
+            
+            requestAnimationFrame(renderLoop);
+            
+            recorder.onstop = () => {
+                cancelBtn.removeEventListener('click', cancelRender);
+                cancelBtn.onclick = null;
+                if (isCancelled) return;
+
+                // This function is called when rendering is complete.
+                // Instead of just hiding the overlay, we'll update it to show completion
+                // and give the user a button to close it. This prevents race conditions.
+                const overlay = document.getElementById('upload-progress-overlay');
+                const text = document.getElementById('upload-progress-text');
+                const bar = document.getElementById('upload-progress-bar');
+                const h2 = overlay.querySelector('h2');
+                const actionBtn = document.getElementById('cancel-upload-btn');
+
+                const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
+                const file = new File([blob], 'flick_rendered.webm', { type: blob.type });
+                const dt = new DataTransfer(); dt.items.add(file);
+                document.getElementById('video-upload').files = dt.files;
+                document.getElementById('video-upload').dispatchEvent(new Event('change'));
+            
+                window.closeFlicksStudio();
+                
+                if (h2) h2.innerText = "Processing Complete!";
+                if (bar) bar.style.width = '100%';
+                if (text) text.innerText = "Your video is ready.";
+                if (actionBtn) actionBtn.style.display = 'none';
+
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    if (h2) h2.innerText = "Uploading Video...";
+                    if (actionBtn) actionBtn.style.display = 'block';
+                }, 1500);
+            };
+        };
     </script>
 </body>
 </html>

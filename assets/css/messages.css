@@ -178,25 +178,25 @@
         .theme-option.active { border: 2px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1.02); }
 
         /* 5 New Futuristic Themes */
-        body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
+        body.cyberpunk-mode { background: radial-gradient(circle at top right, #501b87, #130321); color: #e2e8f0; }
         body.cyberpunk-mode .container { border-color: rgba(255, 0, 124, 0.2); }
-        body.cyberpunk-mode .btn { background: linear-gradient(135deg, #f72585, #4361ee); box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3); }
-    body.cyberpunk-mode .btn-transparent::before, body.cyberpunk-mode .theme-btn::before { background: linear-gradient(45deg, #f72585, #4361ee); }
-        body.cyberpunk-mode .conversation-info h3 { color: #f72585; }
-        body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
+        body.cyberpunk-mode .btn { background: linear-gradient(135deg, #ff007c, #7000ff); box-shadow: 0 4px 15px rgba(255, 0, 124, 0.3); color: white; }
+    body.cyberpunk-mode .btn-transparent::before, body.cyberpunk-mode .theme-btn::before { background: linear-gradient(45deg, #ff007c, #00f0ff); }
+        body.cyberpunk-mode .conversation-info h3 { color: #00f0ff; }
+        body.matrix-mode { background: radial-gradient(circle at top, #004d00, #021a02); color: #e2e8f0; }
         body.matrix-mode .container { border-color: rgba(0, 255, 65, 0.2); }
-        body.matrix-mode .btn { background: linear-gradient(135deg, #00b4d8, #00ff41); box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3); color: #000; }
-    body.matrix-mode .btn-transparent::before, body.matrix-mode .theme-btn::before { background: linear-gradient(45deg, #00b4d8, #00ff41); }
+        body.matrix-mode .btn { background: linear-gradient(135deg, #008f11, #00ff41); box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3); color: #000; font-weight: bold; }
+    body.matrix-mode .btn-transparent::before, body.matrix-mode .theme-btn::before { background: linear-gradient(45deg, #008f11, #00ff41); }
         body.matrix-mode .conversation-info h3 { color: #00ff41; }
-        body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
+        body.ocean-mode { background: radial-gradient(circle at top left, #005f8a, #011b2e); color: #e2e8f0; }
         body.ocean-mode .btn { background: linear-gradient(135deg, #0077b6, #00b4d8); box-shadow: 0 4px 15px rgba(0, 119, 182, 0.3); }
     body.ocean-mode .btn-transparent::before, body.ocean-mode .theme-btn::before { background: linear-gradient(45deg, #0077b6, #00b4d8); }
-        body.ocean-mode .conversation-info h3 { color: #00e5ff; }
-        body.dracula-mode { background: #282a36; color: #f8f8f2; }
+        body.ocean-mode .conversation-info h3 { color: #90e0ef; }
+        body.dracula-mode { background: #32354b; color: #f8f8f2; }
         body.dracula-mode .btn { background: linear-gradient(135deg, #bd93f9, #ff79c6); box-shadow: 0 4px 15px rgba(189, 147, 249, 0.3); }
     body.dracula-mode .btn-transparent::before, body.dracula-mode .theme-btn::before { background: linear-gradient(45deg, #bd93f9, #ff79c6); }
         body.dracula-mode .conversation-info h3 { color: #ff79c6; }
-        body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
+        body.solar-mode { background: radial-gradient(circle at center, #6b1426, #1a0a24); color: #e2e8f0; }
         body.solar-mode .btn { background: linear-gradient(135deg, #dc2f02, #ffba08); box-shadow: 0 4px 15px rgba(220, 47, 2, 0.3); }
     body.solar-mode .btn-transparent::before, body.solar-mode .theme-btn::before { background: linear-gradient(45deg, #dc2f02, #ffba08); }
-        body.solar-mode .conversation-info h3 { color: #ffb703; }
+        body.solar-mode .conversation-info h3 { color: #ffba08; }

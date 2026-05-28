@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Story Camera - Viyou.in</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Pacifico&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Outfit', sans-serif; user-select: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        .layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .hidden { display: none !important; }
+
+        /* --- Camera UI --- */
+        #camera-feed { width: 100%; height: 100%; object-fit: cover; background: #111; }
+        .top-bar { position: absolute; top: 40px; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 50; pointer-events: none; }
+        .top-bar > * { pointer-events: auto; }
+        .icon-btn { background: transparent; border: none; color: white; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-shadow: 0 2px 10px rgba(0,0,0,0.5); filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); padding: 5px; }
+        
+        .audio-pill { background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+        
+        .bottom-bar { position: absolute; bottom: 40px; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 50; border: none !important; outline: none !important; }
+        .gallery-btn { width: 40px; height: 40px; border-radius: 8px; border: 2px solid white; object-fit: cover; cursor: pointer; background: #333; }
+        .capture-ring { width: 80px; height: 80px; border-radius: 50%; border: 4px solid white; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 2px; }
+        .capture-btn { width: 100%; height: 100%; background: white; border-radius: 50%; transition: transform 0.2s; }
+        .capture-ring:active .capture-btn { transform: scale(0.85); }
+        
+        /* --- Editor UI --- */
+        #editor-bg { width: 100%; height: 100%; object-fit: cover; }
+        #editor-layer { z-index: 10; }
+        .editor-top-tools { display: flex; gap: 15px; }
+        .story-next-btn { position: absolute; bottom: 30px; right: 20px; background: white; color: black; font-weight: bold; border: none; padding: 12px 24px; border-radius: 24px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; cursor: pointer; z-index: 50; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+        /* --- Text Input UI (Instagram Style) --- */
+        #text-input-layer { z-index: 100; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; }
+        .text-controls-top { display: flex; justify-content: space-between; padding: 40px 20px 20px 20px; align-items: center; }
+        .text-controls-top button { background: none; border: none; color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+        .style-toggles { display: flex; gap: 15px; }
+        
+        .main-textarea-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        #story-textarea { width: 100%; background: transparent; border: none; color: white; text-align: center; font-size: 2.5rem; outline: none; resize: none; overflow: hidden; font-family: 'Outfit', sans-serif; font-weight: bold; min-height: 60px; line-height: 1.2; }
+        #story-textarea::placeholder { color: rgba(255,255,255,0.5); }
+
+        /* Font Selection Bottom */
+        .font-selector { padding: 15px; display: flex; gap: 15px; overflow-x: auto; scrollbar-width: none; background: rgba(0,0,0,0.5); }
+        .font-selector::-webkit-scrollbar { display: none; }
+        .font-circle { width: 40px; height: 40px; border-radius: 50%; background: white; color: black; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; }
+        .font-circle.active { border-color: #f59e0b; transform: scale(1.1); }
+        
+        /* Color Selection */
+        .color-selector { padding: 10px 15px; display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; }
+        .color-selector::-webkit-scrollbar { display: none; }
+        .color-circle { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; flex-shrink: 0; }
+
+        /* Rendered Draggable Text */
+        .draggable-text { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: white; font-size: 2.5rem; font-weight: bold; text-align: center; white-space: pre-wrap; word-wrap: break-word; max-width: 90%; z-index: 20; padding: 10px 15px; border-radius: 12px; }
+        .draggable-text.bg-active { background-color: rgba(0,0,0,0.7); }
+        .draggable-text.bg-inverted { background-color: white; color: black !important; }
+        
+        /* Font Families */
+        .font-classic { font-family: 'Outfit', sans-serif; }
+        .font-modern { font-family: sans-serif; text-transform: uppercase; letter-spacing: 2px; }
+        .font-neon { font-family: 'Pacifico', cursive; text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        .font-typewriter { font-family: monospace; }
+        .font-strong { font-family: 'Permanent Marker', cursive; }
+
+        /* Mention Dropdown */
+        .mention-dropdown { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); background: rgba(20,20,20,0.95); border: 1px solid #444; border-radius: 12px; width: 90%; max-width: 350px; max-height: 200px; overflow-y: auto; z-index: 200; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; }
+        .mention-item { padding: 12px 15px; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; color: white; cursor: pointer; }
+        .mention-item img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+    </style>
+</head>
+<body>
+    
+    <!-- 1. CAMERA UI -->
+    <div id="camera-layer" class="layer">
+        <video id="camera-feed" autoplay playsinline muted></video>
+        <div class="top-bar">
+            <button class="icon-btn" onclick="window.location.href='index.html'"><i data-lucide="x"></i></button>
+            <div class="audio-pill" onclick="openAudioLibrary()"><i data-lucide="music" style="width: 16px;"></i> <span id="camera-audio-name">Use Audio</span></div>
+            <button class="icon-btn" style="opacity: 0;"><i data-lucide="settings"></i></button>
+        </div>
+        <div class="bottom-bar">
+            <img src="logo.png" class="gallery-btn" onclick="document.getElementById('gallery-input').click()">
+            <input type="file" id="gallery-input" style="display:none" accept="image/*">
+            
+            <div class="capture-ring" onclick="takeSnapshot()">
+                <div class="capture-btn"></div>
+            </div>
+            
+            <button class="icon-btn" onclick="switchCamera()"><i data-lucide="refresh-cw"></i></button>
+        </div>
+    </div>
+
+    <!-- 2. EDITOR UI (Shown after capture) -->
+    <div id="editor-layer" class="layer hidden">
+        <img id="editor-bg" src="">
+        <!-- Texts will be appended here -->
+        <div id="text-canvas" class="layer" style="z-index: 15;" onclick="openTextEditor()"></div>
+        
+        <div class="top-bar" style="z-index: 20;">
+            <button class="icon-btn" onclick="resetCamera()"><i data-lucide="chevron-left"></i></button>
+            <div class="editor-top-tools">
+                <button class="icon-btn" onclick="openTextEditor(event)"><i data-lucide="type"></i></button>
+                <button class="icon-btn" onclick="openStickers()"><i data-lucide="smile"></i></button>
+                <button class="icon-btn" onclick="toggleFilter()"><i data-lucide="wand-2"></i></button>
+                <button class="icon-btn" onclick="openAudioLibrary()"><i data-lucide="music"></i></button>
+            </div>
+        </div>
+        <button class="story-next-btn" onclick="postStory()">Share <i data-lucide="send"></i></button>
+    </div>
+
+    <!-- 3. TEXT INPUT UI -->
+    <div id="text-input-layer" class="layer hidden">
+        <div class="text-controls-top">
+            <button onclick="toggleTextAlign()"><i data-lucide="align-center" id="align-icon"></i></button>
+            <div class="style-toggles">
+                <button onclick="toggleTextBg()"><i data-lucide="square" id="bg-icon"></i></button>
+                <button id="current-color-indicator" style="color: white;"><i data-lucide="palette"></i></button>
+            </div>
+            <button onclick="closeTextEditor()">Done</button>
+        </div>
+
+        <div id="mention-dropdown" class="mention-dropdown"></div>
+
+        <div class="main-textarea-container" onclick="document.getElementById('story-textarea').focus()">
+            <textarea id="story-textarea" placeholder="Type something..." oninput="handleTextareaInput(this)"></textarea>
+        </div>
+
+        <div class="color-selector">
+            <div class="color-circle" style="background: #ffffff;" onclick="setTextColor('#ffffff')"></div>
+            <div class="color-circle" style="background: #000000;" onclick="setTextColor('#000000')"></div>
+            <div class="color-circle" style="background: #ef4444;" onclick="setTextColor('#ef4444')"></div>
+            <div class="color-circle" style="background: #f59e0b;" onclick="setTextColor('#f59e0b')"></div>
+            <div class="color-circle" style="background: #10b981;" onclick="setTextColor('#10b981')"></div>
+            <div class="color-circle" style="background: #3b82f6;" onclick="setTextColor('#3b82f6')"></div>
+            <div class="color-circle" style="background: #a855f7;" onclick="setTextColor('#a855f7')"></div>
+            <div class="color-circle" style="background: #ec4899;" onclick="setTextColor('#ec4899')"></div>
+        </div>
+
+        <div class="font-selector">
+            <div class="font-circle active font-classic" onclick="setFont('font-classic', this)">Aa</div>
+            <div class="font-circle font-modern" onclick="setFont('font-modern', this)">Aa</div>
+            <div class="font-circle font-neon" onclick="setFont('font-neon', this)">Aa</div>
+            <div class="font-circle font-typewriter" onclick="setFont('font-typewriter', this)">Aa</div>
+            <div class="font-circle font-strong" onclick="setFont('font-strong', this)">Aa</div>
+        </div>
+    </div>
+
+    <!-- 4. STICKERS UI -->
+    <div id="stickers-layer" class="layer hidden" style="display: flex; z-index: 100; background: rgba(0,0,0,0.85); flex-direction: column; backdrop-filter: blur(10px);">
+        <div class="text-controls-top">
+            <h3 style="color: white; margin: 0; font-size: 1.5rem;">Stickers</h3>
+            <button onclick="closeStickers()">Done</button>
+        </div>
+        <div id="emoji-list-camera" style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; font-size: 45px; overflow-y: auto; justify-content: center; align-content: flex-start; flex: 1;"></div>
+    </div>
+
+    <!-- 5. AUDIO LIBRARY MODAL -->
+    <div id="audio-library-layer" class="layer hidden" style="display: flex; z-index: 100; background: rgba(0,0,0,0.95); flex-direction: column; backdrop-filter: blur(10px);">
+        <div class="text-controls-top" style="border-bottom: 1px solid #333;">
+            <h3 style="color: white; margin: 0; font-size: 1.5rem;">Audio Library</h3>
+                <button onclick="window.closeAudioLibrary()">Close</button>
+        </div>
+        <div style="padding: 15px; border-bottom: 1px solid #333;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button id="cam-audio-tab-all" style="flex: 1; padding: 8px; border-radius: 8px; border: none; background: #6366f1; color: white; font-weight: bold; cursor: pointer;" onclick="window.camSwitchAudioTab('all')">All Music</button>
+                <button id="cam-audio-tab-saved" style="flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #555; background: #222; color: white; font-weight: bold; cursor: pointer;" onclick="window.camSwitchAudioTab('saved')"><i data-lucide="bookmark" style="width: 14px; height: 14px;"></i> Saved</button>
+            </div>
+                <input type="text" id="audio-search-input" placeholder="Search music or creators..." style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #222; color: white; font-size: 1rem;" oninput="window.searchAudio(this.value)">
+        </div>
+        <div id="audio-list-container" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+            <!-- Audios will be loaded here -->
+        </div>
+        <audio id="audio-preview-player" style="display: none;"></audio>
+    </div>
+
+    <audio id="editor-bg-audio" loop style="display:none;"></audio>
+
+    <!-- Upload Overlay -->
+    <div id="upload-overlay" class="layer hidden" style="background: rgba(0,0,0,0.9); z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <i data-lucide="loader" class="fa-spin" style="color: #f59e0b; width: 48px; height: 48px; margin-bottom: 20px;"></i>
+        <h2 style="color: white; margin: 0; font-size: 1.5rem;">Posting Story...</h2>
+        <p style="color: #aaa; font-size: 0.9rem; margin-top: 10px;">Please wait while we upload your story.</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, limit, addDoc, doc, getDoc, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+        
+        lucide.createIcons();
+
+        window.selectedAudioData = null;
+        
+        // Handle Imported Audio from Viewer
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('importAudio') === 'true') {
+            const importUrl = localStorage.getItem('viyou_import_audio_url');
+            const importName = localStorage.getItem('viyou_import_audio_name');
+            if (importUrl) {
+                window.selectedAudioData = { url: importUrl, title: importName || 'Imported Audio' };
+                document.getElementById('camera-audio-name').innerText = window.selectedAudioData.title;
+                localStorage.removeItem('viyou_import_audio_url');
+                localStorage.removeItem('viyou_import_audio_name');
+            }
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // --- Audio Library Engine ---
+        let camSavedAudios = [];
+        let camCurrentAudioTab = 'all';
+
+        window.openAudioLibrary = async () => {
+            document.getElementById('audio-library-layer').classList.remove('hidden');
+            if (auth.currentUser) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                    if (userDoc.exists()) camSavedAudios = userDoc.data().savedAudios || [];
+                } catch(e) {}
+            }
+            loadAudios();
+        };
+        window.closeAudioLibrary = () => {
+            document.getElementById('audio-library-layer').classList.add('hidden');
+            document.getElementById('audio-preview-player').pause();
+            document.querySelectorAll('.audio-play-btn').forEach(b => {
+                b.innerHTML = '<i data-lucide="play" class="lucide-fill"></i>';
+                if (window.lucide) window.lucide.createIcons({ root: b });
+            });
+        };
+
+        window.camSwitchAudioTab = (tab) => {
+            camCurrentAudioTab = tab;
+            if (tab === 'all') {
+                document.getElementById('cam-audio-tab-all').style.background = '#6366f1';
+                document.getElementById('cam-audio-tab-all').style.border = 'none';
+                document.getElementById('cam-audio-tab-saved').style.background = '#222';
+                document.getElementById('cam-audio-tab-saved').style.border = '1px solid #555';
+            } else {
+                document.getElementById('cam-audio-tab-saved').style.background = '#6366f1';
+                document.getElementById('cam-audio-tab-saved').style.border = 'none';
+                document.getElementById('cam-audio-tab-all').style.background = '#222';
+                document.getElementById('cam-audio-tab-all').style.border = '1px solid #555';
+            }
+            window.searchAudio(document.getElementById('audio-search-input').value);
+        };
+
+        window.toggleCamAudioSave = async (audioId, event) => {
+            if (event) event.stopPropagation();
+            if (!auth.currentUser) {
+                alert("Please login to save audio");
+                return;
+            }
+            const isSaved = camSavedAudios.includes(audioId);
+            if (isSaved) {
+                camSavedAudios = camSavedAudios.filter(id => id !== audioId);
+            } else {
+                camSavedAudios.push(audioId);
+            }
+            window.searchAudio(document.getElementById('audio-search-input').value); // Re-render
+            try {
+                const userRef = doc(db, "users", auth.currentUser.uid);
+                if (isSaved) await updateDoc(userRef, { savedAudios: arrayRemove(audioId) });
+                else await updateDoc(userRef, { savedAudios: arrayUnion(audioId) });
+            } catch(e) { console.error("Error saving audio:", e); }
+        };
+
+        let allAudios = [];
+        async function loadAudios() {
+            const container = document.getElementById('audio-list-container');
+            if (allAudios.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#aaa;"><i data-lucide="loader" class="fa-spin" style="width: 24px;"></i> Loading audios...</div>';
+                if(window.lucide) window.lucide.createIcons();
+                try {
+                    const q = query(collection(db, "audios"), orderBy("usageCount", "desc"), limit(30));
+                    const snap = await getDocs(q);
+                    snap.forEach(doc => allAudios.push({id: doc.id, ...doc.data()}));
+                } catch(e) {
+                    const q2 = query(collection(db, "audios"), limit(30)); // Fallback if composite index is missing
+                    const snap2 = await getDocs(q2);
+                    snap2.forEach(doc => allAudios.push({id: doc.id, ...doc.data()}));
+                }
+                camCurrentAudioTab = 'all';
+                document.getElementById('cam-audio-tab-all').style.background = '#6366f1';
+                document.getElementById('cam-audio-tab-all').style.border = 'none';
+                document.getElementById('cam-audio-tab-saved').style.background = '#222';
+                document.getElementById('cam-audio-tab-saved').style.border = '1px solid #555';
+            }
+            renderAudios(allAudios);
+        }
+
+        window.searchAudio = (term) => {
+            let list = allAudios || [];
+            if (camCurrentAudioTab === 'saved') list = list.filter(a => camSavedAudios.includes(a.id));
+            
+            if (!term) return renderAudios(list);
+            const lower = term.toLowerCase();
+            const filtered = list.filter(a => a.title.toLowerCase().includes(lower) || a.ownerName?.toLowerCase().includes(lower));
+            renderAudios(filtered);
+        };
+
+        window.currentlyPlayingAudio = null;
+        window.toggleAudioPreview = (url, btn) => {
+            const player = document.getElementById('audio-preview-player');
+            
+            player.onended = () => {
+                btn.innerHTML = '<i data-lucide="play" class="lucide-fill"></i>';
+                if (window.lucide) window.lucide.createIcons({ root: btn });
+                window.currentlyPlayingAudio = null;
+            };
+            
+            document.querySelectorAll('.audio-play-btn').forEach(b => {
+                if (b !== btn) {
+                    b.innerHTML = '<i data-lucide="play" class="lucide-fill"></i>';
+                    if (window.lucide) window.lucide.createIcons({ root: b });
+                }
+            });
+            if (window.currentlyPlayingAudio === url && !player.paused) {
+                player.pause();
+                btn.innerHTML = '<i data-lucide="play" class="lucide-fill"></i>';
+            } else {
+                player.src = url; player.play().catch(e=>{});
+                window.currentlyPlayingAudio = url;
+                btn.innerHTML = '<i data-lucide="pause" class="lucide-fill"></i>';
+            }
+            if (window.lucide) window.lucide.createIcons({ root: btn });
+        };
+
+        window.selectAudio = (url, title) => {
+            window.selectedAudioData = { url, title };
+            document.getElementById('camera-audio-name').innerText = title;
+            document.getElementById('editor-bg-audio').src = url;
+            if (!document.getElementById('editor-layer').classList.contains('hidden')) document.getElementById('editor-bg-audio').play().catch(e=>{});
+            closeAudioLibrary();
+        };
+
+        function renderAudios(audios) {
+            const container = document.getElementById('audio-list-container');
+            if (audios.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">No audio found.</div>'; return; }
+            container.innerHTML = '';
+            audios.forEach(a => {
+                const isSaved = camSavedAudios.includes(a.id);
+                const bookmarkIcon = isSaved ? '<i data-lucide="bookmark-minus" class="lucide-fill" style="color: #f59e0b;"></i>' : '<i data-lucide="bookmark"></i>';
+                
+                const div = document.createElement('div');
+                div.style.cssText = "display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px;";
+                div.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden;">
+                        <div style="width: 40px; height: 40px; border-radius: 8px; background: #333; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i data-lucide="music" style="color: #f59e0b;"></i></div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div style="color: white; font-weight: bold; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.title}</div>
+                            <div style="color: #aaa; font-size: 0.8rem;">${a.usageCount || 0} uses</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button onclick="window.toggleCamAudioSave('${a.id}', event)" style="background: transparent; border: none; color: white; cursor: pointer; padding: 5px;">${bookmarkIcon}</button>
+                        <button class="audio-play-btn" onclick="window.toggleAudioPreview('${a.audioUrl}', this)" style="background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%;"><i data-lucide="play" class="lucide-fill"></i></button>
+                        <button onclick="window.selectAudio('${a.audioUrl}', '${a.title.replace(/'/g, "\\'")}')" style="background: #0d6efd; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer;">Use</button>
+                    </div>`;
+                container.appendChild(div);
+            });
+            if(window.lucide) window.lucide.createIcons();
+        }
+
+        // --- Filter & Stickers Engine ---
+        const filters = ['none', 'grayscale(100%)', 'sepia(100%)', 'contrast(150%) saturate(150%)', 'hue-rotate(90deg)', 'invert(100%)'];
+        let currentFilterIdx = 0;
+        window.toggleFilter = () => {
+            currentFilterIdx = (currentFilterIdx + 1) % filters.length;
+            document.getElementById('editor-bg').style.filter = filters[currentFilterIdx];
+        };
+
+        const emojis = ['😀','😂','😍','😎','🥺','😭','😡','🔥','✨','💯','❤️','💔','🎉','👑','💸','🍕','🍔','📸','🚀','✈️'];
+        const emojiList = document.getElementById('emoji-list-camera');
+        emojis.forEach(e => {
+            const span = document.createElement('span');
+            span.innerText = e; span.style.cursor = 'pointer';
+            span.onclick = () => window.addSticker(e);
+            emojiList.appendChild(span);
+        });
+
+        window.openStickers = () => document.getElementById('stickers-layer').classList.remove('hidden');
+        window.closeStickers = () => document.getElementById('stickers-layer').classList.add('hidden');
+
+        window.addSticker = function(emoji) {
+            const div = document.createElement('div');
+            div.className = `draggable-sticker`; div.innerText = emoji;
+            div.style.cssText = 'position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 80px; z-index: 20;';
+            
+            let isDragging = false; let startY, startX;
+            div.addEventListener('touchstart', e => { isDragging = true; const touch = e.touches[0]; const rect = div.getBoundingClientRect(); startX = touch.clientX - rect.left - rect.width/2; startY = touch.clientY - rect.top - rect.height/2; }, {passive:true});
+            div.addEventListener('touchmove', e => { if(!isDragging) return; const touch = e.touches[0]; div.style.left = (touch.clientX - startX) + 'px'; div.style.top = (touch.clientY - startY) + 'px'; }, {passive:true});
+            div.addEventListener('touchend', () => isDragging = false);
+            
+            document.getElementById('text-canvas').appendChild(div);
+            closeStickers();
+        };
+
+        // --- Camera Logic ---
+        const video = document.getElementById('camera-feed');
+        let currentStream = null;
+        let facingMode = "environment"; // Rear camera default
+
+        async function startCamera() {
+            if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
+                video.srcObject = currentStream;
+            } catch (err) {
+                console.error("Camera access denied or unavailable", err);
+            }
+        }
+        startCamera();
+
+        window.switchCamera = () => {
+            facingMode = facingMode === "environment" ? "user" : "environment";
+            startCamera();
+        };
+
+        window.takeSnapshot = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            if(facingMode === 'user') {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            
+            document.getElementById('editor-bg').src = dataUrl;
+            document.getElementById('camera-layer').classList.add('hidden');
+            document.getElementById('editor-layer').classList.remove('hidden');
+            
+            if (window.selectedAudioData) document.getElementById('editor-bg-audio').play().catch(e=>{});
+        };
+
+        window.resetCamera = () => {
+            document.getElementById('editor-layer').classList.add('hidden');
+            document.getElementById('camera-layer').classList.remove('hidden');
+            document.getElementById('text-canvas').innerHTML = ''; // Clear texts
+            
+            document.getElementById('editor-bg-audio').pause();
+        };
+
+        document.getElementById('gallery-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('editor-bg').src = ev.target.result;
+                document.getElementById('camera-layer').classList.add('hidden');
+                document.getElementById('editor-layer').classList.remove('hidden');
+                if (window.selectedAudioData) document.getElementById('editor-bg-audio').play().catch(e=>{});
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // --- Text Editor Logic ---
+        let activeTextState = { color: '#ffffff', font: 'font-classic', align: 'center', bgState: 0 }; 
+        // bgState: 0=None, 1=Translucent, 2=Inverted
+        window.activeTextElement = null;
+        
+        window.openTextEditor = (e) => {
+            if(e) e.stopPropagation();
+            document.getElementById('text-input-layer').classList.remove('hidden');
+            document.getElementById('story-textarea').focus();
+            applyTextStylesToTextarea();
+        };
+
+        window.closeTextEditor = () => {
+            document.getElementById('text-input-layer').classList.add('hidden');
+            const text = document.getElementById('story-textarea').value.trim();
+            if(text) {
+                if (window.activeTextElement) {
+                    window.activeTextElement.innerText = text;
+                    window.activeTextElement.className = `draggable-text ${activeTextState.font}`;
+                    window.activeTextElement.style.textAlign = activeTextState.align;
+                    if(activeTextState.bgState === 1) window.activeTextElement.classList.add('bg-active');
+                    else window.activeTextElement.classList.remove('bg-active');
+                    
+                    if(activeTextState.bgState === 2) {
+                        window.activeTextElement.classList.add('bg-inverted');
+                        window.activeTextElement.style.backgroundColor = activeTextState.color;
+                        window.activeTextElement.style.color = (activeTextState.color === '#ffffff') ? '#000' : '#fff';
+                    } else {
+                        window.activeTextElement.classList.remove('bg-inverted');
+                        window.activeTextElement.style.color = activeTextState.color;
+                        window.activeTextElement.style.backgroundColor = 'transparent';
+                    }
+                } else {
+                    renderTextOnCanvas(text);
+                }
+            } else if (window.activeTextElement) {
+                window.activeTextElement.remove();
+            }
+            document.getElementById('story-textarea').value = '';
+            document.getElementById('mention-dropdown').style.display = 'none';
+            window.activeTextElement = null;
+        };
+
+        window.handleTextareaInput = async (el) => {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
+
+            // Mention Logic
+            const text = el.value;
+            const cursor = el.selectionStart;
+            const word = text.substring(0, cursor).split(/\s+/).pop();
+            const dropdown = document.getElementById('mention-dropdown');
+            
+            if (word.startsWith('@') && word.length > 1) {
+                const search = word.substring(1).toLowerCase();
+                const q = query(collection(db, "users"), where("usernameLower", ">=", search), where("usernameLower", "<=", search + "\uf8ff"), limit(5));
+                const snap = await getDocs(q);
+                
+                if (!snap.empty) {
+                    dropdown.innerHTML = '';
+                    snap.forEach(docSnap => {
+                        const u = docSnap.data();
+                        const div = document.createElement('div');
+                        div.className = 'mention-item';
+                        div.innerHTML = `<img src="${u.photoURL || 'logo.png'}"> <div><strong>${u.name||'User'}</strong><br><small style="color:#aaa">@${u.username}</small></div>`;
+                        div.onclick = () => {
+                            el.value = text.substring(0, cursor - word.length) + `@${u.username} ` + text.substring(cursor);
+                            dropdown.style.display = 'none';
+                            el.focus();
+                        };
+                        dropdown.appendChild(div);
+                    });
+                    dropdown.style.display = 'block';
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            } else {
+                dropdown.style.display = 'none';
+            }
+        };
+
+        // Styling functions
+        window.setTextColor = (hex) => {
+            activeTextState.color = hex;
+            document.getElementById('current-color-indicator').style.color = hex;
+            applyTextStylesToTextarea();
+        };
+        
+        window.setFont = (fontClass, btn) => {
+            document.querySelectorAll('.font-circle').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeTextState.font = fontClass;
+            applyTextStylesToTextarea();
+        };
+
+        window.toggleTextAlign = () => {
+            const alignMap = { 'center': 'left', 'left': 'right', 'right': 'center' };
+            const iconMap = { 'center': 'align-center', 'left': 'align-left', 'right': 'align-right' };
+            activeTextState.align = alignMap[activeTextState.align];
+            document.getElementById('align-icon').setAttribute('data-lucide', iconMap[activeTextState.align]);
+            lucide.createIcons();
+            applyTextStylesToTextarea();
+        };
+
+        window.toggleTextBg = () => {
+            activeTextState.bgState = (activeTextState.bgState + 1) % 3;
+            applyTextStylesToTextarea();
+        };
+
+        function applyTextStylesToTextarea() {
+            const ta = document.getElementById('story-textarea');
+            ta.className = activeTextState.font;
+            ta.style.textAlign = activeTextState.align;
+            
+            if(activeTextState.bgState === 0) {
+                ta.style.background = 'transparent';
+                ta.style.color = activeTextState.color;
+            } else if (activeTextState.bgState === 1) {
+                ta.style.background = 'rgba(0,0,0,0.7)';
+                ta.style.color = activeTextState.color;
+            } else {
+                ta.style.background = activeTextState.color;
+                ta.style.color = (activeTextState.color === '#ffffff') ? '#000' : '#fff';
+            }
+        }
+
+        window.editStoryText = (div) => {
+            window.activeTextElement = div;
+            document.getElementById('story-textarea').value = div.innerText;
+            activeTextState.color = div.style.color || '#ffffff';
+            if (div.classList.contains('bg-active')) activeTextState.bgState = 1;
+            else if (div.classList.contains('bg-inverted')) activeTextState.bgState = 2;
+            else activeTextState.bgState = 0;
+            activeTextState.font = Array.from(div.classList).find(c => c.startsWith('font-')) || 'font-classic';
+            activeTextState.align = div.style.textAlign || 'center';
+            document.getElementById('text-input-layer').classList.remove('hidden');
+            document.getElementById('story-textarea').focus();
+            applyTextStylesToTextarea();
+        };
+
+        function renderTextOnCanvas(text) {
+            const div = document.createElement('div');
+            div.className = `draggable-text ${activeTextState.font}`;
+            div.innerText = text;
+            div.style.textAlign = activeTextState.align;
+            
+            if(activeTextState.bgState === 1) div.classList.add('bg-active');
+            if(activeTextState.bgState === 2) {
+                div.style.backgroundColor = activeTextState.color;
+                div.style.color = (activeTextState.color === '#ffffff') ? '#000' : '#fff';
+            } else {
+                div.style.color = activeTextState.color;
+            }
+
+            // Drag Logic
+            let isDragging = false;
+            let startY, startX;
+            let hasMoved = false;
+            
+            div.addEventListener('touchstart', e => {
+                isDragging = true;
+                hasMoved = false;
+                const touch = e.touches[0];
+                const rect = div.getBoundingClientRect();
+                startX = touch.clientX - rect.left - rect.width/2;
+                startY = touch.clientY - rect.top - rect.height/2;
+            }, {passive:true});
+            
+            div.addEventListener('touchmove', e => {
+                if(!isDragging) return;
+                hasMoved = true;
+                const touch = e.touches[0];
+                div.style.left = (touch.clientX - startX) + 'px';
+                div.style.top = (touch.clientY - startY) + 'px';
+            }, {passive:true});
+            
+            div.addEventListener('touchend', () => {
+                isDragging = false;
+                if (!hasMoved) window.editStoryText(div);
+            });
+            
+            div.addEventListener('mousedown', e => {
+                isDragging = true; hasMoved = false;
+                const rect = div.getBoundingClientRect();
+                startX = e.clientX - rect.left - rect.width/2;
+                startY = e.clientY - rect.top - rect.height/2;
+            });
+            div.addEventListener('mousemove', e => {
+                if(!isDragging) return;
+                hasMoved = true;
+                div.style.left = (e.clientX - startX) + 'px';
+                div.style.top = (e.clientY - startY) + 'px';
+            });
+            div.addEventListener('mouseup', () => isDragging = false);
+            div.addEventListener('click', () => { if (!hasMoved) window.editStoryText(div); });
+            
+            document.getElementById('text-canvas').appendChild(div);
+        }
+
+        // --- REMIX / ADD TO STORY Logic ---
+        const remixDataStr = sessionStorage.getItem('remix_story_data');
+        if (remixDataStr) {
+            sessionStorage.removeItem('remix_story_data');
+            const remixData = JSON.parse(remixDataStr);
+            
+            document.getElementById('camera-layer').classList.add('hidden');
+            document.getElementById('editor-layer').classList.remove('hidden');
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 720; canvas.height = 1280;
+            const ctx = canvas.getContext('2d');
+            
+            // Instagram style gradient background
+            const grad = ctx.createLinearGradient(0,0,720,1280);
+            grad.addColorStop(0, '#833ab4'); grad.addColorStop(0.5, '#fd1d1d'); grad.addColorStop(1, '#fcb045');
+            ctx.fillStyle = grad; ctx.fillRect(0,0,720,1280);
+            
+            const img = new Image(); img.crossOrigin = "anonymous";
+            img.onload = () => {
+                const w = 720 * 0.7; const h = (img.height / img.width) * w;
+                const x = (720 - w) / 2; const y = (1280 - h) / 2;
+                ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 20; ctx.drawImage(img, x, y, w, h);
+                ctx.shadowBlur = 0; ctx.fillStyle = 'white'; ctx.font = 'bold 30px Outfit'; ctx.textAlign = 'center'; ctx.fillText('@' + remixData.author, 720/2, y - 20);
+                document.getElementById('editor-bg').src = canvas.toDataURL('image/jpeg', 0.85);
+            };
+            img.src = remixData.imageUrl;
+        }
+
+        window.postStory = async () => {
+            if (!auth.currentUser) {
+                alert("Please login to post a story!");
+                return;
+            }
+
+            document.getElementById('upload-overlay').classList.remove('hidden');
+            if (window.lucide) window.lucide.createIcons();
+
+            try {
+                // 1. Render Final Image
+                const bgImg = document.getElementById('editor-bg');
+                const canvas = document.createElement('canvas');
+                canvas.width = 720;
+                canvas.height = 1280;
+                const ctx = canvas.getContext('2d');
+
+                // Draw Background
+                const ratio = Math.max(canvas.width / bgImg.naturalWidth, canvas.height / bgImg.naturalHeight);
+                const w = bgImg.naturalWidth * ratio;
+                const h = bgImg.naturalHeight * ratio;
+                ctx.filter = filters[currentFilterIdx] || 'none';
+                ctx.drawImage(bgImg, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
+                ctx.filter = 'none'; // reset for stickers
+
+                // Polyfill roundRect for custom text backgrounds
+                if (!ctx.roundRect) {
+                    ctx.roundRect = function (x, y, w, h, r) {
+                        if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
+                        this.beginPath(); this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r);
+                        this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r);
+                        this.closePath(); return this;
+                    }
+                }
+
+                // Extract and Draw Emojis (Stickers)
+                const textCanvas = document.getElementById('text-canvas');
+                const scaleX = canvas.width / textCanvas.offsetWidth;
+                const scaleY = canvas.height / textCanvas.offsetHeight;
+                let allText = "";
+                let finalTexts = [];
+
+                document.querySelectorAll('.draggable-sticker').forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    const parentRect = textCanvas.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2 - parentRect.left;
+                    const cy = rect.top + rect.height / 2 - parentRect.top;
+                    const exportX = cx * scaleX;
+                    const exportY = cy * scaleY;
+                    
+                    ctx.font = `${parseFloat(window.getComputedStyle(el).fontSize) * scaleX}px sans-serif`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(el.innerText, exportX, exportY);
+                });
+
+                // Collect Native Texts for Clickable Mentions
+                document.querySelectorAll('.draggable-text').forEach(el => {
+                    allText += el.innerText + " ";
+                    const rect = el.getBoundingClientRect();
+                    const parentRect = textCanvas.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2 - parentRect.left;
+                    const cy = rect.top + rect.height / 2 - parentRect.top;
+                    
+                    const exportX = cx * scaleX;
+                    const exportY = cy * scaleY;
+                    
+                    let font = 'Outfit';
+                    if (el.classList.contains('font-modern')) font = 'sans-serif';
+                    if (el.classList.contains('font-neon')) font = 'Pacifico';
+                    if (el.classList.contains('font-typewriter')) font = 'monospace';
+                    if (el.classList.contains('font-strong')) font = 'Permanent Marker';
+
+                    const compStyle = window.getComputedStyle(el);
+                    const fontSize = parseFloat(compStyle.fontSize) || 30;
+
+                    const exportXPercent = (cx / textCanvas.offsetWidth) * 100;
+                    const exportYPercent = (cy / textCanvas.offsetHeight) * 100;
+
+                    let bgAlpha = 0; let bgColor = '#000'; let color = el.style.color || '#fff';
+                    if (el.classList.contains('bg-active')) { bgAlpha = 0.7; } 
+                    else if (el.classList.contains('bg-inverted')) {
+                        bgColor = color; bgAlpha = 1; color = (color === '#ffffff' || color === 'rgb(255, 255, 255)') ? '#000000' : '#ffffff';
+                    }
+                    
+                    // Save text data to render natively in HTML viewer so Mentions stay perfectly clickable
+                    finalTexts.push({
+                        text: el.innerText, x: exportXPercent, y: exportYPercent, color: color, size: fontSize, font: font,
+                        bgColor: bgColor, bgAlpha: bgAlpha, borderColor: '#ffffff', borderSize: 0,
+                        textOutlineColor: '#000000', textOutlineSize: 0, animation: 'none', rotation: 0, opacity: 1, spacing: 0, zIndex: 20
+                    });
+                });
+
+                const finalDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+                // 2. Upload to Storage
+                const uid = auth.currentUser.uid;
+                const ts = Date.now();
+                const storageRef = ref(storage, `stories/${uid}_${ts}_img.jpg`);
+                await uploadString(storageRef, finalDataUrl, 'data_url');
+                const downloadUrl = await getDownloadURL(storageRef);
+
+                // 3. Mentions Logic
+                const mentionRegex = /@([\w_]+)/g;
+                const mentions = [...new Set([...allText.matchAll(mentionRegex)].map(m => m[1].toLowerCase()))];
+                let mentionedUids = []; let mentionMap = {};
+                if (mentions.length > 0) {
+                    const q = query(collection(db, "users"), where("usernameLower", "in", mentions.slice(0, 30)));
+                    const usersSnap = await getDocs(q);
+                    usersSnap.forEach(docSnap => {
+                        mentionedUids.push(docSnap.id);
+                        mentionMap[docSnap.data().usernameLower] = docSnap.id;
+                    });
+                }
+
+                // 4. Save to Firestore
+                const userDoc = await getDoc(doc(db, "users", uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+
+                const storyPayload = {
+                    authorUid: uid, authorName: userData.name || auth.currentUser.displayName || "User", authorPhoto: userData.photoURL || auth.currentUser.photoURL || "logo.png",
+                    statusImage: downloadUrl, statusVideo: null, storyTimeline: [], storyDrawing: null, 
+                    audioData: window.selectedAudioData ? window.selectedAudioData.url : null, audioTitle: window.selectedAudioData ? window.selectedAudioData.title : null,
+                    texts: finalTexts, mediaOverlays: [],
+                    mentionedUids: mentionedUids, mentionMap: mentionMap, timestamp: new Date().toISOString(), likes: [], viewers: []
+                };
+
+                await addDoc(collection(db, "stories"), storyPayload);
+
+                // 5. Notifications
+                for (const mUid of mentionedUids) {
+                    if (mUid !== uid) {
+                        await addDoc(collection(db, "notifications"), { recipientUid: mUid, senderUid: uid, senderName: userData.name || auth.currentUser.displayName || "User", type: "story_mention", date: new Date().toISOString(), read: false });
+                    }
+                }
+
+                // Success -> Go to home
+                window.location.href = 'index.html';
+
+            } catch (err) {
+                console.error("Error posting story:", err);
+                alert("Failed to post story. " + err.message);
+                document.getElementById('upload-overlay').classList.add('hidden');
+            }
+        };
+    </script>
+</body>
+</html>

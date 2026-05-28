@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio - Viyou.in</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; background: #050505; color: #fff; margin: 0; padding: 0; }
+        .navbar { padding: 15px 20px; background: rgba(20,20,20,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100; gap: 15px; }
+        .navbar a { color: #fff; text-decoration: none; display: flex; align-items: center; }
+        .navbar span { font-size: 1.2rem; font-weight: bold; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .audio-header { display: flex; gap: 20px; align-items: center; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; }
+        .audio-cover { width: 120px; height: 120px; border-radius: 12px; object-fit: cover; background: #222; display: flex; align-items: center; justify-content: center; }
+        .audio-info { flex: 1; }
+        .audio-title { font-size: 1.5rem; margin: 0 0 5px 0; font-weight: bold; word-break: break-word;}
+        .audio-author { color: #aaa; font-size: 1rem; margin: 0 0 15px 0; }
+        .btn-use { background: linear-gradient(135deg, #6366f1, #a855f7); border: none; color: white; padding: 10px 24px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 1rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: transform 0.2s; }
+        .btn-use:hover { transform: translateY(-2px); }
+        .btn-save { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 1rem; transition: background 0.2s; }
+        .btn-save:hover { background: rgba(255,255,255,0.2); }
+        .btn-save.saved { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: #f59e0b; }
+        .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .video-item { aspect-ratio: 9/16; background: #222; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; transition: transform 0.2s; }
+        .video-item:hover { transform: scale(1.02); }
+        .video-item img, .video-item video { width: 100%; height: 100%; object-fit: cover; }
+        .video-stats { position: absolute; bottom: 8px; left: 8px; color: white; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        @media (max-width: 600px) {
+            .videos-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+            .video-stats { font-size: 0.75rem; bottom: 5px; left: 5px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="#" onclick="event.preventDefault(); if (document.referrer && document.referrer.includes(window.location.hostname) && !document.referrer.includes('audio.html')) { window.history.back(); } else { window.location.href='index.html'; }"><i data-lucide="arrow-left"></i></a>
+        <span>Audio</span>
+    </div>
+    <div class="container">
+        <div id="loading" style="text-align: center; color: #aaa; padding: 50px;">
+            <i data-lucide="loader" style="animation: spin 1s linear infinite; width: 32px; height: 32px; color: #f59e0b;"></i>
+            <p>Loading audio details...</p>
+        </div>
+        <div id="audio-content" style="display: none;">
+            <div class="audio-header">
+                <div class="audio-cover" id="audio-cover">
+                    <i data-lucide="music" style="width: 48px; height: 48px; color: #f59e0b;"></i>
+                </div>
+                <div class="audio-info">
+                    <h1 class="audio-title" id="audio-title">Loading...</h1>
+                    <p class="audio-author" id="audio-author">Loading...</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn-use" onclick="window.useThisAudio()"><i data-lucide="video"></i> Use this sound</button>
+                        <button class="btn-save" id="btn-save-audio" onclick="window.toggleCurrentAudioSave()"><i data-lucide="bookmark"></i> Save</button>
+                    </div>
+                </div>
+                <div style="text-align: center; min-width: 100px;">
+                    <div style="font-size: 1.5rem; font-weight: bold;" id="post-count">0</div>
+                    <div style="color: #aaa; font-size: 0.9rem;">Posts</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Videos with this sound</h3>
+            <div id="videos-grid" class="videos-grid"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, or, addDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        lucide.createIcons();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const audioUrl = urlParams.get('url');
+        let globalAudioTitle = 'Original Audio';
+        let globalAudioId = null;
+        let isSaved = false;
+        let currentUser = null;
+
+        onAuthStateChanged(auth, user => {
+            currentUser = user;
+            checkSavedStatus();
+        });
+
+        async function checkSavedStatus() {
+            if (!currentUser || !globalAudioId) return;
+            try {
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                if (userDoc.exists()) {
+                    isSaved = (userDoc.data().savedAudios || []).includes(globalAudioId);
+                    updateSaveBtnUI();
+                }
+            } catch(e) { console.error("Error checking saved status:", e); }
+        }
+
+        function updateSaveBtnUI() {
+            const btn = document.getElementById('btn-save-audio');
+            if (isSaved) {
+                btn.classList.add('saved');
+                btn.innerHTML = '<i data-lucide="bookmark-minus" class="lucide-fill"></i> Saved';
+            } else {
+                btn.classList.remove('saved');
+                btn.innerHTML = '<i data-lucide="bookmark"></i> Save';
+            }
+            if (window.lucide) window.lucide.createIcons({ root: btn });
+        }
+
+        window.useThisAudio = async function() {
+            localStorage.setItem('viyou_import_audio_url', audioUrl);
+            localStorage.setItem('viyou_import_audio_name', globalAudioTitle);
+            
+            try {
+                const q = query(collection(db, "audios"), where("audioUrl", "==", audioUrl));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    await addDoc(collection(db, "audios"), {
+                        title: globalAudioTitle,
+                        ownerUid: "system",
+                        ownerName: document.getElementById('audio-author').innerText.replace('@', '') || "User",
+                        audioUrl: audioUrl,
+                        coverImage: document.getElementById('audio-cover').querySelector('img')?.src || 'logo.png',
+                        allowRemix: true,
+                        usageCount: 1,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            } catch(e) { console.error("Error creating audio doc:", e); }
+            
+            window.location.href = 'story-camera.html?importAudio=true';
+        };
+
+        window.toggleCurrentAudioSave = async function() {
+            if (!currentUser) {
+                alert("Please login to save audio.");
+                return;
+            }
+
+            if (!globalAudioId) {
+                try {
+                    const newAudioRef = await addDoc(collection(db, "audios"), {
+                        title: globalAudioTitle,
+                        ownerUid: "system",
+                        ownerName: document.getElementById('audio-author').innerText.replace('@', '') || "User",
+                        audioUrl: audioUrl,
+                        coverImage: document.getElementById('audio-cover').querySelector('img')?.src || 'logo.png',
+                        allowRemix: true,
+                        usageCount: parseInt(document.getElementById('post-count').innerText) || 1,
+                        timestamp: new Date().toISOString()
+                    });
+                    globalAudioId = newAudioRef.id;
+                } catch(e) { console.error("Error creating audio doc for saving:", e); return; }
+            }
+
+            isSaved = !isSaved;
+            updateSaveBtnUI();
+
+            const userRef = doc(db, "users", currentUser.uid);
+            try {
+                if (isSaved) await updateDoc(userRef, { savedAudios: arrayUnion(globalAudioId) });
+                else await updateDoc(userRef, { savedAudios: arrayRemove(globalAudioId) });
+            } catch(e) { console.error("Error updating saved status:", e); }
+        };
+
+        async function loadAudioDetails() {
+            if (!audioUrl) {
+                document.getElementById('loading').innerHTML = '<p style="color: #ff6b6b;">Invalid audio URL.</p>';
+                return;
+            }
+
+            try {
+                let audioData = null;
+                const audioQ = query(collection(db, "audios"), where("audioUrl", "==", audioUrl));
+                const audioSnap = await getDocs(audioQ);
+                if (!audioSnap.empty) { 
+                    audioData = audioSnap.docs[0].data(); 
+                    globalAudioId = audioSnap.docs[0].id; 
+                }
+
+                const blogsQ = query(collection(db, "blogs"), or(where("audioUrl", "==", audioUrl), where("video", "==", audioUrl)));
+                const blogsSnap = await getDocs(blogsQ);
+                
+                const blogs = [];
+                blogsSnap.forEach(doc => {
+                    if (doc.data().status !== 'draft') { blogs.push({ id: doc.id, ...doc.data() }); }
+                });
+
+                blogs.sort((a, b) => (b.views || 0) - (a.views || 0));
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('audio-content').style.display = 'block';
+
+                if (audioData) {
+                    globalAudioTitle = audioData.title;
+                    document.getElementById('audio-title').innerText = audioData.title;
+                    document.getElementById('audio-author').innerText = '@' + audioData.ownerName;
+                    if (audioData.coverImage) document.getElementById('audio-cover').innerHTML = `<img src="${audioData.coverImage}" style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover;">`;
+                } else if (blogs.length > 0) {
+                    const original = blogs.find(b => b.video === audioUrl) || blogs[0];
+                    globalAudioTitle = original.audioTitle || ('Original Audio - @' + original.author);
+                    document.getElementById('audio-title').innerText = globalAudioTitle;
+                    document.getElementById('audio-author').innerText = '@' + original.author;
+                    const cover = original.thumbnail || original.authorPhoto || 'logo.png';
+                    document.getElementById('audio-cover').innerHTML = `<img src="${cover}" style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover;">`;
+                } else {
+                    document.getElementById('audio-title').innerText = 'Unknown Audio';
+                    document.getElementById('audio-author').innerText = '@unknown';
+                }
+                
+                checkSavedStatus();
+
+                document.getElementById('post-count').innerText = blogs.length;
+
+                const grid = document.getElementById('videos-grid');
+                if (blogs.length === 0) { grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #aaa;">No videos found using this sound.</p>'; } 
+                else {
+                    blogs.forEach(blog => {
+                        const div = document.createElement('div');
+                        div.className = 'video-item';
+                        div.onclick = () => { window.location.href = blog.isFlicker ? 'flicks.html?id=' + blog.id : 'watch.html?id=' + blog.id; };
+                        let thumbHtml = '';
+                        if (blog.thumbnail) { thumbHtml = `<img src="${blog.thumbnail}">`; } 
+                        else if (blog.video) { let fStart = blog.flickStartTime || 0.1; thumbHtml = `<video src="${blog.video}#t=${fStart}" muted></video>`; }
+                        div.innerHTML = `${thumbHtml}<div class="video-stats"><i data-lucide="play" class="lucide-fill" style="width: 12px;"></i> ${(blog.views || 0).toLocaleString()}</div>`;
+                        grid.appendChild(div);
+                    });
+                    lucide.createIcons();
+                }
+            } catch (e) {
+                console.error("Error loading audio:", e);
+                document.getElementById('loading').innerHTML = '<p style="color: #ff6b6b;">Error loading audio details.</p>';
+            }
+        }
+        loadAudioDetails();
+    </script>
+    <style>
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</body>
+</html>

@@ -1,7 +1,5 @@
         body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; background: #050505; color: #e2e8f0; margin: 0; padding: 0; }
-        .navbar { padding: 15px 20px; background: rgba(20,20,20,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100; }
-        .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .watch-container { display: flex; flex-wrap: wrap; padding: 20px; gap: 20px; max-width: 1400px; margin: auto; } /* Renamed from .container to be specific */
+        .watch-container { display: flex; flex-wrap: wrap; padding: 2px 20px 20px 20px; gap: 20px; max-width: 1400px; margin: auto; } /* Reduced top padding to move content up */
 
         /* Custom Video Player Styles from example_player.html */
         .video-container {
@@ -52,23 +50,29 @@
             width: 100%;
             -webkit-appearance: none;
     background: linear-gradient(to right, #0d6efd 0%, #0d6efd var(--progress, 0%), rgba(255, 255, 255, 0.4) var(--progress, 0%), rgba(255, 255, 255, 0.4) var(--buffer, 0%), rgba(255, 255, 255, 0.2) var(--buffer, 0%), rgba(255, 255, 255, 0.2) 100%);
-            height: 5px;
+            height: 3px;
             border-radius: 5px;
             outline: none;
             cursor: pointer;
             transition: height 0.1s ease;
         }
         .progress-bar:hover {
-            height: 7px;
+            height: 5px;
         }
         .progress-bar::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 14px;
             height: 14px;
+            transform: scale(0);
             border-radius: 50%;
             background: #0d6efd; /* Blue accent color */
             cursor: pointer;
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .progress-bar:hover::-webkit-slider-thumb {
+            transform: scale(1);
+            box-shadow: 0 0 10px rgba(169, 13, 253, 0.8), 0 0 5px rgba(0,0,0,0.5);
         }
         .control-buttons {
             display: flex;
@@ -282,42 +286,50 @@
             .sidebar { width: 100%; }
             .title { font-size: 1.25rem; }
             .pc-only-btn { display: none !important; }
+            .pc-only-search { display: none !important; }
         }
 
         /* YouTube Style Theater Mode (PC Only) */
         @media screen and (min-width: 901px) {
-            .container.theater-mode {
+            .video-container, .watch-video-container {
+                max-width: 90%;
+                margin: 0 auto;
+            }
+            .watch-container.theater-mode {
                 max-width: 100%;
                 padding-top: 0;
                 padding-left: 0;
                 padding-right: 0;
             }
-            .container.theater-mode .main-content {
+            .watch-container.theater-mode .main-content, .watch-container.theater-mode .watch-main-content {
                 flex: 1 1 100%;
                 max-width: 100%;
             }
-            .container.theater-mode .video-container {
+            .watch-container.theater-mode .video-container, .watch-container.theater-mode .watch-video-container {
                 border-radius: 0;
                 height: 75vh;
                 padding-bottom: 0;
+                max-width: 100% !important;
             }
-            .container.theater-mode .video-container video,
-            .container.theater-mode .video-container iframe {
+            .watch-container.theater-mode .video-container video,
+            .watch-container.theater-mode .video-container iframe,
+            .watch-container.theater-mode .watch-video-container video,
+            .watch-container.theater-mode .watch-video-container iframe {
                 position: relative;
                 height: 100%;
                 background: #000;
             }
-            .container.theater-mode .info,
-            .container.theater-mode #comments-section,
-            .container.theater-mode .sidebar {
+            .watch-container.theater-mode .info, .watch-container.theater-mode .watch-info,
+            .watch-container.theater-mode #comments-section, .watch-container.theater-mode #watch-comments-section,
+            .watch-container.theater-mode .sidebar, .watch-container.theater-mode .watch-sidebar {
                 max-width: 1400px;
                 margin-left: auto;
                 margin-right: auto;
                 padding: 20px;
                 box-sizing: border-box;
             }
-            .container.theater-mode .sidebar { flex: 1 1 100%; padding-top: 0; }
-            .container.theater-mode .sidebar #suggestions {
+            .watch-container.theater-mode .sidebar, .watch-container.theater-mode .watch-sidebar { flex: 1 1 100%; padding-top: 0; }
+            .watch-container.theater-mode .sidebar #suggestions, .watch-container.theater-mode .watch-sidebar #watch-suggestions {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
                 gap: 15px;
@@ -377,36 +389,54 @@
     body.light-mode .comment-action-btn:hover { color: #333 !important; }
 
     /* 5 New Futuristic Themes */
-    body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
+    body.cyberpunk-mode { background: radial-gradient(circle at top right, #501b87, #130321); color: #e2e8f0; }
     body.cyberpunk-mode .navbar { border-bottom-color: rgba(255, 0, 124, 0.2); }
-    body.cyberpunk-mode .title, body.cyberpunk-mode .watch-title { color: #f72585; }
-    body.cyberpunk-mode .btn { background: linear-gradient(135deg, #f72585, #4361ee); color: #fff; border: none; }
+    body.cyberpunk-mode .title, body.cyberpunk-mode .watch-title { color: #00f0ff !important; }
+    body.cyberpunk-mode .btn { background: linear-gradient(135deg, #ff007c, #7000ff); color: #fff; border: none; }
     
-    body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
+    body.matrix-mode { background: radial-gradient(circle at top, #004d00, #021a02); color: #e2e8f0; }
     body.matrix-mode .navbar { border-bottom-color: rgba(0, 255, 65, 0.2); }
-    body.matrix-mode .title, body.matrix-mode .watch-title { color: #00ff41; }
-    body.matrix-mode .btn { background: linear-gradient(135deg, #00b4d8, #00ff41); color: #000; border: none; }
+    body.matrix-mode .title, body.matrix-mode .watch-title { color: #00ff41 !important; }
+    body.matrix-mode .btn { background: linear-gradient(135deg, #008f11, #00ff41); color: #000; border: none; font-weight: bold; }
     
-    body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
-    body.ocean-mode .navbar { border-bottom-color: rgba(144, 224, 239, 0.2); }
-    body.ocean-mode .title, body.ocean-mode .watch-title { color: #00b4d8; }
+    body.ocean-mode { background: radial-gradient(circle at top left, #005f8a, #011b2e); color: #e2e8f0; }
+    body.ocean-mode .navbar { border-bottom-color: rgba(0, 180, 216, 0.2); }
+    body.ocean-mode .title, body.ocean-mode .watch-title { color: #90e0ef !important; }
     body.ocean-mode .btn { background: linear-gradient(135deg, #0077b6, #00b4d8); color: #fff; border: none; }
     
-    body.dracula-mode { background: #282a36; color: #f8f8f2; }
+    body.dracula-mode { background: #32354b; color: #f8f8f2; }
     body.dracula-mode .navbar { border-bottom-color: rgba(255, 121, 198, 0.2); }
-    body.dracula-mode .title, body.dracula-mode .watch-title { color: #ff79c6; }
+    body.dracula-mode .title, body.dracula-mode .watch-title { color: #ff79c6 !important; }
     body.dracula-mode .btn { background: linear-gradient(135deg, #bd93f9, #ff79c6); color: #fff; border: none; }
     
-    body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
+    body.solar-mode { background: radial-gradient(circle at center, #6b1426, #1a0a24); color: #e2e8f0; }
     body.solar-mode .navbar { border-bottom-color: rgba(255, 186, 8, 0.2); }
-    body.solar-mode .title, body.solar-mode .watch-title { color: #ffba08; }
+    body.solar-mode .title, body.solar-mode .watch-title { color: #ffba08 !important; }
     body.solar-mode .btn { background: linear-gradient(135deg, #dc2f02, #ffba08); color: #fff; border: none; }
 
         /* Mobile specific sticky player */
         @media (max-width: 768px) {
-            .video-container {
+            .watch-container {
+                padding-top: 0;
+                padding-left: 0;
+                padding-right: 0;
+                gap: 0;
+            }
+            .video-container, .watch-video-container {
                 position: sticky !important;
-                top: 65px !important;
+                top: 56px !important;
                 z-index: 95 !important;
+                border-radius: 0 !important;
+                border-left: none !important;
+                border-right: none !important;
+                border-top: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .info, #comments-section, .sidebar, .watch-info, #watch-comments-section, .watch-sidebar {
+                padding-left: 15px;
+                padding-right: 15px;
+                box-sizing: border-box;
             }
         }

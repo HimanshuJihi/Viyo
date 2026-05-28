@@ -8,6 +8,7 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="Viyou.in - A modern social media platform for sharing posts, short videos, and connecting with creators worldwide.">
     <meta name="keywords" content="Social Media, Viyou.in, Creator Platform, Short Videos, Blogs, Networking, Content Sharing, Global Community, Trending Content, flicks,India's biggest and fastest short video platform, reels, shorts, user blogs">
+    <meta tags="Youtube alternative, Instagram video alternative, TikTok video alternative, Whatsapp alternative, Indian video platform, Viyou watch, Viyou videos, Viyou content, Viyou creators, Viyou streaming, Viyou personalized recommendations, Viyou video community, Viyou feedback, Viyou monetization, Viyou ads, Viyou pre-roll ads, Viyou VAST ads, Viyou ad policies, Viyou video quality, Viyou playback speed, Viyou sleep timer, Viyou report content, Viyou video player, Viyou custom controls, Viyou YouTube videos, Viyou video suggestions, Viyou up next, Viyou video categories, Viyou search videos, Viyou video recommendations, Viyou video feedback, Viyou video reporting, Viyou video history, Viyou video analytics, flicks, Viyou flicks, Viyou short videos, Viyou video feed, Viyou video discovery, Viyou video trends, Viyou video sharing, Viyou video engagement, Viyou video monetization, Viyou video creators, Viyou video community, Viyou video platform, Viyou video content, Viyou video experience, Viyou video features, Viyou video updates, Viyou video support, Viyou video policies, Viyou video guidelines, Viyou video quality, Viyou video playback, Viyou video controls, Viyou video player, Viyou video suggestions, Viyou video categories, Viyou video search, Viyou video feedback, Viyou video reporting, Viyou video history, Viyou video analytics"> 
     <meta name="41dcd7a1beee3c2b292b718b5f826e86abdcd57b" content="41dcd7a1beee3c2b292b718b5f826e86abdcd57b" />
     <meta property="og:title" content="Viyou.in - Social Media Platform">
     <meta property="og:description" content="Share your stories, short videos, and connect with creators worldwide.">
@@ -88,6 +89,32 @@
             });
             observer.observe(document.body, { childList: true, subtree: true });
 
+        // Setup SPA Watch Sidebar Search Toggle
+        const spaSearchToggle = document.getElementById('spa-sidebar-search-toggle');
+        const spaSearchForm = document.getElementById('spa-sidebar-search-form');
+        const spaSearchInput = document.getElementById('spa-sidebar-search-input');
+        if (spaSearchToggle && spaSearchForm && spaSearchInput) {
+            spaSearchToggle.addEventListener('click', () => {
+                if (spaSearchForm.style.width === '40px') {
+                    spaSearchForm.style.width = '100%';
+                    spaSearchInput.style.opacity = '1';
+                    spaSearchInput.focus();
+                } else if (spaSearchInput.value.trim() === '') {
+                    spaSearchForm.style.width = '40px';
+                    spaSearchInput.style.opacity = '0';
+                } else {
+                    spaSearchForm.dispatchEvent(new Event('submit'));
+                }
+            });
+            spaSearchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const term = spaSearchInput.value.trim();
+                if (term) {
+                    window.navigateTo('search', null, term);
+                }
+            });
+        }
+
         window.timeAgo = function(dateParam) {
             if (!dateParam) return '';
             const date = new Date(dateParam);
@@ -157,7 +184,7 @@
                             await window.saveStoryMediaToIndexedDB(file);
                             window.location.href = 'story-editor.html?importStoryMedia=true';
                         } catch (err) {
-                            console.error(err); alert("Failed to load media"); document.getElementById('temp-story-loading').remove();
+                            console.error(err); await window.viyouAlert("Failed to load media"); document.getElementById('temp-story-loading').remove();
                         }
                     }
                     e.target.value = '';
@@ -183,6 +210,18 @@
     <input type="file" id="home-story-file-input" accept="image/*,video/mp4,video/webm" style="display: none;">
 
     <!-- SVG Gradients for Icons -->
+    <script>
+        window.remixStory = function(storyId) {
+            if (!window.currentStory) return;
+            const data = {
+                id: window.currentStory.id,
+                imageUrl: window.currentStory.statusImage,
+                author: window.currentStory.authorName || 'User'
+            };
+            sessionStorage.setItem('remix_story_data', JSON.stringify(data));
+            window.location.href = 'story-camera.html';
+        };
+    </script>
     <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
       <defs>
         <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -228,11 +267,11 @@
                             <div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 5px 10px 10px 10px;">
                                 <button class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0; padding: 8px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Dark"><i data-lucide="moon" style="width: 16px; margin: 0;"></i></button>
                                 <button class="theme-option" data-theme="light" style="background: #fffefe; color: #333; padding: 8px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Light"><i data-lucide="sun" style="width: 16px; margin: 0;"></i></button>
-                                <button class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c; padding: 8px; border-radius: 50%; border: 1px solid rgba(255,0,124,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Cyberpunk"><i data-lucide="zap" style="width: 16px; margin: 0;"></i></button>
-                                <button class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41; padding: 8px; border-radius: 50%; border: 1px solid rgba(0, 255, 64, 0.656); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Matrix"><i data-lucide="terminal" style="width: 16px; margin: 0;"></i></button>
-                                <button class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff; padding: 8px; border-radius: 50%; border: 1px solid rgba(0,229,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Ocean"><i data-lucide="droplet" style="width: 16px; margin: 0;"></i></button>
-                                <button class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6; padding: 8px; border-radius: 50%; border: 1px solid rgba(221, 65, 153, 0.901); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Dracula"><i data-lucide="ghost" style="width: 16px; margin: 0;"></i></button>
-                                <button class="theme-option" data-theme="solar" style="background: #cc300d; color: #ffb703; padding: 8px; border-radius: 50%; border: 1px solid rgba(255, 184, 3, 0.753); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Solar"><i data-lucide="sun-dim" style="width: 16px; margin: 0;"></i></button>
+                                <button class="theme-option" data-theme="cyberpunk" style="background: #2b0b4a; color: #ff007c; padding: 8px; border-radius: 50%; border: 1px solid rgba(255,0,124,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Cyberpunk"><i data-lucide="zap" style="width: 16px; margin: 0;"></i></button>
+                                <button class="theme-option" data-theme="matrix" style="background: #003300; color: #00ff41; padding: 8px; border-radius: 50%; border: 1px solid rgba(0, 255, 64, 0.656); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Matrix"><i data-lucide="terminal" style="width: 16px; margin: 0;"></i></button>
+                                <button class="theme-option" data-theme="ocean" style="background: #003b66; color: #00e5ff; padding: 8px; border-radius: 50%; border: 1px solid rgba(0,229,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Ocean"><i data-lucide="droplet" style="width: 16px; margin: 0;"></i></button>
+                                <button class="theme-option" data-theme="dracula" style="background: #32354b; color: #ff79c6; padding: 8px; border-radius: 50%; border: 1px solid rgba(221, 65, 153, 0.901); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Dracula"><i data-lucide="ghost" style="width: 16px; margin: 0;"></i></button>
+                                <button class="theme-option" data-theme="solar" style="background: #4a0c16; color: #ffb703; padding: 8px; border-radius: 50%; border: 1px solid rgba(255, 184, 3, 0.753); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Solar"><i data-lucide="sun-dim" style="width: 16px; margin: 0;"></i></button>
                             </div>
                         </div>
                         <div style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 5px;">
@@ -240,7 +279,7 @@
                             <button id="login-btn" style="width: 100%; text-decoration: none; color: inherit; background: transparent; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;"><i data-lucide="log-in" style="width: 16px;"></i> Login</button>
                             <button id="logout-btn" style="display: none; width: 100%; text-decoration: none; color: inherit; background: transparent; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;"><i data-lucide="log-out" style="width: 16px;"></i> Logout</button>
                         </div>
-                        <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou. All Rights Reserved.</div>
+                        <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou.in All Rights Reserved.</div>
                     </div>
                 </div>
                 <h1 style="font-weight: 900; font-size: 1.5rem; letter-spacing: 1px; margin: 0; color: #fff;">
@@ -361,16 +400,39 @@
                     <div id="scroll-trigger" style="padding: 20px; color: #888;"><i data-lucide="loader" class="fa-spin"></i> Loading more...</div>
                 </div>
             </div>
-            <div id="user-blogs-single" style="display: none;">
-                <button onclick="window.closeHomeBlog()" class="btn-transparent" style="margin-bottom: 20px;"><i data-lucide="arrow-left"></i> Back to Feed</button>
-                <div id="user-blogs-single-content"></div>
-            </div>
         </div>
         
         <footer>
             <p>&copy; Viyou.in Empowering Creators.</p>
         </footer>
         </div>
+    </div>
+
+    <!-- SPA Router View: Blog -->
+    <div id="view-blog" class="page-view">
+        <div class="watch-container">
+            <div class="watch-main-content" id="blog-main-content">
+                <div style="text-align: center; color: #aaa; padding: 50px;"><i data-lucide="loader" class="fa-spin" style="width: 32px; height: 32px; color: #6366f1;"></i><p>Loading post...</p></div>
+            </div>
+            <div class="watch-sidebar" id="blog-sidebar">
+                <h3 style="margin: 0; color: #fff;">Suggestions</h3>
+                <div id="blog-suggestions"><div style="color: #aaa;">Loading suggestions...</div></div>
+            </div>
+        </div>
+        <footer style="width: 100%;">
+            <p>&copy; Viyou.in Empowering Creators.</p>
+        </footer>
+    </div>
+
+    <!-- Blog Ad Miniplayer -->
+    <div id="blog-ad-miniplayer" style="display: none; position: fixed; bottom: 80px; right: 20px; width: 300px; background: #000; border-radius: 12px; z-index: 3500; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; border: 1px solid #333; cursor: grab; touch-action: none;">
+        <div style="position: absolute; top: 10px; left: 10px; background: rgba(245, 158, 11, 0.9); color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; z-index: 10;">Sponsored</div>
+        <button id="blog-ad-mute-btn" onclick="window.toggleBlogAdMute(event)" style="position: absolute; bottom: 40px; right: 10px; background: rgba(0,0,0,0.5); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center;"><i data-lucide="volume-x" style="width:16px;"></i></button>
+        <video id="blog-ad-video" style="width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover;" muted playsinline></video>
+        <div style="height: 4px; background: #222; width: 100%;">
+            <div id="blog-ad-progress" style="height: 100%; background: #10b981; width: 0%; transition: width 0.1s linear;"></div>
+        </div>
+        <a id="blog-ad-link" href="#" target="_blank" onclick="window.trackAdClick(window.currentBlogAdId, true)" style="display: block; padding: 10px; background: #111; color: #87ceeb; text-align: center; text-decoration: none; font-weight: bold; font-size: 0.9rem;">Learn More <i data-lucide="external-link" style="width:14px; vertical-align:middle;"></i></a>
     </div>
 
     <!-- SPA Router View: Search -->
@@ -417,12 +479,19 @@
         </div>
 
     <!-- SPA Router View: Watch -->
-    <div id="view-watch" class="page-view">
+    <div id="view-watch" class="page-view" style="padding-top: 6px;">
         <div class="watch-container" id="watch-container-wrapper">
             <div class="watch-main-content" id="watch-main-content">
-                <div style="text-align: center; color: #aaa; padding: 50px;"><i data-lucide="loader" class="fa-spin" style="width: 32px; height: 32px; color: #6366f1;"></i><p>Loading video...</p></div>
+                <div style="text-align: center; color: #aaa; padding:70px;"><i data-lucide="loader" class="fa-spin" style="width: 32px; height: 32px; color: #6366f1;"></i><p>Loading video...</p></div>
             </div>
             <div class="watch-sidebar" id="watch-sidebar">
+                <div class="watch-sidebar-search pc-only-search" style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 10px; position: relative;">
+                    <form id="spa-sidebar-search-form" style="display: flex; align-items: center; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 5px; width: 40px; transition: width 0.3s ease; overflow: hidden; position: absolute; right: 0; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                        <button type="button" id="spa-sidebar-search-toggle" style="background: transparent; border: none; color: white; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; outline: none;"><i data-lucide="search" style="width: 18px; height: 18px;"></i></button>
+                        <input type="text" id="spa-sidebar-search-input" placeholder="Search..." autocomplete="off" style="background: transparent; border: none; color: white; outline: none; padding: 0 10px; width: 100%; opacity: 0; transition: opacity 0.3s ease;">
+                    </form>
+                    <div style="height: 40px; width: 100%;"></div>
+                </div>
                 <h3 style="margin: 0; color: #fff;">Up Next</h3>
                 <div id="watch-suggestions"><div style="color: #aaa;">Loading suggestions...</div></div>
             </div>
@@ -710,6 +779,17 @@
         </div>
     </div>
 
+    <!-- Send Watch Video Modal -->
+    <div id="send-watch-modal" class="lightbox-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3005; flex-direction:column; align-items:center; justify-content:center;" onclick="if(event.target === this) this.style.display='none'">
+        <div style="width:90%; max-width:400px; background:#1e1e1e; border: 1px solid #444; border-radius:12px; padding:20px; max-height:70vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+            <h3 style="margin:0; color:#f59e0b;">Send to...</h3>
+                <button onclick="document.getElementById('send-watch-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="send-watch-user-list" style="overflow-y:auto; flex:1; padding-right: 5px;">Loading...</div>
+        </div>
+    </div>
+
     <!-- Login Modal -->
     <div id="login-modal" class="lightbox-modal" onclick="if(event.target === this) this.style.display='none'">
         <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; color: white; position: relative; margin: auto;">
@@ -972,6 +1052,71 @@
         document.addEventListener('pointerup', endMiniplayerDrag);
         document.addEventListener('pointercancel', endMiniplayerDrag);
 
+        // --- Blog Ad Miniplayer Drag & Drop Engine ---
+        let isDraggingBlogAd = false;
+        let blogAdStartX, blogAdStartY, blogAdInitialLeft, blogAdInitialTop;
+
+        document.addEventListener('pointerdown', (e) => {
+            const blogAdMiniplayer = document.getElementById('blog-ad-miniplayer');
+            if (!blogAdMiniplayer || blogAdMiniplayer.style.display === 'none') return;
+            // Prevent dragging if clicking on interactive elements
+            if (e.target.closest('#blog-ad-mute-btn') || e.target.closest('#blog-ad-link')) return;
+            if (!blogAdMiniplayer.contains(e.target)) return;
+
+            isDraggingBlogAd = true;
+            blogAdStartX = e.clientX;
+            blogAdStartY = e.clientY;
+
+            const rect = blogAdMiniplayer.getBoundingClientRect();
+            if (!blogAdMiniplayer.style.top || blogAdMiniplayer.style.bottom !== 'auto') {
+                blogAdMiniplayer.style.top = rect.top + 'px';
+                blogAdMiniplayer.style.left = rect.left + 'px';
+                blogAdMiniplayer.style.bottom = 'auto';
+                blogAdMiniplayer.style.right = 'auto';
+            }
+            blogAdInitialLeft = rect.left;
+            blogAdInitialTop = rect.top;
+            blogAdMiniplayer.style.cursor = 'grabbing';
+            
+            try { blogAdMiniplayer.setPointerCapture(e.pointerId); } catch(err) {}
+        });
+
+        document.addEventListener('pointermove', (e) => {
+            if (!isDraggingBlogAd) return;
+            if (e.cancelable) e.preventDefault(); // Stop mobile screen from scrolling!
+            const blogAdMiniplayer = document.getElementById('blog-ad-miniplayer');
+            if (!blogAdMiniplayer) return;
+
+            const dx = e.clientX - blogAdStartX;
+            const dy = e.clientY - blogAdStartY;
+
+            let newLeft = blogAdInitialLeft + dx;
+            let newTop = blogAdInitialTop + dy;
+
+            // Keep within screen bounds
+            const maxX = window.innerWidth - blogAdMiniplayer.offsetWidth;
+            const maxY = window.innerHeight - blogAdMiniplayer.offsetHeight;
+            if (newLeft < 0) newLeft = 0; if (newTop < 0) newTop = 0;
+            if (newLeft > maxX) newLeft = maxX; if (newTop > maxY) newTop = maxY;
+
+            blogAdMiniplayer.style.left = newLeft + 'px';
+            blogAdMiniplayer.style.top = newTop + 'px';
+        }, { passive: false });
+
+        const endBlogAdDrag = (e) => {
+            if (isDraggingBlogAd) {
+                isDraggingBlogAd = false;
+                const blogAdMiniplayer = document.getElementById('blog-ad-miniplayer');
+                if (blogAdMiniplayer) {
+                    blogAdMiniplayer.style.cursor = 'grab';
+                    try { blogAdMiniplayer.releasePointerCapture(e.pointerId); } catch(err) {}
+                }
+            }
+        };
+        
+        document.addEventListener('pointerup', endBlogAdDrag);
+        document.addEventListener('pointercancel', endBlogAdDrag);
+
         window.toggleMiniplayerControls = function(e) {
             if(window.hasDraggedMiniplayer) return; // Drag karte waqt controls na khulein
             if(e) e.stopPropagation();
@@ -1008,6 +1153,7 @@
 
         window.initWatchView = async function(id) {
             window.currentWatchBlogId = id;
+            window.userAdImpressionTracked = false; // Reset impression tracker for new video
             const mainContent = document.getElementById('watch-main-content');
             const suggestionsContainer = document.getElementById('watch-suggestions');
             
@@ -1171,6 +1317,21 @@
                 const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
                 safeDesc = safeDesc.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #87ceeb; text-decoration: underline;">$1</a>').replace(/\n/g, '<br>');
 
+                let audioBoxHtml = '';
+                if (blog.video && !blog.youtubeUrl) {
+                    const audioTitle = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : 'Original Audio - @' + blog.author;
+                    const audioThumb = blog.thumbnail || blog.authorPhoto || 'logo.png';
+                    audioBoxHtml = `
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="window.location.href='audio.html?url=' + encodeURIComponent('${blog.audioUrl || blog.video}')">
+                        <img src="${audioThumb}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                        <div style="flex: 1; overflow: hidden; text-align: left;">
+                            <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem;">${audioTitle}</div>
+                            <div style="font-size: 0.8rem; color: #aaa;">Viyou Audio</div>
+                        </div>
+                <button style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" onclick="event.stopPropagation(); window.useAudio('${blog.id}', event)">Use</button>
+                    </div>`;
+                }
+
                 mainContent.innerHTML = `
                     <div class="watch-video-container paused" id="video-container">
                         ${miniplayerBtnsHtml}
@@ -1194,11 +1355,15 @@
                                 <button class="btn" id="like-btn-watch" onclick="window.likeUserBlog('${id}')">
                                     <i data-lucide="heart" class="${isLiked ? 'lucide-fill' : ''}" style="color: ${isLiked ? '#ff0050' : 'inherit'};"></i> <span id="like-count-display-watch">${likesCount}</span>
                                 </button>
+                                <button class="btn btn-transparent" onclick="window.shareBlog('${blog.id}', '${(blog.title || '').replace(/'/g, "\\'")}')" style="padding: 6px 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
+                                    <i data-lucide="share-2"></i> Share
+                                </button>
                             </div>
                         </div>
                         <div class="watch-desc-box"> 
                             <div id="video-description" class="blog-desc-text" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: all 0.3s ease;">${safeDesc}</div>
                             <button id="watch-show-more-btn" onclick="window.toggleWatchDescription(event)" style="background: none; border: none; color: #87ceeb; cursor: pointer; font-weight: bold; padding: 5px 0 0 0; font-size: 0.85rem; margin-top: 2px;">Show more</button>
+                            ${audioBoxHtml}
                         </div>
                     </div>
                     <div id="watch-comments-section" style="margin-top: 30px;"></div>
@@ -1260,6 +1425,22 @@
                         const controlsContainer = document.querySelector('.controls');
                         if (controlsContainer) controlsContainer.style.display = 'none';
                         
+                        if (!window.userAdImpressionTracked) {
+                            if (preRollAdToPlay.impressions_served !== undefined) {
+                                if (preRollAdToPlay.impressions_served + 1 >= preRollAdToPlay.impressions_goal) {
+                                    updateDoc(doc(db, "promotions", preRollAdToPlay.id), { impressions_served: increment(1), status: 'expired' }).catch(e => console.error(e));
+                                } else {
+                                    updateDoc(doc(db, "promotions", preRollAdToPlay.id), { impressions_served: increment(1) }).catch(e => console.error(e));
+                                }
+                                preRollAdToPlay.impressions_served += 1;
+                            }
+                            
+                            if (isAuthorMonetized) {
+                                updateDoc(docRef, { adImpressions: increment(1) }).catch(e => console.error(e));
+                            }
+                            window.userAdImpressionTracked = true;
+                        }
+
                         const adActionBtn = document.getElementById('watch-ad-action-btn');
                         const adSkipBtn = document.getElementById('watch-ad-skip-btn');
                         const adCountdown = document.getElementById('watch-ad-countdown');
@@ -1329,15 +1510,28 @@
                         if (window.isPlayingMainVideo && videoElement.currentTime >= 10) {
                             if (typeof window.countWatchVideoView === 'function') window.countWatchVideoView();
                         }
-                        if(progressBar) progressBar.value = (videoElement.currentTime / videoElement.duration) * 100 || 0;
+                        if(progressBar) {
+                            const progPercent = (videoElement.currentTime / videoElement.duration) * 100 || 0;
+                            progressBar.value = progPercent;
+                            progressBar.style.setProperty('--progress', `${progPercent}%`);
+                        }
                         if(currentTimeDisplay) currentTimeDisplay.textContent = formatTime(videoElement.currentTime);
                     });
                     
                     if(progressBar) {
                         progressBar.addEventListener('input', () => {
                             videoElement.currentTime = (progressBar.value / 100) * videoElement.duration;
+                            progressBar.style.setProperty('--progress', `${progressBar.value}%`);
                         });
                     }
+                    
+                    videoElement.addEventListener('progress', () => {
+                        if (videoElement.duration > 0 && videoElement.buffered.length > 0) {
+                            const bufferedEnd = videoElement.buffered.end(videoElement.buffered.length - 1);
+                            const bufferPercent = (bufferedEnd / videoElement.duration) * 100;
+                            if(progressBar) progressBar.style.setProperty('--buffer', `${bufferPercent}%`);
+                        }
+                    });
                     
                     if(volumeSlider) {
                         volumeSlider.addEventListener('input', () => {
@@ -1365,18 +1559,28 @@
                     if(fullscreenBtn) {
                         fullscreenBtn.onclick = async () => {
                             const container = document.getElementById('video-container');
-                            if (!document.fullscreenElement) {
+                            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                                 try {
-                                    await container.requestFullscreen();
+                                    if (container.requestFullscreen) {
+                                        await container.requestFullscreen();
+                                    } else if (container.webkitRequestFullscreen) {
+                                        await container.webkitRequestFullscreen();
+                                    } else if (videoElement.webkitEnterFullscreen) {
+                                        videoElement.webkitEnterFullscreen();
+                                    }
                                     fullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
                                     // Mobile mein YouTube ki tarah Landscape Mode
                                     if (window.innerWidth <= 768 && screen.orientation && screen.orientation.lock) {
-                                        await screen.orientation.lock('landscape').catch(e => console.log(e));
+                                        await screen.orientation.lock('landscape').catch(e => console.log("Orientation lock blocked:", e));
                                     }
                                 } catch(e) { console.error(e); }
                             } else {
                                 try {
-                                    await document.exitFullscreen();
+                                    if (document.exitFullscreen) {
+                                        await document.exitFullscreen();
+                                    } else if (document.webkitExitFullscreen) {
+                                        await document.webkitExitFullscreen();
+                                    }
                                     fullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
                                     if (screen.orientation && screen.orientation.unlock) {
                                         screen.orientation.unlock();
@@ -1389,8 +1593,8 @@
 
                     // Escape Button ya Mobile Back button dabane par orientation theek karne ke liye
                     if (!window.hasFullscreenChangeListener) {
-                        document.addEventListener('fullscreenchange', () => {
-                            if (!document.fullscreenElement) {
+                        const handleFullscreenExit = () => {
+                            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                                 const btn = document.getElementById('fullscreen-btn');
                                 if (btn) btn.innerHTML = '<i data-lucide="maximize"></i>';
                                 if (screen.orientation && screen.orientation.unlock) {
@@ -1398,7 +1602,9 @@
                                 }
                                 if (window.lucide) window.lucide.createIcons();
                             }
-                        });
+                        };
+                        document.addEventListener('fullscreenchange', handleFullscreenExit);
+                        document.addEventListener('webkitfullscreenchange', handleFullscreenExit);
                         window.hasFullscreenChangeListener = true;
                     }
 
@@ -1587,12 +1793,20 @@
                     
                     const theaterBtn = document.getElementById('theater-btn');
                     if (theaterBtn) {
-                        theaterBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const wrapper = document.getElementById('watch-container-wrapper');
-                            if(wrapper) wrapper.classList.toggle('theater-mode');
-                        });
+                        const wrapper = document.getElementById('watch-container-wrapper');
+                        if (wrapper) {
+                            // Load saved preference
+                            if (localStorage.getItem('viyou_theater_mode') === 'true') {
+                                wrapper.classList.add('theater-mode');
+                            }
+                            theaterBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                wrapper.classList.toggle('theater-mode');
+                                // Save preference
+                                localStorage.setItem('viyou_theater_mode', wrapper.classList.contains('theater-mode'));
+                            });
+                        }
                     }
                 }
                 
@@ -1997,6 +2211,12 @@
                 document.querySelector('.bottom-nav .nav-item:nth-child(1)').classList.add('active');
                 window.history.pushState({page: 'history'}, '', '?view=history');
                 window.loadWatchHistory();
+            } else if (page === 'blog') {
+                document.getElementById('view-blog').style.display = 'block';
+                document.getElementById('view-blog').classList.add('active');
+                document.querySelector('.bottom-nav .nav-item:nth-child(1)').classList.add('active');
+                window.history.pushState({page: 'blog', id: uid}, '', `?view=blog&id=${uid}`);
+                if (window.currentBlogViewId !== uid) window.initBlogView(uid);
             }
             window.scrollTo(0, 0);
         };
@@ -2744,9 +2964,9 @@
         window.deleteMyBlog = async (id) => {
             if(await window.viyouConfirm("Are you sure you want to delete this post?")) {
                 try { await deleteDoc(doc(db, "blogs", id)); if(auth.currentUser) window.renderUserBlogs(auth.currentUser.uid, true); } 
-                catch(e) { alert("Error: " + e.message); }
-            }
-        };
+                        catch(e) { await window.viyouAlert("Error: " + e.message); }
+                    }
+                };
 
         window.showUserList = async (type) => {
             if (!isProfileOwnerProfile) return; 
@@ -2912,18 +3132,18 @@
                     if (currentActionPwd === 'delete_acc') {
                         await deleteDoc(doc(db, "users", auth.currentUser.uid));
                         await deleteUser(auth.currentUser);
-                        alert("Account deleted successfully.");
+                        await window.viyouAlert("Account deleted successfully.");
                         window.location.href = 'index.html';
                     } else if (currentActionPwd === 'change_pwd') {
                         const newPwd = document.getElementById('new-password').value;
                         const confirmPwd = document.getElementById('confirm-password').value;
-                        if (newPwd !== confirmPwd) { alert("New passwords do not match."); return; }
-                        if (newPwd.length < 6) { alert("Password must be at least 6 characters."); return; }
+                        if (newPwd !== confirmPwd) { await window.viyouAlert("New passwords do not match."); return; }
+                        if (newPwd.length < 6) { await window.viyouAlert("Password must be at least 6 characters."); return; }
                         await updatePassword(auth.currentUser, newPwd);
-                        alert("Password updated successfully!");
+                        await window.viyouAlert("Password updated successfully!");
                         pwdModal.style.display = 'none';
                     }
-                } catch (error) { console.error("Action error:", error); alert("Error: " + error.message); }
+                } catch (error) { console.error("Action error:", error); await window.viyouAlert("Error: " + error.message); }
             });
         }
 
@@ -3313,6 +3533,23 @@
                 let vidSrc = window.getProxiedVideoUrl(data.videoUrl);
                 content = `${fwdInd}<div class="story-reply-preview text-only" style="margin-bottom: 5px; cursor: pointer;" onclick="window.navigateTo('home', event); setTimeout(()=>window.location.href='flicks.html?id=${data.flickId}', 500)"><span style="font-size:0.75rem; color:#aaa; display:block;"><i data-lucide="zap" style="color:#ff0050; width:12px;height:12px;"></i> Shared a Flick</span></div><video src="${data.videoUrl}" controls style="max-width: 100%; border-radius: 8px; max-height: 250px; background: #000;"></video>${data.title ? `<div style="font-size:0.85rem; font-weight:bold; margin-top:5px;">${data.title}</div>` : ''}`;
             }
+            else if (data.type === 'watch') {
+                let watchTitleHtml = data.title ? `<div style="font-size:0.85rem; font-weight:bold; margin-top: 5px;">${data.title}</div>` : '';
+                let watchThumb = data.thumbnail || 'logo.png';
+                if (data.youtubeUrl) {
+                    const match = data.youtubeUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                    if(match) watchThumb = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                }
+                content = `${fwdInd}
+                    <div class="story-reply-preview text-only" style="margin-bottom: 5px; cursor: pointer;" onclick="window.navigateTo('watch', event, '${data.blogId}')">
+                        <span style="font-size:0.75rem; color:#aaa; display:block;"><i data-lucide="play-circle" style="color:#0d6efd; width:12px;height:12px; vertical-align:middle;"></i> Shared a Video</span>
+                    </div>
+                    <div style="position: relative; cursor: pointer;" onclick="window.navigateTo('watch', event, '${data.blogId}')">
+                        <img src="${watchThumb}" style="max-width: 100%; border-radius: 8px; max-height: 250px; background: #000; object-fit: cover;">
+                        <i data-lucide="play-circle" class="lucide-fill" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 48px; height: 48px; color: rgba(255,255,255,0.8); text-shadow: 0 4px 10px rgba(0,0,0,0.5);"></i>
+                    </div>
+                    ${watchTitleHtml}`;
+            }
             else {
                 const tDiv = document.createElement('div'); tDiv.textContent = data.content;
                 let text = tDiv.innerHTML.replace(/\n/g, '<br>');
@@ -3537,6 +3774,7 @@
                 else if (payload.type === 'pdf') lastMsg = '[PDF]';
                 else if (payload.type === 'flick') lastMsg = 'Sent a Flick';
                 else if (payload.type === 'youtube') lastMsg = '[Video]';
+                else if (payload.type === 'watch') lastMsg = 'Shared a video';
                 await setDoc(doc(db, "conversations", tConvId), { lastMessage: { text: lastMsg, senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } }, { merge: true });
                 window.viyouAlert("Message forwarded!");
                 document.getElementById('forward-modal').style.display = 'none'; window.messageToForward = null;
@@ -3794,13 +4032,16 @@
                 if (promoSettingsSnap.exists()) {
                     window.preRollAdConfig.frequency = promoSettingsSnap.data().prerollFrequency || 3;
                 }
-                const q = query(collection(db, "promotions"), where("status", "==", "approved"), where("type", "==", "preroll"));
+                const q = query(collection(db, "promotions"), where("status", "==", "approved"));
                 const adSnap = await getDocs(q);
                 window.preRollAdConfig.activeAds = [];
+                window.blogAdConfig = { activeAds: [] };
                 adSnap.forEach(adDoc => {
                     const adData = adDoc.data();
-                    if ((adData.impressions_served || 0) < (adData.impressions_goal || 1)) {
+                    if (adData.type === 'preroll' && (adData.impressions_served || 0) < (adData.impressions_goal || 1)) {
                         window.preRollAdConfig.activeAds.push({ id: adDoc.id, ...adData });
+                    } else if (adData.type === 'blog_ad' && (adData.impressions_served || 0) < (adData.impressions_goal || 1)) {
+                        window.blogAdConfig.activeAds.push({ id: adDoc.id, ...adData });
                     }
                 });
             } catch(e) { console.error("Error loading pre-roll config:", e); }
@@ -4244,9 +4485,9 @@
                         photoURL: result.user.photoURL
                     }, { merge: true });
                 })
-                .catch((error) => {
+                .catch(async (error) => {
                     console.error("Login Error:", error);
-                    alert(`Login Failed:\n${error.message}\n(Code: ${error.code})`);
+                    await window.viyouAlert(`Login Failed:\n${error.message}\n(Code: ${error.code})`);
                     showToast(`Login Failed: ${error.message}`, 'error');
                 });
         });
@@ -4257,14 +4498,14 @@
             const pass = document.getElementById('password-input').value;
 
             if (!email || !pass) {
-                alert("Please enter both email and password.");
+                await window.viyouAlert("Please enter both email and password.");
                 showToast("Please enter both email and password.", 'error');
                 return;
             }
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                alert("Please enter a valid email address.");
+                await window.viyouAlert("Please enter a valid email address.");
                 showToast("Please enter a valid email address.", 'error');
                 return;
             }
@@ -4274,10 +4515,10 @@
                 document.getElementById('login-modal').style.display = 'none';
             } catch(e) {
                 if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
-                    alert("Invalid email or password. Please try again.");
+                    await window.viyouAlert("Invalid email or password. Please try again.");
                     showToast("Invalid email or password. Please try again.", 'error');
                 } else {
-                    alert("Login Error: " + e.message);
+                    await window.viyouAlert("Login Error: " + e.message);
                     showToast("Login Error: " + e.message, 'error');
                 }
             }
@@ -4288,18 +4529,18 @@
             const pass = document.getElementById('password-input').value;
 
             if (!email || !pass) {
-                alert("Please enter both email and password.");
+                await window.viyouAlert("Please enter both email and password.");
                 showToast("Please enter both email and password.", 'error');
                 return;
             }
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                alert("Please enter a valid email address.");
+                await window.viyouAlert("Please enter a valid email address.");
                 showToast("Please enter a valid email address.", 'error');
                 return;
             }
             if (pass.length < 6) {
-                alert("Password must be at least 6 characters long.");
+                await window.viyouAlert("Password must be at least 6 characters long.");
                 showToast("Password must be at least 6 characters long.", 'error');
                 return;
             }
@@ -4309,10 +4550,10 @@
                 document.getElementById('login-modal').style.display = 'none';
             } catch(e) {
                 if (e.code === 'auth/email-already-in-use') {
-                    alert("This email address is already in use. Please login or use a different email.");
+                    await window.viyouAlert("This email address is already in use. Please login or use a different email.");
                     showToast("This email is already in use. Please login or use a different email.", 'error');
                 } else {
-                    alert("Signup Error: " + e.message);
+                    await window.viyouAlert("Signup Error: " + e.message);
                     showToast("Signup Error: " + e.message, 'error');
                 }
             }
@@ -4324,7 +4565,7 @@
             e.preventDefault();
             const email = document.getElementById('email-input').value;
             if (!email) {
-                alert("Please enter your email address in the field above to reset your password.");
+                await window.viyouAlert("Please enter your email address in the field above to reset your password.");
                 return;
             }
             try {
@@ -4343,8 +4584,8 @@
         }
 
         // Start fetching global non-auth data IMMEDIATELY to speed up load time
-        const globalAdPromise = loadAdSettings();
-        const globalPromosPromise = loadActivePromotions();
+        window.globalAdPromise = loadAdSettings();
+        window.globalPromosPromise = loadActivePromotions();
         
         window.enableYoutubeLinks = true;
         const globalSettingsPromise = getDoc(doc(db, "settings", "general")).then(snap => {
@@ -4416,7 +4657,7 @@
                     if (userDoc.exists()) {
                         // --- ENFORCE BAN LOGIC ---
                         if (userDoc.data().isBanned) {
-                            alert("⛔ Your account has been permanently banned for violating community guidelines (Abusive/Sexual Content).");
+                            await window.viyouAlert("⛔ Your account has been permanently banned for violating community guidelines (Abusive/Sexual Content).");
                             signOut(auth);
                             return;
                         }
@@ -4445,6 +4686,7 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const viewParam = urlParams.get('view');
                 if (viewParam) {
+                    if (viewParam === 'blog') { window.navigateTo('blog', null, urlParams.get('id')); return; }
                     if (viewParam === 'profile') { window.navigateTo('profile', null, urlParams.get('uid')); return; }
                     if (viewParam === 'messages') { window.navigateTo('messages', null); return; }
                     if (viewParam === 'chat') { window.navigateTo('chat', null, urlParams.get('uid')); return; }
@@ -4516,7 +4758,7 @@
             updateFeedToggleUI();
         
         // Wait for the initially fired promises to resolve instantly
-        await Promise.all([globalAdPromise, globalPromosPromise, globalSettingsPromise]); 
+        await Promise.all([window.globalAdPromise, window.globalPromosPromise, window.globalSettingsPromise]); 
         
             loadMainHeadline(); // Load main headline
             await loadBlogs(false); // Start loading from the beginning
@@ -4536,10 +4778,9 @@
             resetAndLoadBlogs();
         });
 
-        document.getElementById('feed-following-btn').addEventListener('click', () => {
+        document.getElementById('feed-following-btn').addEventListener('click', async () => {
             if (currentFeedMode === 'following') return;
-            if (!auth.currentUser) { alert("Please login to see posts from users you follow."); return; }
-            if (!auth.currentUser) { showToast("Please login to see posts from users you follow.", 'info'); return; }
+            if (!auth.currentUser) { await window.viyouAlert("Please login to see posts from users you follow."); return; }
             currentFeedMode = 'following';
             resetAndLoadBlogs();
         });
@@ -4907,12 +5148,14 @@
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const targetBlogId = urlParams.get('blogId');
+                const targetSpaBlogId = urlParams.get('id');
+                const theTargetId = targetBlogId || (urlParams.get('view') === 'blog' ? targetSpaBlogId : null);
                 let targetFlick = null;
-                if (targetBlogId) {
-                    targetFlick = allFlicks.find(f => f.id === targetBlogId);
+                if (theTargetId) {
+                    targetFlick = allFlicks.find(f => f.id === theTargetId);
                     if (!targetFlick) {
                         try {
-                            const docSnap = await getDoc(doc(db, "blogs", targetBlogId));
+                            const docSnap = await getDoc(doc(db, "blogs", theTargetId));
                             if (docSnap.exists() && docSnap.data().isFlicker) {
                                 targetFlick = { id: docSnap.id, ...docSnap.data() };
                             }
@@ -4996,12 +5239,7 @@
             }
             const likeIcon = isLiked ? '<i data-lucide="heart" class="lucide-fill" style="color: #ff0050;"></i>' : '<i data-lucide="heart" style="color: #ccc;"></i>';
 
-            let likeButtonHTML;
-            if (isOwner && likeCount > 0) {
-                    likeButtonHTML = `<button onclick="window.showLikers('${blog.id}')" class="blog-action-btn" style="color:#ff0050;" id="like-btn-${blog.id}">${likeIcon} <span>${likeCount}</span></button>`;                    
-            } else {
-                likeButtonHTML = `<button onclick="window.likeUserBlog('${blog.id}')" class="blog-action-btn" style="color:#ff0050;" id="like-btn-${blog.id}">${likeIcon} <span>${likeCount}</span></button>`;
-            }
+            let likeButtonHTML = `<button onclick="window.likeUserBlog('${blog.id}')" class="blog-action-btn" style="color:#ff0050;" id="like-btn-${blog.id}">${likeIcon} <span>${likeCount}</span></button>`;
 
             let actionButtons = likeButtonHTML;
             actionButtons += `<button onclick='window.shareBlog(${JSON.stringify(blog.id)}, ${JSON.stringify(blog.title || "")})' class="blog-action-btn" style="color:#6366f1;"><i data-lucide="share-2"></i> Share</button>`;
@@ -5143,6 +5381,21 @@
                 return safeText;
             };
 
+        let audioBoxHtml = '';
+        if (blog.video && !blog.youtubeUrl) {
+            const audioTitle = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : 'Original Audio - @' + blog.author;
+            const audioThumb = blog.thumbnail || blog.authorPhoto || 'logo.png';
+            audioBoxHtml = `
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: default;" onclick="event.stopPropagation()">
+                <img src="${audioThumb}" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
+                <div style="flex: 1; overflow: hidden; text-align: left;">
+                    <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">${audioTitle}</div>
+                    <div style="font-size: 0.75rem; color: #aaa;">Viyou Audio</div>
+                </div>
+                <button style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" onclick="window.useAudio('${blog.id}', event)">Use</button>
+            </div>`;
+        }
+
             const commentsHtml = indexedComments.map(c => {
                 if (currentUserBlocked.includes(c.userUid)) return `<div style="padding: 5px; font-style: italic; color: #888; font-size: 0.85rem;">Comment from a blocked user.</div>`;
                 
@@ -5249,7 +5502,10 @@
                 <div class="news-card-info" style="display: flex; gap: 12px; padding: 12px 15px 0 15px; flex: 1; box-sizing: border-box;">
                     <img src="${blog.authorPhoto || 'https://via.placeholder.com/40'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid #555; flex-shrink: 0;" onclick="window.navigateTo('profile', event, '${blog.authorUid}')">
                     <div style="flex: 1; min-width: 0;">
-                        <h3 class="card-title-text" onclick="${targetAction}">${renderTextWithMentions(blog.title)}</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                            <h3 class="card-title-text" onclick="${targetAction}" style="margin-top: 0;">${renderTextWithMentions(blog.title)}</h3>
+                            ${optionsDropdown}
+                        </div>
                         <div style="font-size: 0.85rem; color: #aaa; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
                             <span style="cursor: pointer;" onclick="window.navigateTo('profile', event, '${blog.authorUid}')">${blog.author} ${verifiedBadge}</span>
                             ${followBtnHtml}
@@ -5268,8 +5524,8 @@
                                 ${renderTextWithMentions(blog.content)}
                             </div>
                         </div>` : ''}
+                    ${audioBoxHtml}
                     </div>
-                    ${optionsDropdown}
                 </div>
 
                 ${pollHtml}
@@ -5293,40 +5549,362 @@
             `;
         };
 
-        window.viewHomeBlog = function(id) {
-            const blog = fetchedBlogs.find(b => b.id === id);
-            if (!blog) return;
-            const user = auth.currentUser;
-            const isOwner = user && (blog.authorUid === user.uid);
+        window.initBlogView = async function(id) {
+            window.currentBlogViewId = id;
+            const mainContent = document.getElementById('blog-main-content');
             
-            const content = document.getElementById('user-blogs-single-content');
-            const article = document.createElement('article');
-            article.className = 'news-card';
-            article.id = `home-single-${blog.id}`;
-            article.style.marginBottom = '20px';
-            
-            article.innerHTML = window.buildHomeBlogCardHTML(blog, isOwner, user);
-            
-            content.innerHTML = '';
-            content.appendChild(article);
-            
-            document.getElementById('user-blogs-list-container').style.display = 'none';
-            document.getElementById('user-blogs-single').style.display = 'block';
-            window.currentHomeViewId = id; 
-            if (window.lucide) window.lucide.createIcons();
-            window.scrollTo(0, 0);
-        };
+            mainContent.innerHTML = '<div style="text-align: center; color: #aaa; padding: 50px;"><i data-lucide="loader" class="fa-spin" style="width: 32px; height: 32px; color: #6366f1;"></i><p>Loading post...</p></div>';
+            if(window.lucide) window.lucide.createIcons();
 
-        window.closeHomeBlog = function() {
-            document.getElementById('user-blogs-single').style.display = 'none';
-            document.getElementById('user-blogs-list-container').style.display = 'block';
-            if (window.currentHomeViewId) {
-                const el = document.getElementById(`blog-${window.currentHomeViewId}`);
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            try {
+                const docRef = doc(db, "blogs", id);
+                const snap = await getDoc(docRef);
+                if (!snap || !snap.exists()) { mainContent.innerHTML = '<div style="padding: 20px;">Post not found.</div>'; return; }
+
+                const blog = { id: snap.id, ...snap.data() };
+                window.currentWatchBlog = blog; // Reusing for comments mapping globally
+
+                // Increment view count immediately
+                const viewKey = `viyou_view_count_${id}`;
+                let currentViews = parseInt(localStorage.getItem(viewKey) || '0');
+                if (currentViews < 5) {
+                    localStorage.setItem(viewKey, currentViews + 1);
+                    updateDoc(docRef, { views: increment(1) }).catch(e => {});
                 }
+
+                const isOwner = auth.currentUser && (blog.authorUid === auth.currentUser.uid);
+                
+                const article = document.createElement('article');
+                article.className = 'news-card';
+                article.style.background = 'rgba(20,20,20,0.6)';
+                article.style.padding = '20px';
+                article.style.borderRadius = '16px';
+                article.style.border = '1px solid rgba(255,255,255,0.05)';
+                article.innerHTML = window.buildHomeBlogCardHTML(blog, isOwner, auth.currentUser);
+
+                mainContent.innerHTML = '';
+                mainContent.appendChild(article);
+                if (window.lucide) window.lucide.createIcons();
+
+                window.loadBlogSuggestions(id, blog.category);
+                window.playBlogAd(id, blog.authorUid, blog.category);
+            } catch (err) {
+                console.error(err);
+                mainContent.innerHTML = '<div style="padding: 20px; color: red;">Error loading post.</div>';
             }
         };
+
+        window.lastBlogSuggestionDoc = null;
+        window.isFetchingBlogSuggestions = false;
+
+        window.loadBlogSuggestions = async function(blogId, category, isLoadMore = false) {
+            if (window.isFetchingBlogSuggestions) return;
+            window.isFetchingBlogSuggestions = true;
+            
+            if (window.currentBlogViewId !== blogId) {
+                window.isFetchingBlogSuggestions = false;
+                return;
+            }
+
+            const container = document.getElementById('blog-suggestions');
+            if (!container) {
+                window.isFetchingBlogSuggestions = false;
+                return;
+            }
+
+            let trigger = document.getElementById('blog-suggestions-trigger');
+            
+            if (!isLoadMore) {
+                container.innerHTML = '';
+                window.lastBlogSuggestionDoc = null;
+            } else {
+                if (trigger) trigger.style.display = 'block';
+            }
+
+            try {
+                let fetchedBlogs = [];
+                let hasMore = true;
+                
+                while (fetchedBlogs.length < 30 && hasMore) {
+                    let qConstraints = [orderBy("date", "desc"), limit(50)];
+                    if (window.lastBlogSuggestionDoc) {
+                        qConstraints.push(startAfter(window.lastBlogSuggestionDoc));
+                    }
+                    const q = query(collection(db, "blogs"), ...qConstraints);
+                    const snap = await getDocs(q);
+                    
+                    if (snap.empty) {
+                        hasMore = false;
+                        break;
+                    }
+                    
+                    window.lastBlogSuggestionDoc = snap.docs[snap.docs.length - 1];
+                    
+                    snap.forEach(docSnap => {
+                        const b = docSnap.data();
+                        if (!window.enableYoutubeLinks && b.youtubeUrl) return;
+                        if (docSnap.id === blogId || b.isFlicker || b.video || b.youtubeUrl || b.status === 'draft') return;
+                        fetchedBlogs.push({ id: docSnap.id, ...b });
+                    });
+                    
+                    if (snap.docs.length < 50) hasMore = false;
+                }
+
+                if (category) {
+                    let related = fetchedBlogs.filter(b => b.category === category);
+                    let others = fetchedBlogs.filter(b => b.category !== category);
+                    fetchedBlogs = [...related, ...others];
+                }
+
+                if (window.currentBlogViewId !== blogId) {
+                    window.isFetchingBlogSuggestions = false;
+                    return;
+                }
+
+                if (fetchedBlogs.length === 0 && !isLoadMore) {
+                    container.innerHTML = '<div style="color: #aaa;">No suggestions found.</div>';
+                } else {
+                    fetchedBlogs.forEach(b => {
+                        let thumb = b.thumbnail || b.image || 'logo.png';
+                        const div = document.createElement('div');
+                        div.className = 'watch-suggestion-card';
+                        div.onclick = (e) => window.navigateTo('blog', e, b.id);
+                        div.innerHTML = `
+                            <div style="position: relative; width: 120px; height: 80px; flex-shrink: 0;">
+                                <img src="${thumb}" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;">
+                            </div>
+                            <div class="watch-suggestion-info" style="flex: 1; min-width: 0;">
+                                <h4>${b.title}</h4>
+                                <p>${b.author}</p>
+                                <p>❤️ ${Array.isArray(b.likes) ? b.likes.length : (b.likes || 0)}</p>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+
+                if (hasMore) {
+                    if (!trigger) {
+                        trigger = document.createElement('div');
+                        trigger.id = 'blog-suggestions-trigger';
+                        trigger.style.cssText = "text-align: center; color: #aaa; padding: 20px; width: 100%;";
+                        trigger.innerHTML = '<i data-lucide="loader" class="fa-spin" style="width: 24px; height: 24px;"></i> Loading more...';
+                        container.appendChild(trigger);
+                        
+                        const observer = new IntersectionObserver((entries) => {
+                            if (entries[0].isIntersecting) {
+                                window.loadBlogSuggestions(blogId, category, true);
+                            }
+                        }, { rootMargin: '0px 0px 300px 0px' });
+                        observer.observe(trigger);
+                    } else {
+                        trigger.style.display = 'block';
+                        container.appendChild(trigger);
+                    }
+                } else {
+                    if (trigger) trigger.style.display = 'none';
+                }
+                
+                if (window.lucide) window.lucide.createIcons();
+            } catch (e) {
+                console.error("Error loading blog suggestions", e);
+                if (!isLoadMore) container.innerHTML = '<div style="color: #aaa;">Error loading suggestions.</div>';
+            }
+            window.isFetchingBlogSuggestions = false;
+        };
+
+        window.playBlogAd = async function(blogId, authorUid, blogCategory) {
+            if (window.globalAdPromise) await window.globalAdPromise;
+            if (!globalAdConfig || !globalAdConfig.showAds) return;
+
+            let blogAdFreq = 3; let blogAdLimit = 3;
+            try {
+                const monSettings = await getDoc(doc(db, "settings", "monetization"));
+                if (monSettings.exists()) {
+                    blogAdFreq = monSettings.data().blogAdFreq || 3;
+                    blogAdLimit = monSettings.data().blogAdLimit || 3;
+                }
+            } catch(e) {}
+
+            const adLimitKey = `viyou_blog_ad_${blogId}_${auth.currentUser?.uid || 'guest'}`;
+            let adViews = parseInt(localStorage.getItem(adLimitKey) || '0');
+            if (adViews >= blogAdLimit) return;
+
+            let sessionBlogViews = parseInt(sessionStorage.getItem('viyou_blog_views') || '0');
+            sessionBlogViews++;
+            sessionStorage.setItem('viyou_blog_views', sessionBlogViews);
+
+            if (sessionBlogViews % blogAdFreq !== 0 && sessionBlogViews !== 1) return;
+
+            let eligibleAds = window.blogAdConfig?.activeAds || [];
+            if (blogCategory) {
+                eligibleAds = eligibleAds.filter(ad => {
+                    if (!ad.targetCategories || ad.targetCategories.length === 0) return true;
+                    return ad.targetCategories.includes(blogCategory);
+                });
+            }
+            if (eligibleAds.length === 0) return;
+            
+            // Increment limit immediately so leaving early counts against the limit
+            localStorage.setItem(adLimitKey, adViews + 1);
+
+            // Fetch author monetization status once to save database reads
+            let isAuthorMonetized = false;
+            if (authorUid) {
+                try {
+                    const snap = await getDoc(doc(db, "users", authorUid));
+                    if (snap.exists() && snap.data().isMonetized) isAuthorMonetized = true;
+                } catch(e) {}
+            }
+
+            // Shuffle and pick up to 5 ads to play sequentially
+            let shuffled = [...eligibleAds].sort(() => 0.5 - Math.random());
+            let playlist = shuffled.slice(0, 5);
+            let currentAdIndex = 0;
+
+            const container = document.getElementById('blog-ad-miniplayer');
+            const player = document.getElementById('blog-ad-video');
+            const link = document.getElementById('blog-ad-link');
+            
+            const playNextAd = () => {
+                if (currentAdIndex >= playlist.length) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                const adToPlay = playlist[currentAdIndex];
+                window.currentBlogAdId = adToPlay.id;
+                
+                // Automatically proxy Firebase/Drive URLs for safety and reliability
+                player.src = window.getProxiedVideoUrl ? window.getProxiedVideoUrl(adToPlay.mediaData) : adToPlay.mediaData;
+                link.href = adToPlay.targetUrl;
+                
+                container.style.display = 'block';
+                player.defaultMuted = true;
+                player.muted = true;
+                player.setAttribute('playsinline', '');
+                player.setAttribute('autoplay', 'true');
+                player.load();
+                document.getElementById('blog-ad-mute-btn').innerHTML = '<i data-lucide="volume-x" style="width:16px;"></i>';
+                if(window.lucide) window.lucide.createIcons();
+
+                let adEndedHandled = false;
+                
+                const triggerAdEnd = () => {
+                    if (adEndedHandled) return;
+                    adEndedHandled = true;
+                    player.pause();
+                    
+                     if (isAuthorMonetized) updateDoc(doc(db, "blogs", blogId), { adImpressions: increment(1) }).catch(e=>{});
+                    if (adToPlay.impressions_served !== undefined) {
+                        if (adToPlay.impressions_served + 1 >= adToPlay.impressions_goal) {
+                            updateDoc(doc(db, "promotions", adToPlay.id), { impressions_served: increment(1), status: 'expired' }).catch(e=>{});
+                        } else {
+                            updateDoc(doc(db, "promotions", adToPlay.id), { impressions_served: increment(1) }).catch(e=>{});
+                        }
+                        if (adToPlay.mediaData && adToPlay.mediaData.includes('api/stream/')) {
+                            const match = adToPlay.mediaData.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+                            if (match && match[1]) fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
+                        }
+                    } else {
+                        updateDoc(doc(db, "promotions", adToPlay.id), { impressions_served: increment(1) }).catch(e=>{});
+                        adToPlay.impressions_served += 1;
+                    }
+                    
+                    currentAdIndex++;
+                    playNextAd(); // Queue mein agli ad chalao
+                };
+
+                // Set specific start time when metadata loads (replaces unstable #t= URL fragments)
+                player.onloadedmetadata = () => {
+                    if (adToPlay.adStartTime !== undefined && adToPlay.adStartTime > 0) {
+                        player.currentTime = adToPlay.adStartTime;
+                    }
+                };
+
+                player.onended = triggerAdEnd;
+
+                player.onerror = () => {
+                    console.warn("Blog ad video load error", player.error);
+                    if (!adEndedHandled) {
+                        adEndedHandled = true;
+                        currentAdIndex++;
+                        playNextAd(); // Skip broken ad instantly
+                    }
+                };
+
+                player.ontimeupdate = () => {
+                    let dur = player.duration || 1;
+                    let cTime = player.currentTime || 0;
+                    if (adToPlay.adStartTime !== undefined && adToPlay.adEndTime !== undefined) {
+                        dur = adToPlay.adEndTime - adToPlay.adStartTime;
+                        cTime = player.currentTime - adToPlay.adStartTime;
+                        if (player.currentTime >= adToPlay.adEndTime) {
+                            triggerAdEnd();
+                            return;
+                        }
+                    }
+                    const p = (cTime / dur) * 100;
+                    document.getElementById('blog-ad-progress').style.width = Math.max(0, Math.min(100, p)) + '%';
+                };
+
+                let playPromise = player.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => {
+                        console.log("Blog ad autoplay blocked", e);
+                        player.muted = true;
+                        player.play().catch(err => {
+                            // Agar tab bhi block ho jaye, toh agle ad par skip karein
+                            if (!adEndedHandled) {
+                                console.warn("Skipping blocked ad...");
+                                adEndedHandled = true;
+                                currentAdIndex++;
+                                playNextAd();
+                            }
+                        });
+                    });
+                }
+            };
+            
+            playNextAd(); // Playlist start karo
+        };
+
+        window.toggleBlogAdMute = function(e) {
+            e.stopPropagation();
+            const player = document.getElementById('blog-ad-video');
+            player.muted = !player.muted;
+            document.getElementById('blog-ad-mute-btn').innerHTML = player.muted ? '<i data-lucide="volume-x" style="width:16px;"></i>' : '<i data-lucide="volume-2" style="width:16px;"></i>';
+            if(window.lucide) window.lucide.createIcons();
+        };
+
+    window.useAudio = async function(id, event) {
+        if (event) event.stopPropagation();
+        const blog = fetchedBlogs.find(f => f.id === id) || (window.currentWatchBlog && window.currentWatchBlog.id === id ? window.currentWatchBlog : null);
+        if (blog && blog.video) {
+            const title = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : 'Original Audio - @' + blog.author;
+            
+            try {
+                const q = query(collection(db, "audios"), where("audioUrl", "==", blog.video));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    await addDoc(collection(db, "audios"), {
+                        title: title,
+                        ownerUid: blog.authorUid || "system",
+                        ownerName: blog.author || "User",
+                        audioUrl: blog.video,
+                        coverImage: blog.thumbnail || blog.authorPhoto || 'logo.png',
+                        allowRemix: true,
+                        usageCount: 1,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            } catch(e) { console.error("Auto add audio error:", e); }
+            
+            localStorage.setItem('viyou_import_audio_url', blog.video);
+            localStorage.setItem('viyou_import_audio_name', title);
+            window.location.href = 'story-camera.html?importAudio=true';
+        }
+    };
 
         window.showLikers = async function(blogId) {
             const modal = document.getElementById('user-list-modal');
@@ -5428,7 +6006,7 @@
 
                     let icon = category === 'flicks' ? '<i data-lucide="zap" class="lucide-fill" style="color: #ff0050;"></i>' : (category === 'videos' ? '<i data-lucide="play" class="lucide-fill"></i>' : '<i data-lucide="newspaper"></i>');
                     
-                    let targetAction = category === 'flicks' ? `window.location.href='flicks.html?id=${blog.id}'` : (category === 'videos' ? `window.navigateTo('watch', event, '${blog.id}')` : `window.viewHomeBlog('${blog.id}')`);
+                    let targetAction = category === 'flicks' ? `window.location.href='flicks.html?id=${blog.id}'` : (category === 'videos' ? `window.navigateTo('watch', event, '${blog.id}')` : `window.navigateTo('blog', event, '${blog.id}')`);
 
                     let likesCount = Array.isArray(blog.likes) ? blog.likes.length : (typeof blog.likes === 'number' ? blog.likes : 0);
                     let viewsStr = category === 'blogs' ? `❤️ ${likesCount}` : `${(blog.views || 0).toLocaleString()} views`;
@@ -5585,7 +6163,7 @@
                                 const safeTitle = (promo.title || 'Sponsored Product').replace(/</g, '&lt;');
                                 let mediaHtml = '';
                                 if (promo.mediaType === 'video') {
-                                    mediaHtml = `<video src="${promo.mediaData}" autoplay muted loop playsinline style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;"></video>`;
+                                    mediaHtml = `<video src="${window.getProxiedVideoUrl(promo.mediaData)}" autoplay muted loop playsinline style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;"></video>`;
                                 } else {
                                     mediaHtml = `<img src="${promo.mediaData}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">`;
                                 }
@@ -5638,10 +6216,10 @@
                 const hash = window.location.hash;
                 const urlParams = new URLSearchParams(window.location.search);
                 const blogId = urlParams.get('blogId');
-                if (blogId && !window.hasScrolledToBlog) {
+                
+                if (blogId) { // Redirect legacy URLs to SPA view
                     setTimeout(() => {
-                        window.viewHomeBlog(blogId);
-                        window.hasScrolledToBlog = true;
+                        window.navigateTo('blog', null, blogId);
                     }, 500);
                 }
                 
@@ -5784,7 +6362,7 @@
 
         window.deleteUserBlog = async function(id) {
             if (!auth.currentUser) {
-                await viyouAlert("Please login to delete posts!");
+                await window.viyouAlert("Please login to delete posts!");
                 return;
             }
             
@@ -5796,7 +6374,7 @@
             const isAuthor = (blog.authorUid === auth.currentUser.uid) || (!blog.authorUid && blog.author === auth.currentUser.displayName);
             
             if (!isAuthor) {
-                await viyouAlert("You can only delete your own blog posts!");
+                await window.viyouAlert("You can only delete your own blog posts!");
                 return;
             }
 
@@ -5815,7 +6393,7 @@
         };
 
         window.toggleFollow = function(targetUid) {
-            if (!auth.currentUser) { alert("Please login to follow!"); return; }
+            if (!auth.currentUser) { window.viyouAlert("Please login to follow!"); return; }
             if (!auth.currentUser) { showToast("Please login to follow!", 'info'); return; }
             const myUid = auth.currentUser.uid;
             const userRef = doc(db, "users", myUid);
@@ -5873,7 +6451,7 @@
 
         window.editUserBlog = function(id) {
             if (!auth.currentUser) {
-                alert("Please login to edit posts!");
+                window.viyouAlert("Please login to edit posts!");
                 showToast("Please login to edit posts!", 'info');
                 return;
             }
@@ -6012,8 +6590,7 @@
         window.submitFeedback = async function(e) {
             if(e) e.preventDefault();
             if (!auth.currentUser) {
-                if(window.viyouAlert) await window.viyouAlert("Please login to submit feedback!");
-                else alert("Please login to submit feedback!");
+                await window.viyouAlert("Please login to submit feedback!");
                 if(document.getElementById('login-modal')) document.getElementById('login-modal').style.display = 'flex';
                 const dropdown = document.getElementById('main-menu-dropdown');
                 if(dropdown) dropdown.classList.remove('show');
@@ -6031,7 +6608,7 @@
                         date: new Date().toISOString()
                     });
                     if(window.showToast) window.showToast("Feedback submitted successfully. Thank you!", "success");
-                    else alert("Feedback submitted successfully. Thank you!");
+                    else await window.viyouAlert("Feedback submitted successfully. Thank you!");
                 } catch (err) { console.error("Feedback error:", err); }
             }
             const dropdown = document.getElementById('main-menu-dropdown');
@@ -6073,7 +6650,7 @@
             const id = document.getElementById('report-blog-id').value;
             const reasonRadio = document.querySelector('input[name="report-reason"]:checked');
             if (!reasonRadio) {
-                alert("Please select a reason.");
+                await window.viyouAlert("Please select a reason.");
                 btn.disabled = false; btn.innerText = 'Report';
                 return;
             }
@@ -6081,7 +6658,7 @@
             if (reason === 'custom') {
                 reason = document.getElementById('report-custom-text').value.trim();
                 if (!reason) {
-                    alert("Please specify your reason.");
+                    await window.viyouAlert("Please specify your reason.");
                     btn.disabled = false; btn.innerText = 'Report';
                     return;
                 }
@@ -6136,7 +6713,7 @@
             }
         };
 
-        window.readAloud = function(blogId) {
+        window.readAloud = async function(blogId) {
             // Stop any previous speech
             if (window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
@@ -6178,14 +6755,14 @@
                     }
                 }, 10000);
             } else {
-                alert("Sorry, your browser does not support text-to-speech.");
+                await window.viyouAlert("Sorry, your browser does not support text-to-speech.");
                 showToast("Sorry, your browser does not support text-to-speech.", 'info');
             }
         };
 
         window.voteOnPoll = async function(blogId, optionIndex) {
             if (!auth.currentUser) {
-                alert("Please login to vote!");
+                await window.viyouAlert("Please login to vote!");
                 showToast("Please login to vote!", 'info');
                 return;
             }
@@ -6195,7 +6772,7 @@
             try {
                 const docSnap = await getDoc(blogRef);
                 if (!docSnap.exists()) {
-                    alert("Blog not found!");
+                    await window.viyouAlert("Blog not found!");
                     showToast("Blog not found!", 'error');
                     return;
                 }
@@ -6206,7 +6783,7 @@
                 // Check if user already voted
                 const hasVoted = poll.options.some(opt => opt.voters && opt.voters.includes(uid));
                 if (hasVoted) {
-                    alert("You have already voted in this poll.");
+                    await window.viyouAlert("You have already voted in this poll.");
                     showToast("You have already voted in this poll.", 'info');
                     return;
                 }
@@ -6230,14 +6807,14 @@
                 }
             } catch (e) {
                 console.error("Error voting on poll:", e);
-                alert("An error occurred while casting your vote.");
+                await window.viyouAlert("An error occurred while casting your vote.");
                 showToast("An error occurred while casting your vote.", 'error');
             }
         };
 
         window.addComment = async function(id) {
             if (!auth.currentUser) {
-                alert("Please login to comment!");
+                await window.viyouAlert("Please login to comment!");
                 showToast("Please login to comment!", 'info');
                 return;
             }
@@ -6360,14 +6937,14 @@
                 }
             } catch (e) {
                 console.error("Error adding comment:", e);
-                alert("Failed to add comment. Please refresh and try again.");
+                await window.viyouAlert("Failed to add comment. Please refresh and try again.");
                 showToast("Failed to add comment. Please refresh and try again.", 'error');
                 location.reload();
             }
         };
 
-        window.toggleReplyBox = function(blogId, commentId) {
-            if (!auth.currentUser) { alert("Please login to reply!"); return; }
+        window.toggleReplyBox = async function(blogId, commentId) {
+            if (!auth.currentUser) { await window.viyouAlert("Please login to reply!"); return; }
             if (!auth.currentUser) { showToast("Please login to reply!", 'info'); return; }
             const box = document.getElementById(`reply-box-${commentId}`);
             box.style.display = box.style.display === 'none' ? 'flex' : 'none';
@@ -6514,14 +7091,14 @@
                 }
             } catch (e) {
                 console.error("Error submitting reply:", e);
-                alert("Failed to submit reply. Please refresh and try again.");
+                await window.viyouAlert("Failed to submit reply. Please refresh and try again.");
                 showToast("Failed to submit reply. Please refresh and try again.", 'error');
                 location.reload();
             }
         };
 
         window.toggleLike = async function(blogId, targetId, replyId = null) {
-            if (!auth.currentUser) { alert("Please login to like!"); return; }
+            if (!auth.currentUser) { await window.viyouAlert("Please login to like!"); return; }
             if (!auth.currentUser) { showToast("Please login to like!", 'info'); return; }
             const uid = auth.currentUser.uid;
 
@@ -6606,7 +7183,7 @@
             if (blogIndex !== -1) {
                 const blog = fetchedBlogs[blogIndex];
                 const isOwner = (blog.authorUid === auth.currentUser.uid);
-                if (!isOwner) { alert("Only the author can pin comments."); return; }
+                if (!isOwner) { await window.viyouAlert("Only the author can pin comments."); return; }
                 if (!isOwner) { showToast("Only the author can pin comments.", 'info'); return; }
                 const comment = blog.comments.find(c => c.id === commentId);
                 if (comment) {
@@ -6685,7 +7262,7 @@
 
         window.editComment = async function(blogId, commentId) {
             if (!auth.currentUser) {
-                alert("Please login to edit comments!");
+                await window.viyouAlert("Please login to edit comments!");
                 showToast("Please login to edit comments!", 'info');
                 return;
             }
@@ -6764,7 +7341,7 @@
 
         window.editReply = async function(blogId, commentId, replyId) {
             if (!auth.currentUser) {
-                alert("Please login to edit replies!");
+                await window.viyouAlert("Please login to edit replies!");
                 showToast("Please login to edit replies!", 'info');
                 return;
             }
@@ -6882,7 +7459,7 @@
                 }
             } catch (e) {
                 console.error("Error saving edit:", e);
-                alert("Failed to save edit.");
+                await window.viyouAlert("Failed to save edit.");
                 showToast("Failed to save edit.", 'error');
             }
 
@@ -7116,22 +7693,22 @@
                         case 'mention':
                             notifHtml = `<strong>${n.senderName}</strong> mentioned you in a comment on <em>${n.blogTitle}</em>.`;
                             div.style.cursor = 'pointer';
-                            div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}`;
+                            div.onclick = () => window.location.href = `index.html?view=blog&id=${n.blogId}`;
                             break;
                         case 'like':
                             notifHtml = `<strong>${n.senderName}</strong> liked your post: <em>${n.blogTitle}</em>.`;
                             div.style.cursor = 'pointer';
-                            div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}`;
+                            div.onclick = () => window.location.href = `index.html?view=blog&id=${n.blogId}`;
                             break;
                         case 'comment':
                             notifHtml = `<strong>${n.senderName}</strong> commented on your post: <em>${n.blogTitle}</em>.`;
                             div.style.cursor = 'pointer';
-                            div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}`;
+                            div.onclick = () => window.location.href = `index.html?view=blog&id=${n.blogId}`;
                             break;
                         case 'reply':
                             notifHtml = `<strong>${n.senderName}</strong> replied to your comment on <em>${n.blogTitle}</em>.`;
                             div.style.cursor = 'pointer';
-                            div.onclick = () => window.location.href = `index.html?blogId=${n.blogId}#comment-${n.commentId}`;
+                            div.onclick = () => window.location.href = `index.html?view=blog&id=${n.blogId}#comment-${n.commentId}`;
                             break;
                         case 'story_mention':
                             notifHtml = `<strong>${n.senderName}</strong> mentioned you in their story.`;
@@ -8034,6 +8611,99 @@
             } catch (e) { console.error(e); btnElement.innerText = "Error"; }
         };
 
+        // Long Video Internal Forwarding Logic
+        window.openSendWatchModal = async function(blogId) {
+            if (!auth.currentUser) { await window.viyouAlert("Please login to send videos!"); return; }
+            const modal = document.getElementById('send-watch-modal');
+            const list = document.getElementById('send-watch-user-list');
+            modal.style.display = 'flex';
+            list.innerHTML = '<p style="text-align:center; color:#aaa;">Loading...</p>';
+
+            try {
+                if (currentUserFollowing.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; color:#aaa;">You are not following anyone to send this to.</p>';
+                    return;
+                }
+                list.innerHTML = '';
+                const promises = currentUserFollowing.map(uid => getDoc(doc(db, "users", uid)));
+                const snaps = await Promise.all(promises);
+
+                snaps.forEach(snap => {
+                    if (snap.exists()) {
+                        const u = snap.data();
+                        const div = document.createElement('div');
+                        div.style.cssText = "display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1);";
+                        div.innerHTML = `
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <img src="${u.photoURL || 'logo.png'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <div><strong style="color:#fff;">${u.name || 'User'}</strong><br><span style="font-size:0.8rem; color:#aaa;">@${u.username || ''}</span></div>
+                            </div>
+                            <button class="btn feed-btn" style="padding:5px 15px;" onclick="window.sendWatchToUser('${blogId}', '${snap.id}', this)">Send</button>
+                        `;
+                        list.appendChild(div);
+                    }
+                });
+            } catch(e) { console.error(e); list.innerHTML = '<p style="color:red;">Error loading users.</p>'; }
+        };
+
+        window.sendWatchToUser = async function(blogId, targetUid, btnElement) {
+            if (!auth.currentUser) return;
+            
+            let blog = null;
+            if (window.currentWatchBlog && window.currentWatchBlog.id === blogId) {
+                blog = window.currentWatchBlog;
+            } else if (window.globalFlicks && window.globalFlicks.find(f => f.id === blogId)) {
+                blog = window.globalFlicks.find(f => f.id === blogId);
+            }
+            if (!blog && typeof fetchedBlogs !== 'undefined') blog = fetchedBlogs.find(b => b.id === blogId);
+            if (!blog && typeof profilePageBlogs !== 'undefined') blog = profilePageBlogs.find(b => b.id === blogId);
+            if (!blog && window.likedPostsData) blog = window.likedPostsData.find(b => b.id === blogId);
+            
+            if (!blog) {
+                try {
+                    const docSnap = await getDoc(doc(db, "blogs", blogId));
+                    if (docSnap.exists()) blog = { id: docSnap.id, ...docSnap.data() };
+                } catch(e) { console.error(e); }
+            }
+            if (!blog) { btnElement.innerText = "Error"; return; }
+
+            btnElement.innerText = "Sending...";
+            btnElement.disabled = true;
+            const convId = auth.currentUser.uid < targetUid ? `${auth.currentUser.uid}_${targetUid}` : `${targetUid}_${auth.currentUser.uid}`;
+            const convRef = doc(db, "conversations", convId);
+            const messagesRef = collection(db, "conversations", convId, "messages");
+            try {
+                const safeVideoUrl = blog.video || null;
+                const safeYoutubeUrl = blog.youtubeUrl || null;
+                const safeThumbnail = blog.thumbnail || blog.image || (blog.images && blog.images.length > 0 ? blog.images[0] : null) || null;
+                const safeTitle = blog.title || '';
+
+                await addDoc(messagesRef, { type: 'watch', blogId: blog.id, videoUrl: safeVideoUrl, youtubeUrl: safeYoutubeUrl, thumbnail: safeThumbnail, title: safeTitle, senderUid: auth.currentUser.uid, timestamp: serverTimestamp() });
+                
+                const partnerProfileSnap = await getDoc(doc(db, "users", targetUid));
+                const myProfileSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+                
+                const myName = (myProfileSnap.exists() && myProfileSnap.data().name) ? myProfileSnap.data().name : (auth.currentUser.displayName || "User");
+                const myPhoto = (myProfileSnap.exists() && myProfileSnap.data().photoURL) ? myProfileSnap.data().photoURL : (auth.currentUser.photoURL || null);
+                const partnerName = (partnerProfileSnap.exists() && partnerProfileSnap.data().name) ? partnerProfileSnap.data().name : "User";
+                const partnerPhoto = (partnerProfileSnap.exists() && partnerProfileSnap.data().photoURL) ? partnerProfileSnap.data().photoURL : null;
+
+                await setDoc(convRef, { 
+                    participants: [auth.currentUser.uid, targetUid], 
+                    participantDetails: { 
+                        [auth.currentUser.uid]: { name: myName, photoURL: myPhoto }, 
+                        [targetUid]: { name: partnerName, photoURL: partnerPhoto } 
+                    }, 
+                    lastMessage: { text: "Shared a video", senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } 
+                }, { merge: true });
+                btnElement.innerText = "Sent!"; btnElement.style.background = "#198754"; btnElement.style.borderColor = "#198754"; btnElement.style.color = "white";
+            } catch (e) { 
+                console.error("Error sending watch video:", e); 
+                btnElement.innerText = "Error"; 
+                btnElement.disabled = false;
+            }
+        };
+
         // Setup touch swipe up/down for Flicks
         const flicksContent = document.getElementById('flicks-viewer-content');
         if (flicksContent) {
@@ -8154,7 +8824,7 @@
                             <div class="${hasStory ? 'story-ring' : 'story-ring-empty'}">
                                 <img src="${userPhoto}" alt="Your story">
                             </div>
-                            <div class="add-story-badge" onclick="event.stopPropagation(); this.classList.add('badge-clicked'); document.getElementById('home-story-file-input').click();" title="Add Story">+</div>
+                            <div class="add-story-badge" onclick="event.stopPropagation(); this.classList.add('badge-clicked'); setTimeout(() => window.location.href='story-camera.html', 300);" title="Add Story">+</div>
                         </div>
                         <p>Your Story</p>
                         <p style="display:inline-flex;justify-content:fit;align-items:center; color: #aaa; font-size:8px;">Tap + to add new story</p>
@@ -8168,7 +8838,7 @@
                         userDiv.onclick = function() {
                             const badge = this.querySelector('.add-story-badge');
                             if (badge) badge.classList.add('badge-clicked');
-                            document.getElementById('home-story-file-input').click();
+                            setTimeout(() => window.location.href='story-camera.html', 300);
                         };
                     }
                     reel.appendChild(userDiv);
@@ -8357,7 +9027,7 @@
             if (story.mentionMap) {
                 safeMsg = safeMsg.replace(/@([\w_]+)/g, (match, username) => {
                     const uid = story.mentionMap[username.toLowerCase()];
-                    if (uid) return `<a href="profile.html?uid=${uid}" style="color: #0d6efd; text-decoration: none; font-weight: bold; pointer-events: auto;" onclick="event.stopPropagation();">${match}</a>`;
+                    if (uid) return `<span style="color: #0d6efd; text-decoration: none; font-weight: bold; pointer-events: auto; cursor: pointer;" onclick="event.stopPropagation(); window.navigateTo('profile', event, '${uid}');">${match}</span>`;
                     return match;
                 });
             }
@@ -8388,6 +9058,12 @@
             if (user && !isOwner) {
                 const likes = story.likes || [];
                 const hasLiked = likes.includes(user.uid);
+                
+                let remixBtnHtml = '';
+                if (story.mentionedUids && story.mentionedUids.includes(user.uid)) {
+                    remixBtnHtml = `<button class="btn" style="background: linear-gradient(135deg, #f59e0b, #ef4444); padding: 8px; flex: 1; border-radius: 20px; font-size: 0.85rem;" onclick="window.remixStory('${story.id}')"><i data-lucide="plus-square" style="width:14px; height:14px; margin-right:4px;"></i> Add to your story</button>`;
+                }
+
                 const safeMsg = (story.texts && story.texts.length > 0 ? story.texts[0].text : (story.statusMessage || '')).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
                 storyHTML += `
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
@@ -8395,6 +9071,7 @@
                             ${hasLiked ? '❤️' : '🤍'}
                         </button>
                         <span id="story-like-count-${story.id}" style="color: white; font-size: 1rem;">${likes.length}</span>
+                        ${remixBtnHtml}
                     </div>
                 `;
                 storyHTML += `

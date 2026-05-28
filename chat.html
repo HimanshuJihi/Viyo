@@ -44,11 +44,11 @@
                 <div id="theme-dropdown" class="theme-dropdown">
                     <button type="button" class="theme-option" data-theme="dark" style="background: #050505; color: #e2e8f0;"><i data-lucide="moon" style="width: 16px;"></i> Dark</button>
                     <button type="button" class="theme-option" data-theme="light" style="background: #f4f7f6; color: #333;"><i data-lucide="sun" style="width: 16px;"></i> Light</button>
-                    <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #120422; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
-                    <button type="button" class="theme-option" data-theme="matrix" style="background: #0a140a; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
-                    <button type="button" class="theme-option" data-theme="ocean" style="background: #021024; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
-                    <button type="button" class="theme-option" data-theme="dracula" style="background: #282a36; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
-                    <button type="button" class="theme-option" data-theme="solar" style="background: #2a0800; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
+                        <button type="button" class="theme-option" data-theme="cyberpunk" style="background: #2b0b4a; color: #ff007c;"><i data-lucide="zap" style="width: 16px;"></i> Cyber</button>
+                        <button type="button" class="theme-option" data-theme="matrix" style="background: #003300; color: #00ff41;"><i data-lucide="terminal" style="width: 16px;"></i> Matrix</button>
+                        <button type="button" class="theme-option" data-theme="ocean" style="background: #003b66; color: #00e5ff;"><i data-lucide="droplet" style="width: 16px;"></i> Ocean</button>
+                        <button type="button" class="theme-option" data-theme="dracula" style="background: #32354b; color: #ff79c6;"><i data-lucide="ghost" style="width: 16px;"></i> Dracula</button>
+                        <button type="button" class="theme-option" data-theme="solar" style="background: #4a0c16; color: #ffb703;"><i data-lucide="sun-dim" style="width: 16px;"></i> Solar</button>
                 </div>
             </div>
         </div>
@@ -536,6 +536,23 @@
                         </div>
                         <video src="${vidSrc}" controls style="max-width: 100%; border-radius: 8px; max-height: 250px; background: #000;"></video>
                         ${titleHtml}`;
+                    break;
+                case 'watch':
+                    let watchTitleHtml = data.title ? `<div style="font-size:0.85rem; font-weight:bold; margin-top: 5px;">${data.title}</div>` : '';
+                    let watchThumb = data.thumbnail || 'logo.png';
+                    if (data.youtubeUrl) {
+                        const match = data.youtubeUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                        if(match) watchThumb = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                    }
+                    messageContent = `${forwardedIndicator}
+                        <div class="story-reply-preview text-only" style="margin-bottom: 5px; cursor: pointer;" onclick="window.location.href='index.html?view=watch&id=${data.blogId}'">
+                            <span style="font-size:0.75rem; color:#aaa; display:block;"><i data-lucide="play-circle" style="color:#0d6efd; width:12px;height:12px; vertical-align:middle;"></i> Shared a Video</span>
+                        </div>
+                        <div style="position: relative; cursor: pointer;" onclick="window.location.href='index.html?view=watch&id=${data.blogId}'">
+                            <img src="${watchThumb}" style="max-width: 100%; border-radius: 8px; max-height: 250px; background: #000; object-fit: cover;">
+                            <i data-lucide="play-circle" class="lucide-fill" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 48px; height: 48px; color: rgba(255,255,255,0.8); text-shadow: 0 4px 10px rgba(0,0,0,0.5);"></i>
+                        </div>
+                        ${watchTitleHtml}`;
                     break;
                 case 'text':
                 default:
@@ -1116,6 +1133,9 @@
                         break;
                     case 'flick':
                         lastMessageText = 'Sent a Flick';
+                        break;
+                    case 'watch':
+                        lastMessageText = 'Shared a video';
                         break;
                     default:
                         lastMessageText = '[Shared Content]';

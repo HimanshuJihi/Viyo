@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Results - Viyou</title>
+    <title>Search Results - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
     <!-- Modern Futuristic Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -210,7 +210,7 @@
                             const blog = doc.data();
                             if (!window.enableYoutubeLinks && blog.youtubeUrl) return;
                             resultsHTML += `
-                                <div class="search-result-item" onclick="window.location.href='search.html?q=${encodeURIComponent(blog.title)}'">
+                            <div class="search-result-item" onclick="window.location.href='index.html?view=blog&id=${doc.id}'">
                                     <i data-lucide="newspaper" style="color:#ccc; width: 30px; text-align: center;"></i>
                                             <i data-lucide="tag" style="color:#6366f1; width: 30px; text-align: center;"></i>
                                     <div>
@@ -370,7 +370,7 @@
                     const div = document.createElement('div');
                     div.className = 'result-item';
                     
-                    let targetUrl = `index.html?blogId=${doc.id}`;
+                    let targetUrl = `index.html?view=blog&id=${doc.id}`;
                     if (blog.isFlicker) {
                         targetUrl = `flicks.html?id=${doc.id}`;
                     } else if (blog.video || blog.youtubeUrl) {

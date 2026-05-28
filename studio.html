@@ -164,7 +164,9 @@
                 <p style="color: #aaa;">Loading history...</p>
             </div>
         </div>
-
+<footer>
+            <p>&copy; Viyou.in Empowering Creators.</p>
+        </footer>
     </div>
 
     <!-- Withdrawal Modal -->
@@ -210,12 +212,13 @@
             <div class="tabs">
                 <button class="tab-btn active" onclick="window.switchPromoTab('infeed', this)"><i data-lucide="list"></i> In-Feed Ad</button>
                 <button class="tab-btn" onclick="window.switchPromoTab('preroll', this)"><i data-lucide="play-circle"></i> Pre-Roll Video Ad</button>
+                <button class="tab-btn" onclick="window.switchPromoTab('blogad', this)"><i data-lucide="monitor-play"></i> Blog Ad</button>
             </div>
 
             <!-- In-Feed Ad Pane -->
             <div id="promo-tab-infeed" class="tab-pane active">
                 <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="ext-ad-title" placeholder="e.g., Buy the new Smartwatch..."></div>
-                <div class="form-group"><label>Media (Image or Video - Max 2MB)</label><input type="file" id="ext-ad-media" accept="image/*,video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Media (Image or Video - Max 50MB)</label><input type="file" id="ext-ad-media" accept="image/*,video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
                 <div class="form-group"><label>Target URL (External Link)</label><input type="text" id="ext-ad-url" placeholder="https://yourwebsite.com/product"></div>
                 <div class="form-group"><label>Promotion Frequency</label><select id="ext-promo-tier" onchange="window.calculateExtPrice()"><option value="4">Show after every 4 posts (Base: ₹50 / 50 Hrs)</option><option value="3">Show after every 3 posts (Base: ₹70 / 50 Hrs)</option><option value="2">Show after every 2 posts (Base: ₹80 / 50 Hrs)</option><option value="1">Show after every 1 post (Base: ₹100 / 50 Hrs)</option></select></div>
                 <div class="form-group"><label id="ext-duration-label">Duration (Hours) - Minimum 50</label><input type="number" id="ext-promo-hours" value="50" min="50" step="50" oninput="window.calculateExtPrice()"></div>
@@ -225,7 +228,7 @@
             <div id="promo-tab-preroll" class="tab-pane">
                 <p style="font-size: 0.85rem; color: #aaa; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">This ad will play before a long video starts. Pricing is based on impressions.</p>
                 <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="preroll-ad-title" placeholder="e.g., Viyou Pre-Roll Ad"></div>
-                <div class="form-group"><label>Ad Video (Max 2MB, Recommended 10-15s)</label><input type="file" id="preroll-ad-video" accept="video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Ad Video (Max 50MB, Recommended 10-15s)</label><input type="file" id="preroll-ad-video" accept="video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
                 <div class="form-group"><label>Target URL (External Link)</label><input type="text" id="preroll-ad-url" placeholder="https://yourwebsite.com/product"></div>
                 
                 <div class="form-group">
@@ -257,6 +260,60 @@
                 </div>
             </div>
 
+            <!-- Blog Ad Pane -->
+            <div id="promo-tab-blogad" class="tab-pane">
+                <p style="font-size: 0.85rem; color: #aaa; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">This ad will play inside the unskippable miniplayer on blog posts. Pricing is based on impressions.</p>
+                <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="blogad-ad-title" placeholder="e.g., Viyou Blog Ad"></div>
+                <div class="form-group"><label>Ad Video (Max 50MB, Max 60s)</label><input type="file" id="blogad-ad-video" accept="video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Target URL (External Link)</label><input type="text" id="blogad-ad-url" placeholder="https://yourwebsite.com/product"></div>
+                
+                <div id="blogad-trim-group" style="display: none; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                    <label style="color: #f59e0b; margin-bottom: 10px; display: block;"><i data-lucide="scissors"></i> Trim Video (Max 60s)</label>
+                    <video id="blogad-video-preview" controls style="width: 100%; max-height: 250px; border-radius: 8px; background: #000; margin-bottom: 10px;"></video>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="width: 40px; margin: 0; font-size: 0.85rem; color: #aaa;">Start</label>
+                            <input type="range" id="blogad-trim-start" min="0" max="100" value="0" step="0.1" style="flex: 1;">
+                            <span id="blogad-trim-start-val" style="width: 45px; text-align: right; font-size: 0.85rem; color: #fff; font-weight: bold;">0.0s</span>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="width: 40px; margin: 0; font-size: 0.85rem; color: #aaa;">End</label>
+                            <input type="range" id="blogad-trim-end" min="0" max="100" value="60" step="0.1" style="flex: 1;">
+                            <span id="blogad-trim-end-val" style="width: 45px; text-align: right; font-size: 0.85rem; color: #fff; font-weight: bold;">60.0s</span>
+                        </div>
+                    </div>
+                    <p id="blogad-trim-dur-display" style="font-size: 0.85rem; color: #10b981; margin-top: 15px; font-weight: bold; text-align: center; background: rgba(16, 185, 129, 0.1); padding: 5px; border-radius: 4px;">Selected Duration: 60.0s</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Target Categories (Select up to 5) <small style="color: #aaa; font-weight: normal; display: block; margin-top: 3px;">Ads will only show on blogs of these categories.</small></label>
+                    <div id="blogad-categories" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Entertainment</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Music</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Vlogs</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Gaming</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Education</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Sports</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">News & Politics</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Science & Technology</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Fashion & Beauty</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Comedy</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Travel & Events</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Food</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Devotional</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Gym & Fitness</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Health</span>
+                        <span class="cat-chip" onclick="window.togglePromoCat(this)">Podcasts</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Enter Budget Amount (₹)</label>
+                    <input type="number" id="blogad-budget" value="100" min="10" step="10" oninput="window.calculateExtPrice()">
+                    <small style="color: #aaa;">Rate: ₹<span id="blogad-rate-display">100</span> per 1,000 impressions. Estimated Impressions: <strong id="blogad-est-impressions" style="color: #87ceeb;">1,000</strong></small>
+                </div>
+            </div>
+
             <!-- Common Fields -->
             <div id="price-and-payment-section">
                 <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
@@ -285,10 +342,21 @@
         </div>
     </div>
 
+    <!-- Upload Progress Overlay -->
+    <div id="upload-progress-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000000; align-items: center; justify-content: center; flex-direction: column;">
+        <h2 style="color: white; margin-bottom: 15px;">Uploading Video...</h2>
+        <div style="width: 80%; max-width: 400px; background: #333; border-radius: 10px; height: 20px; overflow: hidden; border: 1px solid #555;">
+            <div id="upload-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #a855f7); transition: width 0.3s;"></div>
+        </div>
+        <p id="upload-progress-text" style="color: white; margin-top: 10px; font-weight: bold;">0%</p>
+        <button type="button" id="cancel-upload-btn" class="btn" style="margin-top: 20px; background: #dc3545; width: auto; padding: 8px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(220,53,69,0.3);"><i data-lucide="x" style="width: 16px; height: 16px;"></i> Cancel Upload</button>
+    </div>
+
     <script type="module">
         import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { db, auth } from "./firebase-config.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { db, auth, storage } from "./firebase-config.js";
 window.showToast = function(message, type = 'info') {
             let container = document.getElementById('toast-container');
             if (!container) {
@@ -331,7 +399,6 @@ window.showToast = function(message, type = 'info') {
         const MONETIZATION_FOLLOWERS = 200;
         
         let monetizationSettings = { preRollRate: 200, preRollFreq: 3, currency: 'INR', minWithdrawal: 500, tierFollowers: [200, 1000, 50000, 100000, 1000000] }; // Default values
-        let currentUnpaidViews = 0;
         let currentEarnings = 0;
         let currentUserTotalViews = 0;
 
@@ -351,6 +418,14 @@ window.showToast = function(message, type = 'info') {
                     if (!monetizationSettings.tierFollowers) {
                         monetizationSettings.tierFollowers = [200, 1000, 50000, 100000, 1000000];
                     }
+                }
+                
+                // SYNC: Ensure Creator Earnings match Advertiser Rates
+                const promoDoc = await getDoc(doc(db, "settings", "promotions"));
+                if (promoDoc.exists()) {
+                    const promoData = promoDoc.data();
+                    if (promoData.prerollRate) monetizationSettings.preRollRate = promoData.prerollRate;
+                    if (promoData.blogAdRate) monetizationSettings.blogAdRate = promoData.blogAdRate;
                 }
             } catch (e) {
                 console.error("Could not load monetization config, using defaults.", e);
@@ -375,9 +450,9 @@ window.showToast = function(message, type = 'info') {
                 loadCreatorData(user.uid);
             loadStudioHeadline();
             } else {
-                alert("Please login to access the Creator Studio.");
-                window.location.href = 'index.html';
-            }
+                    await window.viyouAlert("Please login to access the Creator Studio.");
+                    window.location.href = 'index.html';
+                }
         });
 
         async function loadCreatorData(uid) {
@@ -405,7 +480,8 @@ window.showToast = function(message, type = 'info') {
                 let totalViews = 0;
                 let totalLongVideoViews = 0;
                 let totalFlicksViews = 0;
-                let totalAdImpressions = 0;
+                let totalVideoAdImpressions = 0;
+                let totalBlogAdImpressions = 0;
                 let activePromotions = [];
                 let allUserContent = [];
                 const now = new Date();
@@ -416,11 +492,13 @@ window.showToast = function(message, type = 'info') {
                     if (blogData.status !== 'draft') {
                         allUserContent.push({ id: blogDoc.id, ...blogData });
                         totalViews += Number(blogData.views) || 0;
-                        totalAdImpressions += Number(blogData.adImpressions) || 0;
                         if (blogData.isFlicker) {
                             totalFlicksViews += Number(blogData.views) || 0;
-                        } else if (blogData.video && !blogData.youtubeUrl) { // Only count direct uploads for earnings
+                        } else if (blogData.video && !blogData.youtubeUrl) { 
                             totalLongVideoViews += blogData.longVideoViews !== undefined ? Number(blogData.longVideoViews) : (Number(blogData.views) || 0);
+                            totalVideoAdImpressions += Number(blogData.adImpressions) || 0;
+                        } else if (!blogData.video && !blogData.youtubeUrl) {
+                            totalBlogAdImpressions += Number(blogData.adImpressions) || 0;
                         }
                         
                         if (blogData.isPromoted && blogData.promoExpiry) {
@@ -438,7 +516,7 @@ window.showToast = function(message, type = 'info') {
                     const pData = docSnap.data();
                     if (pData.type === 'external' && pData.promoExpiry && new Date(pData.promoExpiry) > now) {
                         activePromotions.push({ id: docSnap.id, ...pData, promoFrequency: pData.frequency });
-                    } else if (pData.type === 'preroll' && (pData.impressions_served || 0) < (pData.impressions_goal || 1)) {
+                    } else if ((pData.type === 'preroll' || pData.type === 'blog_ad') && (pData.impressions_served || 0) < (pData.impressions_goal || 1)) {
                         activePromotions.push({ id: docSnap.id, ...pData });
                     }
                 });
@@ -455,7 +533,7 @@ window.showToast = function(message, type = 'info') {
                 else if (followersCount >= tierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
 
                 window.cachedLifetimeData = {
-                    totalViews, totalLongVideoViews, totalFlicksViews, totalAdImpressions, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, paidAdImpressions: userData.paidAdImpressions, walletBalance: userData.walletBalance || 0
+                    totalViews, totalLongVideoViews, totalFlicksViews, totalVideoAdImpressions, totalBlogAdImpressions, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, paidAdImpressions: userData.paidAdImpressions, paidBlogAdImpressions: userData.paidBlogAdImpressions, walletBalance: userData.walletBalance || 0
                 };
 
                 document.getElementById('current-tier').innerText = tier > 0 ? `Tier ${tier} (${Math.round(sharePercent * 100)}%)` : 'No Tier';
@@ -552,14 +630,14 @@ window.showToast = function(message, type = 'info') {
                         let freqText = '';
                         let typeLabel = '';
                         
-                        if (promo.type === 'preroll') {
+                        if (promo.type === 'preroll' || promo.type === 'blog_ad') {
                             const served = promo.impressions_served || 0;
                             const goal = promo.impressions_goal || 1;
                             const remaining = Math.max(0, goal - served);
                             timeStr = `${remaining.toLocaleString()} left`;
                             expiryLabel = 'Impressions:';
                             freqText = `Goal: <strong>${goal.toLocaleString()} Impressions</strong> | Served: <strong style="color: #10b981;">${served.toLocaleString()}</strong>`;
-                            typeLabel = '(Pre-Roll Ad)';
+                            typeLabel = promo.type === 'preroll' ? '(Pre-Roll Ad)' : '(Blog Ad)';
                         } else {
                             const expiry = new Date(promo.promoExpiry);
                             const diffMs = expiry - now;
@@ -595,6 +673,7 @@ window.showToast = function(message, type = 'info') {
                 window.cachedMonetizationParams = {
                     preRollRate: monetizationSettings.preRollRate || 200,
                     preRollFreq: monetizationSettings.preRollFreq || 3,
+                    blogAdRate: monetizationSettings.blogAdRate || 150,
                     sharePercent: sharePercent,
                     isMonetized: isMonetized,
                     minWithdrawal: monetizationSettings.minWithdrawal || 500,
@@ -612,8 +691,8 @@ window.showToast = function(message, type = 'info') {
 
             } catch (e) {
                 console.error("Error loading creator data:", e);
-                alert("Could not load your studio data.");
-            }
+                    await window.viyouAlert("Could not load your studio data.");
+                }
         }
 
         window.renderContentTable = function(filterType = 'all') {
@@ -625,7 +704,7 @@ window.showToast = function(message, type = 'info') {
                 return;
             }
 
-            const { preRollRate, preRollFreq, sharePercent, isMonetized } = window.cachedMonetizationParams;
+            const { preRollRate, preRollFreq, blogAdRate, sharePercent, isMonetized } = window.cachedMonetizationParams;
 
             let filteredContent = dataToRender;
             if (filterType !== 'all') {
@@ -646,10 +725,11 @@ window.showToast = function(message, type = 'info') {
             filteredContent.forEach(content => {
                 let typeLabel = 'Blog Post';
                 let isDirectVideo = false;
+                let isTextBlog = false;
                 if (content.isFlicker) { typeLabel = 'Flick (Short)'; }
                 else if (content.video && !content.youtubeUrl) { typeLabel = 'Long Video'; isDirectVideo = true; }
                 else if (content.youtubeUrl) { typeLabel = 'YouTube Video'; }
-                else if (content.video) { typeLabel = 'Long Video'; }
+                else if (!content.video) { isTextBlog = true; }
 
                 let views = content.views || 0;
                 let likes = Array.isArray(content.likes) ? content.likes.length : (typeof content.likes === 'number' && !isNaN(content.likes) ? content.likes : 0);
@@ -661,6 +741,9 @@ window.showToast = function(message, type = 'info') {
                 if (isMonetized && isDirectVideo) {
                     const impressions = content.adImpressions || 0;
                     itemRevenue = (impressions / 1000) * preRollRate * sharePercent;
+                } else if (isMonetized && isTextBlog) {
+                    const impressions = content.adImpressions || 0;
+                    itemRevenue = (impressions / 1000) * blogAdRate * sharePercent;
                 }
 
                 let thumb = 'logo.png';
@@ -772,7 +855,8 @@ window.showToast = function(message, type = 'info') {
             let periodTotalViews = 0;
             let periodLongViews = 0;
             let periodFlicksViews = 0;
-            let periodAdViews = 0;
+            let periodVideoAdViews = 0;
+            let periodBlogAdViews = 0;
 
             window.filteredByDateContent = window.cachedContentData.filter(blog => {
                 const bDate = new Date(blog.date);
@@ -781,17 +865,21 @@ window.showToast = function(message, type = 'info') {
 
             window.filteredByDateContent.forEach(blog => {
                 periodTotalViews += Number(blog.views) || 0;
-                periodAdViews += Number(blog.adImpressions) || 0;
                 if (blog.isFlicker) {
                     periodFlicksViews += Number(blog.views) || 0;
-                } else if (blog.video && !blog.youtubeUrl) {
-                    periodLongViews += blog.longVideoViews !== undefined ? Number(blog.longVideoViews) : (Number(blog.views) || 0);
+                } else if (!blog.isFlicker) {
+                    if (blog.video && !blog.youtubeUrl) {
+                        periodLongViews += blog.longVideoViews !== undefined ? Number(blog.longVideoViews) : (Number(blog.views) || 0);
+                        periodVideoAdViews += Number(blog.adImpressions) || 0;
+                    } else if (!blog.video && !blog.youtubeUrl) {
+                        periodBlogAdViews += Number(blog.adImpressions) || 0;
+                    }
                 }
             });
 
             // Update Stats Cards
             document.getElementById('total-views').innerText = periodTotalViews.toLocaleString();
-            document.getElementById('total-ad-views').innerText = periodAdViews.toLocaleString();
+            document.getElementById('total-ad-views').innerText = (periodVideoAdViews + periodBlogAdViews).toLocaleString();
             document.getElementById('long-video-views').innerText = periodLongViews.toLocaleString();
             document.getElementById('flicks-views').innerText = periodFlicksViews.toLocaleString();
             
@@ -802,21 +890,23 @@ window.showToast = function(message, type = 'info') {
 
             // Update Estimated Earnings for Period
             if (window.cachedLifetimeData.isMonetized) {
-                const { preRollRate, preRollFreq, sharePercent, minWithdrawal, hasPending } = window.cachedMonetizationParams;
+                const { preRollRate, preRollFreq, blogAdRate, sharePercent, minWithdrawal, hasPending } = window.cachedMonetizationParams;
                 
                 if (filterVal === 'all') {
                     // Show standard wallet + pending
-                    let paidAdImpressions = window.cachedLifetimeData.paidAdImpressions !== undefined ? 
+                    let paidVideoImpressions = window.cachedLifetimeData.paidAdImpressions !== undefined ? 
                         Number(window.cachedLifetimeData.paidAdImpressions) : 
                         ((window.cachedLifetimeData.paidLongVideoViews || 0) / preRollFreq);
+                    let paidBlogImpressions = Number(window.cachedLifetimeData.paidBlogAdImpressions) || 0;
                     
-                    const unpaidImpressions = Math.max(0, window.cachedLifetimeData.totalAdImpressions - paidAdImpressions);
-                    const generatedRevenue = (unpaidImpressions / 1000) * preRollRate;
+                    const unpaidVideoImpressions = Math.max(0, window.cachedLifetimeData.totalVideoAdImpressions - paidVideoImpressions);
+                    const unpaidBlogImpressions = Math.max(0, window.cachedLifetimeData.totalBlogAdImpressions - paidBlogImpressions);
+                    const generatedRevenue = ((unpaidVideoImpressions / 1000) * preRollRate) + ((unpaidBlogImpressions / 1000) * blogAdRate);
                     window.currentUserPendingEarnings = generatedRevenue * sharePercent;
                     currentEarnings = window.cachedLifetimeData.walletBalance + window.currentUserPendingEarnings;
                     
                     document.getElementById('estimated-earnings').innerText = `₹${currentEarnings.toFixed(2)}`;
-                    document.getElementById('earning-note').innerHTML = `<strong>Tier ${window.cachedLifetimeData.tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong><br>Unpaid Ad Views: ${unpaidImpressions.toLocaleString()}<br>Wallet Balance: ₹${window.cachedLifetimeData.walletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`;
+                    document.getElementById('earning-note').innerHTML = `<strong>Tier ${window.cachedLifetimeData.tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong><br>Unpaid Video Ad Views: ${unpaidVideoImpressions.toLocaleString()} | Unpaid Blog Ad Views: ${unpaidBlogImpressions.toLocaleString()}<br>Wallet Balance: ₹${window.cachedLifetimeData.walletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`;
                     
                     window.updateEarningsChart(window.cachedLifetimeData.walletBalance, window.currentUserPendingEarnings, false);
 
@@ -855,11 +945,11 @@ window.showToast = function(message, type = 'info') {
 
                 } else {
                     // Show estimated generated revenue for content in this period
-                    const generatedRevenue = (periodAdViews / 1000) * preRollRate;
+                    const generatedRevenue = ((periodVideoAdViews / 1000) * preRollRate) + ((periodBlogAdViews / 1000) * blogAdRate);
                     const periodEarnings = generatedRevenue * sharePercent;
                     
                     document.getElementById('estimated-earnings').innerText = `₹${periodEarnings.toFixed(2)}`;
-                    document.getElementById('earning-note').innerHTML = `Estimated earnings from content published in the last ${filterVal} days.<br>Ad Views: ${periodAdViews.toLocaleString()}<br><em>Note: Wallet balance and withdrawals are based on Lifetime metrics.</em>`;
+                    document.getElementById('earning-note').innerHTML = `Estimated earnings from content published in the last ${filterVal} days.<br>Video Ad Views: ${periodVideoAdViews.toLocaleString()} | Blog Ad Views: ${periodBlogAdViews.toLocaleString()}<br><em>Note: Wallet balance and withdrawals are based on Lifetime metrics.</em>`;
                     
                     window.updateEarningsChart(0, periodEarnings, true);
                     withdrawBtn.style.display = 'none'; // Hide withdraw in period view to avoid confusion
@@ -984,24 +1074,24 @@ window.showToast = function(message, type = 'info') {
             const reqAmount = parseFloat(document.getElementById('withdraw-amount').value);
             const minAmount = monetizationSettings.minWithdrawal || 500;
             if (isNaN(reqAmount) || reqAmount < minAmount || reqAmount > currentEarnings) {
-                alert(`Invalid amount! Please enter a value between ₹${minAmount.toFixed(2)} and ₹${currentEarnings.toFixed(2)}.`);
-                return;
-            }
+                        await window.viyouAlert(`Invalid amount! Please enter a value between ₹${minAmount.toFixed(2)} and ₹${currentEarnings.toFixed(2)}.`);
+                        return;
+                    }
 
             const isUpi = document.getElementById('tab-upi').classList.contains('active');
             let paymentInfo = '';
 
             if (isUpi) {
                 const upiId = document.getElementById('upi-id').value.trim();
-                if (!upiId) { alert("Please enter your UPI ID."); return; }
-                paymentInfo = `UPI: ${upiId}`;
+                        if (!upiId) { await window.viyouAlert("Please enter your UPI ID."); return; }
+                        paymentInfo = `UPI: ${upiId}`;
             } else {
                 const bName = document.getElementById('bank-name').value.trim();
                 const bAcc = document.getElementById('bank-acc').value.trim();
                 const bIfsc = document.getElementById('bank-ifsc').value.trim();
-                if (!bName || !bAcc || !bIfsc) { alert("Please fill all bank details."); return; }
-                paymentInfo = `Bank: ${bName} | A/C: ${bAcc} | IFSC: ${bIfsc}`;
-            }
+                        if (!bName || !bAcc || !bIfsc) { await window.viyouAlert("Please fill all bank details."); return; }
+                        paymentInfo = `Bank: ${bName} | A/C: ${bAcc} | IFSC: ${bIfsc}`;
+                    }
 
             const submitBtn = document.getElementById('submit-withdraw-btn');
             submitBtn.disabled = true;
@@ -1014,7 +1104,8 @@ window.showToast = function(message, type = 'info') {
 
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
                     walletBalance: remainingBalance,
-                    paidAdImpressions: window.cachedLifetimeData.totalAdImpressions
+                    paidAdImpressions: window.cachedLifetimeData.totalVideoAdImpressions,
+                    paidBlogAdImpressions: window.cachedLifetimeData.totalBlogAdImpressions
                 });
 
                 await addDoc(collection(db, "withdrawals"), {
@@ -1024,15 +1115,15 @@ window.showToast = function(message, type = 'info') {
                     status: 'pending',
                     date: new Date().toISOString()
                 });
-                alert("Withdrawal request submitted successfully!");
-                window.closeWithdrawModal();
+                    await window.viyouAlert("Withdrawal request submitted successfully!");
+                    window.closeWithdrawModal();
                 const wBtn = document.getElementById('withdraw-btn');
                 wBtn.innerText = "Request Pending";
                 wBtn.disabled = true;
             } catch(e) {
                 console.error("Error submitting request:", e);
-                alert("Error submitting request.");
-            } finally {
+                    await window.viyouAlert("Error submitting request.");
+                } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Request";
             }
@@ -1043,14 +1134,21 @@ window.showToast = function(message, type = 'info') {
         let extMediaType = null;
         let extPaymentScreenshotBase64 = null;
         let prerollVideoBase64 = null;
+        let blogAdVideoBase64 = null;
+        let extMediaFile = null;
+        let prerollVideoFile = null;
+        let blogAdVideoFile = null;
         let extCalculatedTotal = 50;
         let currentPromoTab = 'infeed';
         let currentPrerollRate = 100;
+        let currentBlogAdRate = 150;
         let extPromoPricing = { baseHours: 50, tier4: 50, tier3: 70, tier2: 80, tier1: 100 };
 
         window.switchPromoTab = function(tabId, btn) {
             currentPromoTab = tabId;
             window.switchTab(tabId, btn, 'promo-tab-');
+            window.selectedPromoCats = []; // Reset categories on tab switch
+            document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('selected'));
             window.calculateExtPrice();
         };
 
@@ -1072,6 +1170,13 @@ window.showToast = function(message, type = 'info') {
                             document.getElementById('preroll-budget').value = currentPrerollRate;
                         }
                     }
+                if (promoSettings.blogAdRate) {
+                    currentBlogAdRate = promoSettings.blogAdRate;
+                    document.getElementById('blogad-rate-display').innerText = currentBlogAdRate;
+                    if (document.getElementById('blogad-budget').value === "100") {
+                        document.getElementById('blogad-budget').value = currentBlogAdRate;
+                    }
+                }
                     if (promoSettings.pricing) {
                         extPromoPricing = promoSettings.pricing;
                         document.getElementById('ext-promo-hours').min = extPromoPricing.baseHours;
@@ -1108,11 +1213,16 @@ window.showToast = function(message, type = 'info') {
                 if(tierStr === '2') basePrice = extPromoPricing.tier2;
                 if(tierStr === '1') basePrice = extPromoPricing.tier1;
                 extCalculatedTotal = basePrice * Math.ceil(hours / extPromoPricing.baseHours);
-            } else { // preroll
+            } else if (currentPromoTab === 'preroll') {
                 let budget = parseInt(document.getElementById('preroll-budget').value) || 0;
                 extCalculatedTotal = budget;
                 let estImp = Math.floor((budget / currentPrerollRate) * 1000);
                 document.getElementById('preroll-est-impressions').innerText = estImp.toLocaleString();
+            } else if (currentPromoTab === 'blogad') {
+                let budget = parseInt(document.getElementById('blogad-budget').value) || 0;
+                extCalculatedTotal = budget;
+                let estImp = Math.floor((budget / currentBlogAdRate) * 1000);
+                document.getElementById('blogad-est-impressions').innerText = estImp.toLocaleString();
             }
             document.getElementById('ext-calculated-price').innerText = `₹${extCalculatedTotal}`;
         };
@@ -1126,8 +1236,8 @@ window.showToast = function(message, type = 'info') {
                 el.classList.remove('selected');
             } else {
                 if (window.selectedPromoCats.length >= 5) {
-                    alert("You can select a maximum of 5 categories for targeting."); return;
-                }
+                            window.viyouAlert("You can select a maximum of 5 categories for targeting."); return;
+                        }
                 window.selectedPromoCats.push(cat); el.classList.add('selected');
             }
         };
@@ -1157,21 +1267,97 @@ window.showToast = function(message, type = 'info') {
                 };
                 reader.readAsDataURL(file);
             } else if (file.type.startsWith('video/')) {
-                if (file.size > 2 * 1024 * 1024) { alert("Video must be under 2MB."); e.target.value = ''; return; }
-                extMediaType = 'video';
-                const reader = new FileReader();
-                reader.onload = (event) => { extMediaBase64 = event.target.result; };
-                reader.readAsDataURL(file);
+                        if (file.size > 50 * 1024 * 1024) { window.viyouAlert("Video must be under 50MB."); e.target.value = ''; return; }
+                        extMediaType = 'video';
+                extMediaFile = file;
+                extMediaBase64 = "upload_pending";
             }
         });
 
         document.getElementById('preroll-ad-video').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            if (file.size > 2 * 1024 * 1024) { alert("Video must be under 2MB."); e.target.value = ''; return; }
-            const reader = new FileReader();
-            reader.onload = (event) => { prerollVideoBase64 = event.target.result; };
-            reader.readAsDataURL(file);
+            if (file.size > 50 * 1024 * 1024) { alert("Video must be under 50MB."); e.target.value = ''; return; }
+            prerollVideoFile = file;
+            prerollVideoBase64 = "upload_pending";
+        });
+
+        document.getElementById('blogad-ad-video').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 50 * 1024 * 1024) { alert("Video must be under 50MB."); e.target.value = ''; return; }
+            
+            const tempVid = document.createElement('video');
+            const previewVid = document.getElementById('blogad-video-preview');
+            tempVid.preload = 'metadata';
+            tempVid.onloadedmetadata = () => {
+                window.URL.revokeObjectURL(tempVid.src);
+                
+                document.getElementById('blogad-trim-group').style.display = 'block';
+                const startSlider = document.getElementById('blogad-trim-start');
+                const endSlider = document.getElementById('blogad-trim-end');
+                
+                startSlider.max = tempVid.duration;
+                endSlider.max = tempVid.duration;
+                startSlider.value = 0;
+                endSlider.value = Math.min(tempVid.duration, 60);
+                
+                blogAdVideoFile = file;
+                blogAdVideoBase64 = "upload_pending";
+                
+                previewVid.src = URL.createObjectURL(file);
+                window.updateBlogAdTrimDisplay();
+            };
+            tempVid.src = URL.createObjectURL(file);
+        });
+
+        window.updateBlogAdTrimDisplay = function() {
+            const start = parseFloat(document.getElementById('blogad-trim-start').value);
+            const end = parseFloat(document.getElementById('blogad-trim-end').value);
+            document.getElementById('blogad-trim-start-val').innerText = start.toFixed(1) + 's';
+            document.getElementById('blogad-trim-end-val').innerText = end.toFixed(1) + 's';
+            document.getElementById('blogad-trim-dur-display').innerText = `Selected Duration: ${(end - start).toFixed(1)}s`;
+        };
+
+        document.getElementById('blogad-trim-start').addEventListener('input', (e) => {
+            let start = parseFloat(e.target.value);
+            let end = parseFloat(document.getElementById('blogad-trim-end').value);
+            const previewVid = document.getElementById('blogad-video-preview');
+            if (start >= end) {
+                end = Math.min(parseFloat(document.getElementById('blogad-trim-end').max), start + 1);
+                document.getElementById('blogad-trim-end').value = end;
+            }
+            if (end - start > 60) {
+                end = start + 60;
+                document.getElementById('blogad-trim-end').value = end;
+            }
+            window.updateBlogAdTrimDisplay();
+            previewVid.currentTime = start;
+        });
+
+        document.getElementById('blogad-trim-end').addEventListener('input', (e) => {
+            let end = parseFloat(e.target.value);
+            let start = parseFloat(document.getElementById('blogad-trim-start').value);
+            const previewVid = document.getElementById('blogad-video-preview');
+            if (end <= start) {
+                start = Math.max(0, end - 1);
+                document.getElementById('blogad-trim-start').value = start;
+            }
+            if (end - start > 60) {
+                start = end - 60;
+                document.getElementById('blogad-trim-start').value = start;
+            }
+            window.updateBlogAdTrimDisplay();
+            previewVid.currentTime = Math.max(0, end - 1);
+        });
+
+        document.getElementById('blogad-video-preview').addEventListener('timeupdate', function() {
+            const end = parseFloat(document.getElementById('blogad-trim-end').value) || 60;
+            const start = parseFloat(document.getElementById('blogad-trim-start').value) || 0;
+            if (this.currentTime >= end || this.currentTime < start) {
+                this.currentTime = start;
+                this.play().catch(()=>{});
+            }
         });
 
         document.getElementById('ext-payment-screenshot').addEventListener('change', async (e) => {
@@ -1210,7 +1396,7 @@ window.showToast = function(message, type = 'info') {
                     frequency: parseInt(document.getElementById('ext-promo-tier').value),
                     hours: parseInt(document.getElementById('ext-promo-hours').value) || extPromoPricing.baseHours,
                 };
-            } else { // preroll
+            } else if (currentPromoTab === 'preroll') {
                 const title = document.getElementById('preroll-ad-title').value.trim();
                 const targetUrl = document.getElementById('preroll-ad-url').value.trim();
                 if (!title || !prerollVideoBase64 || !targetUrl) { alert("Please fill all Pre-Roll Ad fields (Title, Video, URL)."); return; }
@@ -1223,25 +1409,97 @@ window.showToast = function(message, type = 'info') {
                     impressions_goal: Math.floor((budget / currentPrerollRate) * 1000),
                     impressions_served: 0
                 };
+            } else if (currentPromoTab === 'blogad') {
+                const title = document.getElementById('blogad-ad-title').value.trim();
+                const targetUrl = document.getElementById('blogad-ad-url').value.trim();
+                if (!title || !blogAdVideoBase64 || !targetUrl) { alert("Please fill all Blog Ad fields (Title, Video, URL)."); return; }
+                let budget = parseInt(document.getElementById('blogad-budget').value) || 0;
+                if (budget < 10) { alert("Please enter a valid budget amount (Min ₹10)."); return; }
+                if (window.selectedPromoCats.length === 0) { alert("Please select at least 1 Target Category."); return; }
+                
+                const adStartTime = parseFloat(document.getElementById('blogad-trim-start').value) || 0;
+                const adEndTime = parseFloat(document.getElementById('blogad-trim-end').value) || 60;
+
+                payload = {
+                    type: "blog_ad", mediaData: blogAdVideoBase64, targetUrl: targetUrl,
+                    targetCategories: window.selectedPromoCats,
+                    impressions_goal: Math.floor((budget / currentBlogAdRate) * 1000),
+                    impressions_served: 0,
+                    adStartTime: adStartTime,
+                    adEndTime: adEndTime
+                };
             }
 
             const btn = document.getElementById('submit-ext-promo-btn');
-            btn.innerText = "Submitting..."; btn.disabled = true;
+            btn.innerText = "Preparing Upload..."; btn.disabled = true;
+
+        function uploadToStorageWithProgress(file, pathStr) {
+            return new Promise((resolve, reject) => {
+                const overlay = document.getElementById('upload-progress-overlay');
+                const bar = document.getElementById('upload-progress-bar');
+                const text = document.getElementById('upload-progress-text');
+                const cancelBtn = document.getElementById('cancel-upload-btn');
+                overlay.style.display = 'flex';
+                
+                const storageRef = ref(storage, pathStr);
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                const cancelUpload = () => { uploadTask.cancel(); };
+                cancelBtn.onclick = cancelUpload;
+
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        bar.style.width = progress + '%';
+                        text.innerText = Math.round(progress) + '% • Uploading...';
+                    }, 
+                    (error) => { 
+                        overlay.style.display = 'none'; 
+                        if (error.code !== 'storage/canceled') {
+                            reject(error); 
+                        }
+                    }, 
+                    async () => {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        overlay.style.display = 'none';
+                        resolve(downloadURL);
+                    }
+                );
+            });
+        }
             
             try {
-                const finalPayload = { ...payload, uid: auth.currentUser.uid, title: document.getElementById(currentPromoTab === 'infeed' ? 'ext-ad-title' : 'preroll-ad-title').value.trim(), price: extCalculatedTotal, utr: utr, paymentScreenshot: extPaymentScreenshotBase64 || null, status: "pending", timestamp: new Date().toISOString() };
-                await addDoc(collection(db, "promotions"), finalPayload);
+            if (currentPromoTab === 'infeed' && extMediaType === 'video' && extMediaFile) {
+                payload.mediaData = await uploadToStorageWithProgress(extMediaFile, `promotions/${auth.currentUser.uid}_${Date.now()}_extvid`);
+            } else if (currentPromoTab === 'preroll' && prerollVideoFile) {
+                payload.mediaData = await uploadToStorageWithProgress(prerollVideoFile, `promotions/${auth.currentUser.uid}_${Date.now()}_preroll`);
+            } else if (currentPromoTab === 'blogad' && blogAdVideoFile) {
+                payload.mediaData = await uploadToStorageWithProgress(blogAdVideoFile, `promotions/${auth.currentUser.uid}_${Date.now()}_blogad`);
+            }
 
-                alert("External Product Promotion requested successfully! Pending admin approval.");
-                window.closePromoteProductModal();
-                // Reset all form fields
-                document.getElementById('ext-ad-title').value = ''; document.getElementById('ext-ad-media').value = ''; document.getElementById('ext-ad-url').value = ''; document.getElementById('preroll-ad-title').value = ''; document.getElementById('preroll-ad-video').value = ''; document.getElementById('preroll-ad-url').value = ''; document.getElementById('ext-payment-utr').value = ''; document.getElementById('ext-payment-screenshot').value = '';
-                if(document.getElementById('preroll-budget')) document.getElementById('preroll-budget').value = currentPrerollRate;
-                extMediaBase64 = null; extPaymentScreenshotBase64 = null; prerollVideoBase64 = null;
-                window.selectedPromoCats = [];
-                document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('selected'));
-            } catch (e) { console.error(e); alert("Error submitting request."); } 
-            finally { btn.innerText = "Submit Request"; btn.disabled = false; }
+            btn.innerText = "Submitting...";
+            const finalPayload = { ...payload, uid: auth.currentUser.uid, title: document.getElementById(currentPromoTab === 'infeed' ? 'ext-ad-title' : (currentPromoTab === 'preroll' ? 'preroll-ad-title' : 'blogad-ad-title')).value.trim(), price: extCalculatedTotal, utr: utr, paymentScreenshot: extPaymentScreenshotBase64 || null, status: "pending", timestamp: new Date().toISOString() };
+            await addDoc(collection(db, "promotions"), finalPayload);
+
+            alert("External Product Promotion requested successfully! Pending admin approval.");
+            window.closePromoteProductModal();
+            // Reset all form fields
+            document.getElementById('ext-ad-title').value = ''; document.getElementById('ext-ad-media').value = ''; document.getElementById('ext-ad-url').value = ''; document.getElementById('preroll-ad-title').value = ''; document.getElementById('preroll-ad-video').value = ''; document.getElementById('preroll-ad-url').value = ''; document.getElementById('blogad-ad-title').value = ''; document.getElementById('blogad-ad-video').value = ''; document.getElementById('blogad-ad-url').value = ''; document.getElementById('ext-payment-utr').value = ''; document.getElementById('ext-payment-screenshot').value = '';
+            if(document.getElementById('preroll-budget')) document.getElementById('preroll-budget').value = currentPrerollRate;
+            if(document.getElementById('blogad-budget')) document.getElementById('blogad-budget').value = currentBlogAdRate;
+            document.getElementById('blogad-trim-group').style.display = 'none';
+            const previewVid = document.getElementById('blogad-video-preview');
+            if(previewVid) { previewVid.pause(); previewVid.removeAttribute('src'); previewVid.load(); }
+            extMediaBase64 = null; extPaymentScreenshotBase64 = null; prerollVideoBase64 = null; blogAdVideoBase64 = null;
+            extMediaFile = null; prerollVideoFile = null; blogAdVideoFile = null;
+            window.selectedPromoCats = [];
+            document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('selected'));
+        } catch (e) { console.error(e); alert("Error submitting request: " + e.message); } 
+        finally { 
+            btn.innerText = "Submit Request"; 
+            btn.disabled = false; 
+            document.getElementById('upload-progress-overlay').style.display = 'none';
+        }
         };
     </script>
      
