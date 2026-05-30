@@ -104,20 +104,6 @@
                     </div>
                 </div>
 
-                <!-- Monetization Settings Card -->
-                <div class="report-card" style="border-color: gold; margin-bottom: 20px;">
-                    <h3 style="color: gold;">Monetization Settings</h3>
-                    <div style="margin-bottom: 15px;">
-                        <label for="min-withdrawal" style="display: block; margin-bottom: 5px;">Minimum Withdrawal Amount (in ₹):</label>
-                        <input type="number" id="min-withdrawal" value="500" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                        <label for="blog-ad-limit" style="display: block; margin-bottom: 5px; margin-top: 15px;">Max Ads Per User Per Blog:</label>
-                        <input type="number" id="blog-ad-limit" value="3" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
-                    </div>
-                    
-                    <button class="btn" id="save-monetization-btn" style="background-color: #198754;" onclick="window.saveMonetizationSettings()">Save Monetization Settings</button>
-                </div>
-                
                 <div class="report-card" style="border-color: #198754;">
                     <h3 style="color: #198754;"><i data-lucide="wallet"></i> Pending Payout Requests</h3>
                     <button class="btn btn-secondary" onclick="window.loadPayoutRequests()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh Requests</button>
@@ -242,49 +228,6 @@
                         <p id="total-pending-promos" style="color: #a855f7;">0</p>
                     </div>
                 </div>
-                <div class="report-card" style="border-color: #8e44ad; margin-bottom: 20px;">
-                    <h2 style="color: #8e44ad; margin-top: 0;">Promotions Management</h2>
-                    <p style="color: #aaa; font-size: 0.9rem;">Manage promotion pricing and user-promoted content.</p>
-                    
-                    <h3 style="color: #87ceeb; margin-top: 0; margin-bottom: 10px; font-size: 1.1rem;">In-Feed Promotion Pricing</h3>
-                    <label style="display: block; margin-bottom: 5px;">Base Duration (Hours):</label>
-                    <input type="number" id="promo-base-hours" value="50" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div>
-                            <label style="display: block; margin-bottom: 5px;">Tier 4 (Every 4 posts) ₹:</label>
-                            <input type="number" id="promo-price-tier4" value="50" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 5px;">Tier 3 (Every 3 posts) ₹:</label>
-                            <input type="number" id="promo-price-tier3" value="70" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 5px;">Tier 2 (Every 2 posts) ₹:</label>
-                            <input type="number" id="promo-price-tier2" value="80" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 5px;">Tier 1 (Every 1 post) ₹:</label>
-                            <input type="number" id="promo-price-tier1" value="100" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-                        </div>
-                    </div>
-
-                    <h3 style="color: #87ceeb; margin-top: 15px; margin-bottom: 10px; font-size: 1.1rem;">Other Ad Settings</h3>
-                    <label style="display: block; margin-bottom: 5px;">Max Daily External Ads Per User:</label>
-                    <input type="number" id="promo-daily-limit" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                    <label style="display: block; margin-bottom: 5px;">Pre-Roll Ad Frequency (Show every X videos):</label>
-                    <input type="number" id="promo-preroll-frequency" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                    <label style="display: block; margin-bottom: 5px;">Pre-Roll Ad Rate (₹ per 1000 impressions):</label>
-                    <input type="number" id="promo-preroll-rate" value="100" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                    <label style="display: block; margin-bottom: 5px;">Blog Ad Rate (₹ per 1000 impressions):</label>
-                    <input type="number" id="promo-blogad-rate" value="100" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
-
-                    <button class="btn" style="background-color: #8e44ad; width: 100%;" onclick="window.savePromoSettings()">Save Settings</button>
-                </div>
-
                 <div class="report-card" style="border-color: #0d6efd; margin-bottom: 20px;">
                     <h3 style="color: #0d6efd;"><i data-lucide="satellite-dish"></i> Live Promotions</h3>
                     <button class="btn btn-secondary" onclick="window.loadLivePromotions()" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Refresh Live</button>
@@ -321,6 +264,53 @@
                     </div>
                     <img id="promo-qr-preview" src="" style="max-height: 150px; display: none; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555;">
                     <button class="btn" style="background-color: #10b981; width: 100%; margin-top: 10px;" onclick="window.savePaymentReceivingSettings()">Save Payment Settings</button>
+                </div>
+
+                <!-- Creator Monetization Settings Card -->
+                <div class="report-card" style="border-color: gold; margin-bottom: 20px;">
+                    <h3 style="color: gold; margin-top: 0;">Creator Monetization Rules & Limits</h3>
+                    <p style="color: #aaa; font-size: 0.9rem;">Set the minimum withdrawal threshold and maximum ads per user per blog.</p>
+                    <div style="margin-bottom: 15px;">
+                        <label for="min-withdrawal" style="display: block; margin-bottom: 5px;">Minimum Withdrawal Amount (in ₹):</label>
+                        <input type="number" id="min-withdrawal" value="500" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                        <label for="blog-ad-limit" style="display: block; margin-bottom: 5px; margin-top: 15px;">Max Ads Per User Per Blog:</label>
+                        <input type="number" id="blog-ad-limit" value="3" min="1" step="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box; margin-bottom: 15px;">
+                    </div>
+                    
+                    <button class="btn" id="save-monetization-btn" style="background-color: #198754;" onclick="window.saveMonetizationSettings()">Save Monetization Rules</button>
+                </div>
+
+                <!-- Promotions Pricing Card -->
+                <div class="report-card" style="border-color: #8e44ad; margin-bottom: 20px;">
+                    <h2 style="color: #8e44ad; margin-top: 0;">Promotion Pricing & Ad Rates</h2>
+                    <p style="color: #aaa; font-size: 0.9rem;">Set how much advertisers pay for promotions and ad space on Viyou.</p>
+                    
+                    <h3 style="color: #87ceeb; margin-top: 0; margin-bottom: 10px; font-size: 1.1rem;">In-Feed Promotion Pricing</h3>
+                    <label style="display: block; margin-bottom: 5px;">Base Duration (Hours):</label>
+                    <input type="number" id="promo-base-hours" value="50" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div><label style="display: block; margin-bottom: 5px;">Tier 4 (Every 4 posts) ₹:</label><input type="number" id="promo-price-tier4" value="50" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;"></div>
+                        <div><label style="display: block; margin-bottom: 5px;">Tier 3 (Every 3 posts) ₹:</label><input type="number" id="promo-price-tier3" value="70" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;"></div>
+                        <div><label style="display: block; margin-bottom: 5px;">Tier 2 (Every 2 posts) ₹:</label><input type="number" id="promo-price-tier2" value="80" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;"></div>
+                        <div><label style="display: block; margin-bottom: 5px;">Tier 1 (Every 1 post) ₹:</label><input type="number" id="promo-price-tier1" value="100" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;"></div>
+                    </div>
+
+                    <h3 style="color: #87ceeb; margin-top: 15px; margin-bottom: 10px; font-size: 1.1rem;">Video & Blog Ad Rates</h3>
+                    <label style="display: block; margin-bottom: 5px;">Max Daily External Ads Per User:</label>
+                    <input type="number" id="promo-daily-limit" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <label style="display: block; margin-bottom: 5px;">Pre-Roll Ad Frequency (Show every X videos):</label>
+                    <input type="number" id="promo-preroll-frequency" value="3" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <label style="display: block; margin-bottom: 5px;">Pre-Roll Ad Rate (₹ per 1000 impressions):</label>
+                    <input type="number" id="promo-preroll-rate" value="100" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <label style="display: block; margin-bottom: 5px;">Blog Ad Rate (₹ per 1000 impressions):</label>
+                    <input type="number" id="promo-blogad-rate" value="100" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
+                    <button class="btn" style="background-color: #8e44ad; width: 100%;" onclick="window.savePromoSettings()">Save Pricing & Ad Settings</button>
                 </div>
             </div>
 
@@ -1961,7 +1951,6 @@
                 tier1: parseInt(document.getElementById('promo-price-tier1').value) || 100
             };
             try {
-                await setDoc(doc(db, "settings", "promotions"), { upiId, qrCodeUrl, dailyLimit, prerollFrequency, prerollRate, blogAdRate, pricing }, { merge: true });
                 await setDoc(doc(db, "settings", "promotions"), { dailyLimit, prerollFrequency, prerollRate, blogAdRate, pricing }, { merge: true });
                 
                 // Sync to Monetization so Creator Earnings match Advertiser Pricing

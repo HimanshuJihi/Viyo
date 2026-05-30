@@ -205,6 +205,10 @@
     <link rel="stylesheet" href="assets/css/watch.css">
 </head>
 <body>
+    <script>
+        const initialTheme = localStorage.getItem('theme') || 'dark';
+        if (initialTheme !== 'dark') document.body.classList.add(initialTheme + '-mode');
+    </script>
 
     <!-- Hidden input for story media import -->
     <input type="file" id="home-story-file-input" accept="image/*,video/mp4,video/webm" style="display: none;">
@@ -503,7 +507,7 @@
 
   <!-- SPA Router View: Messages -->
     <div id="view-messages" class="page-view">
-        <div class="messages-container" style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 75px);">
+        <div class="messages-container" style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 75px); height: calc(100dvh - 75px);">
             <div class="header" style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(217, 113, 9, 0.8); margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
                 <h1 style="margin: 0; font-size: 1.5rem;">My Messages</h1>
                 <div class="header-actions">
@@ -523,7 +527,7 @@
 
     <!-- SPA Router View: Chat -->
     <div id="view-chat" class="page-view">
-        <div class="chat-container" style="display: flex; flex-direction: column; height: calc(100vh - 75px); padding: 0; max-width: 800px; margin: 0 auto; margin-bottom: 35px; border-radius: 15px;background: transparent; border: none;">
+        <div class="chat-container" style="display: flex; flex-direction: column; height: calc(100vh - 75px); height: calc(100dvh - 75px); padding: 0; max-width: 800px; margin: 0 auto; margin-bottom: 35px; border-radius: 15px;background: transparent; border: none;">
             <div class="chat-header" style="display: flex; align-items: center; padding: 10px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 15px; background: rgba(61, 60, 61, 0.8);">
                 <button class="btn-transparent" style="padding: 5px 12px; border-radius: 5px; margin-right: 15px;" onclick="window.navigateTo('messages', event)"><i data-lucide="arrow-left"></i></button>
                 <img id="chat-partner-pic" src="https://via.placeholder.com/40" class="profile-pic" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 15px; cursor: pointer;" onclick="window.navigateTo('profile', event, window.currentChatPartnerUid)">
@@ -640,6 +644,7 @@
                 <button id="save-btn" class="btn" style="margin-bottom: 5px; width: 100%; border-radius: 8px; padding: 12px; font-size: 1.05rem;"><i data-lucide="save"></i> Save Profile</button>
             </div>
             <div id="settings-content-options" class="settings-content-section" style="display: none;">
+                <button id="copy-profile-link-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: #10b981; text-align: center;" onclick="window.copyProfileLink()"><i data-lucide="share-2"></i> Share Profile Link</button>
                 <button id="change-pwd-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: #87ceeb; text-align: center;"><i data-lucide="lock"></i> Change Password</button>
                 <button id="delete-acc-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; color: #ff6b6b; text-align: center;"><i data-lucide="user-x"></i> Delete Account</button>
             </div>
@@ -703,7 +708,7 @@
     <!-- Flicks Viewer Modal -->
     <div id="flicks-viewer-modal" class="lightbox-modal" style="padding: 0; align-items: center; justify-content: center; background: #000;" onclick="if(event.target === this) window.closeFlicksViewer()">
         <span class="close-lightbox" style="z-index: 3000; right: 20px; top: 20px;" onclick="window.closeFlicksViewer()">&times;</span>
-        <div id="flicks-viewer-content" style="position: relative; width: 100%; max-width: 450px; height: 100vh; background: #111; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+        <div id="flicks-viewer-content" style="position: relative; width: 100%; max-width: 450px; height: 100vh; height: 100dvh; background: #111; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
             <video id="flicks-video-player" src="" loop playsinline style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" onclick="window.handleFlickVideoClick(event)"></video>
             
             <div id="flicks-heart-anim" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: #ff0050; font-size: 6rem; z-index: 25; pointer-events: none; opacity: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; text-shadow: 0 0 20px rgba(0,0,0,0.5);">
@@ -1030,8 +1035,17 @@
             // Screen se bahar na jane dein
             const maxX = window.innerWidth - watchView.offsetWidth;
             const maxY = window.innerHeight - watchView.offsetHeight;
-            if (newLeft < 0) newLeft = 0; if (newTop < 0) newTop = 0;
-            if (newLeft > maxX) newLeft = maxX; if (newTop > maxY) newTop = maxY;
+            
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft > maxX) newLeft = maxX;
+            
+            // Swipe down to dismiss logic
+            if (newTop > maxY + 60) {
+                window.closeMiniplayer(e);
+                isDraggingMiniplayer = false;
+                return;
+            } else if (newTop < 0) { newTop = 0; } 
+            else if (newTop > maxY) { newTop = maxY; }
 
             watchView.style.left = newLeft + 'px';
             watchView.style.top = newTop + 'px';
@@ -1096,8 +1110,19 @@
             // Keep within screen bounds
             const maxX = window.innerWidth - blogAdMiniplayer.offsetWidth;
             const maxY = window.innerHeight - blogAdMiniplayer.offsetHeight;
-            if (newLeft < 0) newLeft = 0; if (newTop < 0) newTop = 0;
-            if (newLeft > maxX) newLeft = maxX; if (newTop > maxY) newTop = maxY;
+            
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft > maxX) newLeft = maxX;
+            
+            // Swipe down to dismiss Ad logic
+            if (newTop > maxY + 60) {
+                blogAdMiniplayer.style.display = 'none';
+                isDraggingBlogAd = false;
+                const player = document.getElementById('blog-ad-video');
+                if (player) player.pause();
+                return;
+            } else if (newTop < 0) { newTop = 0; } 
+            else if (newTop > maxY) { newTop = maxY; }
 
             blogAdMiniplayer.style.left = newLeft + 'px';
             blogAdMiniplayer.style.top = newTop + 'px';
@@ -1214,6 +1239,9 @@
                         <button class="miniplayer-btn miniplayer-expand-btn" onclick="window.navigateTo('watch', event, '${id}')" title="Expand"><i data-lucide="maximize-2"></i></button>
                         <button class="miniplayer-btn miniplayer-close-btn" onclick="window.closeMiniplayer(event)" title="Close"><i data-lucide="x"></i></button>
                     </div>
+                    <div id="miniplayer-progress-container" style="display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.2); z-index: 100; pointer-events: none;">
+                        <div id="miniplayer-progress" style="height: 100%; width: 0%; background: #ff0050; transition: width 0.1s linear;"></div>
+                    </div>
                 `;
 
                 let mediaHtml = '';
@@ -1319,7 +1347,7 @@
 
                 let audioBoxHtml = '';
                 if (blog.video && !blog.youtubeUrl) {
-                    const audioTitle = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : 'Original Audio - @' + blog.author;
+                const audioTitle = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : `${blog.title} - @${blog.author}`;
                     const audioThumb = blog.thumbnail || blog.authorPhoto || 'logo.png';
                     audioBoxHtml = `
             <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="window.location.href='audio.html?url=' + encodeURIComponent('${blog.audioUrl || blog.video}')">
@@ -1366,7 +1394,7 @@
                             ${audioBoxHtml}
                         </div>
                     </div>
-                    <div id="watch-comments-section" style="margin-top: 30px;"></div>
+                    <div class="watch-comments-container" style="margin-top: 30px;"></div>
                 `;
 
                 
@@ -1514,6 +1542,8 @@
                             const progPercent = (videoElement.currentTime / videoElement.duration) * 100 || 0;
                             progressBar.value = progPercent;
                             progressBar.style.setProperty('--progress', `${progPercent}%`);
+                            const miniProg = document.getElementById('miniplayer-progress');
+                            if (miniProg) miniProg.style.width = `${progPercent}%`;
                         }
                         if(currentTimeDisplay) currentTimeDisplay.textContent = formatTime(videoElement.currentTime);
                     });
@@ -1978,8 +2008,8 @@
 
         // --- WATCH SPA COMMENTS SYSTEM ---
         window.renderWatchComments = function() {
-            const commentsSection = document.getElementById('watch-comments-section');
-            if (!commentsSection || !window.currentWatchBlog) return;
+            const containers = document.querySelectorAll('.watch-comments-container');
+            if (containers.length === 0 || !window.currentWatchBlog) return;
             const user = auth.currentUser;
             const comments = window.currentWatchBlog.comments || [];
             const sortedComments = [...comments].sort((a, b) => {
@@ -2014,9 +2044,9 @@
                     const rIsOwner = user && r.userUid === user.uid;
                     const rIsLiked = user && (r.likes || []).includes(user.uid);
                     const rAuthorLiked = (r.likes || []).includes(window.currentWatchBlog.authorUid);
-                    const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge"><img src="${window.currentWatchBlog.authorPhoto || 'logo.png'}"> Liked by author</span>` : '';
+                    const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2);"><img src="${window.currentWatchBlog.authorPhoto || 'logo.png'}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author</span>` : '';
                     return `
-                    <div class="comment-wrapper" style="margin-bottom: 12px;">
+                    <div class="comment-wrapper" style="margin-bottom: 12px; ${rAuthorLiked ? 'background: linear-gradient(to right, rgba(255,0,80,0.1), transparent); border-left: 2px solid #ff0050; padding: 8px; border-radius: 8px;' : ''}">
                         <img src="${r.photo || 'logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.navigateTo('profile', event, '${r.userUid}')">
                         <div class="comment-body">
                             <div class="comment-header">
@@ -2063,17 +2093,17 @@
                 </div>`;
             }).join('');
 
-            commentsSection.innerHTML = `
-                <div style="background: rgba(20,20,20,0.6); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+            const htmlString = `
+                <div style="background: transparent; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
                     <h3 style="font-size: 1.2rem; margin-top: 0; color: #ddd; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 20px;">Comments (${comments.length})</h3>
                     ${user ? `
                     <div style="position: relative; margin-bottom: 30px;">
                         <div style="display: flex; gap: 12px;">
                             <img src="${user.photoURL || 'logo.png'}" class="comment-avatar">
                             <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
-                                <input type="text" id="watch-comment-input" placeholder="Add a comment..." style="width: 100%; padding: 10px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); color: white; font-size: 0.9rem; box-sizing: border-box;" autocomplete="off">
+                                <input type="text" class="watch-comment-input-class" placeholder="Add a comment..." style="width: 100%; padding: 10px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); color: white; font-size: 0.9rem; box-sizing: border-box;" autocomplete="off">
                                 <div style="display: flex; justify-content: flex-end; width: 100%;">
-                                    <button onclick="window.addComment('${window.currentWatchBlog.id}'); setTimeout(window.renderWatchComments, 1000);" class="btn" width:200px; style="background: linear-gradient(135deg, #6366f1, #a855f7); padding: 6px 16px; font-size: 0.85rem; border-radius: 20px;">Comment</button>
+                                    <button onclick="window.addComment('${window.currentWatchBlog.id}'); setTimeout(window.renderWatchComments, 1000);" class="btn" style="width: 200px; background: linear-gradient(135deg, #6366f1, #a855f7); padding: 6px 16px; font-size: 0.85rem; border-radius: 20px;">Comment</button>
                                 </div>
                             </div>
                         </div>
@@ -2091,6 +2121,13 @@
                     </div>
                 </div>
             `;
+            
+            containers.forEach(container => {
+                const parentView = container.closest('.page-view');
+                if (!parentView || parentView.classList.contains('active')) {
+                    container.innerHTML = htmlString;
+                }
+            });
             if (window.lucide) window.lucide.createIcons();
         };
 
@@ -2521,6 +2558,29 @@
             if (activeSec) { activeSec.style.display = 'block'; }
         };
 
+        window.copyProfileLink = async function() {
+            if (!auth.currentUser) return;
+            const profileUrl = `${window.location.origin}/index.html?view=profile&uid=${auth.currentUser.uid}`;
+            const title = `${auth.currentUser.displayName || 'User'}'s Profile on Viyou`;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: 'Check out my profile on Viyou!',
+                        url: profileUrl
+                    });
+                } catch (err) { console.log('Share canceled or failed'); }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(profileUrl);
+                    if(window.showToast) window.showToast("Profile link copied to clipboard!", "success");
+                } catch(err) {
+                    console.error('Failed to copy: ', err);
+                }
+            }
+        };
+
         window.playFlickPreview = function(el) {
             const vid = el.querySelector('video');
             const img = el.querySelector('.flick-thumb-img');
@@ -2947,6 +3007,13 @@
             article.className = 'news-card'; article.id = `liked-blog-${blog.id}`;
             article.innerHTML = window.buildBlogCardHTML ? window.buildBlogCardHTML(blog, isOwner, auth.currentUser) : 'Error loading HTML';
             content.innerHTML = ''; content.appendChild(article);
+            window.currentWatchBlog = blog;
+            const commentsSec = document.createElement('div');
+            commentsSec.className = 'watch-comments-container';
+            commentsSec.style.marginTop = '30px';
+            content.appendChild(commentsSec);
+            if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
+            if (window.lucide) window.lucide.createIcons();
             document.getElementById('my-liked-list').style.display = 'none';
             document.getElementById('my-liked-single').style.display = 'block';
             if (window.lucide) window.lucide.createIcons();
@@ -2963,10 +3030,27 @@
 
         window.deleteMyBlog = async (id) => {
             if(await window.viyouConfirm("Are you sure you want to delete this post?")) {
-                try { await deleteDoc(doc(db, "blogs", id)); if(auth.currentUser) window.renderUserBlogs(auth.currentUser.uid, true); } 
-                        catch(e) { await window.viyouAlert("Error: " + e.message); }
+                try { 
+                    await deleteDoc(doc(db, "blogs", id)); 
+                    if(auth.currentUser) {
+                        fetchedBlogs = fetchedBlogs.filter(b => b.id !== id);
+                        if (typeof profilePageBlogs !== 'undefined') profilePageBlogs = profilePageBlogs.filter(b => b.id !== id);
+                        
+                        const activeView = document.querySelector('.page-view.active');
+                        if (activeView && activeView.id === 'view-profile') {
+                            window.renderUserBlogs(auth.currentUser.uid, true);
+                            if (typeof window.closeMyBlog === 'function') window.closeMyBlog();
+                        } else if (activeView && activeView.id === 'view-blog') {
+                            window.navigateTo('home', null);
+                        } else {
+                            const item = document.getElementById(`blog-${id}`) || document.querySelector(`.yt-grid-item [onclick*="'${id}'"]`)?.closest('.yt-grid-item');
+                            if (item) item.remove();
+                        }
+                        if (window.showToast) window.showToast("Post deleted successfully", "success");
                     }
-                };
+                } catch(e) { await window.viyouAlert("Error: " + e.message); }
+            }
+        };
 
         window.showUserList = async (type) => {
             if (!isProfileOwnerProfile) return; 
@@ -3284,9 +3368,7 @@
                     let lastMessageText = "No messages yet.";
                     if (lastMessage) {
                         const senderName = lastMessage.senderUid === auth.currentUser.uid ? "You" : (otherUser.name || 'User').split(' ')[0];
-                        let decodedText = lastMessage.text;
-                        try { if (decodedText && !decodedText.startsWith('[')) decodedText = atob(decodedText); } catch (e) {}
-                        lastMessageText = `${senderName}: ${decodedText}`;
+                        lastMessageText = `${senderName}: ${lastMessage.text}`;
                     }
 
                     const li = document.createElement('li');
@@ -3621,7 +3703,9 @@
                             const img = new Image(); img.src = ev.target.result;
                             img.onload = () => {
                                 const cv = document.createElement('canvas'); let w = img.width, h = img.height;
-                                if (w > 800) { h *= 800/w; w = 800; } cv.width = w; cv.height = h;
+                                if (w > h) { if (w > 800) { h *= 800/w; w = 800; } }
+                                else { if (h > 800) { w *= 800/h; h = 800; } }
+                                cv.width = w; cv.height = h;
                                 cv.getContext('2d').drawImage(img, 0, 0, w, h);
                                 let q = 0.8, dUrl = cv.toDataURL('image/jpeg', q);
                                 while (dUrl.length > 135000 && q > 0.1) { q-=0.1; dUrl = cv.toDataURL('image/jpeg', q); } res(dUrl);
@@ -3775,7 +3859,15 @@
                 else if (payload.type === 'flick') lastMsg = 'Sent a Flick';
                 else if (payload.type === 'youtube') lastMsg = '[Video]';
                 else if (payload.type === 'watch') lastMsg = 'Shared a video';
-                await setDoc(doc(db, "conversations", tConvId), { lastMessage: { text: lastMsg, senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } }, { merge: true });
+                
+                const myProfileSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+                const partnerProfileSnap = await getDoc(doc(db, "users", targetUid));
+                const myName = myProfileSnap.exists() ? myProfileSnap.data().name : 'User';
+                const myPhoto = myProfileSnap.exists() ? myProfileSnap.data().photoURL : null;
+                const partnerName = partnerProfileSnap.exists() ? partnerProfileSnap.data().name : 'User';
+                const partnerPhoto = partnerProfileSnap.exists() ? partnerProfileSnap.data().photoURL : null;
+
+                await setDoc(doc(db, "conversations", tConvId), { participants: [auth.currentUser.uid, targetUid], participantDetails: { [auth.currentUser.uid]: { name: myName, photoURL: myPhoto }, [targetUid]: { name: partnerName, photoURL: partnerPhoto } }, lastMessage: { text: lastMsg, senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } }, { merge: true });
                 window.viyouAlert("Message forwarded!");
                 document.getElementById('forward-modal').style.display = 'none'; window.messageToForward = null;
             } catch(e) { console.error(e); }
@@ -4166,13 +4258,12 @@
             if (window.currentStoryAudio) {
                 const isMuted = window.currentStoryAudio.muted;
                 window.currentStoryAudio.muted = !isMuted;
-                const icon = e.currentTarget.querySelector('i');
                 if (window.currentStoryAudio.muted) {
-                icon.setAttribute('data-lucide', 'volume-x');
+                    e.currentTarget.innerHTML = '<i data-lucide="volume-x"></i>';
                 } else {
-                icon.setAttribute('data-lucide', 'volume-2');
+                    e.currentTarget.innerHTML = '<i data-lucide="volume-2"></i>';
                 }
-            if (window.lucide) lucide.createIcons({ root: e.currentTarget });
+                if (window.lucide) lucide.createIcons({ root: e.currentTarget });
             }
         };
 
@@ -4388,7 +4479,7 @@
             if (window.lucide) window.lucide.createIcons();
 
             // Highlight the selected theme in the dropdown
-            document.querySelectorAll('.theme-option').forEach(btn => {
+            document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
                 if (btn.getAttribute('data-theme') === (theme || 'dark')) {
                     btn.classList.add('active');
                 } else {
@@ -4396,6 +4487,8 @@
                 }
             });
         }
+
+        applyTheme(localStorage.getItem('theme') || 'dark');
 
             if(themeToggleBtn) {
                 themeToggleBtn.addEventListener('click', (e) => {
@@ -4427,7 +4520,7 @@
             }
         });
 
-        document.querySelectorAll('.theme-option').forEach(btn => {
+        document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const newTheme = btn.getAttribute('data-theme');
@@ -5305,8 +5398,8 @@
                     `<img src="${img}" alt="Blog Image" loading="lazy" onclick="event.stopPropagation(); window.openLightbox('${img}')" style="cursor: pointer; width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 12px;">`
                 ).join('');
                 const arrows = blog.images.length > 1 ? `
-                    <button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button>
-                    <button class="carousel-btn next" onclick="window.scrollCarousel(this, 1)">&#10095;</button>` : '';
+                <button type="button" class="carousel-btn prev" onclick="event.stopPropagation(); window.scrollCarousel(this, -1)">&#10094;</button>
+                <button type="button" class="carousel-btn next" onclick="event.stopPropagation(); window.scrollCarousel(this, 1)">&#10095;</button>` : '';
                 mediaHtml += `<div class="carousel-container card-media-container">
                     ${arrows}
                     <div class="image-carousel" style="border-radius: 12px;">${imagesList}</div>
@@ -5455,9 +5548,11 @@
 
                 const cVerified = c.userVerified ? '<span class="verified-badge" title="Verified">✔</span>' : '';
                 const editedBadge = c.isEdited ? '<span style="font-size: 0.75rem; color: #888; font-style: italic; margin-left: 5px;">(edited)</span>' : '';
+                const authorLiked = (c.likes || []).includes(blog.authorUid);
+                const authorLikeBadge = authorLiked ? `<span class="author-liked-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2);"><img src="${blog.authorPhoto || 'logo.png'}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author</span>` : '';
                 
                 return `
-                <div id="comment-${c.id}" style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 10px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.1); ${pinnedStyle}">
+                <div id="comment-${c.id}" style="background: ${authorLiked ? 'linear-gradient(to right, rgba(255,0,80,0.15), rgba(255,255,255,0.05))' : 'rgba(255, 255, 255, 0.05)'}; border-radius: 12px; padding: 10px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.1); ${pinnedStyle} ${authorLiked ? 'border-left: 3px solid #ff0050;' : ''}">
                     <div style="display: flex; gap: 10px; align-items: flex-start;">
                         <img src="${c.photo || 'https://via.placeholder.com/40'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #555; cursor: pointer;" onclick="window.navigateTo('profile', event, '${c.userUid}')">
                         <div style="flex: 1;">
@@ -5473,6 +5568,7 @@
                             <div class="comment-actions">
                                 <button onclick="window.toggleLike('${blog.id}', '${c.id}')" class="comment-action-btn" style="color: ${cLikeColor}" id="comment-like-btn-${c.id}">${cLikeIcon} ${cLikes.length || 0}</button>
                                 <button onclick="window.toggleReplyBox('${blog.id}', '${c.id}')" class="comment-action-btn">💬 Reply</button>
+                            ${authorLikeBadge}
                                 ${isOwner ? `<button onclick="window.togglePin('${blog.id}', '${c.id}')" class="comment-action-btn" style="color: ${pinBtnColor}">📌 ${pinBtnText}</button>` : ''}
                             </div>
 
@@ -5533,19 +5629,6 @@
                 <div class="card-action-row" style="margin-top: auto; padding: 10px 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box;">
                 ${actionButtons}
                 </div>
-
-                <div class="card-comments-box" style="margin: 0 15px 15px 15px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; box-sizing: border-box;">
-                    <h3 style="font-size: 1rem; margin: 0 0 10px 0; color: #ddd;">Comments (${comments.length})</h3>
-                    <div id="comments-container-${blog.id}">
-                        <div id="comments-list-${blog.id}" style="margin-bottom: 10px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
-                            ${commentsHtml || '<p style="font-size: 0.8rem; color: #ccc;">No comments yet.</p>'}
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="comment-input-${blog.id}" placeholder="Add a comment..." style="flex: 1; padding: 8px; border-radius: 4px; border: none; background: rgba(255,255,255,0.1); color: white;" onkeypress="if(event.key === 'Enter') window.addComment('${blog.id}')">
-                            <button onclick="window.addComment('${blog.id}')" style="padding: 8px 15px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">Post</button>
-                        </div>
-                    </div>
-                </div>
             `;
         };
 
@@ -5584,6 +5667,12 @@
 
                 mainContent.innerHTML = '';
                 mainContent.appendChild(article);
+            const commentsSec = document.createElement('div');
+            commentsSec.className = 'watch-comments-container';
+            commentsSec.style.marginTop = '30px';
+            mainContent.appendChild(commentsSec);
+            if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
+
                 if (window.lucide) window.lucide.createIcons();
 
                 window.loadBlogSuggestions(id, blog.category);
@@ -5881,13 +5970,14 @@
         if (event) event.stopPropagation();
         const blog = fetchedBlogs.find(f => f.id === id) || (window.currentWatchBlog && window.currentWatchBlog.id === id ? window.currentWatchBlog : null);
         if (blog && blog.video) {
-            const title = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : 'Original Audio - @' + blog.author;
+            const title = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : `${blog.title} - @${blog.author}`;
+            let audioIdToPass = null;
             
             try {
                 const q = query(collection(db, "audios"), where("audioUrl", "==", blog.video));
                 const snap = await getDocs(q);
                 if (snap.empty) {
-                    await addDoc(collection(db, "audios"), {
+                    const newDoc = await addDoc(collection(db, "audios"), {
                         title: title,
                         ownerUid: blog.authorUid || "system",
                         ownerName: blog.author || "User",
@@ -5897,11 +5987,15 @@
                         usageCount: 1,
                         timestamp: new Date().toISOString()
                     });
+                    audioIdToPass = newDoc.id;
+                } else {
+                    audioIdToPass = snap.docs[0].id;
                 }
             } catch(e) { console.error("Auto add audio error:", e); }
             
             localStorage.setItem('viyou_import_audio_url', blog.video);
             localStorage.setItem('viyou_import_audio_name', title);
+            if (audioIdToPass) localStorage.setItem('viyou_import_audio_id', audioIdToPass);
             window.location.href = 'story-camera.html?importAudio=true';
         }
     };
@@ -5978,6 +6072,7 @@
                 let bannerAdCount = 0;
                 
                 fetchedBlogs.forEach((blog, index) => {
+                    const isOwner = user && (blog.authorUid === user.uid);
                     let category = 'blogs';
                     if (blog.isFlicker) category = 'flicks';
                     else if (blog.video || blog.youtubeUrl) category = 'videos';
@@ -6819,7 +6914,10 @@
                 return;
             }
             let input = document.getElementById(`comment-input-${id}`);
-            if (!input) input = document.getElementById('watch-comment-input');
+            if (!input) {
+                const activeView = document.querySelector('.page-view.active');
+                if (activeView) input = activeView.querySelector('.watch-comment-input-class');
+            }
             if (!input) return;
             const text = input.value.trim();
             if (!text) return;
@@ -6886,13 +6984,37 @@
             const blogRef = doc(db, "blogs", id);
 
             // Optimistic UI update
-            const blogIndex = fetchedBlogs.findIndex(b => b.id === id);
-            if (blogIndex !== -1) {
-                if (!fetchedBlogs[blogIndex].comments) {
-                    fetchedBlogs[blogIndex].comments = [];
+            let blogObj = null;
+            let isLikedView = false;
+            const bIdx = fetchedBlogs.findIndex(b => b.id === id);
+            if (bIdx !== -1) {
+                blogObj = fetchedBlogs[bIdx];
+            } else if (window.likedPostsData) {
+                blogObj = window.likedPostsData.find(b => b.id === id);
+                if (blogObj) isLikedView = true;
+            }
+
+            if (blogObj) {
+                if (!blogObj.comments) {
+                    blogObj.comments = [];
                 }
-                fetchedBlogs[blogIndex].comments.push(newComment);
-                renderBlogs(auth.currentUser);
+                blogObj.comments.push(newComment);
+                
+                const activeView = document.querySelector('.page-view.active');
+                if (activeView) {
+                    if (activeView.id === 'view-profile') {
+                        if (isLikedView) {
+                            window.viewLikedBlog(id);
+                        } else {
+                            window.renderBlogsOnProfile(isProfileOwnerProfile);
+                            if (document.getElementById('my-blogs-single') && document.getElementById('my-blogs-single').style.display === 'block') {
+                                window.viewMyBlog(id);
+                            }
+                        }
+                    } else if (activeView.id === 'view-blog') {
+                        window.initBlogView(id);
+                    }
+                }
                 input.value = '';
             }
 
@@ -7021,18 +7143,39 @@
             };
 
             // Optimistic UI update
-            const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
-            if (blogIndex !== -1) {
-                const blog = fetchedBlogs[blogIndex];
-                const comment = blog.comments.find(c => c.id === commentId);
+            let blogObj = null;
+            let isLikedView = false;
+            const bIdx = fetchedBlogs.findIndex(b => b.id === blogId);
+            if (bIdx !== -1) {
+                blogObj = fetchedBlogs[bIdx];
+            } else if (window.likedPostsData) {
+                blogObj = window.likedPostsData.find(b => b.id === blogId);
+                if (blogObj) isLikedView = true;
+            }
+            
+            if (blogObj) {
+                const comment = blogObj.comments.find(c => c.id === commentId);
                 if (comment) {
-                    if (!comment.replies) {
-                        comment.replies = [];
-                    }
+                    if (!comment.replies) comment.replies = [];
                     comment.replies.push(newReply);
                     if (!window.openBlogReplyThreads) window.openBlogReplyThreads = new Set();
                     window.openBlogReplyThreads.add(commentId);
-                    renderBlogs(auth.currentUser);
+                    
+                    const activeView = document.querySelector('.page-view.active');
+                    if (activeView) {
+                        if (activeView.id === 'view-profile') {
+                            if (isLikedView) {
+                                window.viewLikedBlog(blogId);
+                            } else {
+                                window.renderBlogsOnProfile(isProfileOwnerProfile);
+                                if (document.getElementById('my-blogs-single') && document.getElementById('my-blogs-single').style.display === 'block') {
+                                    window.viewMyBlog(blogId);
+                                }
+                            }
+                        } else if (activeView.id === 'view-blog') {
+                            window.initBlogView(blogId);
+                        }
+                    }
                     if(input) input.value = '';
                     const replyBox = document.getElementById(`reply-box-${commentId}`);
                     if(replyBox) replyBox.style.display = 'none';
@@ -7103,23 +7246,25 @@
             const uid = auth.currentUser.uid;
 
             let target = null;
+            let currentBlog = null;
             const blogIndex = fetchedBlogs.findIndex(b => b.id === blogId);
             if (blogIndex !== -1) {
-                const blog = fetchedBlogs[blogIndex];
-                const comment = blog.comments.find(c => c.id === targetId);
+                currentBlog = fetchedBlogs[blogIndex];
+                const comment = currentBlog.comments.find(c => c.id === targetId);
                 if (comment) {
                     target = comment;
                     if (replyId !== null) target = comment.replies.find(r => r.id === replyId);
                 }
             }
             if (!target && window.currentWatchBlog && window.currentWatchBlog.id === blogId) {
-                const watchComment = window.currentWatchBlog.comments.find(c => c.id === targetId);
+                currentBlog = window.currentWatchBlog;
+                const watchComment = currentBlog.comments.find(c => c.id === targetId);
                 if (watchComment) {
                     target = watchComment;
                     if (replyId !== null) target = watchComment.replies.find(r => r.id === replyId);
                 }
             }
-            if (!target) return;
+            if (!target || !currentBlog) return;
 
             if (!target.likes) target.likes = [];
             const likeIdx = target.likes.indexOf(uid);
@@ -7143,6 +7288,41 @@
                 } else {
                      btn.style.color = btnColor;
                      btn.innerHTML = `${btnIcon} ${likeCount}`;
+                }
+
+                // Real-time Author Badge & Gradient update
+                const isAuthor = (uid === currentBlog.authorUid);
+                if (isAuthor) {
+                    const actionsDiv = btn.parentElement;
+                    if (actionsDiv) {
+                        let badge = actionsDiv.querySelector('.author-liked-badge');
+                        if (isLiking && !badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'author-liked-badge';
+                            badge.style.cssText = "display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2);";
+                            if (!replyId) badge.style.marginLeft = "10px"; // Add margin for main comments
+                            badge.innerHTML = `<img src="${currentBlog.authorPhoto || 'logo.png'}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author`;
+                            
+                            const replyBtn = Array.from(actionsDiv.children).find(el => el.textContent.includes('Reply'));
+                            if (replyBtn) replyBtn.after(badge);
+                            else actionsDiv.appendChild(badge);
+                        } else if (!isLiking && badge) {
+                            badge.remove();
+                        }
+                    }
+
+                    let wrapper = btn.closest(`[id="comment-${targetId}"]`);
+                    if (!wrapper) wrapper = btn.closest('.comment-wrapper');
+                    
+                    if (wrapper) {
+                        if (isLiking) {
+                            wrapper.style.background = 'linear-gradient(to right, rgba(255,0,80,0.15), rgba(255,255,255,0.05))';
+                            wrapper.style.borderLeft = '3px solid #ff0050';
+                        } else {
+                            wrapper.style.background = 'rgba(255, 255, 255, 0.05)';
+                            wrapper.style.borderLeft = '';
+                        }
+                    }
                 }
             });
 
@@ -7237,9 +7417,23 @@
 
             if(await viyouConfirm('Delete this comment?')) {
                 // Optimistic UI update
-                if (blogIndex !== -1) {
-                    fetchedBlogs[blogIndex].comments = fetchedBlogs[blogIndex].comments.filter(c => c.id !== commentId);
-                    renderBlogs(auth.currentUser);
+                if (blogData) {
+                    blogData.comments = blogData.comments.filter(c => c.id !== commentId);
+                    const activeView = document.querySelector('.page-view.active');
+                    if (activeView) {
+                        if (activeView.id === 'view-profile') {
+                            if (isLikedView) {
+                                window.viewLikedBlog(blogId);
+                            } else {
+                                window.renderBlogsOnProfile(isProfileOwnerProfile);
+                                if (document.getElementById('my-blogs-single') && document.getElementById('my-blogs-single').style.display === 'block') {
+                                    window.viewMyBlog(blogId);
+                                }
+                            }
+                        } else if (activeView.id === 'view-blog') {
+                            window.initBlogView(blogId);
+                        }
+                    }
                 }
 
                 // Update Watch View instantly
@@ -7307,9 +7501,23 @@
 
             if(await viyouConfirm('Delete this reply?')) {
                 // Optimistic UI update
-                if (blogIndex !== -1) {
+                if (blogData) {
                     comment.replies.splice(replyIndex, 1);
-                    renderBlogs(auth.currentUser);
+                    const activeView = document.querySelector('.page-view.active');
+                    if (activeView) {
+                        if (activeView.id === 'view-profile') {
+                            if (window.likedPostsData && window.likedPostsData.find(b => b.id === blogId)) {
+                                window.viewLikedBlog(blogId);
+                            } else {
+                                window.renderBlogsOnProfile(isProfileOwnerProfile);
+                                if (document.getElementById('my-blogs-single') && document.getElementById('my-blogs-single').style.display === 'block') {
+                                    window.viewMyBlog(blogId);
+                                }
+                            }
+                        } else if (activeView.id === 'view-blog') {
+                            window.initBlogView(blogId);
+                        }
+                    }
                 }
 
                 // Update Watch View instantly
@@ -7400,7 +7608,21 @@
                     if (comment) {
                         comment.text = newText;
                         comment.isEdited = true;
-                        if (blogIndex !== -1) renderBlogs(auth.currentUser); 
+                        const activeView = document.querySelector('.page-view.active');
+                        if (activeView) {
+                            if (activeView.id === 'view-profile') {
+                                if (window.likedPostsData && window.likedPostsData.find(b => b.id === blogId)) {
+                                    window.viewLikedBlog(blogId);
+                                } else {
+                                    window.renderBlogsOnProfile(isProfileOwnerProfile);
+                                    if (document.getElementById('my-blogs-single') && document.getElementById('my-blogs-single').style.display === 'block') {
+                                        window.viewMyBlog(blogId);
+                                    }
+                                }
+                            } else if (activeView.id === 'view-blog') {
+                                window.initBlogView(blogId);
+                            }
+                        }
 
                         // Update Watch View instantly
                         if (window.currentWatchBlog && window.currentWatchBlog.id === blogId) {
@@ -7426,7 +7648,21 @@
                         if (reply) {
                             reply.text = newText;
                             reply.isEdited = true;
-                            if (blogIndex !== -1) renderBlogs(auth.currentUser); 
+                            const activeView = document.querySelector('.page-view.active');
+                            if (activeView) {
+                                if (activeView.id === 'view-profile') {
+                                    if (window.likedPostsData && window.likedPostsData.find(b => b.id === blogId)) {
+                                        window.viewLikedBlog(blogId);
+                                    } else {
+                                        window.renderBlogsOnProfile(isProfileOwnerProfile);
+                                        if (document.getElementById('my-blogs-single') && document.getElementById('my-blogs-single').style.display === 'block') {
+                                            window.viewMyBlog(blogId);
+                                        }
+                                    }
+                                } else if (activeView.id === 'view-blog') {
+                                    window.initBlogView(blogId);
+                                }
+                            }
 
                             // Update Watch View instantly
                             if (window.currentWatchBlog && window.currentWatchBlog.id === blogId) {
@@ -8955,7 +9191,7 @@
         }
 
         const bgStyle = story.storyGradient && story.storyGradient !== 'none' ? story.storyGradient : '#000';
-        storyHTML += `<div style="position: relative; width: 100%; height: 80vh; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: ${bgStyle}; border-radius: 8px; margin: 5px 0;">`;
+        storyHTML += `<div style="position: relative; width: 100%; height: 80vh; height: 80dvh; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: ${bgStyle}; border-radius: 8px; margin: 5px 0;">`;
         const filterStyle = story.imageFilter && story.imageFilter !== 'none' ? `filter: ${story.imageFilter};` : '';
         
         if (hasTimeline) {

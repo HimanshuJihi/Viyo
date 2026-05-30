@@ -36,6 +36,10 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <script>
+        const initialTheme = localStorage.getItem('theme') || 'dark';
+        if (initialTheme !== 'dark') document.body.classList.add(initialTheme + '-mode');
+    </script>
     <div id="toast-container"></div>
     <div class="container">
         <a href="index.html?view=profile" class="btn btn-secondary" style="margin-bottom: 20px; display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="arrow-left"></i> Back to Profile</a>
@@ -151,7 +155,7 @@
                         </tr>
                     </thead>
                     <tbody id="content-performance-list">
-                        <tr><td colspan="6" style="padding: 15px; text-align: center; color: #aaa;">Loading content data...</td></tr>
+                        <tr><td colspan="7" style="padding: 15px; text-align: center; color: #aaa;">Loading content data...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -700,7 +704,7 @@ window.showToast = function(message, type = 'info') {
             const dataToRender = window.filteredByDateContent || window.cachedContentData;
             
             if (!dataToRender || dataToRender.length === 0) {
-                perfList.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: #aaa;">No published content found for this period.</td></tr>';
+                perfList.innerHTML = '<tr><td colspan="7" style="padding: 15px; text-align: center; color: #aaa;">No published content found for this period.</td></tr>';
                 return;
             }
 
@@ -1071,7 +1075,7 @@ window.showToast = function(message, type = 'info') {
         };
 
         document.getElementById('submit-withdraw-btn').addEventListener('click', async () => {
-            const reqAmount = parseFloat(document.getElementById('withdraw-amount').value);
+            const reqAmount = Math.round(parseFloat(document.getElementById('withdraw-amount').value) * 100) / 100;
             const minAmount = monetizationSettings.minWithdrawal || 500;
             if (isNaN(reqAmount) || reqAmount < minAmount || reqAmount > currentEarnings) {
                         await window.viyouAlert(`Invalid amount! Please enter a value between ₹${minAmount.toFixed(2)} and ₹${currentEarnings.toFixed(2)}.`);
@@ -1108,6 +1112,12 @@ window.showToast = function(message, type = 'info') {
                     paidBlogAdImpressions: window.cachedLifetimeData.totalBlogAdImpressions
                 });
 
+                // Fix Local UI State so it persists if the user changes filters
+                window.currentUserWalletBalance = remainingBalance;
+                window.cachedLifetimeData.paidAdImpressions = window.cachedLifetimeData.totalVideoAdImpressions;
+                window.cachedLifetimeData.paidBlogAdImpressions = window.cachedLifetimeData.totalBlogAdImpressions;
+                window.cachedMonetizationParams.hasPending = true;
+                window.currentUserPendingEarnings = 0;
                 await addDoc(collection(db, "withdrawals"), {
                     uid: auth.currentUser.uid,
                     amount: reqAmount,
@@ -1244,7 +1254,11 @@ window.showToast = function(message, type = 'info') {
 
         document.getElementById('ext-ad-media').addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (!file) return;
+            if (!file) {
+                extMediaFile = null;
+                extMediaBase64 = null;
+                return;
+            }
             if (file.type.startsWith('image/')) {
                 extMediaType = 'image';
                 const reader = new FileReader();
@@ -1276,7 +1290,11 @@ window.showToast = function(message, type = 'info') {
 
         document.getElementById('preroll-ad-video').addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (!file) return;
+            if (!file) {
+                prerollVideoFile = null;
+                prerollVideoBase64 = null;
+                return;
+            }
             if (file.size > 50 * 1024 * 1024) { alert("Video must be under 50MB."); e.target.value = ''; return; }
             prerollVideoFile = file;
             prerollVideoBase64 = "upload_pending";
@@ -1284,7 +1302,12 @@ window.showToast = function(message, type = 'info') {
 
         document.getElementById('blogad-ad-video').addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (!file) return;
+            if (!file) {
+                blogAdVideoFile = null;
+                blogAdVideoBase64 = null;
+                document.getElementById('blogad-trim-group').style.display = 'none';
+                return;
+            }
             if (file.size > 50 * 1024 * 1024) { alert("Video must be under 50MB."); e.target.value = ''; return; }
             
             const tempVid = document.createElement('video');
@@ -1362,7 +1385,10 @@ window.showToast = function(message, type = 'info') {
 
         document.getElementById('ext-payment-screenshot').addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (!file) return;
+            if (!file) {
+                extPaymentScreenshotBase64 = null;
+                return;
+            }
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
@@ -1457,6 +1483,8 @@ window.showToast = function(message, type = 'info') {
                         overlay.style.display = 'none'; 
                         if (error.code !== 'storage/canceled') {
                             reject(error); 
+                        } else {
+                            reject(new Error("Upload cancelled"));
                         }
                     }, 
                     async () => {

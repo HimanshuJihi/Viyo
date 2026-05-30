@@ -530,6 +530,7 @@
                     <input type="file" id="story-audio-input" style="display: none;" accept="audio/*">
                     <button type="button" id="story-audio-upload-btn" class="panel-btn primary"><i data-lucide="music"></i> Select Audio <span id="audio-limit-text"></span></button>
                     <div id="audio-file-name" style="font-size: 0.8rem; color: #87ceeb; margin-top: 10px; display: none; text-align: center; word-break: break-all;"></div>
+                    <button type="button" id="story-audio-trim-btn" class="panel-btn" style="display: none; border-color: #f59e0b; color: #f59e0b; margin-top: 10px; width: 100%;" onclick="window.openFSAudioTrimmer()"><i data-lucide="scissors"></i> Trim Audio</button>
                     <audio id="story-audio-preview" controls crossorigin="anonymous" style="width: 100%; height: 30px; margin-top: 10px; display: none;"></audio>
                     
                     <!-- Music Volume Control -->
@@ -682,7 +683,7 @@
 </div>
 
 <script type="module">
-    import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs, limit, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs, limit, orderBy, updateDoc, arrayUnion, arrayRemove, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
     import { db, auth, app, storage } from "./firebase-config.js";
@@ -863,7 +864,137 @@
         }
         renderTimeline();
     };
-    
+
+    // --- Phase 4: Audio Trimmer Drag & Loop Engine (Advanced Studio) ---
+    let fsTrimTrimmerAudio = new Audio();
+    let fsTrimTrimmerDragging = false;
+    let fsTrimTrimmerStart = 0;
+    let fsTrimTrimmerDuration = 30; // Max 30s
+    let fsAudioTotalDuration = 0;
+    let fsTrimInterval = null;
+
+    function formatFSTrimTime(seconds) {
+        if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    window.openFSAudioTrimmer = () => {
+        const previewAud = document.getElementById('story-audio-preview');
+        let targetUrl = base64StoryAudio || (previewAud ? previewAud.src : null);
+        
+        if (!targetUrl || (targetUrl.includes(window.location.host) && targetUrl.endsWith('story-editor.html'))) {
+            window.showToast("No audio selected to trim.", "error");
+            return;
+        }
+
+        document.getElementById('fs-audio-trimmer-sheet').style.display = 'flex';
+        setTimeout(() => document.getElementById('fs-trimmer-sheet-content').style.transform = 'translateY(0)', 10);
+        
+        const bars = document.getElementById('fs-waveform-bars');
+        bars.innerHTML = '';
+        for(let i=0; i<40; i++) {
+            const h = Math.floor(Math.random() * 70) + 20;
+            bars.innerHTML += `<div style="flex:1; height:${h}%; background:#888; border-radius:2px;"></div>`;
+        }
+
+        fsTrimTrimmerAudio.src = targetUrl;
+        fsTrimTrimmerAudio.onloadedmetadata = () => {
+            fsAudioTotalDuration = fsTrimTrimmerAudio.duration;
+            if(fsAudioTotalDuration < fsTrimTrimmerDuration) fsTrimTrimmerDuration = fsAudioTotalDuration;
+            
+            let boxWidth = (fsTrimTrimmerDuration / fsAudioTotalDuration) * 100;
+            document.getElementById('fs-trimmer-selection-box').style.width = boxWidth + '%';
+            
+            fsTrimTrimmerStart = (storyAudioClips.length > 0 ? (storyAudioClips[0].mediaStart || 0) : 0);
+            if (fsTrimTrimmerStart + fsTrimTrimmerDuration > fsAudioTotalDuration) {
+                fsTrimTrimmerStart = Math.max(0, fsAudioTotalDuration - fsTrimTrimmerDuration);
+            }
+            
+            let leftPercent = (fsTrimTrimmerStart / fsAudioTotalDuration) * 100;
+            document.getElementById('fs-trimmer-selection-box').style.left = leftPercent + '%';
+            
+            updateFSTrimDisplay();
+            playFSTrimAudio();
+        };
+    };
+
+    const fsTrimBox = document.getElementById('fs-trimmer-selection-box');
+    const fsWaveform = document.getElementById('fs-waveform-container');
+    let fsStartX = 0, fsStartLeft = 0;
+
+    const onFSTrimDragStart = (e) => {
+        fsTrimTrimmerDragging = true;
+        fsStartX = e.touches ? e.touches[0].clientX : e.clientX;
+        fsStartLeft = parseFloat(fsTrimBox.style.left) || 0;
+        fsTrimTrimmerAudio.pause();
+    };
+
+    const onFSTrimDragMove = (e) => {
+        if(!fsTrimTrimmerDragging) return;
+        e.preventDefault();
+        let currentX = e.touches ? e.touches[0].clientX : e.clientX;
+        let deltaPercent = ((currentX - fsStartX) / fsWaveform.offsetWidth) * 100;
+        let newLeft = Math.max(0, Math.min(100 - parseFloat(fsTrimBox.style.width), fsStartLeft + deltaPercent));
+        
+        fsTrimBox.style.left = newLeft + '%';
+        fsTrimTrimmerStart = (newLeft / 100) * fsAudioTotalDuration;
+        updateFSTrimDisplay();
+    };
+
+    const onFSTrimDragEnd = () => {
+        if(!fsTrimTrimmerDragging) return;
+        fsTrimTrimmerDragging = false;
+        if(navigator.vibrate) navigator.vibrate(10);
+        playFSTrimAudio();
+    };
+
+    if (fsTrimBox) {
+        fsTrimBox.addEventListener('mousedown', onFSTrimDragStart);
+        document.addEventListener('mousemove', onFSTrimDragMove, {passive: false});
+        document.addEventListener('mouseup', onFSTrimDragEnd);
+        fsTrimBox.addEventListener('touchstart', onFSTrimDragStart, {passive:false});
+        document.addEventListener('touchmove', onFSTrimDragMove, {passive:false});
+        document.addEventListener('touchend', onFSTrimDragEnd);
+    }
+
+    const updateFSTrimDisplay = () => {
+        let end = Math.min(fsTrimTrimmerStart + fsTrimTrimmerDuration, fsAudioTotalDuration);
+        document.getElementById('fs-trimmer-time-display').innerHTML = `${formatFSTrimTime(fsTrimTrimmerStart)} <span style="color: #fff; margin: 0 5px;">-</span> ${formatFSTrimTime(end)}`;
+    };
+
+    const playFSTrimAudio = () => {
+        fsTrimTrimmerAudio.currentTime = fsTrimTrimmerStart;
+        fsTrimTrimmerAudio.play().catch(e=>{});
+        clearInterval(fsTrimInterval);
+        fsTrimInterval = setInterval(() => {
+            if(fsTrimTrimmerAudio.currentTime >= fsTrimTrimmerStart + fsTrimTrimmerDuration) {
+                fsTrimTrimmerAudio.currentTime = fsTrimTrimmerStart;
+                fsTrimTrimmerAudio.play().catch(e=>{});
+            }
+        }, 100);
+    };
+
+    window.closeFSAudioTrimmer = () => {
+        document.getElementById('fs-trimmer-sheet-content').style.transform = 'translateY(100%)';
+        setTimeout(() => document.getElementById('fs-audio-trimmer-sheet').style.display = 'none', 300);
+        
+        fsTrimTrimmerAudio.pause();
+        clearInterval(fsTrimInterval);
+        
+        // Save to timeline clips if an audio is loaded
+        if (storyAudioClips.length > 0) {
+            window.saveGlobalState();
+            storyAudioClips[0].mediaStart = fsTrimTrimmerStart;
+            window.renderTimeline();
+            window.updateTimelineUI();
+        }
+        
+        const bgAudio = document.getElementById('story-audio-preview');
+        if(bgAudio) bgAudio.currentTime = fsTrimTrimmerStart;
+    };
+
     // --- Timeline Variables ---
     let storyTimeline = [];
     let currentTimelineTime = 0;
@@ -2144,60 +2275,9 @@
                 console.error("Error fetching profile:", e);
             }
 
-            // --- Import Audio from Flicks ---
+            // --- Import Media from Gallery ---
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('importAudio') === 'true') {
-                const audioUrl = localStorage.getItem('viyou_import_audio_url');
-                const audioName = localStorage.getItem('viyou_import_audio_name');
-
-                if (audioUrl) {
-                    window.clearEditorState(); // Clear any existing draft
-                    document.getElementById('processing-overlay').style.display = 'flex';
-                    try {
-                        const response = await fetch(audioUrl);
-                        const blob = await response.blob();
-                        const reader = new FileReader();
-                        reader.onload = (readEvent) => {
-                            base64StoryAudio = readEvent.target.result;
-                            document.getElementById('audio-file-name').innerText = audioName || "Imported Audio";
-                            document.getElementById('audio-file-name').style.display = 'block';
-                            const audPreview = document.getElementById('story-audio-preview');
-                            audPreview.src = base64StoryAudio;
-                            document.getElementById('story-audio-remove-btn').style.display = 'flex';
-                            document.getElementById('music-volume-container').style.display = 'flex';
-                            document.getElementById('audio-fades-container').style.display = 'flex';
-
-                            audPreview.onloadedmetadata = () => {
-                                const dur = audPreview.duration * 1000;
-                                storyAudioClips = [{ 
-                                    id: 'aud_' + Date.now(), 
-                                    startTime: 0, 
-                                    duration: dur, 
-                                    sourceDuration: audPreview.duration, 
-                                    mediaStart: 0, 
-                                    volume: 1, 
-                                    fadeIn: 0, 
-                                    fadeOut: 0 
-                                }];
-                                renderTimeline();
-                                updateTimelineUI();
-                                document.getElementById('processing-overlay').style.display = 'none';
-                                showToast("Audio imported successfully!", "success");
-                            };
-                        };
-                        reader.readAsDataURL(blob);
-                    } catch (err) {
-                        console.error("Error importing audio:", err);
-                        showToast("Failed to import audio.", "error");
-                        document.getElementById('processing-overlay').style.display = 'none';
-                    } finally {
-                        localStorage.removeItem('viyou_import_audio_url');
-                        localStorage.removeItem('viyou_import_audio_name');
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                }
-            } else if (urlParams.get('importStoryMedia') === 'true') {
-                // --- Direct Gallery Import Logic ---
+            if (urlParams.get('importStoryMedia') === 'true') {
                 window.clearEditorState(); // Clear any existing draft
                 document.getElementById('processing-overlay').style.display = 'flex';
                 retrieveStoryMediaFromIndexedDB().then(file => {
@@ -2925,6 +3005,7 @@
             base64StoryAudio = event.target.result;
             audioFileName.innerText = file.name;
             audioFileName.style.display = 'block';
+            document.getElementById('story-audio-trim-btn').style.display = 'block';
             audioPreview.src = base64StoryAudio;
             audioPreview.style.display = 'none'; // Controlled by timeline now
             audioRemoveBtn.style.display = 'flex';
@@ -2987,6 +3068,7 @@
 
     window.removeAllAudioTrack = function() {
         base64StoryAudio = null; audioInput.value = ''; audioFileName.style.display = 'none';
+        document.getElementById('story-audio-trim-btn').style.display = 'none';
         audioPreview.pause(); audioPreview.src = ''; audioPreview.style.display = 'none'; audioRemoveBtn.style.display = 'none';
         document.getElementById('music-volume-container').style.display = 'none';
         document.getElementById('audio-fades-container').style.display = 'none';
@@ -3033,6 +3115,7 @@
                     base64StoryAudio = readEvent.target.result;
                     document.getElementById('audio-file-name').innerText = "Voiceover Recording";
                     document.getElementById('audio-file-name').style.display = 'block';
+                    document.getElementById('story-audio-trim-btn').style.display = 'block';
                     const audPreview = document.getElementById('story-audio-preview');
                     audPreview.src = base64StoryAudio;
                     document.getElementById('story-audio-remove-btn').style.display = 'flex';
@@ -3095,6 +3178,7 @@
             base64StoryAudio = event.target.result; // Uses the video data internally to play just audio
             document.getElementById('audio-file-name').innerText = "Extracted Audio";
             document.getElementById('audio-file-name').style.display = 'block';
+            document.getElementById('story-audio-trim-btn').style.display = 'block';
             const audPreview = document.getElementById('story-audio-preview');
             audPreview.src = base64StoryAudio;
             document.getElementById('story-audio-remove-btn').style.display = 'flex';
@@ -4515,7 +4599,7 @@
 
                 await window.saveVideoToIndexedDB(result.blob);
                 localStorage.removeItem('viyou_story_draft');
-                
+            
                 window.location.href = `write-blog.html?importVideo=true&type=${type}`;
             } catch(e) {
                 if (e.message !== "Export cancelled") {

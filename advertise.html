@@ -50,6 +50,13 @@
                 <p>Pay only for guaranteed views</p>
             </div>
 
+            <h3>Blog Post Miniplayer Ads</h3>
+            <p>Capture user attention with unskippable video ads that play in a miniplayer while they read blog posts. A highly effective format for brand recall.</p>
+            <div class="pricing-card" style="max-width: 300px;">
+                <h3>Rate per 1,000 Impressions</h3>
+                <div class="price">₹<span class="dyn-blogad">...</span></div>
+                <p>High-impact, unskippable format</p>
+            </div>
             <h3>In-Feed Product Ads</h3>
             <p>Showcase your product banners and links directly in the user's home feed and Flicks feed. These ads blend seamlessly with organic content.</p>
 
@@ -97,6 +104,13 @@
                 <p>केवल गारंटीकृत व्यूज के लिए भुगतान करें</p>
             </div>
 
+            <h3>ब्लॉग पोस्ट मिनीप्लेयर विज्ञापन</h3>
+            <p>जब उपयोगकर्ता ब्लॉग पोस्ट पढ़ते हैं, तो एक मिनीप्लेयर में चलने वाले वीडियो विज्ञापनों से उनका ध्यान आकर्षित करें। यह ब्रांड याद दिलाने के लिए एक अत्यधिक प्रभावी प्रारूप है।</p>
+            <div class="pricing-card" style="max-width: 300px;">
+                <h3>प्रति 1,000 इंप्रेशन की दर</h3>
+                <div class="price">₹<span class="dyn-blogad">...</span></div>
+                <p>उच्च-प्रभाव, जिसे स्किप नहीं किया जा सकता</p>
+            </div>
             <h3>इन-फ़ीड उत्पाद विज्ञापन (In-Feed Ads)</h3>
             <p>अपने उत्पाद बैनर और लिंक को सीधे उपयोगकर्ता के होम फ़ीड और फ्लिक्स फ़ीड में प्रदर्शित करें। ये विज्ञापन ऑर्गेनिक कंटेंट के साथ सहजता से मिल जाते हैं।</p>
 
@@ -157,6 +171,7 @@
                 if (promoSnap.exists()) {
                     const data = promoSnap.data();
                     document.querySelectorAll('.dyn-preroll').forEach(el => el.innerText = data.prerollRate || 100);
+                    document.querySelectorAll('.dyn-blogad').forEach(el => el.innerText = data.blogAdRate || 100);
                     if (data.pricing) {
                         document.querySelectorAll('.dyn-base-hours').forEach(el => el.innerText = data.pricing.baseHours || 50);
                         document.querySelectorAll('.dyn-t1').forEach(el => el.innerText = data.pricing.tier1 || 100);

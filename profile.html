@@ -61,6 +61,10 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <script>
+        const initialTheme = localStorage.getItem('theme') || 'dark';
+        if (initialTheme !== 'dark') document.body.classList.add(initialTheme + '-mode');
+    </script>
 
 <div id="profile-main-view" class="container" style="text-align: left; padding: 20px 15px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -236,6 +240,7 @@
                     </div>
                 </div>
             </div>
+            <button id="copy-profile-link-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: #10b981; text-align: center;" onclick="window.copyProfileLink()"><i data-lucide="share-2"></i> Share Profile Link</button>
 
             <button id="change-pwd-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: #87ceeb; text-align: center;"><i data-lucide="lock"></i> Change Password</button>
             <button id="delete-acc-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; color: #ff6b6b; text-align: center;"><i data-lucide="user-x"></i> Delete Account</button>
@@ -300,7 +305,7 @@
         localStorage.setItem('theme', theme || 'dark');
         if (window.lucide) window.lucide.createIcons();
 
-        document.querySelectorAll('.theme-option').forEach(btn => {
+        document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
             if (btn.getAttribute('data-theme') === (theme || 'dark')) {
                 btn.classList.add('active');
             } else {
@@ -319,7 +324,7 @@
         if (menuBtnSet && !menuBtnSet.contains(e.target) && menuDropSet && !menuDropSet.contains(e.target)) menuDropSet.classList.remove('show');
     });
 
-    document.querySelectorAll('.theme-option').forEach(btn => {
+    document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const newTheme = btn.getAttribute('data-theme');
@@ -786,6 +791,29 @@
         
         if (activeBtn) { activeBtn.style.color = '#fff'; activeBtn.style.borderBottomColor = '#f59e0b'; }
         if (activeSec) { activeSec.style.display = 'block'; }
+    };
+
+    window.copyProfileLink = async function() {
+        if (!auth.currentUser) return;
+        const profileUrl = `${window.location.origin}/index.html?view=profile&uid=${auth.currentUser.uid}`;
+        const title = `${auth.currentUser.displayName || 'User'}'s Profile on Viyou`;
+        
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: title,
+                    text: 'Check out my profile on Viyou!',
+                    url: profileUrl
+                });
+            } catch (err) { console.log('Share canceled or failed'); }
+        } else {
+            try {
+                await navigator.clipboard.writeText(profileUrl);
+                if(window.showToast) window.showToast("Profile link copied to clipboard!", "success");
+            } catch(err) {
+                console.error('Failed to copy: ', err);
+            }
+        }
     };
 
     window.playFlickPreview = function(el) {
@@ -1321,7 +1349,7 @@
         let mediaHtml = '';
         if (blog.images && blog.images.length > 0) {
             const imagesList = blog.images.map(img => `<img src="${img}" alt="Blog Image" onclick="window.openLightbox('${img}')">`).join('');
-            const arrows = blog.images.length > 1 ? `<button class="carousel-btn prev" onclick="window.scrollCarousel(this, -1)">&#10094;</button><button class="carousel-btn next" onclick="window.scrollCarousel(this, 1)">&#10095;</button>` : '';
+            const arrows = blog.images.length > 1 ? `<button type="button" class="carousel-btn prev" onclick="event.stopPropagation(); window.scrollCarousel(this, -1)">&#10094;</button><button type="button" class="carousel-btn next" onclick="event.stopPropagation(); window.scrollCarousel(this, 1)">&#10095;</button>` : '';
             mediaHtml += `<div class="carousel-container card-media-container" style="background: transparent;">${arrows}<div class="image-carousel">${imagesList}</div></div>`;
         } else if (blog.image) {
             if (blog.image !== 'logo.png') mediaHtml += `<div class="card-media-container" onclick="event.stopPropagation(); window.openLightbox('${blog.image}')"><img src="${blog.image}" alt="" loading="lazy"></div>`;
@@ -1347,7 +1375,7 @@
 
         let audioBoxHtml = '';
         if (blog.video && !blog.youtubeUrl) {
-            const audioTitle = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : 'Original Audio - @' + blog.author;
+            const audioTitle = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : `${blog.title} - @${blog.author}`;
             const audioThumb = blog.thumbnail || blog.authorPhoto || 'logo.png';
             audioBoxHtml = `
             <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="event.stopPropagation(); window.location.href='audio.html?url=' + encodeURIComponent('${blog.audioUrl || blog.video}')">
@@ -1394,13 +1422,15 @@
                             const commentLikes = c.likes || [];
                             const isCommentLiked = user && commentLikes.includes(user.uid);
                             const commentLikeIcon = isCommentLiked ? '❤️' : '🤍';
+                            const authorLiked = commentLikes.includes(blog.authorUid);
+                            const authorLikeBadge = authorLiked ? `<span class="author-liked-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2); margin-left: 10px;"><img src="${blog.authorPhoto || 'logo.png'}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author</span>` : '';
                             const isCommentOwner = user && (c.userUid === user.uid || (!c.userUid && c.author === user.displayName));
                             const editDelBtns = isCommentOwner ? `
                                 <button class="comment-action-btn" onclick="window.editProfileComment('${blog.id}', '${commentId}')" style="color:#f59e0b; margin-left: 10px;"><i data-lucide="pen"></i> Edit</button>
                             <button class="comment-action-btn" onclick="window.deleteProfileComment('${blog.id}', '${commentId}')" style="color:#ff6b6b; margin-left: 10px;"><i data-lucide="trash-2"></i> Delete</button>
                             ` : '';
                             return `
-                            <div id="comment-${blog.id}-${index}" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                            <div id="comment-${blog.id}-${idx}" style="background: ${authorLiked ? 'linear-gradient(to right, rgba(255,0,80,0.15), rgba(255,255,255,0.05))' : 'rgba(255, 255, 255, 0.05)'}; border-radius: 8px; padding: 10px; margin-bottom: 10px; ${authorLiked ? 'border-left: 3px solid #ff0050;' : ''}">
                                 <div style="display: flex; gap: 10px; align-items: flex-start;">
                                     <img src="${c.photo || 'logo.png'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
                                     <div style="flex: 1;">
@@ -1411,6 +1441,7 @@
                                         <p style="font-size: 1.05rem; color: #eee; margin: 5px 0;">${c.text}</p>
                                         <div class="comment-actions" id="comment-actions-${blog.id}-${commentId}">
                                             <button onclick="window.toggleCommentLike('${blog.id}', '${commentId}')" class="comment-action-btn">${commentLikeIcon} ${commentLikes.length}</button>
+                                            ${authorLikeBadge}
                                             ${editDelBtns}
                                         </div>
                                     </div>
@@ -1601,13 +1632,14 @@
         if (event) event.stopPropagation();
         let blog = profilePageBlogs.find(f => f.id === id) || (window.likedPostsData && window.likedPostsData.find(f => f.id === id));
         if (blog && blog.video) {
-            const title = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : 'Original Audio - @' + blog.author;
+            const title = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : `${blog.title} - @${blog.author}`;
+            let audioIdToPass = null;
             
             try {
                 const q = query(collection(db, "audios"), where("audioUrl", "==", blog.video));
                 const snap = await getDocs(q);
                 if (snap.empty) {
-                    await addDoc(collection(db, "audios"), {
+                    const newDoc = await addDoc(collection(db, "audios"), {
                         title: title,
                         ownerUid: blog.authorUid || "system",
                         ownerName: blog.author || "User",
@@ -1617,11 +1649,15 @@
                         usageCount: 1,
                         timestamp: new Date().toISOString()
                     });
+                    audioIdToPass = newDoc.id;
+                } else {
+                    audioIdToPass = snap.docs[0].id;
                 }
             } catch(e) { console.error("Auto add audio error:", e); }
             
             localStorage.setItem('viyou_import_audio_url', blog.video);
             localStorage.setItem('viyou_import_audio_name', title);
+            if (audioIdToPass) localStorage.setItem('viyou_import_audio_id', audioIdToPass);
             window.location.href = 'story-camera.html?importAudio=true';
         }
     };

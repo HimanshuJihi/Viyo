@@ -32,6 +32,10 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <script>
+        const initialTheme = localStorage.getItem('theme') || 'dark';
+        if (initialTheme !== 'dark') document.body.classList.add(initialTheme + '-mode');
+    </script>
     <div class="messages-container">
         <div class="header">
             <h1>My Messages</h1>
@@ -94,7 +98,7 @@
             localStorage.setItem('theme', theme || 'dark');
             if (window.lucide) window.lucide.createIcons();
 
-            document.querySelectorAll('.theme-option').forEach(btn => {
+            document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
                 if (btn.getAttribute('data-theme') === (theme || 'dark')) {
                     btn.classList.add('active');
                 } else {
@@ -115,7 +119,7 @@
             }
         });
 
-        document.querySelectorAll('.theme-option').forEach(btn => {
+        document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const newTheme = btn.getAttribute('data-theme');
@@ -278,16 +282,7 @@
                     let lastMessageText = "No messages yet.";
                     if (lastMessage) {
                         const senderName = lastMessage.senderUid === window.currentUser.uid ? "You" : (otherUser.name || 'User').split(' ')[0];
-                        let decodedText = lastMessage.text;
-                        try {
-                            // Attempt to decode. If it fails, it's probably not base64.
-                            if (decodedText && !decodedText.startsWith('[')) { // Don't decode placeholders like [Image]
-                                decodedText = atob(decodedText);
-                            }
-                        } catch (e) {
-                            // Not a valid base64 string, show original text.
-                        }
-                        lastMessageText = `${senderName}: ${decodedText}`;
+                        lastMessageText = `${senderName}: ${lastMessage.text}`;
                     }
 
                     const li = document.createElement('li');

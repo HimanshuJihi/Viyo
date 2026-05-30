@@ -410,8 +410,8 @@
                                 <!-- Instagram Style Audio Marquee -->
                                 <div class="flick-audio-marquee" onclick="window.location.href='audio.html?url=' + encodeURIComponent('${flick.audioUrl || flick.video}')">
                                     <i data-lucide="music" style="width: 14px; height: 14px; color: #f59e0b; flex-shrink: 0;"></i>
-                                    <div class="marquee-container">
-                                        <span class="marquee-text">${flick.isOriginalAudio === false && flick.audioTitle ? flick.audioTitle : 'Original Audio - @' + flick.author}</span>
+                                <div class="marquee-container" title="${flick.isOriginalAudio === false && flick.audioTitle ? flick.audioTitle : `${flick.title} - @${flick.author}`}">
+                                    <span class="marquee-text">${flick.isOriginalAudio === false && flick.audioTitle ? flick.audioTitle : `${flick.title} - @${flick.author}`}</span>
                                     </div>
                                 </div>
                             </div>
@@ -496,7 +496,7 @@
                         <i data-lucide="music" style="width: 20px; height: 20px; color: #f59e0b;"></i>
                     </div>
                     <div style="flex: 1; overflow: hidden; text-align: left;">
-                        <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem;">${flick.isOriginalAudio === false && flick.audioTitle ? flick.audioTitle : 'Original Audio - @' + flick.author}</div>
+                            <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem;">${flick.isOriginalAudio === false && flick.audioTitle ? flick.audioTitle : `${flick.title} - @${flick.author}`}</div>
                         <div style="font-size: 0.8rem; color: #aaa;">Viyou Audio</div>
                     </div>
                     <button style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" onclick="event.stopPropagation(); window.useFlickAudio('${flick.id}')">Use</button>
@@ -519,13 +519,14 @@
         window.useFlickAudio = async function(id) {
             const flick = flicks.find(f => f.id === id);
             if (flick && flick.video) {
-                const title = (flick.isOriginalAudio === false && flick.audioTitle) ? flick.audioTitle : 'Original Audio - @' + flick.author;
+                const title = (flick.isOriginalAudio === false && flick.audioTitle) ? flick.audioTitle : `${flick.title} - @${flick.author}`;
+                let audioIdToPass = null;
                 
                 try {
                     const q = query(collection(db, "audios"), where("audioUrl", "==", flick.video));
                     const snap = await getDocs(q);
                     if (snap.empty) {
-                        await addDoc(collection(db, "audios"), {
+                    const newDoc = await addDoc(collection(db, "audios"), {
                             title: title,
                             ownerUid: flick.authorUid || "system",
                             ownerName: flick.author || "User",
@@ -535,11 +536,15 @@
                             usageCount: 1,
                             timestamp: new Date().toISOString()
                         });
+                    audioIdToPass = newDoc.id;
+                    } else {
+                    audioIdToPass = snap.docs[0].id;
                     }
                 } catch(e) { console.error("Auto add audio error:", e); }
                 
                 localStorage.setItem('viyou_import_audio_url', flick.video);
                 localStorage.setItem('viyou_import_audio_name', title);
+                if (audioIdToPass) localStorage.setItem('viyou_import_audio_id', audioIdToPass);      
             window.location.href = 'story-camera.html?importAudio=true';
             }
         };
@@ -942,9 +947,9 @@
                             const rIsOwner = user && r.userUid === user.uid;
                             const rIsLiked = user && (r.likes || []).includes(user.uid);
                             const rAuthorLiked = (r.likes || []).includes(flick.authorUid);
-                            const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge"><img src="${flick.authorPhoto || 'logo.png'}"> Liked by author</span>` : '';
+                            const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2);"><img src="${flick.authorPhoto || 'logo.png'}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author</span>` : '';
                             return `
-                            <div class="comment-wrapper" style="margin-bottom: 12px;">
+                            <div class="comment-wrapper" style="margin-bottom: 12px; ${rAuthorLiked ? 'background: linear-gradient(to right, rgba(255,0,80,0.1), transparent); border-left: 2px solid #ff0050; padding: 8px; border-radius: 8px;' : ''}">
                                 <img src="${r.photo || 'logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
                                 <div class="comment-body">
                                     <div class="comment-header">

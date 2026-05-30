@@ -81,14 +81,19 @@
         <video id="camera-feed" autoplay playsinline muted></video>
         <div class="top-bar">
             <button class="icon-btn" onclick="window.location.href='index.html'"><i data-lucide="x"></i></button>
-            <div class="audio-pill" onclick="openAudioLibrary()"><i data-lucide="music" style="width: 16px;"></i> <span id="camera-audio-name">Use Audio</span></div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="audio-pill" onclick="window.selectedAudioData ? window.openAudioTrimmer() : openAudioLibrary()"><i data-lucide="music" style="width: 16px;"></i> <span id="camera-audio-name">Use Audio</span></div>
+                <button class="icon-btn" id="cam-trim-btn" onclick="window.openAudioTrimmer()" style="display: none; background: rgba(0,0,0,0.5); border-radius: 50%; width: 36px; height: 36px; backdrop-filter: blur(10px);"><i data-lucide="scissors" style="width: 18px;"></i></button>
+            </div>
             <button class="icon-btn" style="opacity: 0;"><i data-lucide="settings"></i></button>
         </div>
+        <div id="recording-timer" style="display: none; position: absolute; bottom: 160px; width: 100%; text-align: center; color: #ff0050; font-weight: bold; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); z-index: 50; letter-spacing: 2px;">00:00</div>
+        <div style="position: absolute; bottom: 130px; width: 100%; text-align: center; color: rgba(255,255,255,0.8); font-size: 0.85rem; text-shadow: 0 1px 3px black; pointer-events: none; z-index: 50;">Tap for photo, hold for video</div>
         <div class="bottom-bar">
             <img src="logo.png" class="gallery-btn" onclick="document.getElementById('gallery-input').click()">
-            <input type="file" id="gallery-input" style="display:none" accept="image/*">
+            <input type="file" id="gallery-input" style="display:none" accept="image/*,video/*">
             
-            <div class="capture-ring" onclick="takeSnapshot()">
+            <div class="capture-ring">
                 <div class="capture-btn"></div>
             </div>
             
@@ -99,6 +104,7 @@
     <!-- 2. EDITOR UI (Shown after capture) -->
     <div id="editor-layer" class="layer hidden">
         <img id="editor-bg" src="">
+        <video id="editor-bg-video" autoplay loop muted playsinline style="display:none; width: 100%; height: 100%; object-fit: cover;"></video>
         <!-- Texts will be appended here -->
         <div id="text-canvas" class="layer" style="z-index: 15;" onclick="openTextEditor()"></div>
         
@@ -179,7 +185,32 @@
         <audio id="audio-preview-player" style="display: none;"></audio>
     </div>
 
-    <audio id="editor-bg-audio" loop style="display:none;"></audio>
+    <audio id="editor-bg-audio" style="display:none;"></audio>
+
+    <!-- 6. AUDIO TRIMMER SHEET (Instagram Style) -->
+    <div id="audio-trimmer-sheet" class="layer" style="display: none; z-index: 2000; background: rgba(0,0,0,0.6); flex-direction: column; justify-content: flex-end; backdrop-filter: blur(2px);">
+        <div style="background: #1e1e1e; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); padding-bottom: 40px; transform: translateY(100%); transition: transform 0.3s ease-out;" id="trimmer-sheet-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: white; margin: 0; font-size: 1.2rem;">Trim Audio</h3>
+                <button onclick="window.closeAudioTrimmer()" style="background: none; border: none; color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer;">Done</button>
+            </div>
+            
+            <div style="text-align: center; color: #f59e0b; font-weight: bold; margin-bottom: 15px; font-family: monospace; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <i data-lucide="music" style="width: 18px; height: 18px;"></i>
+                <span id="cam-trimmer-time-display">0:00 - 0:15</span>
+            </div>
+
+            <!-- Waveform Container -->
+            <div id="cam-waveform-container" style="position: relative; width: 100%; height: 70px; background: #222; border-radius: 8px; overflow: hidden; touch-action: none;">
+                <div id="cam-waveform-bars" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 4px; opacity: 0.6; pointer-events: none; gap: 2px;"></div>
+                <div id="cam-trimmer-selection-box" style="position: absolute; top: 0; left: 0; width: 30%; height: 100%; border: 3px solid white; border-radius: 8px; background: rgba(255,255,255,0.15); box-sizing: border-box; cursor: grab; box-shadow: 0 0 15px rgba(255,255,255,0.3); border-left: 4px solid white; border-right: 4px solid white;">
+                    <div style="position: absolute; left: 4px; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; background: #111; border-radius: 2px; opacity: 0.5;"></div>
+                    <div style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; background: #111; border-radius: 2px; opacity: 0.5;"></div>
+                </div>
+            </div>
+            <p style="text-align: center; color: #aaa; font-size: 0.85rem; margin-top: 15px;">Drag to select the 15-second part of the song</p>
+        </div>
+    </div>
 
     <!-- Upload Overlay -->
     <div id="upload-overlay" class="layer hidden" style="background: rgba(0,0,0,0.9); z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
@@ -190,9 +221,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, limit, addDoc, doc, getDoc, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, limit, addDoc, doc, getDoc, orderBy, updateDoc, arrayUnion, arrayRemove, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { getStorage, ref, uploadString, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { firebaseConfig } from "./firebase-config.js";
 
         const app = initializeApp(firebaseConfig);
@@ -204,16 +235,98 @@
 
         window.selectedAudioData = null;
         
+        window.isStoryVideo = false;
+        window.storyVideoBlob = null;
+
+        const captureRing = document.querySelector('.capture-ring');
+        let pressTimer = null;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+
+        const startPress = (e) => {
+            if (e.type === 'mousedown' && e.button !== 0) return;
+            pressTimer = setTimeout(() => { startRecording(); }, 300);
+        };
+
+        const endPress = (e) => {
+            if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+            if (isRecording) { stopRecording(); } 
+            else if (e.target.closest('.capture-ring')) { window.takeSnapshot(); }
+        };
+
+        captureRing.addEventListener('mousedown', startPress);
+        captureRing.addEventListener('touchstart', startPress, {passive: true});
+        window.addEventListener('mouseup', endPress);
+        window.addEventListener('touchend', endPress);
+
+        function startRecording() {
+            if (!currentStream) return;
+            isRecording = true; window.isStoryVideo = true;
+            document.querySelector('.capture-btn').style.background = '#ff0050';
+            document.querySelector('.capture-btn').style.transform = 'scale(0.5)';
+            recordedChunks = [];
+            
+            const timerEl = document.getElementById('recording-timer');
+            if (timerEl) {
+                timerEl.style.display = 'block';
+                timerEl.innerText = '00:00';
+            }
+            window.recordingStartTime = Date.now();
+            window.recordingInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - window.recordingStartTime) / 1000);
+                const m = Math.floor(elapsed / 60);
+                const s = elapsed % 60;
+                if (timerEl) timerEl.innerText = `0${m}:${s < 10 ? '0' : ''}${s}`;
+                if (elapsed >= 60) stopRecording(); // Auto stop at 60 seconds
+            }, 1000);
+
+            let options = { mimeType: 'video/webm; codecs=vp8,opus' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
+            try {
+                mediaRecorder = new MediaRecorder(currentStream, options);
+                mediaRecorder.ondataavailable = event => { if (event.data.size > 0) recordedChunks.push(event.data); };
+                mediaRecorder.onstop = () => {
+                    window.storyVideoBlob = new Blob(recordedChunks, { type: options.mimeType || 'video/webm' });
+                    const videoUrl = URL.createObjectURL(window.storyVideoBlob);
+                    document.getElementById('editor-bg').style.display = 'none';
+                    const edVid = document.getElementById('editor-bg-video'); edVid.src = videoUrl; edVid.style.display = 'block';
+                    document.getElementById('camera-layer').classList.add('hidden'); document.getElementById('editor-layer').classList.remove('hidden');
+                    if (window.selectedAudioData) { editorBgAudio.currentTime = window.selectedAudioData.start || 0; editorBgAudio.play().catch(e=>{}); }
+                };
+                mediaRecorder.start();
+            } catch (err) { console.error("Failed to start recording", err); isRecording = false; }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+            isRecording = false;
+            document.querySelector('.capture-btn').style.background = 'white';
+            document.querySelector('.capture-btn').style.transform = 'scale(1)';
+            
+            clearInterval(window.recordingInterval);
+            const timerEl = document.getElementById('recording-timer');
+            if (timerEl) timerEl.style.display = 'none';
+        }
+
         // Handle Imported Audio from Viewer
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('importAudio') === 'true') {
             const importUrl = localStorage.getItem('viyou_import_audio_url');
             const importName = localStorage.getItem('viyou_import_audio_name');
+            const importId = localStorage.getItem('viyou_import_audio_id');
+            const importStart = parseFloat(localStorage.getItem('viyou_import_audio_start')) || 0;
             if (importUrl) {
-                window.selectedAudioData = { url: importUrl, title: importName || 'Imported Audio' };
+                window.selectedAudioData = { url: importUrl, title: importName || 'Imported Audio', id: importId, start: importStart };
                 document.getElementById('camera-audio-name').innerText = window.selectedAudioData.title;
+                document.getElementById('cam-trim-btn').style.display = 'flex';
+                document.getElementById('editor-bg-audio').src = importUrl;
+                document.getElementById('editor-bg-audio').currentTime = importStart;
                 localStorage.removeItem('viyou_import_audio_url');
                 localStorage.removeItem('viyou_import_audio_name');
+                localStorage.removeItem('viyou_import_audio_id');
+                localStorage.removeItem('viyou_import_audio_start');
             }
             window.history.replaceState({}, document.title, window.location.pathname);
         }
@@ -277,32 +390,59 @@
             } catch(e) { console.error("Error saving audio:", e); }
         };
 
-        let allAudios = [];
+        window.allAudios = [];
+        let camAudioUnsubscribe = null;
         async function loadAudios() {
             const container = document.getElementById('audio-list-container');
-            if (allAudios.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#aaa;"><i data-lucide="loader" class="fa-spin" style="width: 24px;"></i> Loading audios...</div>';
-                if(window.lucide) window.lucide.createIcons();
-                try {
-                    const q = query(collection(db, "audios"), orderBy("usageCount", "desc"), limit(30));
-                    const snap = await getDocs(q);
-                    snap.forEach(doc => allAudios.push({id: doc.id, ...doc.data()}));
-                } catch(e) {
-                    const q2 = query(collection(db, "audios"), limit(30)); // Fallback if composite index is missing
-                    const snap2 = await getDocs(q2);
-                    snap2.forEach(doc => allAudios.push({id: doc.id, ...doc.data()}));
+            if (camAudioUnsubscribe) return; // Already listening in real-time
+            
+            container.innerHTML = '<div style="text-align:center; color:#aaa;"><i data-lucide="loader" class="fa-spin" style="width: 24px;"></i> Loading audios...</div>';
+            if(window.lucide) window.lucide.createIcons();
+                
+            const q = query(collection(db, "audios"), orderBy("usageCount", "desc"), limit(30));
+            camAudioUnsubscribe = onSnapshot(q, async (snap) => {
+                window.allAudios = [];
+                snap.forEach(doc => window.allAudios.push({id: doc.id, ...doc.data()}));
+
+                // Fetch saved audios that are not in the top 30
+                if (camSavedAudios.length > 0) {
+                    const missingIds = camSavedAudios.filter(id => !window.allAudios.find(a => a.id === id));
+                    await Promise.all(missingIds.map(async id => {
+                        try {
+                            const d = await getDoc(doc(db, "audios", id));
+                            if(d.exists()) window.allAudios.push({id: d.id, ...d.data()});
+                        } catch(e) {}
+                    }));
                 }
+
                 camCurrentAudioTab = 'all';
                 document.getElementById('cam-audio-tab-all').style.background = '#6366f1';
                 document.getElementById('cam-audio-tab-all').style.border = 'none';
                 document.getElementById('cam-audio-tab-saved').style.background = '#222';
                 document.getElementById('cam-audio-tab-saved').style.border = '1px solid #555';
-            }
-            renderAudios(allAudios);
+                
+                window.searchAudio(document.getElementById('audio-search-input').value);
+            }, async (err) => {
+                const q2 = query(collection(db, "audios"), limit(30)); // Fallback
+                camAudioUnsubscribe = onSnapshot(q2, async (snap2) => {
+                    window.allAudios = [];
+                    snap2.forEach(doc => window.allAudios.push({id: doc.id, ...doc.data()}));
+                    if (camSavedAudios.length > 0) {
+                        const missingIds = camSavedAudios.filter(id => !window.allAudios.find(a => a.id === id));
+                        await Promise.all(missingIds.map(async id => {
+                            try {
+                                const d = await getDoc(doc(db, "audios", id));
+                                if(d.exists()) window.allAudios.push({id: d.id, ...d.data()});
+                            } catch(e) {}
+                        }));
+                    }
+                    window.searchAudio(document.getElementById('audio-search-input').value);
+                });
+            });
         }
 
         window.searchAudio = (term) => {
-            let list = allAudios || [];
+            let list = window.allAudios || [];
             if (camCurrentAudioTab === 'saved') list = list.filter(a => camSavedAudios.includes(a.id));
             
             if (!term) return renderAudios(list);
@@ -338,12 +478,134 @@
             if (window.lucide) window.lucide.createIcons({ root: btn });
         };
 
-        window.selectAudio = (url, title) => {
-            window.selectedAudioData = { url, title };
+        window.selectAudio = (url, title, id, start = 0) => {
+            window.selectedAudioData = { url, title, id, start };
             document.getElementById('camera-audio-name').innerText = title;
+            document.getElementById('cam-trim-btn').style.display = 'flex';
             document.getElementById('editor-bg-audio').src = url;
-            if (!document.getElementById('editor-layer').classList.contains('hidden')) document.getElementById('editor-bg-audio').play().catch(e=>{});
+            document.getElementById('editor-bg-audio').currentTime = start;
+            if (!document.getElementById('editor-layer').classList.contains('hidden')) {
+                document.getElementById('editor-bg-audio').play().catch(e=>{});
+            }
             closeAudioLibrary();
+        };
+
+        // --- Phase 2: Audio Trimmer Drag & Loop Engine (Normal Camera) ---
+        let camTrimAudio = new Audio();
+        let camTrimDragging = false;
+        let camTrimStart = 0;
+        let camTrimDuration = 15; // Max 15s for stories
+        let camAudioDuration = 0;
+        let camTrimInterval = null;
+
+        function formatTrimTime(seconds) {
+            if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        window.openAudioTrimmer = () => {
+            if (!window.selectedAudioData || !window.selectedAudioData.url) return;
+            
+            document.getElementById('audio-trimmer-sheet').style.display = 'flex';
+            setTimeout(() => document.getElementById('trimmer-sheet-content').style.transform = 'translateY(0)', 10);
+            
+            const bars = document.getElementById('cam-waveform-bars');
+            bars.innerHTML = '';
+            for(let i=0; i<40; i++) {
+                const h = Math.floor(Math.random() * 70) + 20;
+                bars.innerHTML += `<div style="flex:1; height:${h}%; background:#888; border-radius:2px;"></div>`;
+            }
+
+            camTrimAudio.src = window.selectedAudioData.url;
+            camTrimAudio.onloadedmetadata = () => {
+                camAudioDuration = camTrimAudio.duration;
+                if(camAudioDuration < camTrimDuration) camTrimDuration = camAudioDuration;
+                
+                let boxWidth = (camTrimDuration / camAudioDuration) * 100;
+                document.getElementById('cam-trimmer-selection-box').style.width = boxWidth + '%';
+                
+                camTrimStart = window.selectedAudioData.start || 0;
+                let leftPercent = (camTrimStart / camAudioDuration) * 100;
+                document.getElementById('cam-trimmer-selection-box').style.left = leftPercent + '%';
+                
+                updateCamTrimDisplay();
+                playCamTrimAudio();
+            };
+        };
+
+        const camTrimBox = document.getElementById('cam-trimmer-selection-box');
+        const camWaveform = document.getElementById('cam-waveform-container');
+        let camStartX = 0, camStartLeft = 0;
+
+        const onCamTrimDragStart = (e) => {
+            camTrimDragging = true;
+            camStartX = e.touches ? e.touches[0].clientX : e.clientX;
+            camStartLeft = parseFloat(camTrimBox.style.left) || 0;
+            camTrimAudio.pause();
+        };
+
+        const onCamTrimDragMove = (e) => {
+            if(!camTrimDragging) return;
+            e.preventDefault();
+            let currentX = e.touches ? e.touches[0].clientX : e.clientX;
+            let deltaPercent = ((currentX - camStartX) / camWaveform.offsetWidth) * 100;
+            let newLeft = Math.max(0, Math.min(100 - parseFloat(camTrimBox.style.width), camStartLeft + deltaPercent));
+            
+            camTrimBox.style.left = newLeft + '%';
+            camTrimStart = (newLeft / 100) * camAudioDuration;
+            updateCamTrimDisplay();
+        };
+
+        const onCamTrimDragEnd = () => {
+            if(!camTrimDragging) return;
+            camTrimDragging = false;
+            if(navigator.vibrate) navigator.vibrate(10); // Haptic feedback on release
+            playCamTrimAudio();
+        };
+
+        camTrimBox.addEventListener('mousedown', onCamTrimDragStart);
+        document.addEventListener('mousemove', onCamTrimDragMove, {passive: false});
+        document.addEventListener('mouseup', onCamTrimDragEnd);
+        camTrimBox.addEventListener('touchstart', onCamTrimDragStart, {passive:false});
+        document.addEventListener('touchmove', onCamTrimDragMove, {passive:false});
+        document.addEventListener('touchend', onCamTrimDragEnd);
+
+        const updateCamTrimDisplay = () => {
+            let end = Math.min(camTrimStart + camTrimDuration, camAudioDuration);
+            document.getElementById('cam-trimmer-time-display').innerHTML = `${formatTrimTime(camTrimStart)} <span style="color: #fff; margin: 0 5px;">-</span> ${formatTrimTime(end)}`;
+        };
+
+        const playCamTrimAudio = () => {
+            camTrimAudio.currentTime = camTrimStart;
+            camTrimAudio.play().catch(e=>{});
+            clearInterval(camTrimInterval);
+            camTrimInterval = setInterval(() => {
+                if(camTrimAudio.currentTime >= camTrimStart + camTrimDuration) {
+                    camTrimAudio.currentTime = camTrimStart;
+                    camTrimAudio.play().catch(e=>{});
+                }
+            }, 100);
+        };
+
+        window.closeAudioTrimmer = () => {
+            document.getElementById('trimmer-sheet-content').style.transform = 'translateY(100%)';
+            setTimeout(() => document.getElementById('audio-trimmer-sheet').style.display = 'none', 300);
+            
+            camTrimAudio.pause();
+            clearInterval(camTrimInterval);
+            
+            if(window.selectedAudioData) {
+                window.selectedAudioData.start = camTrimStart;
+                const bgAudio = document.getElementById('editor-bg-audio');
+                if(bgAudio) {
+                    bgAudio.currentTime = camTrimStart;
+                    if (!document.getElementById('editor-layer').classList.contains('hidden')) {
+                        bgAudio.play().catch(e=>{});
+                    }
+                }
+            }
         };
 
         function renderAudios(audios) {
@@ -367,7 +629,7 @@
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <button onclick="window.toggleCamAudioSave('${a.id}', event)" style="background: transparent; border: none; color: white; cursor: pointer; padding: 5px;">${bookmarkIcon}</button>
                         <button class="audio-play-btn" onclick="window.toggleAudioPreview('${a.audioUrl}', this)" style="background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%;"><i data-lucide="play" class="lucide-fill"></i></button>
-                        <button onclick="window.selectAudio('${a.audioUrl}', '${a.title.replace(/'/g, "\\'")}')" style="background: #0d6efd; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer;">Use</button>
+                        <button onclick="window.selectAudio('${a.audioUrl}', '${a.title.replace(/'/g, "\\'")}', '${a.id}')" style="background: #0d6efd; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer;">Use</button>
                     </div>`;
                 container.appendChild(div);
             });
@@ -380,6 +642,7 @@
         window.toggleFilter = () => {
             currentFilterIdx = (currentFilterIdx + 1) % filters.length;
             document.getElementById('editor-bg').style.filter = filters[currentFilterIdx];
+            document.getElementById('editor-bg-video').style.filter = filters[currentFilterIdx];
         };
 
         const emojis = ['😀','😂','😍','😎','🥺','😭','😡','🔥','✨','💯','❤️','💔','🎉','👑','💸','🍕','🍔','📸','🚀','✈️'];
@@ -429,7 +692,23 @@
             startCamera();
         };
 
+        const editorBgAudio = document.getElementById('editor-bg-audio');
+        editorBgAudio.addEventListener('timeupdate', function() {
+            if (window.selectedAudioData && this.currentTime >= window.selectedAudioData.start + 15) {
+                this.currentTime = window.selectedAudioData.start;
+                this.play().catch(e=>{});
+            }
+        });
+        editorBgAudio.addEventListener('ended', function() {
+            if (window.selectedAudioData) {
+                this.currentTime = window.selectedAudioData.start;
+                this.play().catch(e=>{});
+            }
+        });
+
         window.takeSnapshot = () => {
+            window.isStoryVideo = false;
+            window.storyVideoBlob = null;
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -443,10 +722,16 @@
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
             
             document.getElementById('editor-bg').src = dataUrl;
+            document.getElementById('editor-bg').style.display = 'block';
+            document.getElementById('editor-bg-video').style.display = 'none';
+            document.getElementById('editor-bg-video').pause();
             document.getElementById('camera-layer').classList.add('hidden');
             document.getElementById('editor-layer').classList.remove('hidden');
             
-            if (window.selectedAudioData) document.getElementById('editor-bg-audio').play().catch(e=>{});
+            if (window.selectedAudioData) {
+                editorBgAudio.currentTime = window.selectedAudioData.start || 0;
+                editorBgAudio.play().catch(e=>{});
+            }
         };
 
         window.resetCamera = () => {
@@ -455,19 +740,42 @@
             document.getElementById('text-canvas').innerHTML = ''; // Clear texts
             
             document.getElementById('editor-bg-audio').pause();
+            document.getElementById('editor-bg-video').pause();
+            document.getElementById('editor-bg-video').src = '';
+            window.isStoryVideo = false;
+            window.storyVideoBlob = null;
         };
 
         document.getElementById('gallery-input').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                document.getElementById('editor-bg').src = ev.target.result;
+            if (file.type.startsWith('video/')) {
+                window.isStoryVideo = true;
+                window.storyVideoBlob = file;
+                const videoUrl = URL.createObjectURL(file);
+                document.getElementById('editor-bg').style.display = 'none';
+                const edVid = document.getElementById('editor-bg-video');
+                edVid.src = videoUrl;
+                edVid.style.display = 'block';
                 document.getElementById('camera-layer').classList.add('hidden');
                 document.getElementById('editor-layer').classList.remove('hidden');
-                if (window.selectedAudioData) document.getElementById('editor-bg-audio').play().catch(e=>{});
-            };
-            reader.readAsDataURL(file);
+                if (window.selectedAudioData) { editorBgAudio.currentTime = window.selectedAudioData.start || 0; editorBgAudio.play().catch(e=>{}); }
+            } else {
+                window.isStoryVideo = false;
+                window.storyVideoBlob = null;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('editor-bg').src = ev.target.result;
+                    document.getElementById('editor-bg').style.display = 'block';
+                    document.getElementById('editor-bg-video').style.display = 'none';
+                    document.getElementById('editor-bg-video').pause();
+                    document.getElementById('camera-layer').classList.add('hidden');
+                    document.getElementById('editor-layer').classList.remove('hidden');
+                    if (window.selectedAudioData) { editorBgAudio.currentTime = window.selectedAudioData.start || 0; editorBgAudio.play().catch(e=>{}); }
+                };
+                reader.readAsDataURL(file);
+            }
+            e.target.value = '';
         });
 
         // --- Text Editor Logic ---
@@ -715,13 +1023,16 @@
                 canvas.height = 1280;
                 const ctx = canvas.getContext('2d');
 
-                // Draw Background
-                const ratio = Math.max(canvas.width / bgImg.naturalWidth, canvas.height / bgImg.naturalHeight);
-                const w = bgImg.naturalWidth * ratio;
-                const h = bgImg.naturalHeight * ratio;
-                ctx.filter = filters[currentFilterIdx] || 'none';
-                ctx.drawImage(bgImg, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
-                ctx.filter = 'none'; // reset for stickers
+                if (!window.isStoryVideo) {
+                    const ratio = Math.max(canvas.width / bgImg.naturalWidth, canvas.height / bgImg.naturalHeight);
+                    const w = bgImg.naturalWidth * ratio;
+                    const h = bgImg.naturalHeight * ratio;
+                    ctx.filter = filters[currentFilterIdx] || 'none';
+                    ctx.drawImage(bgImg, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
+                    ctx.filter = 'none'; // reset for stickers
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // Transparent for video stickers
+                }
 
                 // Polyfill roundRect for custom text backgrounds
                 if (!ctx.roundRect) {
@@ -790,14 +1101,29 @@
                     });
                 });
 
-                const finalDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                const finalDataUrl = window.isStoryVideo ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
 
                 // 2. Upload to Storage
                 const uid = auth.currentUser.uid;
                 const ts = Date.now();
-                const storageRef = ref(storage, `stories/${uid}_${ts}_img.jpg`);
-                await uploadString(storageRef, finalDataUrl, 'data_url');
-                const downloadUrl = await getDownloadURL(storageRef);
+                let downloadUrl = null;
+                let statusVideoUrl = null;
+                let storyDrawingUrl = null;
+                
+                if (window.isStoryVideo && window.storyVideoBlob) {
+                    const ext = window.storyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                    const videoRef = ref(storage, `stories/${uid}_${ts}_vid.${ext}`);
+                    await uploadBytes(videoRef, window.storyVideoBlob);
+                    statusVideoUrl = await getDownloadURL(videoRef);
+                    
+                    const drawRef = ref(storage, `stories/${uid}_${ts}_draw.png`);
+                    await uploadString(drawRef, finalDataUrl, 'data_url');
+                    storyDrawingUrl = await getDownloadURL(drawRef);
+                } else {
+                    const storageRef = ref(storage, `stories/${uid}_${ts}_img.jpg`);
+                    await uploadString(storageRef, finalDataUrl, 'data_url');
+                    downloadUrl = await getDownloadURL(storageRef);
+                }
 
                 // 3. Mentions Logic
                 const mentionRegex = /@([\w_]+)/g;
@@ -818,13 +1144,26 @@
 
                 const storyPayload = {
                     authorUid: uid, authorName: userData.name || auth.currentUser.displayName || "User", authorPhoto: userData.photoURL || auth.currentUser.photoURL || "logo.png",
-                    statusImage: downloadUrl, statusVideo: null, storyTimeline: [], storyDrawing: null, 
+                    statusImage: downloadUrl, statusVideo: statusVideoUrl, storyTimeline: [], storyDrawing: storyDrawingUrl, imageFilter: filters[currentFilterIdx] || 'none',
                     audioData: window.selectedAudioData ? window.selectedAudioData.url : null, audioTitle: window.selectedAudioData ? window.selectedAudioData.title : null,
+                    audioSettings: window.selectedAudioData ? [{
+                        startTime: 0,
+                        duration: 15000,
+                        mediaStart: window.selectedAudioData.start || 0,
+                        volume: 1
+                    }] : null,
                     texts: finalTexts, mediaOverlays: [],
                     mentionedUids: mentionedUids, mentionMap: mentionMap, timestamp: new Date().toISOString(), likes: [], viewers: []
                 };
 
                 await addDoc(collection(db, "stories"), storyPayload);
+
+                // Increment audio usage if imported
+                if (window.selectedAudioData && window.selectedAudioData.id) {
+                    try {
+                        await updateDoc(doc(db, "audios", window.selectedAudioData.id), { usageCount: increment(1) });
+                    } catch(e) { console.error(e); }
+                }
 
                 // 5. Notifications
                 for (const mUid of mentionedUids) {

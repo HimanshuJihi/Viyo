@@ -74,6 +74,10 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <script>
+        const initialTheme = localStorage.getItem('theme') || 'dark';
+        if (initialTheme !== 'dark') document.body.classList.add(initialTheme + '-mode');
+    </script>
     <!-- Upload Progress Overlay -->
     <div id="upload-progress-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000000; align-items: center; justify-content: center; flex-direction: column;">
         <h2 style="color: white; margin-bottom: 15px;">Uploading Video...</h2>
@@ -228,8 +232,12 @@
             <!-- Top Bar -->
             <div style="position: absolute; top: 20px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 50;">
                 <button class="btn-transparent" onclick="window.closeFlicksStudio()" style="background: rgba(0,0,0,0.4) !important; padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);"><i data-lucide="x"></i></button>
-                <div id="fs-audio-pill" onclick="window.openFSAudioLibrary()" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);">
+                <div id="fs-cam-timer" style="position: absolute; left: 50%; transform: translateX(-50%); top: 10px; color: white; font-weight: bold; font-size: 1.2rem; text-shadow: 0 1px 4px black; z-index: 50; font-family: monospace; background: rgba(0,0,0,0.5); padding: 2px 10px; border-radius: 10px; backdrop-filter: blur(4px);">0.0s</div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div id="fs-audio-pill" onclick="window.selectedFSAudioUrl ? window.openFSAudioTrimmer() : window.openFSAudioLibrary()" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);">
                     <i data-lucide="music" style="width: 14px; height: 14px;"></i> <span id="fs-audio-name">Add Sound</span>
+                </div>
+                <button class="icon-btn" id="fs-trim-btn" onclick="window.openFSAudioTrimmer()" style="display: none; background: rgba(0,0,0,0.5); border-radius: 50%; width: 46px; height: 46px; backdrop-filter: blur(10px);"><i data-lucide="scissors" style="width: 32px; height: 32px; color: peru"></i></button>
                 </div>
                 <div style="width: 40px;"></div> <!-- Spacer -->
             </div>
@@ -279,6 +287,13 @@
             <!-- Editor Top Bar -->
             <div style="position: absolute; top: 20px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 50;">
                 <button class="btn-transparent" onclick="window.backToFSCamera()" style="background: rgba(0,0,0,0.4) !important; padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);"><i data-lucide="arrow-left"></i></button>
+            <!-- Editor Audio Pill & Trim Button -->
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div id="fs-edit-audio-pill" onclick="window.selectedFSAudioUrl ? window.openFSAudioTrimmer() : window.openFSAudioLibrary()" style="display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; align-items: center; gap: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);">
+                        <i data-lucide="music" style="width: 14px; height: 14px;"></i> <span id="fs-edit-audio-name">Sound</span>
+                    </div>
+                    <button class="icon-btn" id="fs-edit-trim-btn" onclick="window.openFSAudioTrimmer()" style="display: none; background: rgba(0,0,0,0.5); border-radius: 50%; width: 36px; height: 36px; backdrop-filter: blur(10px);"><i data-lucide="scissors" style="width: 18px;"></i></button>
+                </div>
                 <button class="btn" style="padding: 8px 24px; font-size: 1.05rem; background: white; color: black; border-radius: 25px; font-weight: bold; box-shadow: 0 4px 15px rgba(255,255,255,0.2);" onclick="window.fsRenderVideo()">Next</button>
             </div>
 
@@ -373,9 +388,34 @@
         </div>
     </div>
 
+    <!-- Flicks Studio Audio Trimmer (Instagram Style) -->
+    <div id="fs-audio-trimmer-sheet" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200000; background: rgba(0,0,0,0.6); flex-direction: column; justify-content: flex-end; backdrop-filter: blur(2px);">
+        <div style="background: #1e1e1e; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); padding-bottom: 40px; transform: translateY(100%); transition: transform 0.3s ease-out;" id="fs-trimmer-sheet-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: white; margin: 0; font-size: 1.2rem;">Trim Audio</h3>
+                <button onclick="window.closeFSAudioTrimmer()" style="background: none; border: none; color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer;">Done</button>
+            </div>
+            
+            <div style="text-align: center; color: #f59e0b; font-weight: bold; margin-bottom: 15px; font-family: monospace; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <i data-lucide="music" style="width: 18px; height: 18px;"></i>
+                <span id="fs-trimmer-time-display">0:00 - 0:30</span>
+            </div>
+
+            <!-- Waveform Container -->
+            <div id="fs-audio-waveform-container" style="position: relative; width: 100%; height: 70px; background: #222; border-radius: 8px; overflow: hidden; touch-action: none;">
+                <div id="fs-audio-waveform-bars" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 4px; opacity: 0.6; pointer-events: none; gap: 2px;"></div>
+                <div id="fs-audio-trimmer-selection-box" style="position: absolute; top: 0; left: 0; width: 30%; height: 100%; border: 3px solid white; border-radius: 8px; background: rgba(255,255,255,0.15); box-sizing: border-box; cursor: grab; box-shadow: 0 0 15px rgba(255,255,255,0.3); border-left: 4px solid white; border-right: 4px solid white;">
+                    <div style="position: absolute; left: 4px; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; background: #111; border-radius: 2px; opacity: 0.5;"></div>
+                    <div style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; background: #111; border-radius: 2px; opacity: 0.5;"></div>
+                </div>
+            </div>
+            <p style="text-align: center; color: #aaa; font-size: 0.85rem; margin-top: 15px;">Drag to select the 30-second part of the song</p>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc, query, where, getDocs, orderBy, limit, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc, query, where, getDocs, orderBy, limit, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { firebaseConfig, storage } from "./firebase-config.js";
@@ -413,6 +453,11 @@
         let fsFilters = ['none', 'grayscale(100%)', 'sepia(100%)', 'contrast(150%)', 'invert(100%)', 'hue-rotate(90deg)'];
         const FS_MAX_TIME = 30000;
         let fsAllAudios = [];
+        window.selectedFSAudioUrl = null;
+        window.selectedFSAudioName = null;
+        window.selectedFSAudioId = null;
+        window.fsAudioTrimStart = 0;
+        window.isFSRendering = false;
 
         // --- Toast Notification Logic ---
         function showToast(message, type = 'info') {
@@ -513,7 +558,7 @@
             localStorage.setItem('theme', theme || 'dark');
             if (window.lucide) window.lucide.createIcons();
 
-            document.querySelectorAll('.theme-option').forEach(btn => {
+            document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
                 if (btn.getAttribute('data-theme') === (theme || 'dark')) {
                     btn.classList.add('active');
                 } else {
@@ -521,6 +566,8 @@
                 }
             });
         }
+
+        applyTheme(localStorage.getItem('theme') || 'dark');
 
         themeToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -533,7 +580,7 @@
             }
         });
 
-        document.querySelectorAll('.theme-option').forEach(btn => {
+        document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const newTheme = btn.getAttribute('data-theme');
@@ -675,6 +722,7 @@
                 // --- Step 4: Import Rendered Video from Editor ---
                 const importVideo = urlParams.get('importVideo');
                 const importType = urlParams.get('type');
+                const importAudio = urlParams.get('importAudio');
 
                 if (importVideo === 'true') {
                     window.switchPostType(importType || 'video');
@@ -697,6 +745,50 @@
                         console.error("Failed to retrieve imported video", err);
                         showToast("Failed to load the edited video.", "error");
                     }
+                } else if (importAudio === 'true') {
+                    const importUrl = localStorage.getItem('viyou_import_audio_url');
+                    const importName = localStorage.getItem('viyou_import_audio_name');
+                    const importId = localStorage.getItem('viyou_import_audio_id');
+                    const importStart = parseFloat(localStorage.getItem('viyou_import_audio_start')) || 0;
+                    
+                    if (importUrl) {
+                        window.switchPostType('flick');
+                        
+                        window.selectedFSAudioUrl = importUrl;
+                        window.selectedFSAudioName = importName || "Imported Audio";
+                        window.selectedFSAudioId = importId;
+                        window.fsAudioTrimStart = importStart;
+                        
+                        const camAudioName = document.getElementById('fs-audio-name');
+                        if (camAudioName) camAudioName.innerText = window.selectedFSAudioName;
+                        const camTrimBtn = document.getElementById('fs-trim-btn');
+                        if (camTrimBtn) camTrimBtn.style.display = 'flex';
+                        
+                        const editAudioPill = document.getElementById('fs-edit-audio-pill');
+                        if (editAudioPill) editAudioPill.style.display = 'flex';
+                        const editAudioName = document.getElementById('fs-edit-audio-name');
+                        if (editAudioName) editAudioName.innerText = window.selectedFSAudioName;
+                        const editTrimBtn = document.getElementById('fs-edit-trim-btn');
+                        if (editTrimBtn) editTrimBtn.style.display = 'flex';
+
+                        const aud = document.getElementById('fs-bg-audio');
+                        aud.src = importUrl;
+                        fsAudioAdded = true;
+                        aud.currentTime = importStart;
+                        fsOriginalAudioVolume = 0.2;
+                        fsMusicVolume = 1;
+                        document.getElementById('fs-vol-original').value = 0.2;
+                        document.getElementById('fs-vol-music').value = 1;
+                        window.updateFSVolumes();
+                        
+                        window.openFlickCamera(); // Auto open camera for them!
+                        
+                        localStorage.removeItem('viyou_import_audio_url');
+                        localStorage.removeItem('viyou_import_audio_name');
+                        localStorage.removeItem('viyou_import_audio_id');
+                        localStorage.removeItem('viyou_import_audio_start');
+                    }
+                    window.history.replaceState({}, document.title, window.location.pathname);
                 }
                 // Load theme preference
                 try {
@@ -1135,6 +1227,7 @@
             
             const importedAudioUrl = localStorage.getItem('viyou_import_audio_url');
             const importedAudioName = localStorage.getItem('viyou_import_audio_name');
+            const importedAudioId = localStorage.getItem('viyou_import_audio_id');
 
             let isFlicks = currentPostType === 'flick';
             
@@ -1248,14 +1341,15 @@
                         if (importedAudioUrl) {
                             audioUrlToSave = importedAudioUrl;
                             audioTitleToSave = importedAudioName || "Imported Audio";
+                            audioId = importedAudioId || null;
                             isOriginalAudioToSave = false;
                         } else if (videoBase64 && !youtubeUrl) {
                             audioUrlToSave = videoBase64;
-                            audioTitleToSave = `Original Audio - @${authorName}`;
+                            audioTitleToSave = `${title} - @${authorName}`;
                             isOriginalAudioToSave = true;
                         }
 
-                        if (videoBase64 && !youtubeUrl) {
+                        if (videoBase64 && !youtubeUrl && allowAudioRemix && isOriginalAudioToSave) {
                             try {
                                 const audioRef = await addDoc(collection(db, "audios"), {
                                     title: audioTitleToSave,
@@ -1316,7 +1410,8 @@
                             updateData.poll = pollData; // Can add/update/remove poll
                             if (audioId) { updateData.audioId = audioId; }
                             if (audioUrlToSave) { updateData.audioUrl = audioUrlToSave; }
-                            if (audioTitleToSave) { updateData.audioTitle = audioTitleToSave; }
+                                    if (audioTitleToSave) { updateData.audioTitle = audioTitleToSave; }
+                                    if (audioId) { updateData.audioId = audioId; }
                             updateData.isOriginalAudio = isOriginalAudioToSave;
                             
                             updateData.status = submissionStatus;
@@ -1395,6 +1490,7 @@
 
                         localStorage.removeItem('viyou_import_audio_url');
                         localStorage.removeItem('viyou_import_audio_name');
+                        localStorage.removeItem('viyou_import_audio_id');
 
                         setTimeout(() => {
                             document.getElementById('upload-progress-overlay').style.display = 'none';
@@ -1489,6 +1585,7 @@
             fsTime = 0; fsChunks = [];
             fsSegments = []; fsTotalTimeMs = 0;
             document.getElementById('fs-cam-progress').style.width = '0%';
+            document.getElementById('fs-cam-timer').innerText = '0.0s';
             document.getElementById('fs-next-to-edit-btn').style.display = 'none';
             document.getElementById('fs-segments-list').innerHTML = '';
             
@@ -1536,6 +1633,7 @@
             if (fsTotalTimeMs >= FS_MAX_TIME) return;            
             let options = { mimeType: 'video/webm; codecs=vp8,opus' };
             if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
             
             fsChunks = []; fsTimeThisSegment = 0;
             fsRecorder = new MediaRecorder(fsStream, options);
@@ -1559,6 +1657,7 @@
                 fsTimeThisSegment += 100;
                 let percent = ((fsTotalTimeMs + fsTimeThisSegment) / FS_MAX_TIME) * 100;
                 document.getElementById('fs-cam-progress').style.width = percent + '%';
+                document.getElementById('fs-cam-timer').innerText = ((fsTotalTimeMs + fsTimeThisSegment) / 1000).toFixed(1) + 's';
                 if (fsTotalTimeMs + fsTimeThisSegment >= FS_MAX_TIME) {
                     stopFSRecord();
                     setTimeout(window.goToFSEditor, 200);
@@ -1620,6 +1719,7 @@
                     fsTotalTimeMs += finalDur;
                     updateFSSegmentsUI(blobUrl, 'video');
                     document.getElementById('fs-cam-progress').style.width = (fsTotalTimeMs / FS_MAX_TIME) * 100 + '%';
+                        document.getElementById('fs-cam-timer').innerText = (fsTotalTimeMs / 1000).toFixed(1) + 's';
                     document.getElementById('fs-next-to-edit-btn').style.display = 'block';
                     if (fsTotalTimeMs >= FS_MAX_TIME) window.goToFSEditor();
                 };
@@ -1630,6 +1730,7 @@
                 fsTotalTimeMs += finalDur;
                 updateFSSegmentsUI(blobUrl, 'image');
                 document.getElementById('fs-cam-progress').style.width = (fsTotalTimeMs / FS_MAX_TIME) * 100 + '%';
+                    document.getElementById('fs-cam-timer').innerText = (fsTotalTimeMs / 1000).toFixed(1) + 's';
                 document.getElementById('fs-next-to-edit-btn').style.display = 'block';
                 if (fsTotalTimeMs >= FS_MAX_TIME) window.goToFSEditor();
             }
@@ -1667,8 +1768,10 @@
                         loadMediaToFSEditor(URL.createObjectURL(mergedBlob));
                     }).catch(err => {
                         console.error("Merging error:", err);
-                        alert("Failed to process clips.");
-                        overlay.style.display = 'none';
+                        if (err.message !== "captureStream not supported") {
+                            alert("Failed to process clips.");
+                        }
+                        document.getElementById('upload-progress-overlay').style.display = 'none';
                     });
                 }
             }, 200); // 200ms delay to ensure chunks are properly saved before moving to next screen
@@ -1681,13 +1784,34 @@
             
             const canvas = document.createElement('canvas');
             canvas.width = 720; canvas.height = 1280;
+            
+            // Mobile Safari/Chrome Background Render Workaround
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0px';
+            canvas.style.left = '0px';
+            canvas.style.width = '10px';
+            canvas.style.height = '10px';
+            canvas.style.opacity = '0';
+            canvas.style.pointerEvents = 'none';
+            document.body.appendChild(canvas);
+            
+            if (!canvas.captureStream) {
+                document.getElementById('upload-progress-overlay').style.display = 'none';
+                document.body.removeChild(canvas);
+                alert("Your browser does not support multi-clip merging. Please record a single continuous video or upload from gallery.");
+                throw new Error("captureStream not supported");
+            }
+            
             const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const dest = audioCtx.createMediaStreamDestination();
             
             let options = { mimeType: 'video/webm; codecs=vp8,opus' };
             if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
             
             const stream = new MediaStream([...canvas.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
             const recorder = new MediaRecorder(stream, options);
@@ -1747,6 +1871,7 @@
             recorder.stop();
             return new Promise(resolve => {
                 recorder.onstop = () => {
+                    if (canvas.parentNode) document.body.removeChild(canvas); // Cleanup
                     resolve(new Blob(chunks, { type: recorder.mimeType }));
                 };
             });
@@ -1758,7 +1883,9 @@
             const bgAudio = document.getElementById('fs-bg-audio');
             if (vid.paused) {
                 vid.play().catch(e=>{});
-                if (fsAudioAdded) bgAudio.play().catch(e=>{});
+                if (fsAudioAdded && bgAudio.paused) {
+                    bgAudio.play().catch(e=>{});
+                }
             } else {
                 vid.pause();
                 if (fsAudioAdded) bgAudio.pause();
@@ -1771,6 +1898,13 @@
             document.getElementById('fs-edit-view').style.display = 'block';
             document.getElementById('fs-next-to-edit-btn').style.display = 'none';
             document.getElementById('fs-audio-pill').style.display = 'none';
+
+            if (fsAudioAdded) {
+                const editAudioPill = document.getElementById('fs-edit-audio-pill');
+                if (editAudioPill) editAudioPill.style.display = 'flex';
+                const editTrimBtn = document.getElementById('fs-edit-trim-btn');
+                if (editTrimBtn) editTrimBtn.style.display = 'flex';
+            }
 
             const vid = document.getElementById('fs-preview-video');
             const playPauseOverlay = document.getElementById('fs-play-pause-overlay');
@@ -1796,12 +1930,13 @@
             vid.onpause = () => { if (playPauseOverlay) playPauseOverlay.style.opacity = '1'; };
             
             vid.ontimeupdate = () => {
+                if (window.isFSRendering) return; // Disable loop resets during actual render
                 if (vid.currentTime >= fsTrimEnd || vid.currentTime < fsTrimStart) {
                     vid.currentTime = fsTrimStart;
                     vid.play().catch(e=>{});
                     if (fsAudioAdded) {
                         const aud = document.getElementById('fs-bg-audio');
-                        aud.currentTime = 0; aud.play().catch(e=>{});
+                        aud.currentTime = window.fsAudioTrimStart || 0; aud.play().catch(e=>{});
                     }
                 }
                 // Update playhead
@@ -2256,11 +2391,27 @@
             }
             if(window.lucide) window.lucide.createIcons();
         };
-        window.selectFSAudio = (url, title) => {
-            document.getElementById('fs-audio-name').innerText = title;
+        window.selectFSAudio = (url, title, id, start = 0) => {
+           const camAudioName = document.getElementById('fs-audio-name');
+            if (camAudioName) camAudioName.innerText = title;
+            const camTrimBtn = document.getElementById('fs-trim-btn');
+            if (camTrimBtn) camTrimBtn.style.display = 'flex';
+            
+            const editAudioPill = document.getElementById('fs-edit-audio-pill');
+            if (editAudioPill) editAudioPill.style.display = 'flex';
+            const editAudioName = document.getElementById('fs-edit-audio-name');
+            if (editAudioName) editAudioName.innerText = title;
+            const editTrimBtn = document.getElementById('fs-edit-trim-btn');
+            if (editTrimBtn) editTrimBtn.style.display = 'flex';
+
             const aud = document.getElementById('fs-bg-audio');
             aud.src = url;
             fsAudioAdded = true;
+            window.selectedFSAudioUrl = url;
+            window.selectedFSAudioName = title;
+            window.selectedFSAudioId = id;
+            window.fsAudioTrimStart = start;
+            aud.currentTime = start;
             fsOriginalAudioVolume = 0.2; // default dip original
             fsMusicVolume = 1;
             document.getElementById('fs-vol-original').value = 0.2;
@@ -2279,6 +2430,7 @@
 
         // Rendering the final Video
         window.fsRenderVideo = async function() {
+            window.isFSRendering = true;
             const overlay = document.getElementById('upload-progress-overlay');
             const progressText = document.getElementById('upload-progress-text');
             const progressBar = document.getElementById('upload-progress-bar');
@@ -2292,7 +2444,10 @@
             let recorder = null;
             const cancelRender = () => {
                 isCancelled = true;
+                window.isFSRendering = false;
                 if (recorder && recorder.state !== 'inactive') recorder.stop();
+                const tempCanvas = document.getElementById('fs-temp-render-canvas');
+                if (tempCanvas) tempCanvas.remove(); // Cleanup on cancel
                 overlay.style.display = 'none';
                 cancelBtn.removeEventListener('click', cancelRender);
                 cancelBtn.onclick = null;
@@ -2303,9 +2458,29 @@
             const video = document.getElementById('fs-preview-video');
             const audio = document.getElementById('fs-bg-audio');
             const canvas = document.createElement('canvas');
+            canvas.id = 'fs-temp-render-canvas';
             canvas.width = 720;
             canvas.height = 1280;
+            
+            // Mobile Safari/Chrome Background Render Workaround
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0px';
+            canvas.style.left = '0px';
+            canvas.style.width = '10px';
+            canvas.style.height = '10px';
+            canvas.style.opacity = '0';
+            canvas.style.pointerEvents = 'none';
+            document.body.appendChild(canvas);
+            
+            if (!canvas.captureStream) {
+                alert("Your browser does not support Advanced Video Rendering. Try using a PC or Android device.");
+                cancelRender();
+                return;
+            }
+            
             const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const dest = audioCtx.createMediaStreamDestination();
@@ -2344,7 +2519,7 @@
             recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
             
             video.currentTime = fsTrimStart;
-            if (fsAudioAdded) { audio.currentTime = 0; audio.play().catch(e=>{}); }
+            if (fsAudioAdded) { audio.currentTime = window.fsAudioTrimStart || 0; audio.play().catch(e=>{}); }
             try {
                 await video.play();
             } catch (e) {
@@ -2354,11 +2529,20 @@
             recorder.start();
             
             const renderLoop = () => {
-                if (isCancelled || video.currentTime >= fsTrimEnd) {
+                if (isCancelled || video.currentTime >= fsTrimEnd || video.ended) {
                     recorder.stop();
                     video.pause();
                     if (fsAudioAdded) audio.pause();
+                    window.isFSRendering = false;
                     return;
+                }
+
+                if (fsAudioAdded) {
+                    const startA = window.fsAudioTrimStart || 0;
+                    if (audio.currentTime >= startA + 30 || audio.ended) {
+                        audio.currentTime = startA;
+                        audio.play().catch(e=>{});
+                    }
                 }
                 
                 ctx.filter = fsFilters[fsCurrentFilterIdx] || 'none';
@@ -2409,6 +2593,8 @@
             recorder.onstop = () => {
                 cancelBtn.removeEventListener('click', cancelRender);
                 cancelBtn.onclick = null;
+                window.isFSRendering = false;
+                if (canvas.parentNode) document.body.removeChild(canvas); // Cleanup on success
                 if (isCancelled) return;
 
                 // This function is called when rendering is complete.
@@ -2421,10 +2607,18 @@
                 const actionBtn = document.getElementById('cancel-upload-btn');
 
                 const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
-                const file = new File([blob], 'flick_rendered.webm', { type: blob.type });
+                let ext = 'webm';
+                if (blob.type.includes('mp4')) ext = 'mp4';
+                const file = new File([blob], `flick_rendered.${ext}`, { type: blob.type });
                 const dt = new DataTransfer(); dt.items.add(file);
                 document.getElementById('video-upload').files = dt.files;
                 document.getElementById('video-upload').dispatchEvent(new Event('change'));
+                
+                if (fsAudioAdded && window.selectedFSAudioUrl) {
+                    localStorage.setItem('viyou_import_audio_url', window.selectedFSAudioUrl);
+                    localStorage.setItem('viyou_import_audio_name', window.selectedFSAudioName);
+                    if (window.selectedFSAudioId) localStorage.setItem('viyou_import_audio_id', window.selectedFSAudioId);
+                }
             
                 window.closeFlicksStudio();
                 
@@ -2438,8 +2632,123 @@
                     if (h2) h2.innerText = "Uploading Video...";
                     if (actionBtn) actionBtn.style.display = 'block';
                 }, 1500);
+        };
+    };
+
+        // --- Phase 2: Audio Trimmer Drag & Loop Engine (Flicks Studio) ---
+        let fsAudioTrimAudio = new Audio();
+        let fsAudioTrimDragging = false;
+        let fsAudioTrimDuration = 30; // Max 30s
+        let fsAudioTotalTime = 0;
+        let fsAudioTrimInterval = null;
+
+        function formatFSTrimTime(seconds) {
+            if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        window.openFSAudioTrimmer = () => {
+            if (!window.selectedFSAudioUrl) return;
+            
+            document.getElementById('fs-audio-trimmer-sheet').style.display = 'flex';
+            setTimeout(() => document.getElementById('fs-trimmer-sheet-content').style.transform = 'translateY(0)', 10);
+            
+            const bars = document.getElementById('fs-audio-waveform-bars');
+            bars.innerHTML = '';
+            for(let i=0; i<40; i++) {
+                const h = Math.floor(Math.random() * 70) + 20;
+                bars.innerHTML += `<div style="flex:1; height:${h}%; background:#888; border-radius:2px;"></div>`;
+            }
+
+            fsAudioTrimAudio.src = window.selectedFSAudioUrl;
+            fsAudioTrimAudio.onloadedmetadata = () => {
+                fsAudioTotalTime = fsAudioTrimAudio.duration;
+                if(fsAudioTotalTime < fsAudioTrimDuration) fsAudioTrimDuration = fsAudioTotalTime;
+                
+                let boxWidth = (fsAudioTrimDuration / fsAudioTotalTime) * 100;
+                document.getElementById('fs-audio-trimmer-selection-box').style.width = boxWidth + '%';
+                
+                let leftPercent = (window.fsAudioTrimStart / fsAudioTotalTime) * 100;
+                document.getElementById('fs-audio-trimmer-selection-box').style.left = leftPercent + '%';
+                
+                updateFSAudioTrimDisplay();
+                playFSAudioTrimAudio();
             };
         };
+
+        const fsAudioTrimBox = document.getElementById('fs-audio-trimmer-selection-box');
+        const fsAudioWaveform = document.getElementById('fs-audio-waveform-container');
+        let fsAudioStartX = 0, fsAudioStartLeft = 0;
+
+        const onFSAudioTrimDragStart = (e) => {
+            fsAudioTrimDragging = true;
+            fsAudioStartX = e.touches ? e.touches[0].clientX : e.clientX;
+            fsAudioStartLeft = parseFloat(fsAudioTrimBox.style.left) || 0;
+            fsAudioTrimAudio.pause();
+        };
+
+        const onFSAudioTrimDragMove = (e) => {
+            if(!fsAudioTrimDragging) return;
+            e.preventDefault();
+            let currentX = e.touches ? e.touches[0].clientX : e.clientX;
+            let deltaPercent = ((currentX - fsAudioStartX) / fsAudioWaveform.offsetWidth) * 100;
+            let newLeft = Math.max(0, Math.min(100 - parseFloat(fsAudioTrimBox.style.width), fsAudioStartLeft + deltaPercent));
+            
+            fsAudioTrimBox.style.left = newLeft + '%';
+            window.fsAudioTrimStart = (newLeft / 100) * fsAudioTotalTime;
+            updateFSAudioTrimDisplay();
+        };
+
+        const onFSAudioTrimDragEnd = () => {
+            if(!fsAudioTrimDragging) return;
+            fsAudioTrimDragging = false;
+            if(navigator.vibrate) navigator.vibrate(10);
+            playFSAudioTrimAudio();
+        };
+
+        fsAudioTrimBox.addEventListener('mousedown', onFSAudioTrimDragStart);
+        document.addEventListener('mousemove', onFSAudioTrimDragMove, {passive: false});
+        document.addEventListener('mouseup', onFSAudioTrimDragEnd);
+        fsAudioTrimBox.addEventListener('touchstart', onFSAudioTrimDragStart, {passive:false});
+        document.addEventListener('touchmove', onFSAudioTrimDragMove, {passive:false});
+        document.addEventListener('touchend', onFSAudioTrimDragEnd);
+
+        const updateFSAudioTrimDisplay = () => {
+            let end = Math.min(window.fsAudioTrimStart + fsAudioTrimDuration, fsAudioTotalTime);
+            document.getElementById('fs-trimmer-time-display').innerHTML = `${formatFSTrimTime(window.fsAudioTrimStart)} <span style="color: #fff; margin: 0 5px;">-</span> ${formatFSTrimTime(end)}`;
+        };
+
+        const playFSAudioTrimAudio = () => {
+            fsAudioTrimAudio.currentTime = window.fsAudioTrimStart;
+            fsAudioTrimAudio.play().catch(e=>{});
+            clearInterval(fsAudioTrimInterval);
+            fsAudioTrimInterval = setInterval(() => {
+                if(fsAudioTrimAudio.currentTime >= window.fsAudioTrimStart + fsAudioTrimDuration) {
+                    fsAudioTrimAudio.currentTime = window.fsAudioTrimStart;
+                    fsAudioTrimAudio.play().catch(e=>{});
+                }
+            }, 100);
+        };
+
+        window.closeFSAudioTrimmer = () => {
+            document.getElementById('fs-trimmer-sheet-content').style.transform = 'translateY(100%)';
+            setTimeout(() => document.getElementById('fs-audio-trimmer-sheet').style.display = 'none', 300);
+            
+            fsAudioTrimAudio.pause();
+            clearInterval(fsAudioTrimInterval);
+            
+            const bgAudio = document.getElementById('fs-bg-audio');
+            if(bgAudio && fsAudioAdded) {
+                bgAudio.currentTime = window.fsAudioTrimStart;
+                const vid = document.getElementById('fs-preview-video');
+                if (vid && !vid.paused && document.getElementById('fs-edit-view').style.display !== 'none') {
+                    bgAudio.play().catch(e=>{});
+                }
+            }
+        };
+        
     </script>
 </body>
 </html>
