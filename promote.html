@@ -226,6 +226,25 @@
         let paymentScreenshotBase64 = null;
         let currentPromoPricing = { baseHours: 50, tier4: 50, tier3: 70, tier2: 80, tier1: 100 };
 
+    window.getProxiedVideoUrl = function(url) {
+        if (!url) return url;
+        let fileId = null;
+        
+        const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+        if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
+        
+        const ucMatch = url.match(/[?&]id=([^&]+)/);
+        if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
+        
+        const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+        if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
+
+        if (fileId) {
+            return `https://viyou-video-proxy.nshuhima246.workers.dev/${fileId}`;
+        }
+        return url;
+    };
+
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');

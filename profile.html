@@ -274,7 +274,8 @@
         if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
 
         if (fileId) {
-            return `https://drive.google.com/uc?export=download&id=${fileId}`;
+            // 👇 Yahan apna naya Cloudflare Worker URL daalein 👇
+                return `https://viyou-video-proxy.nshuhima246.workers.dev/${fileId}`;
         }
         return url;
     };

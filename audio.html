@@ -105,6 +105,25 @@
         let selectedStartTime = 0;
         let isDraggingSlider = false;
 
+    window.getProxiedVideoUrl = function(url) {
+        if (!url) return url;
+        let fileId = null;
+        
+        const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+        if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
+        
+        const ucMatch = url.match(/[?&]id=([^&]+)/);
+        if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
+        
+        const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+        if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
+
+        if (fileId) {
+            return `https://viyou-video-proxy.nshuhima246.workers.dev/${fileId}`;
+        }
+        return url;
+    };
+
         function formatTime(seconds) {
             if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
             const m = Math.floor(seconds / 60);
@@ -327,7 +346,7 @@
                         div.onclick = () => { window.location.href = blog.isFlicker ? 'flicks.html?id=' + blog.id : 'watch.html?id=' + blog.id; };
                         let thumbHtml = '';
                         if (blog.thumbnail) { thumbHtml = `<img src="${blog.thumbnail}">`; } 
-                        else if (blog.video) { let fStart = blog.flickStartTime || 0.1; thumbHtml = `<video src="${blog.video}#t=${fStart}" muted></video>`; }
+                    else if (blog.video) { let fStart = blog.flickStartTime || 0.1; thumbHtml = `<video src="${window.getProxiedVideoUrl(blog.video)}#t=${fStart}" muted></video>`; }
                         div.innerHTML = `${thumbHtml}<div class="video-stats"><i data-lucide="play" class="lucide-fill" style="width: 12px;"></i> ${(blog.views || 0).toLocaleString()}</div>`;
                         grid.appendChild(div);
                     });

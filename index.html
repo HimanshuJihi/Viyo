@@ -961,8 +961,9 @@
 
             if (fileId) {
                 // Direct Google Drive bypass (No Render Server Bandwidth used)
-                return `https://drive.google.com/uc?export=download&id=${fileId}`;
-            }
+     // 👇 Yahan apna naya Cloudflare Worker URL daalein (End mein '/' mat lagana) 👇
+                return `https://viyou-video-proxy.nshuhima246.workers.dev/${fileId}`;
+         }
             return url;
         };
         

@@ -430,7 +430,24 @@
         window.maxVideoUploadSizeMB = 500;
         window.maxFlickUploadSizeMB = 50;
         let videoDurationForTrim = 0;
+        window.getProxiedVideoUrl = function(url) {
+        if (!url) return url;
+        let fileId = null;
         
+        const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+        if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
+        
+        const ucMatch = url.match(/[?&]id=([^&]+)/);
+        if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
+        
+        const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+        if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
+
+        if (fileId) {
+            return `<https://viyou-video-proxy.nshuhima246.workers.dev/${fileId}>`;
+        }
+        return url;
+    };
         // Flicks Studio Variables
         let fsSegments = [];
         let fsRecorder = null;
