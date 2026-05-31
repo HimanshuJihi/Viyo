@@ -1,4 +1,5 @@
-# Ignore Node Dependencies
+# Dependency directories
 node_modules/
-npm-debug.log
-service-account-key.json
+
+# Optional: Ignore environment variables if you have any
+.env
