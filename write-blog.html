@@ -834,8 +834,8 @@
             const cancelBtn = document.getElementById('cancel-upload-btn');
             overlay.style.display = 'flex';
             
-            const xhr = new XMLHttpRequest(); // Moved declaration to the top
-
+            const xhr = new XMLHttpRequest();
+            
             const cancelUpload = () => {
                 xhr.abort();
             };
@@ -844,7 +844,7 @@
 
             xhr.upload.onloadstart = () => {
                 bar.style.width = '0%';
-                text.innerText = '0% • Starting upload...';
+                text.innerText = '0% • Waking up server...';
                 cancelBtn.style.display = 'block';
             };
 
@@ -852,13 +852,8 @@
             const formData = new FormData();
             formData.append('video', file);
 
-            // ==========================================
-            // 1️⃣ LOCAL TESTING URL (Mobile/PC local test ke liye is line se // hatayein aur Live wale ko comment karein)
-            // const BACKEND_URL = 'http://192.168.1.5:3000/api/upload'; 
-
-            // 2️⃣ LIVE PRODUCTION URL (Live internet par publish karne ke liye isko on rakhein)
+            // LIVE PRODUCTION URL (Google Drive API via Render)
             const BACKEND_URL = 'https://viyou-in-backend.onrender.com/api/upload'; 
-            // ==========================================
 
             let startTime = Date.now();
 
@@ -869,7 +864,7 @@
                     
                     const timeElapsed = (Date.now() - startTime) / 1000;
                     if (progress >= 100) {
-                        text.innerText = "100%  •  Finalizing on server... Please wait.";
+                        text.innerText = "100%  •  Saving to Google Drive... Please wait.";
                     } else if (timeElapsed > 0.5 && event.loaded > 0) {
                         const speedBps = event.loaded / timeElapsed;
                         let speedText = speedBps > 1048576 ? (speedBps / 1048576).toFixed(2) + ' MB/s' : (speedBps / 1024).toFixed(0) + ' KB/s';
@@ -891,7 +886,6 @@
                         if (response.success) {
                             text.innerText = "Video Uploaded! Finalizing Post...";
                             
-                            // Viyo Server Proxy Stream Link use karein (Bypasses Google Drive limits & CORS)
                             let streamLink = response.webContentLink; // Fallback
                             if (response.webViewLink) {
                                 const match = response.webViewLink.match(/\/file\/d\/(.*?)\/view/);
@@ -909,12 +903,12 @@
                         overlay.style.display = 'none';
                         reject(new Error("Invalid response from server"));
                     }
-                } else if (xhr.status === 503) {
+                } else if (xhr.status === 503 || xhr.status === 502) {
                     overlay.style.display = 'none';
                     reject(new Error("Free server is waking up! Please wait 30 seconds and click Publish again."));
                 } else {
                     overlay.style.display = 'none';
-                    reject(new Error(`Server error: ${xhr.status}`));
+                    reject(new Error(`Server error: ${xhr.status}. Render limit exceeded or Drive error.`));
                 }
             };
 

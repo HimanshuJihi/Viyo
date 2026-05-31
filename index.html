@@ -948,20 +948,22 @@
         
         window.getProxiedVideoUrl = function(url) {
             if (!url) return url;
-            let videoSrc = url;
-            if (videoSrc.includes('viyo-backend.onrender.com')) {
-                videoSrc = videoSrc.replace('viyo-backend.onrender.com', 'viyou-in-backend.onrender.com');
+            let fileId = null;
+            
+            const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
+            if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
+            
+            const ucMatch = url.match(/[?&]id=([^&]+)/);
+            if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
+            
+            const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
+            if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
+
+            if (fileId) {
+                // Direct Google Drive bypass (No Render Server Bandwidth used)
+                return `https://drive.google.com/uc?export=download&id=${fileId}`;
             }
-            const driveMatch = videoSrc.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-            if (driveMatch && driveMatch[1]) {
-                videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${driveMatch[1]}`;
-            } else if (videoSrc.includes('drive.google.com/uc') || videoSrc.includes('drive.google.com/open')) {
-                const ucMatch = videoSrc.match(/[?&]id=([^&]+)/);
-                if (ucMatch && ucMatch[1]) {
-                    videoSrc = `https://viyou-in-backend.onrender.com/api/stream/${ucMatch[1]}`;
-                }
-            }
-            return videoSrc;
+            return url;
         };
         
         // --- Watch SPA Logic (Miniplayer Integration) ---
