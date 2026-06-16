@@ -301,8 +301,7 @@
             if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
 
             if (fileId) {
-                // 👇 Yahan apna naya Cloudflare Worker URL daalein 👇
-                return `https://viyou-video-proxy.nshuhima246.workers.dev/${fileId}`;
+                return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
             }
             return url;
         };
