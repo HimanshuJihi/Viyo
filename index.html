@@ -947,22 +947,7 @@
         let currentUserFollowing = [];
         
         window.getProxiedVideoUrl = function(url) {
-            if (!url) return url;
-            let fileId = null;
-            
-            const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-            if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-            
-            const ucMatch = url.match(/[?&]id=([^&]+)/);
-            if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-            
-            const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-            if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-            if (fileId) {
-                // Direct Google Drive bypass (use backend stream endpoint instead of Cloudflare Workers)
-                return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-         }
+            // Google Drive / external proxy handling removed — return URL as-is.
             return url;
         };
         
@@ -5908,10 +5893,7 @@
                         } else {
                             updateDoc(doc(db, "promotions", adToPlay.id), { impressions_served: increment(1) }).catch(e=>{});
                         }
-                        if (adToPlay.mediaData && adToPlay.mediaData.includes('api/stream/')) {
-                            const match = adToPlay.mediaData.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                            if (match && match[1]) fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
-                        }
+                        // Drive integration removed; no external deletions performed for ad mediaData.
                     } else {
                         updateDoc(doc(db, "promotions", adToPlay.id), { impressions_served: increment(1) }).catch(e=>{});
                         adToPlay.impressions_served += 1;
@@ -6491,14 +6473,7 @@
             }
 
             if(await viyouConfirm('Are you sure you want to delete this blog post?')) {
-                if (blog.video && blog.video.includes('api/stream/')) {
-                    const match = blog.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                    if (match && match[1]) {
-                        try {
-                            await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' });
-                        } catch(e) { console.error("Drive delete error:", e); }
-                    }
-                }
+                // Drive integration removed; simply delete the blog document stored in Firestore.
                 await deleteDoc(docRef);
                 location.reload();
             }

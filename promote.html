@@ -227,21 +227,7 @@
         let currentPromoPricing = { baseHours: 50, tier4: 50, tier3: 70, tier2: 80, tier1: 100 };
 
     window.getProxiedVideoUrl = function(url) {
-        if (!url) return url;
-        let fileId = null;
-        
-        const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-        if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-        
-        const ucMatch = url.match(/[?&]id=([^&]+)/);
-        if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-        
-        const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-        if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-        if (fileId) {
-            return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-        }
+        // Google Drive / external proxy handling removed — return URL as-is.
         return url;
     };
 
