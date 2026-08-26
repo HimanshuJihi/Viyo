@@ -960,9 +960,8 @@
             if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
 
             if (fileId) {
-                // Direct Google Drive bypass (No Render Server Bandwidth used)
-     // 👇 Yahan apna naya Cloudflare Worker URL daalein (End mein '/' mat lagana) 👇
-                return `https://viyou-video-proxy.nshuhima246.workers.dev/${fileId}`;
+                // Direct Google Drive bypass (use backend stream endpoint instead of Cloudflare Workers)
+                return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
          }
             return url;
         };
