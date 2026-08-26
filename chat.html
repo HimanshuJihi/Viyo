@@ -132,7 +132,7 @@
         import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs, limit, deleteField, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-        import { db, auth, storage } from "./firebase-config.js";
+        import { db, auth, storage, isUploadAllowed, SPARK_MAX_BYTES } from "./firebase-config.js";
 
         let currentUser = null;
         let partnerUid = null;
@@ -149,22 +149,8 @@
         const TYPING_TIMEOUT_DURATION = 2000; // 2 seconds
         
         window.getProxiedVideoUrl = function(url) {
-            if (!url) return url;
-            let fileId = null;
-            
-            const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-            if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-            
-            const ucMatch = url.match(/[?&]id=([^&]+)/);
-            if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-            
-            const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-            if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-            if (fileId) {
-                return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-                }
-            return url;
+                // Google Drive / external proxy handling removed — return URL as-is.
+                return url;
         };
 
         window.enableYoutubeLinks = true;
@@ -953,6 +939,21 @@
                 if(window.lucide) window.lucide.createIcons();
 
                 const storageRef = ref(storage, `chat_media/${conversationId}/${Date.now()}_${fileToUpload.name.replace(/[^a-zA-Z0-9.]/g, '')}`);
+                // Plan-based check before uploading
+                try {
+                    const allowed = await isUploadAllowed(fileToUpload.size);
+                    if (!allowed) {
+                        document.getElementById(tempId)?.remove();
+                        await viyouAlert('Upload blocked: On Spark plan uploads are limited to 1 MB. Upgrade to Blaze from Admin to allow larger uploads.');
+                        return;
+                    }
+                } catch (e) {
+                    console.error('isUploadAllowed failed', e);
+                    document.getElementById(tempId)?.remove();
+                    await viyouAlert('Unable to verify upload policy. Please try again later.');
+                    return;
+                }
+
                 const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
 
                 uploadTask.on('state_changed',

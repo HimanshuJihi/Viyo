@@ -431,23 +431,9 @@
         window.maxFlickUploadSizeMB = 50;
         let videoDurationForTrim = 0;
         window.getProxiedVideoUrl = function(url) {
-        if (!url) return url;
-        let fileId = null;
-        
-        const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-        if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-        
-        const ucMatch = url.match(/[?&]id=([^&]+)/);
-        if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-        
-        const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-        if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-        if (fileId) {
-            return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-        }
-        return url;
-    };
+            // Google Drive / external proxy handling removed — return URL as-is.
+            return url;
+        };
         // Flicks Studio Variables
         let fsSegments = [];
         let fsRecorder = null;
@@ -850,101 +836,41 @@
             const text = document.getElementById('upload-progress-text');
             const cancelBtn = document.getElementById('cancel-upload-btn');
             overlay.style.display = 'flex';
-            
-            const xhr = new XMLHttpRequest();
-            
-            const cancelUpload = () => {
-                xhr.abort();
-            };
-            cancelBtn.addEventListener('click', cancelUpload);
-            cancelBtn.onclick = cancelUpload;
 
-            xhr.upload.onloadstart = () => {
-                bar.style.width = '0%';
-                text.innerText = '0% • Waking up server...';
-                cancelBtn.style.display = 'block';
-            };
+            try {
+                const storagePath = `blog_videos/${(auth.currentUser ? auth.currentUser.uid : 'anon')}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+                const storageRefObj = ref(storage, storagePath);
+                const uploadTask = uploadBytesResumable(storageRefObj, file);
 
-            xhr.timeout = 0; // Prevent browser from dropping connection on large files
-            const formData = new FormData();
-            formData.append('video', file);
+                const cancelUpload = () => { uploadTask.cancel(); };
+                cancelBtn.addEventListener('click', cancelUpload);
+                cancelBtn.onclick = cancelUpload;
 
-            // LIVE PRODUCTION URL (Google Drive API via Render)
-            const BACKEND_URL = 'https://viyou-in-backend.onrender.com/api/upload'; 
-
-            let startTime = Date.now();
-
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const progress = (event.loaded / event.total) * 100;
+                uploadTask.on('state_changed', (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     bar.style.width = progress + '%';
-                    
-                    const timeElapsed = (Date.now() - startTime) / 1000;
-                    if (progress >= 100) {
-                        text.innerText = "100%  •  Saving to Google Drive... Please wait.";
-                    } else if (timeElapsed > 0.5 && event.loaded > 0) {
-                        const speedBps = event.loaded / timeElapsed;
-                        let speedText = speedBps > 1048576 ? (speedBps / 1048576).toFixed(2) + ' MB/s' : (speedBps / 1024).toFixed(0) + ' KB/s';
-                        const secRemaining = (event.total - event.loaded) / speedBps;
-                        let etaText = secRemaining > 60 ? Math.floor(secRemaining / 60) + 'm ' + Math.floor(secRemaining % 60) + 's left' : Math.ceil(secRemaining) + 's left';
-                        text.innerText = `${Math.round(progress)}%  •  ${speedText}  •  ${etaText}`;
-                    } else {
-                        text.innerText = Math.round(progress) + '%';
-                    }
-                }
-            };
-
-            xhr.onload = () => {
-                cancelBtn.removeEventListener('click', cancelUpload);
-                cancelBtn.onclick = null;
-                if (xhr.status === 200) {
+                    text.innerText = Math.round(progress) + '%';
+                }, (error) => {
+                    overlay.style.display = 'none';
+                    cancelBtn.removeEventListener('click', cancelUpload);
+                    cancelBtn.onclick = null;
+                    reject(error);
+                }, async () => {
+                    cancelBtn.removeEventListener('click', cancelUpload);
+                    cancelBtn.onclick = null;
+                    overlay.style.display = 'none';
                     try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            text.innerText = "Video Uploaded! Finalizing Post...";
-                            
-                            let streamLink = response.webContentLink; // Fallback
-                            if (response.webViewLink) {
-                                const match = response.webViewLink.match(/\/file\/d\/(.*?)\/view/);
-                                if (match && match[1]) {
-                                    const serverBase = BACKEND_URL.replace('/api/upload', '');
-                                    streamLink = `${serverBase}/api/stream/${match[1]}`;
-                                }
-                            }
-                            resolve(streamLink || response.webViewLink);
-                        } else {
-                            overlay.style.display = 'none';
-                            reject(new Error(response.error || "Upload failed on server"));
-                        }
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        resolve(downloadURL);
                     } catch (e) {
-                        overlay.style.display = 'none';
-                        reject(new Error("Invalid response from server"));
+                        reject(e);
                     }
-                } else if (xhr.status === 503 || xhr.status === 502) {
-                    overlay.style.display = 'none';
-                    reject(new Error("Free server is waking up! Please wait 30 seconds and click Publish again."));
-                } else {
-                    overlay.style.display = 'none';
-                    reject(new Error(`Server error: ${xhr.status}. Render limit exceeded or Drive error.`));
-                }
-            };
+                });
 
-            xhr.onerror = () => {
+            } catch (e) {
                 overlay.style.display = 'none';
-                cancelBtn.removeEventListener('click', cancelUpload);
-                cancelBtn.onclick = null;
-                reject(new Error("Network error (or server waking up). Wait 30 seconds and try again."));
-            };
-
-            xhr.onabort = () => {
-                overlay.style.display = 'none';
-                cancelBtn.removeEventListener('click', cancelUpload);
-                cancelBtn.onclick = null;
-                reject(new Error("Upload cancelled by user"));
-            };
-
-            xhr.open('POST', BACKEND_URL, true);
-            xhr.send(formData);
+                reject(e);
+            }
         });
     }
 

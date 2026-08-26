@@ -252,6 +252,21 @@
 
             <!-- Payment Settings Section (Super Admins Only) -->
             <div id="section-payment-settings" style="display: none;">
+                <div class="report-card" style="border-color: #0ea5e9; margin-bottom: 20px;">
+                    <h3 style="color: #0ea5e9; margin-top: 0;"><i data-lucide="server"></i> Firebase Plan & Upload Policy</h3>
+                    <p style="color: #aaa; font-size: 0.9rem;">Toggle the project's plan used by client-side upload policy. When set to <strong>Spark</strong>, uploads are restricted to 1 MB (for videos, images, flicks). When set to <strong>Blaze</strong>, larger uploads are allowed. This does not change billing — it only controls client & security-rule behavior via the <code>/config/plan</code> document.</p>
+                    <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+                        <div style="flex:1;">
+                            <div style="color:#fff; font-weight:700;">Current plan: <span id="current-plan-label">Loading...</span></div>
+                            <div style="color:#aaa; font-size:0.9rem; margin-top:6px;">Switch here to change upload limits without code changes.</div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button id="plan-spark-btn" class="btn btn-secondary">Spark (1 MB limit)</button>
+                            <button id="plan-blaze-btn" class="btn">Blaze (no limit)</button>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px; color:#ffdd57; font-size:0.85rem;">Note: Security rules read this document on each upload attempt (this may incur a Firestore read per upload). Use Blaze billing plan if you expect large volumes.</div>
+                </div>
                 <div class="report-card" style="border-color: #10b981; margin-bottom: 20px;">
                     <h2 style="color: #10b981; margin-top: 0;">Payment Receiving Details</h2>
                     <p style="color: #aaa; font-size: 0.9rem;">Set your UPI ID and QR code to receive payments for promotions. Only main admins can access this.</p>
@@ -413,22 +428,45 @@
         window.adminIsSuperAdmin = false;
         window.adminPermissions = {};
 
-        window.getProxiedVideoUrl = function(url) {
-            if (!url) return url;
-            let fileId = null;
-            
-            const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-            if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-            
-            const ucMatch = url.match(/[?&]id=([^&]+)/);
-            if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-            
-            const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-            if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
+                // Firebase Plan control
+                async function loadFirebasePlan() {
+                    try {
+                        const planDocRef = doc(db, 'config', 'plan');
+                        const snap = await getDoc(planDocRef);
+                        const plan = (snap && snap.exists()) ? (snap.data().plan || 'spark') : 'spark';
+                        document.getElementById('current-plan-label').innerText = plan.toUpperCase();
+                        document.getElementById('plan-spark-btn').style.opacity = (plan === 'spark') ? '1' : '0.6';
+                        document.getElementById('plan-blaze-btn').style.opacity = (plan === 'blaze') ? '1' : '0.6';
+                    } catch (e) {
+                        console.error('loadFirebasePlan error', e);
+                        document.getElementById('current-plan-label').innerText = 'unknown';
+                    }
+                }
 
-            if (fileId) {
-                return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-            }
+                window.setFirebasePlan = async function(plan) {
+                    if (!confirm('Change Firebase plan policy to "' + plan + '"? This updates the /config/plan document and affects upload limits immediately.')) return;
+                    try {
+                        await setDoc(doc(db, 'config', 'plan'), { plan: plan });
+                        await loadFirebasePlan();
+                        alert('Plan updated to ' + plan);
+                    } catch (e) {
+                        console.error('setFirebasePlan error', e);
+                        alert('Failed to update plan: ' + e.message);
+                    }
+                }
+
+                // Wire up plan buttons when DOM ready
+                document.addEventListener('DOMContentLoaded', () => {
+                    const sparkBtn = document.getElementById('plan-spark-btn');
+                    const blazeBtn = document.getElementById('plan-blaze-btn');
+                    if (sparkBtn) sparkBtn.addEventListener('click', () => window.setFirebasePlan('spark'));
+                    if (blazeBtn) blazeBtn.addEventListener('click', () => window.setFirebasePlan('blaze'));
+                    // Load initial state
+                    setTimeout(() => loadFirebasePlan(), 600);
+                });
+
+        window.getProxiedVideoUrl = function(url) {
+            // Google Drive / external proxy handling removed — return URL as-is.
             return url;
         };
 
@@ -1256,12 +1294,7 @@
             if (!await window.viyouConfirm("Are you sure you want to DELETE this blog permanently? This action cannot be undone.")) return;
             try {
                 const docSnap = await getDoc(doc(db, "blogs", blogId));
-                if (docSnap.exists() && docSnap.data().video && docSnap.data().video.includes('api/stream/')) {
-                    const match = docSnap.data().video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                    if (match && match[1]) {
-                        await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
-                    }
-                }
+                // Google Drive integration removed — media is expected to be in Firebase Storage. Proceed to delete the blog entry.
                 
                 // Delete the blog
                 await deleteDoc(doc(db, "blogs", blogId));
@@ -1353,13 +1386,7 @@
             if (!await window.viyouConfirm("Are you sure you want to DELETE this blog permanently due to a copyright strike? This action cannot be undone.")) return;
             try {
                 const docSnap = await getDoc(doc(db, "blogs", blogId));
-                if (docSnap.exists() && docSnap.data().video && docSnap.data().video.includes('api/stream/')) {
-                    const match = docSnap.data().video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                    if (match && match[1]) {
-                        await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
-                    }
-                }
-                
+                // Google Drive integration removed — media is expected to be in Firebase Storage. Proceed to delete the blog entry.
                 await deleteDoc(doc(db, "blogs", blogId));
                 await deleteDoc(doc(db, "copyright_claims", claimId));
                 document.getElementById(`copyright-${claimId}`).remove();
@@ -1385,14 +1412,9 @@
                 const batch = writeBatch(db);
                 const deletePromises = [];
                 snap.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data.video && data.video.includes('api/stream/')) {
-                        const match = data.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                        if (match && match[1]) deletePromises.push(fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{}));
-                    }
+                    // Any external Drive-based deletions removed. We only delete the Firestore documents here.
                     batch.delete(docSnap.ref);
                 });
-                await Promise.all(deletePromises);
                 await batch.commit();
 
                 showToast(`User ${username} has been banned and all their content removed.`);
@@ -2320,54 +2342,10 @@
             } catch (e) { console.error(e); showToast("Error removing promotion.", "error"); }
         };
         
-        // --- Drive Sync Logic ---
+        // Drive sync removed: Drive-hosted file checks and deletions are no longer supported.
         window.syncDriveAndSite = async function() {
-            if (!confirm("This will scan ALL posts and permanently delete the ones where the Drive video is missing. This process may take a few minutes. Continue?")) return;
-            
-            const btn = document.getElementById('sync-drive-btn');
-            const status = document.getElementById('sync-drive-status');
-            btn.innerHTML = '<i data-lucide="loader" class="fa-spin"></i> Scanning...';
-            btn.disabled = true;
-            if (window.lucide) window.lucide.createIcons({root: btn.parentElement});
-            
-            try {
-                status.innerText = "Fetching all posts from database...";
-                const snapshot = await getDocs(collection(db, "blogs"));
-                let total = snapshot.size;
-                let checked = 0; let deleted = 0;
-                
-                for (const docSnap of snapshot.docs) {
-                    const data = docSnap.data();
-                    if (data.video && data.video.includes('api/stream/')) {
-                        let fileId = null;
-                        const streamMatch = data.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                        if (streamMatch) fileId = streamMatch[1];
-                        
-                        if (fileId) {
-                            status.innerText = `Checking video ${checked + 1} of ${total}...`;
-                            try {
-                                const res = await fetch(`https://viyou-in-backend.onrender.com/api/check/${fileId}`);
-                                const result = await res.json();
-                                if (!result.exists) {
-                                    await deleteDoc(doc(db, "blogs", docSnap.id));
-                                    deleted++;
-                                }
-                            } catch(e) { console.error("Check failed for", fileId, e); }
-                        }
-                    }
-                    checked++;
-                }
-                status.innerText = `Scan complete! Deleted ${deleted} broken posts from the site.`;
-                showToast(`Sync complete! Removed ${deleted} broken posts.`, "success");
-            } catch(e) {
-                console.error(e);
-                status.innerText = "Error occurred during scan.";
-                showToast("Error scanning database.", "error");
-            } finally {
-                btn.innerHTML = '<i data-lucide="refresh-cw"></i> Scan & Delete Broken Posts';
-                btn.disabled = false;
-                if (window.lucide) window.lucide.createIcons({root: btn.parentElement});
-            }
+            alert('Drive integration has been removed. This action is no longer available. All media should be uploaded to Firebase Storage.');
+            return;
         };
 
         // --- New function for Monetization Stats ---
