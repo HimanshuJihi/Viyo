@@ -1,2 +1,0 @@
-Remove Google Drive / external proxy integration; enforce Firebase-only media uploads\n\n- Remove all Cloud Drive proxy/stream/delete usage and references\n- Replace getProxiedVideoUrl to passthrough URLs (no Drive proxy)\n- Replace server upload to use Firebase Storage in write-blog upload helper\n- Neutralize Drive backend placeholder (function/uploadToDrive.js)
-\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
