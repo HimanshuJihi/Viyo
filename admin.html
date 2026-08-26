@@ -252,6 +252,21 @@
 
             <!-- Payment Settings Section (Super Admins Only) -->
             <div id="section-payment-settings" style="display: none;">
+                <div class="report-card" style="border-color: #0ea5e9; margin-bottom: 20px;">
+                    <h3 style="color: #0ea5e9; margin-top: 0;"><i data-lucide="server"></i> Firebase Plan & Upload Policy</h3>
+                    <p style="color: #aaa; font-size: 0.9rem;">Toggle the project's plan used by client-side upload policy. When set to <strong>Spark</strong>, uploads are restricted to 1 MB (for videos, images, flicks). When set to <strong>Blaze</strong>, larger uploads are allowed. This does not change billing — it only controls client & security-rule behavior via the <code>/config/plan</code> document.</p>
+                    <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+                        <div style="flex:1;">
+                            <div style="color:#fff; font-weight:700;">Current plan: <span id="current-plan-label">Loading...</span></div>
+                            <div style="color:#aaa; font-size:0.9rem; margin-top:6px;">Switch here to change upload limits without code changes.</div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button id="plan-spark-btn" class="btn btn-secondary">Spark (1 MB limit)</button>
+                            <button id="plan-blaze-btn" class="btn">Blaze (no limit)</button>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px; color:#ffdd57; font-size:0.85rem;">Note: Security rules read this document on each upload attempt (this may incur a Firestore read per upload). Use Blaze billing plan if you expect large volumes.</div>
+                </div>
                 <div class="report-card" style="border-color: #10b981; margin-bottom: 20px;">
                     <h2 style="color: #10b981; margin-top: 0;">Payment Receiving Details</h2>
                     <p style="color: #aaa; font-size: 0.9rem;">Set your UPI ID and QR code to receive payments for promotions. Only main admins can access this.</p>
@@ -412,6 +427,43 @@
 
         window.adminIsSuperAdmin = false;
         window.adminPermissions = {};
+
+                // Firebase Plan control
+                async function loadFirebasePlan() {
+                    try {
+                        const planDocRef = doc(db, 'config', 'plan');
+                        const snap = await getDoc(planDocRef);
+                        const plan = (snap && snap.exists()) ? (snap.data().plan || 'spark') : 'spark';
+                        document.getElementById('current-plan-label').innerText = plan.toUpperCase();
+                        document.getElementById('plan-spark-btn').style.opacity = (plan === 'spark') ? '1' : '0.6';
+                        document.getElementById('plan-blaze-btn').style.opacity = (plan === 'blaze') ? '1' : '0.6';
+                    } catch (e) {
+                        console.error('loadFirebasePlan error', e);
+                        document.getElementById('current-plan-label').innerText = 'unknown';
+                    }
+                }
+
+                window.setFirebasePlan = async function(plan) {
+                    if (!confirm('Change Firebase plan policy to "' + plan + '"? This updates the /config/plan document and affects upload limits immediately.')) return;
+                    try {
+                        await setDoc(doc(db, 'config', 'plan'), { plan: plan });
+                        await loadFirebasePlan();
+                        alert('Plan updated to ' + plan);
+                    } catch (e) {
+                        console.error('setFirebasePlan error', e);
+                        alert('Failed to update plan: ' + e.message);
+                    }
+                }
+
+                // Wire up plan buttons when DOM ready
+                document.addEventListener('DOMContentLoaded', () => {
+                    const sparkBtn = document.getElementById('plan-spark-btn');
+                    const blazeBtn = document.getElementById('plan-blaze-btn');
+                    if (sparkBtn) sparkBtn.addEventListener('click', () => window.setFirebasePlan('spark'));
+                    if (blazeBtn) blazeBtn.addEventListener('click', () => window.setFirebasePlan('blaze'));
+                    // Load initial state
+                    setTimeout(() => loadFirebasePlan(), 600);
+                });
 
         window.getProxiedVideoUrl = function(url) {
             if (!url) return url;

@@ -360,7 +360,7 @@
         import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-        import { db, auth, storage } from "./firebase-config.js";
+        import { db, auth, storage, isUploadAllowed, SPARK_MAX_BYTES } from "./firebase-config.js";
 window.showToast = function(message, type = 'info') {
             let container = document.getElementById('toast-container');
             if (!container) {
@@ -1460,41 +1460,56 @@ window.showToast = function(message, type = 'info') {
             btn.innerText = "Preparing Upload..."; btn.disabled = true;
 
         function uploadToStorageWithProgress(file, pathStr) {
-            return new Promise((resolve, reject) => {
+                    return new Promise(async (resolve, reject) => {
                 const overlay = document.getElementById('upload-progress-overlay');
                 const bar = document.getElementById('upload-progress-bar');
                 const text = document.getElementById('upload-progress-text');
                 const cancelBtn = document.getElementById('cancel-upload-btn');
                 overlay.style.display = 'flex';
-                
-                const storageRef = ref(storage, pathStr);
-                const uploadTask = uploadBytesResumable(storageRef, file);
 
-                const cancelUpload = () => { uploadTask.cancel(); };
-                cancelBtn.onclick = cancelUpload;
-
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        bar.style.width = progress + '%';
-                        text.innerText = Math.round(progress) + '% • Uploading...';
-                    }, 
-                    (error) => { 
-                        overlay.style.display = 'none'; 
-                        if (error.code !== 'storage/canceled') {
-                            reject(error); 
-                        } else {
-                            reject(new Error("Upload cancelled"));
+                        // Enforce plan-based limit before starting upload
+                        try {
+                            const allowed = await isUploadAllowed(file.size);
+                            if (!allowed) {
+                                overlay.style.display = 'none';
+                                alert('Upload blocked: On Spark plan uploads are limited to 1 MB. Upgrade to Blaze from Admin to allow larger uploads.');
+                                return reject(new Error('Upload blocked by plan (size limit)'));
+                            }
+                        } catch (e) {
+                            // If helper fails, prefer blocking to avoid accidental large uploads on Spark.
+                            console.error('isUploadAllowed check failed', e);
+                            overlay.style.display = 'none';
+                            return reject(e);
                         }
-                    }, 
-                    async () => {
-                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                        overlay.style.display = 'none';
-                        resolve(downloadURL);
-                    }
-                );
-            });
-        }
+                
+                        const storageRef = ref(storage, pathStr);
+                        const uploadTask = uploadBytesResumable(storageRef, file);
+
+                        const cancelUpload = () => { uploadTask.cancel(); };
+                        cancelBtn.onclick = cancelUpload;
+
+                        uploadTask.on('state_changed', 
+                            (snapshot) => {
+                                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                bar.style.width = progress + '%';
+                                text.innerText = Math.round(progress) + '% • Uploading...';
+                            }, 
+                            (error) => { 
+                                overlay.style.display = 'none'; 
+                                if (error.code !== 'storage/canceled') {
+                                    reject(error); 
+                                } else {
+                                    reject(new Error("Upload cancelled"));
+                                }
+                            }, 
+                            async () => {
+                                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                                overlay.style.display = 'none';
+                                resolve(downloadURL);
+                            }
+                        );
+                    });
+                }
             
             try {
             if (currentPromoTab === 'infeed' && extMediaType === 'video' && extMediaFile) {

@@ -942,7 +942,7 @@
         import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, getDoc, query, orderBy, arrayUnion, arrayRemove, addDoc, where, onSnapshot, limit, startAfter, setDoc, writeBatch, serverTimestamp, increment, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile, deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-        import { db, auth, storage } from "./firebase-config.js";
+        import { db, auth, storage, isUploadAllowed, SPARK_MAX_BYTES } from "./firebase-config.js";
         const provider = new GoogleAuthProvider();
         let currentUserFollowing = [];
         
@@ -3738,6 +3738,21 @@
                 if (window.lucide) window.lucide.createIcons();
 
                 const storageRef = ref(storage, `chat_media/${window.chatConversationId}/${Date.now()}_${fileToUpload.name.replace(/[^a-zA-Z0-9.]/g, '')}`);
+                // Enforce plan size limit before starting the upload
+                try {
+                    const allowed = await isUploadAllowed(fileToUpload.size);
+                    if (!allowed) {
+                        document.getElementById(tempId)?.remove();
+                        window.viyouAlert('Upload blocked: On Spark plan uploads are limited to 1 MB. Upgrade to Blaze from Admin to allow larger uploads.');
+                        return;
+                    }
+                } catch (e) {
+                    console.error('isUploadAllowed failed', e);
+                    document.getElementById(tempId)?.remove();
+                    window.viyouAlert('Unable to verify upload policy. Please try again later.');
+                    return;
+                }
+
                 const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
 
                 uploadTask.on('state_changed',

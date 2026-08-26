@@ -1110,8 +1110,19 @@
                 let statusVideoUrl = null;
                 let storyDrawingUrl = null;
                 
+                // Check plan and size before uploading
+                import { isUploadAllowed, SPARK_MAX_BYTES } from './firebase-config.js';
+
                 if (window.isStoryVideo && window.storyVideoBlob) {
                     const ext = window.storyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+
+                    const allowed = await isUploadAllowed(window.storyVideoBlob.size);
+                    if (!allowed) {
+                        alert('Upload blocked: On Spark plan video/story uploads are limited to 1 MB. Upgrade to Blaze from Admin to allow larger uploads.');
+                        document.getElementById('upload-overlay').classList.add('hidden');
+                        return;
+                    }
+
                     const videoRef = ref(storage, `stories/${uid}_${ts}_vid.${ext}`);
                     await uploadBytes(videoRef, window.storyVideoBlob);
                     statusVideoUrl = await getDownloadURL(videoRef);
@@ -1120,6 +1131,18 @@
                     await uploadString(drawRef, finalDataUrl, 'data_url');
                     storyDrawingUrl = await getDownloadURL(drawRef);
                 } else {
+                    // finalDataUrl is a data URL (base64). Estimate bytes from base64 length.
+                    const base64 = finalDataUrl.split(',')[1] || '';
+                    const padding = (base64.endsWith('==')) ? 2 : (base64.endsWith('=')) ? 1 : 0;
+                    const estimatedBytes = Math.floor(base64.length * 3 / 4) - padding;
+
+                    const allowed = await isUploadAllowed(estimatedBytes);
+                    if (!allowed) {
+                        alert('Upload blocked: On Spark plan images/stories are limited to 1 MB. Upgrade to Blaze from Admin to allow larger uploads.');
+                        document.getElementById('upload-overlay').classList.add('hidden');
+                        return;
+                    }
+
                     const storageRef = ref(storage, `stories/${uid}_${ts}_img.jpg`);
                     await uploadString(storageRef, finalDataUrl, 'data_url');
                     downloadUrl = await getDownloadURL(storageRef);
