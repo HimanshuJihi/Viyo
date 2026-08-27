@@ -53,6 +53,17 @@
         /* SPA View Classes */
         .page-view { display: none; width: 100%; }
         .page-view.active { display: block; }
+
+        /* Privacy Settings Styles */
+        .privacy-list-container { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        .privacy-list-item { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; }
+        .privacy-list-item img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px; }
+        .privacy-list-item .user-info { flex-grow: 1; }
+        .privacy-list-item .user-info strong { color: #fff; }
+        .privacy-list-item .user-info small { color: #aaa; }
+        .privacy-list-item .remove-btn { background: #555; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .privacy-search-results .privacy-list-item { cursor: pointer; }
+        .privacy-search-results .privacy-list-item:hover { background: rgba(255,255,255,0.1); }
     </style>
     <script>
         window.saveStoryMediaToIndexedDB = function(file) {
@@ -276,6 +287,9 @@
                                 <button class="theme-option" data-theme="ocean" style="background: #003b66; color: #00e5ff; padding: 8px; border-radius: 50%; border: 1px solid rgba(0,229,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Ocean"><i data-lucide="droplet" style="width: 16px; margin: 0;"></i></button>
                                 <button class="theme-option" data-theme="dracula" style="background: #32354b; color: #ff79c6; padding: 8px; border-radius: 50%; border: 1px solid rgba(221, 65, 153, 0.901); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Dracula"><i data-lucide="ghost" style="width: 16px; margin: 0;"></i></button>
                                 <button class="theme-option" data-theme="solar" style="background: #4a0c16; color: #ffb703; padding: 8px; border-radius: 50%; border: 1px solid rgba(255, 184, 3, 0.753); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Solar"><i data-lucide="sun-dim" style="width: 16px; margin: 0;"></i></button>
+                                <button class="theme-option" data-theme="aurora" style="background: #063b46; color: #5eead4; padding: 8px; border-radius: 50%; border: 1px solid rgba(94, 234, 212, 0.7); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Aurora"><i data-lucide="waves" style="width: 16px; margin: 0;"></i></button>
+                                <button class="theme-option" data-theme="forest" style="background: #183a2b; color: #facc15; padding: 8px; border-radius: 50%; border: 1px solid rgba(250, 204, 21, 0.7); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Forest"><i data-lucide="trees" style="width: 16px; margin: 0;"></i></button>
+                                <button class="theme-option" data-theme="sunset" style="background: #762d2d; color: #fed7aa; padding: 8px; border-radius: 50%; border: 1px solid rgba(254, 215, 170, 0.7); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Sunset"><i data-lucide="sunset" style="width: 16px; margin: 0;"></i></button>
                             </div>
                         </div>
                         <div style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 5px;">
@@ -631,8 +645,9 @@
                 <h2 style="margin: 0; color: #f59e0b;"><i data-lucide="settings" style="vertical-align: middle;"></i> Settings</h2>
             </div>
             <div style="display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <button id="tab-edit-profile" class="settings-tab-btn" style="background:none; border:none; color:#fff; padding: 10px; cursor: pointer; border-bottom: 2px solid #f59e0b; font-weight: bold; flex: 1; transition: 0.3s;" onclick="window.switchSettingsTab('edit')">Edit Profile</button>
-                <button id="tab-account-options" class="settings-tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer; font-weight: bold; flex: 1; border-bottom: 2px solid transparent; transition: 0.3s;" onclick="window.switchSettingsTab('options')">Options</button>
+                <button id="tab-edit-profile" class="settings-tab-btn" style="background:none; border:none; color:#fff; padding: 10px; cursor: pointer; border-bottom: 2px solid #f59e0b; font-weight: bold; flex: 1; transition: 0.3s;" onclick="window.switchSettingsTab('edit')"><i data-lucide="user-cog" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></i> Edit Profile</button>
+                <button id="tab-privacy" class="settings-tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer; font-weight: bold; flex: 1; border-bottom: 2px solid transparent; transition: 0.3s;" onclick="window.switchSettingsTab('privacy')"><i data-lucide="shield" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></i> Privacy</button>
+                <button id="tab-account-options" class="settings-tab-btn" style="background:none; border:none; color:#aaa; padding: 10px; cursor: pointer; font-weight: bold; flex: 1; border-bottom: 2px solid transparent; transition: 0.3s;" onclick="window.switchSettingsTab('options')"><i data-lucide="sliders-horizontal" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></i> Options</button>
             </div>
             <div id="settings-content-edit" class="settings-content-section" style="display: block;">
                 <label style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px; display: block;">Unique ID</label>
@@ -647,6 +662,31 @@
                 <button id="copy-profile-link-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: #10b981; text-align: center;" onclick="window.copyProfileLink()"><i data-lucide="share-2"></i> Share Profile Link</button>
                 <button id="change-pwd-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: #87ceeb; text-align: center;"><i data-lucide="lock"></i> Change Password</button>
                 <button id="delete-acc-btn" class="btn-transparent" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3) !important; border-radius: 8px; cursor: pointer; font-weight: bold; color: #ff6b6b; text-align: center;"><i data-lucide="user-x"></i> Delete Account</button>
+            </div>
+
+            <!-- Privacy Section -->
+            <div id="settings-content-privacy" class="settings-content-section" style="display: none;">
+                <!-- Section 1: Hide Story From -->
+                <div class="privacy-section-container" style="margin-bottom: 30px;">
+                    <h3 style="color: #f59e0b; margin-top: 0; display: flex; align-items: center; gap: 8px;"><i data-lucide="eye-off"></i> Hide Story From</h3>
+                    <p style="color: #aaa; font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Users you add here won't be able to see your stories. They won't be notified.</p>
+                    <div style="position: relative;">
+                        <input type="search" id="hide-story-search" placeholder="Search users to hide story from..." oninput="window.searchUsersForPrivacy('hideStory', this.value)" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box; margin-bottom: 10px;">
+                        <div id="hide-story-search-results" class="privacy-search-results" style="position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; z-index: 10; max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                    <div id="hidden-story-list" class="privacy-list-container"></div>
+                </div>
+
+                <!-- Section 2: Hide Content From (Block) -->
+                <div class="privacy-section-container">
+                    <h3 style="color: #f59e0b; display: flex; align-items: center; gap: 8px;"><i data-lucide="user-x"></i> Restricted Accounts</h3>
+                    <p style="color: #aaa; font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Users you add here won't be able to see your profile or any of your content (Blogs, Videos, Flicks). This will also remove them from your followers.</p>
+                    <div style="position: relative;">
+                        <input type="search" id="block-user-search" placeholder="Search users to restrict..." oninput="window.searchUsersForPrivacy('block', this.value)" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box; margin-bottom: 10px;">
+                        <div id="block-user-search-results" class="privacy-search-results" style="position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; z-index: 10; max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                    <div id="blocked-users-list" class="privacy-list-container"></div>
+                </div>
             </div>
         </div>
         <footer>
@@ -946,27 +986,6 @@
         const provider = new GoogleAuthProvider();
         let currentUserFollowing = [];
         
-        window.getProxiedVideoUrl = function(url) {
-            if (!url) return url;
-            let fileId = null;
-            
-            const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-            if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-            
-            const ucMatch = url.match(/[?&]id=([^&]+)/);
-            if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-            
-            const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-            if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-            if (fileId) {
-                // Direct Google Drive bypass (No Render Server Bandwidth used)
-     // 👇 Yahan apna naya Cloudflare Worker URL daalein (End mein '/' mat lagana) 👇
-                return `https://viyou-video-proxy.nshuhima246.workers.dev/${fileId}`;
-         }
-            return url;
-        };
-        
         // --- Watch SPA Logic (Miniplayer Integration) ---
         window.closeMiniplayer = function(e) {
             if(e) e.stopPropagation();
@@ -1248,7 +1267,7 @@
                 `;
 
                 let mediaHtml = '';
-                let videoSrc = window.getProxiedVideoUrl(blog.video);
+                let videoSrc = blog.video;
 
                 if (blog.youtubeUrl) {
                     const videoId = getYoutubeVideoId(blog.youtubeUrl);
@@ -2011,6 +2030,9 @@
 
         // --- WATCH SPA COMMENTS SYSTEM ---
         window.renderWatchComments = function() {
+            // Moved renderMentionsText to global scope for reusability
+            // const renderMentionsText = (text, mentionMap) => { ... };
+
             const containers = document.querySelectorAll('.watch-comments-container');
             if (containers.length === 0 || !window.currentWatchBlog) return;
             const user = auth.currentUser;
@@ -2024,18 +2046,6 @@
 
             const limit = window.showAllWatchComments ? sortedComments.length : 4;
             const commentsToShow = sortedComments.slice(0, limit);
-
-            const renderMentionsText = (text, mentionMap) => {
-                let safeText = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
-                if (mentionMap) {
-                    return safeText.replace(/@([\w_]+)/g, (match, username) => {
-                        const uid = mentionMap[username.toLowerCase()];
-                        if (uid) return `<a href="profile.html?uid=${uid}" class="mention-link" onclick="event.stopPropagation();">${match}</a>`;
-                        return match;
-                    });
-                }
-                return safeText;
-            };
 
             let commentsHtml = commentsToShow.map(c => {
                 const isOwner = user && c.userUid === user.uid;
@@ -2217,6 +2227,24 @@
                 document.querySelector('.bottom-nav .nav-item:nth-child(5)').classList.add('active');
                 
                 const targetUid = uid || auth.currentUser.uid;
+                window.isViewingRestrictedProfile = false; // Reset flag
+
+                // NEW: Privacy check before loading profile
+                if (auth.currentUser && targetUid !== auth.currentUser.uid) {
+                    const myData = window.currentUserData || {};
+                    // Check if I have blocked them
+                    if (myData.blockedUsers && myData.blockedUsers.includes(targetUid)) {
+                        window.isViewingRestrictedProfile = true;
+                        // Do not return; let the profile load with hidden content.
+                    }
+                    // Check if they have blocked me (using my denormalized list)
+                    if (myData.blockedBy && myData.blockedBy.includes(targetUid)) {
+                        handleBlockedProfileSPA("This user has blocked you.");
+                        return;
+                    }
+                }
+                // END NEW
+
                 const newUrl = uid ? `?view=profile&uid=${uid}` : `?view=profile`;
                 window.history.pushState({page: 'profile', uid: targetUid}, '', newUrl);
                 
@@ -2555,11 +2583,194 @@
         window.switchSettingsTab = function(tabName) {
             document.querySelectorAll('.settings-tab-btn').forEach(btn => { btn.style.color = '#aaa'; btn.style.borderBottomColor = 'transparent'; });
             document.querySelectorAll('.settings-content-section').forEach(sec => sec.style.display = 'none');
-            const activeBtn = document.getElementById(`tab-${tabName === 'edit' ? 'edit-profile' : 'account-options'}`);
-            const activeSec = document.getElementById(`settings-content-${tabName}`);
+            
+            let activeBtnId, activeSecId;
+            switch(tabName) {
+                case 'edit':
+                    activeBtnId = 'tab-edit-profile';
+                    activeSecId = 'settings-content-edit';
+                    break;
+                case 'options':
+                    activeBtnId = 'tab-account-options';
+                    activeSecId = 'settings-content-options';
+                    break;
+                case 'privacy':
+                    activeBtnId = 'tab-privacy';
+                    activeSecId = 'settings-content-privacy';
+                    loadPrivacyLists(); // Load data when tab is clicked
+                    break;
+                default:
+                    activeBtnId = 'tab-edit-profile';
+                    activeSecId = 'settings-content-edit';
+            }
+            const activeBtn = document.getElementById(activeBtnId);
+            const activeSec = document.getElementById(activeSecId);
             if (activeBtn) { activeBtn.style.color = '#fff'; activeBtn.style.borderBottomColor = '#f59e0b'; }
             if (activeSec) { activeSec.style.display = 'block'; }
         };
+
+        window.copyProfileLink = async function() {
+            if (!auth.currentUser) return;
+            const profileUrl = `${window.location.origin}/index.html?view=profile&uid=${auth.currentUser.uid}`;
+            const title = `${auth.currentUser.displayName || 'User'}'s Profile on Viyou`;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: 'Check out my profile on Viyou!',
+                        url: profileUrl
+                    });
+                } catch (err) { console.log('Share canceled or failed'); }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(profileUrl);
+                    if(window.showToast) window.showToast("Profile link copied to clipboard!", "success");
+                } catch(err) {
+                    console.error('Failed to copy: ', err);
+                }
+            }
+        };
+
+        // --- NEW PRIVACY SETTINGS LOGIC ---
+
+        let hiddenStoryFromUIDs = [];
+        let blockedUsersUIDs = [];
+        let privacySearchTimeout = null;
+
+        async function loadPrivacyLists() {
+            if (!auth.currentUser) return;
+            const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                hiddenStoryFromUIDs = data.hiddenStoryFrom || [];
+                blockedUsersUIDs = data.blockedUsers || [];
+                
+                renderPrivacyList('hideStory', hiddenStoryFromUIDs);
+                renderPrivacyList('block', blockedUsersUIDs);
+            }
+        }
+
+        async function renderPrivacyList(listType, uids) {
+            const containerId = listType === 'hideStory' ? 'hidden-story-list' : 'blocked-users-list';
+            const container = document.getElementById(containerId);
+            container.innerHTML = '<p style="color:#aaa;">Loading list...</p>';
+
+            if (uids.length === 0) {
+                container.innerHTML = `<p style="color:#aaa;">Your ${listType === 'hideStory' ? 'hidden' : 'restricted'} list is empty.</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            const userPromises = uids.map(uid => getDoc(doc(db, "users", uid)));
+            const userDocs = await Promise.all(userPromises);
+
+            userDocs.forEach(userDoc => {
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    const item = document.createElement('div');
+                    item.className = 'privacy-list-item';
+                    item.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <img src="${userData.photoURL || 'logo.png'}" alt="${userData.name}">
+                            <div class="user-info">
+                                <strong>${userData.name || 'User'}</strong><br>
+                                <small>@${userData.username || 'unknown'}</small>
+                            </div>
+                        </div>
+                        <button class="remove-btn" onclick="window.removeUserFromPrivacyList('${listType}', '${userDoc.id}')">
+                            ${listType === 'hideStory' ? 'Remove' : 'Unblock'}
+                        </button>
+                    `;
+                    container.appendChild(item);
+                }
+            });
+        }
+
+        window.searchUsersForPrivacy = (listType, searchTerm) => {
+            const resultsContainerId = listType === 'hideStory' ? 'hide-story-search-results' : 'block-user-search-results';
+            const resultsContainer = document.getElementById(resultsContainerId);
+            
+            if (privacySearchTimeout) clearTimeout(privacySearchTimeout);
+            if (searchTerm.length < 2) {
+                resultsContainer.innerHTML = '';
+                return;
+            }
+
+            privacySearchTimeout = setTimeout(async () => {
+                resultsContainer.innerHTML = '<div style="padding:10px; color:#aaa;">Searching...</div>';
+                const q = query(collection(db, "users"), where("usernameLower", ">=", searchTerm.toLowerCase()), where("usernameLower", "<=", searchTerm.toLowerCase() + '\uf8ff'), limit(5));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    resultsContainer.innerHTML = '<div style="padding:10px; color:#aaa;">No users found.</div>';
+                    return;
+                }
+
+                resultsContainer.innerHTML = '';
+                snap.forEach(userDoc => {
+                    if (userDoc.id === auth.currentUser.uid) return; // Can't hide from self
+                    const userData = userDoc.data();
+                    const item = document.createElement('div');
+                    item.className = 'privacy-list-item';
+                    item.onclick = () => window.addUserToPrivacyList(listType, userDoc.id);
+                    item.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <img src="${userData.photoURL || 'logo.png'}" alt="${userData.name}">
+                            <div class="user-info">
+                                <strong>${userData.name || 'User'}</strong><br>
+                                <small>@${userData.username || 'unknown'}</small>
+                            </div>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(item);
+                });
+            }, 300);
+        }
+
+        window.addUserToPrivacyList = async (listType, uid) => {
+            if (!auth.currentUser) return;
+            
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            const targetUserRef = doc(db, "users", uid);
+
+            if (listType === 'hideStory') {
+                if (hiddenStoryFromUIDs.includes(uid)) return;
+                hiddenStoryFromUIDs.push(uid);
+                await updateDoc(userRef, { hiddenStoryFrom: arrayUnion(uid) });
+                renderPrivacyList('hideStory', hiddenStoryFromUIDs);
+            } else if (listType === 'block') {
+                if (blockedUsersUIDs.includes(uid)) return;
+                blockedUsersUIDs.push(uid);
+                await updateDoc(userRef, { blockedUsers: arrayUnion(uid) });
+                await updateDoc(targetUserRef, { blockedBy: arrayUnion(auth.currentUser.uid) });
+                renderPrivacyList('block', blockedUsersUIDs);
+            }
+            
+            // Clear search
+            const searchInputId = listType === 'hideStory' ? 'hide-story-search' : 'block-user-search';
+            const resultsContainerId = listType === 'hideStory' ? 'hide-story-search-results' : 'block-user-search-results';
+            document.getElementById(searchInputId).value = '';
+            document.getElementById(resultsContainerId).innerHTML = '';
+        }
+
+        window.removeUserFromPrivacyList = async (listType, uid) => {
+            if (!auth.currentUser) return;
+            
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            const targetUserRef = doc(db, "users", uid);
+
+            if (listType === 'hideStory') {
+                hiddenStoryFromUIDs = hiddenStoryFromUIDs.filter(id => id !== uid);
+                await updateDoc(userRef, { hiddenStoryFrom: arrayRemove(uid) });
+                renderPrivacyList('hideStory', hiddenStoryFromUIDs);
+            } else if (listType === 'block') {
+                blockedUsersUIDs = blockedUsersUIDs.filter(id => id !== uid);
+                await updateDoc(userRef, { blockedUsers: arrayRemove(uid) });
+                await updateDoc(targetUserRef, { blockedBy: arrayRemove(auth.currentUser.uid) });
+                renderPrivacyList('block', blockedUsersUIDs);
+            }
+        }
 
         window.copyProfileLink = async function() {
             if (!auth.currentUser) return;
@@ -2941,7 +3152,7 @@
                     const videoId = getYoutubeVideoId(blog.youtubeUrl);
                     thumbHtml = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                 } else if (blog.video) {
-                    let vidSrc = window.getProxiedVideoUrl(blog.video);
+                    let vidSrc = blog.video;
                     if (blog.thumbnail) thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     else thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
                 } else if (blog.images && blog.images.length > 0) { thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; } 
@@ -3615,7 +3826,7 @@
                 content = fwdInd + storyPrev + tDiv.innerHTML.replace(/\n/g, '<br>') + (data.edited ? ' <span class="edited-indicator">(edited)</span>' : '');
             }
             else if (data.type === 'flick') {
-                let vidSrc = window.getProxiedVideoUrl(data.videoUrl);
+                let vidSrc = data.videoUrl;
                 content = `${fwdInd}<div class="story-reply-preview text-only" style="margin-bottom: 5px; cursor: pointer;" onclick="window.navigateTo('home', event); setTimeout(()=>window.location.href='flicks.html?id=${data.flickId}', 500)"><span style="font-size:0.75rem; color:#aaa; display:block;"><i data-lucide="zap" style="color:#ff0050; width:12px;height:12px;"></i> Shared a Flick</span></div><video src="${data.videoUrl}" controls style="max-width: 100%; border-radius: 8px; max-height: 250px; background: #000;"></video>${data.title ? `<div style="font-size:0.85rem; font-weight:bold; margin-top:5px;">${data.title}</div>` : ''}`;
             }
             else if (data.type === 'watch') {
@@ -4472,10 +4683,18 @@
         const mainMenuDropdown = document.getElementById('main-menu-dropdown');
         const body = document.body;
 
-        function applyTheme(theme) {
-            body.classList.remove('light-mode', 'cyberpunk-mode', 'matrix-mode', 'ocean-mode', 'dracula-mode', 'solar-mode');
+        function applyTheme(theme, animate = false) {
+            body.classList.remove('light-mode', 'cyberpunk-mode', 'matrix-mode', 'ocean-mode', 'dracula-mode', 'solar-mode', 'aurora-mode', 'forest-mode', 'sunset-mode');
             if (theme && theme !== 'dark') {
                 body.classList.add(theme + '-mode');
+            }
+            if (animate) {
+                body.style.setProperty('--theme-x', '50%');
+                body.style.setProperty('--theme-y', '10%');
+                body.classList.remove('theme-switching');
+                void body.offsetWidth;
+                body.classList.add('theme-switching');
+                window.setTimeout(() => body.classList.remove('theme-switching'), 600);
             }
             // Also update local storage for consistency when logged out
             localStorage.setItem('theme', theme || 'dark');
@@ -4526,8 +4745,9 @@
         document.querySelectorAll('.theme-option[data-theme]').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 const newTheme = btn.getAttribute('data-theme');
-                applyTheme(newTheme);
+                applyTheme(newTheme, true);
                 if (themeDropdown) themeDropdown.classList.remove('show');
                 if (mainMenuDropdown) mainMenuDropdown.classList.remove('show');
 
@@ -4995,7 +5215,7 @@
                             thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${thumbClass}" alt="Thumbnail">`;
                             iconHtml = '<i class="fa-brands fa-youtube" style="color: #ff0000;"></i>';
                         } else if (blog.video) {
-                            let vidSrc = window.getProxiedVideoUrl(blog.video);
+                            let vidSrc = blog.video;
                             if (blog.thumbnail) {
                                 thumbHtml = `<img src="${blog.thumbnail}" class="${thumbClass}" alt="Thumbnail">`;
                             } else {
@@ -5271,7 +5491,7 @@
                     reel.innerHTML = '';
                     window.globalFlicks = flicks; // Store globally for viewer operations
                     flicks.forEach((flick, idx) => {
-                        let videoSrc = window.getProxiedVideoUrl(flick.video);
+                        let videoSrc = flick.video;
                         flick.video = videoSrc;
                         const div = document.createElement('div');
                         div.style.cssText = "flex: 0 0 140px; height: 240px; background: #000; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; border: 1px solid #444; transition: transform 0.2s;";
@@ -5380,7 +5600,7 @@
 
             // Video Display
             if (blog.video) {
-                let vidSrc = window.getProxiedVideoUrl(blog.video);
+                let vidSrc = blog.video;
                 if (blog.thumbnail) {
                 mediaHtml += `
                     <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; margin-bottom: 0; background: #222; display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: pointer;" onclick="window.navigateTo('watch', event, '${blog.id}')">
@@ -5867,8 +6087,7 @@
                 const adToPlay = playlist[currentAdIndex];
                 window.currentBlogAdId = adToPlay.id;
                 
-                // Automatically proxy Firebase/Drive URLs for safety and reliability
-                player.src = window.getProxiedVideoUrl ? window.getProxiedVideoUrl(adToPlay.mediaData) : adToPlay.mediaData;
+                player.src = adToPlay.mediaData;
                 link.href = adToPlay.targetUrl;
                 
                 container.style.display = 'block';
@@ -5893,10 +6112,6 @@
                             updateDoc(doc(db, "promotions", adToPlay.id), { impressions_served: increment(1), status: 'expired' }).catch(e=>{});
                         } else {
                             updateDoc(doc(db, "promotions", adToPlay.id), { impressions_served: increment(1) }).catch(e=>{});
-                        }
-                        if (adToPlay.mediaData && adToPlay.mediaData.includes('api/stream/')) {
-                            const match = adToPlay.mediaData.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                            if (match && match[1]) fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
                         }
                     } else {
                         updateDoc(doc(db, "promotions", adToPlay.id), { impressions_served: increment(1) }).catch(e=>{});
@@ -6086,9 +6301,9 @@
                     let thumbHtml = '';
                     if (blog.youtubeUrl) {
                         const videoId = getYoutubeVideoId(blog.youtubeUrl);
-                        thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                    thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" alt="Thumbnail">`;
                     } else if (blog.video) {
-                    let vidSrc = window.getProxiedVideoUrl(blog.video);
+                    let vidSrc = blog.video;
                         if (blog.thumbnail) {
                             thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                         } else {
@@ -6261,7 +6476,7 @@
                                 const safeTitle = (promo.title || 'Sponsored Product').replace(/</g, '&lt;');
                                 let mediaHtml = '';
                                 if (promo.mediaType === 'video') {
-                                    mediaHtml = `<video src="${window.getProxiedVideoUrl(promo.mediaData)}" autoplay muted loop playsinline style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;"></video>`;
+                                    mediaHtml = `<video src="${promo.mediaData}" autoplay muted loop playsinline style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;"></video>`;
                                 } else {
                                     mediaHtml = `<img src="${promo.mediaData}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">`;
                                 }
@@ -6477,14 +6692,6 @@
             }
 
             if(await viyouConfirm('Are you sure you want to delete this blog post?')) {
-                if (blog.video && blog.video.includes('api/stream/')) {
-                    const match = blog.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                    if (match && match[1]) {
-                        try {
-                            await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' });
-                        } catch(e) { console.error("Drive delete error:", e); }
-                    }
-                }
                 await deleteDoc(docRef);
                 location.reload();
             }
@@ -9507,9 +9714,9 @@
                     let thumbHtml = '';
                     if (blog.youtubeUrl) {
                         const videoId = getYoutubeVideoId(blog.youtubeUrl);
-                        thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                        thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" alt="Thumbnail">`;
                     } else if (blog.video) {
-                        let vidSrc = window.getProxiedVideoUrl(blog.video);
+                        let vidSrc = blog.video;
                         if (blog.thumbnail) {
                             thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                         } else {
@@ -9625,7 +9832,8 @@
         };
     </script>
     
-    <!-- Custom Viyou Popup -->
+    
+    <!-- Custom Viyou Popup --->
     <div id="viyou-custom-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999999; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
         <div style="background:#1e1e1e; padding:25px; border-radius:12px; width:90%; max-width:400px; text-align:center; border:1px solid #444; box-shadow:0 10px 30px rgba(0,0,0,0.5); color:#fff; font-family:'Outfit', sans-serif;">
             <h3 id="viyou-popup-title" style="margin-top:0; color:#f59e0b; font-size:1.3rem;">Notification</h3>

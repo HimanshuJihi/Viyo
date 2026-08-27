@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Viyou-v36'; // Updated cache to bypass Cloudflare Worker videos
+const CACHE_NAME = 'Viyou-v36';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -28,11 +28,8 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // API requests, POST requests aur Render/Cloudflare URLs ko Service Worker se bypass karein
-  if (event.request.method !== 'GET' || 
-      event.request.url.includes('/api/') || 
-      event.request.url.includes('onrender.com') ||
-      event.request.url.includes('workers.dev')) {
+  // Non-GET requests should always go directly to the network.
+  if (event.request.method !== 'GET') {
       return; // Inhe direct browser aur network handle karega
   }
 

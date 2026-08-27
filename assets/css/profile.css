@@ -1,4 +1,6 @@
         body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; background: #050505; color: #e2e8f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; transition: background-color .3s ease, color .3s ease; }
+        button, a { touch-action: manipulation; }
+        button svg, a svg { pointer-events: none; }
         #profile-main-view, #profile-settings-view { background: transparent; padding: 30px 15px; border-radius: 0; backdrop-filter: none; width: 100%; max-width: 800px; text-align: center; border: none; margin: 0 auto; box-sizing: border-box; }
         input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; box-sizing: border-box; }
         button { padding: 10px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: bold; margin-top: 10px; }

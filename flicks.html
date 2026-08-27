@@ -34,7 +34,7 @@
         .flick-item video { width: 100%; height: 100%; object-fit: cover; }
         .flick-item .overlay {
             position: absolute;
-            bottom: 30px;
+            bottom: 24px;
             left: 15px;
             right: 70px;
             z-index: 10;
@@ -48,7 +48,7 @@
             z-index: 10;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             align-items: center;
             pointer-events: auto;
         }
@@ -91,14 +91,15 @@
         /* Desktop/PC Flicks Layout Fix (Instagram Reels Style) */
         @media screen and (min-width: 769px) {
             body { background: #050505; overflow: hidden; } /* Prevents double scrollbar */
-            .navbar { background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #333; pointer-events: auto; }
+            .navbar { position: fixed; height: 58px; padding: 8px 20px; background: #050505; backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom: 1px solid #333; pointer-events: auto; }
             .flicks-container {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                padding-top: 70px;
-                padding-bottom: 70px;
-                height: 100vh !important; /* Makes container the scrollable area */
+                padding-top: 0;
+                padding-bottom: 0;
+                margin-top: 58px;
+                height: calc(100dvh - 58px) !important; /* One full Flick below the navbar */
                 overflow-y: scroll;
                 scroll-snap-type: y mandatory;
                 scrollbar-width: none;
@@ -107,10 +108,12 @@
             .flicks-container::-webkit-scrollbar { display: none; }
             .flick-item {
                 position: relative;
-                height: calc(100vh - 30px) !important;
-                aspect-ratio: 9 / 16; /* Forces original vertical ratio on PC */
+                height: 100% !important;
+                aspect-ratio: 9 / 16; /* Standard portrait Flicks ratio */
                 width: auto;
-                max-width: 25%;
+                max-width: none;
+                max-height: 100%;
+                margin-bottom: 0;
                 margin-bottom: 20px; /* More space to make snapping smoother */
                 border-radius: 16px;
                 box-shadow: 0 0 20px rgba(255,255,255,0.05);
@@ -282,30 +285,18 @@
             div.appendChild(document.createTextNode(str));
             return div.innerHTML;
         }
+
+        window.openFlickAudio = function(audioUrl, event) {
+            if (event) event.stopPropagation();
+            if (!audioUrl) return;
+            const params = new URLSearchParams({ url: audioUrl });
+            window.location.href = `audio.html?${params.toString()}`;
+        };
         let flicks = [];
         let currentFlickId = null;
         let viewedFlicks = new Set();
         let currentUserFollowing = [];
         
-        window.getProxiedVideoUrl = function(url) {
-            if (!url) return url;
-            let fileId = null;
-            
-            const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-            if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-            
-            const ucMatch = url.match(/[?&]id=([^&]+)/);
-            if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-            
-            const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-            if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-            if (fileId) {
-                return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-            }
-            return url;
-        };
-
         // --- Menu Logic ---
         const mainMenuToggleBtn = document.getElementById('main-menu-toggle');
         const mainMenuDropdown = document.getElementById('main-menu-dropdown');
@@ -330,10 +321,17 @@
 
         async function loadFlicks() {
             try {
+                // NEW: Get the set of users who have blocked the current user
+                const usersWhoBlockedMe = window.currentUserData?.blockedBy || [];
+                const usersWhoBlockedMeSet = new Set(usersWhoBlockedMe);
+
                 const snap = await globalFlicksPromise;
                 snap.forEach(doc => {
                     const data = doc.data();
-                    if(data.status !== 'draft') flicks.push({ id: doc.id, ...data });
+                    // NEW: Filter out flicks from users who have blocked the current user
+                    if(data.status !== 'draft' && !usersWhoBlockedMeSet.has(data.authorUid)) {
+                        flicks.push({ id: doc.id, ...data });
+                    }
                 });
 
                 const urlParams = new URLSearchParams(window.location.search);
@@ -357,7 +355,7 @@
                 }
 
                 flicks.forEach((flick) => {
-                    let videoSrc = window.getProxiedVideoUrl(flick.video);
+                    let videoSrc = flick.video;
                     flick.video = videoSrc;
                     const div = document.createElement('div');
                     div.className = 'flick-item';
@@ -409,7 +407,7 @@
                                 ${showMoreHtml}
                                 
                                 <!-- Instagram Style Audio Marquee -->
-                                <div class="flick-audio-marquee" onclick="window.location.href='audio.html?url=' + encodeURIComponent('${flick.audioUrl || flick.video}')">
+                                <div class="flick-audio-marquee" data-audio-url="${escapeHTML(flick.audioUrl || flick.video || '')}" onclick="window.openFlickAudio(this.dataset.audioUrl, event)">
                                     <i data-lucide="music" style="width: 14px; height: 14px; color: #f59e0b; flex-shrink: 0;"></i>
                                 <div class="marquee-container" title="${flick.isOriginalAudio === false && flick.audioTitle ? flick.audioTitle : `${flick.title} - @${flick.author}`}">
                                     <span class="marquee-text">${flick.isOriginalAudio === false && flick.audioTitle ? flick.audioTitle : `${flick.title} - @${flick.author}`}</span>
@@ -492,7 +490,7 @@
                 <div style="color: #ddd; margin-top: 10px; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word;">${safeContentHtml}</div>
                 
                 <!-- Original Audio Information Box -->
-                <div style="margin-top: 20px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="window.location.href='audio.html?url=' + encodeURIComponent('${flick.audioUrl || flick.video}')">
+                <div style="margin-top: 20px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" data-audio-url="${escapeHTML(flick.audioUrl || flick.video || '')}" onclick="window.openFlickAudio(this.dataset.audioUrl, event)">
                     <div style="background: rgba(0,0,0,0.5); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="music" style="width: 20px; height: 20px; color: #f59e0b;"></i>
                     </div>
@@ -823,13 +821,15 @@
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
+                        window.currentUserData = userDoc.data(); // Store user data globally for filtering
                         currentUserFollowing = userDoc.data().following || [];
                         window.isHistoryPaused = userDoc.data().historyPaused || false;
                         if (typeof window.updatePauseFlicksHistoryBtnUI === 'function') window.updatePauseFlicksHistoryBtnUI();
                     }
-                } catch(e) { console.error("Error loading following list:", e); }
+                } catch(e) { console.error("Error loading user data:", e); }
             } else {
                 currentUserFollowing = [];
+                window.currentUserData = null; // Clear data on logout
             }
             
             const urlParams = new URLSearchParams(window.location.search);
@@ -1357,10 +1357,8 @@
                     let thumbHtml = '';
                     if (blog.thumbnail) {
                         thumbHtml = `<img src="${blog.thumbnail}" style="width:100%; height:100%; object-fit:cover;">`;
-                    } else if (blog.image && blog.image !== 'logo.png') {
-                        thumbHtml = `<img src="${blog.image}" style="width:100%; height:100%; object-fit:cover;">`;
                     } else if (blog.video) {
-                        let vidSrc = window.getProxiedVideoUrl(blog.video);
+                        let vidSrc = blog.video;
                         thumbHtml = `<video src="${vidSrc}#t=0.1" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
                     }
 

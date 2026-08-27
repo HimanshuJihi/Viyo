@@ -10,7 +10,8 @@
     <style>
         body { font-family: 'Outfit', sans-serif; background: #050505; color: #fff; margin: 0; padding: 0; }
         .navbar { padding: 15px 20px; background: rgba(20,20,20,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100; gap: 15px; }
-        .navbar a { color: #fff; text-decoration: none; display: flex; align-items: center; }
+        .navbar a { color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; cursor: pointer; touch-action: manipulation; }
+        .navbar a svg { pointer-events: none; width: 24px; height: 24px; }
         .navbar span { font-size: 1.2rem; font-weight: bold; }
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .audio-header { display: flex; gap: 20px; align-items: center; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; }
@@ -104,25 +105,6 @@
         let currentUser = null;
         let selectedStartTime = 0;
         let isDraggingSlider = false;
-
-    window.getProxiedVideoUrl = function(url) {
-        if (!url) return url;
-        let fileId = null;
-        
-        const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-        if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-        
-        const ucMatch = url.match(/[?&]id=([^&]+)/);
-        if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-        
-        const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-        if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-        if (fileId) {
-            return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-        }
-        return url;
-    };
 
         function formatTime(seconds) {
             if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
@@ -278,7 +260,7 @@
                 
                 const blogs = [];
                 blogsSnap.forEach(doc => {
-                    if (doc.data().status !== 'draft') { blogs.push({ id: doc.id, ...doc.data() }); }
+                    if (doc.data().status !== 'draft' && doc.data().isFlicker === true) { blogs.push({ id: doc.id, ...doc.data() }); }
                 });
 
                 blogs.sort((a, b) => (b.views || 0) - (a.views || 0));
@@ -296,7 +278,6 @@
                     }
 
                     document.getElementById('audio-title').innerText = globalAudioTitle;
-                    document.getElementById('audio-title').innerText = audioData.title;
                     document.getElementById('audio-author').innerText = '@' + audioData.ownerName;
                     if (audioData.coverImage) document.getElementById('audio-cover').innerHTML = `<img src="${audioData.coverImage}" style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover;">`;
                 } else if (blogs.length > 0) {
@@ -346,7 +327,7 @@
                         div.onclick = () => { window.location.href = blog.isFlicker ? 'flicks.html?id=' + blog.id : 'watch.html?id=' + blog.id; };
                         let thumbHtml = '';
                         if (blog.thumbnail) { thumbHtml = `<img src="${blog.thumbnail}">`; } 
-                    else if (blog.video) { let fStart = blog.flickStartTime || 0.1; thumbHtml = `<video src="${window.getProxiedVideoUrl(blog.video)}#t=${fStart}" muted></video>`; }
+                    else if (blog.video) { let fStart = blog.flickStartTime || 0.1; thumbHtml = `<video src="${blog.video}#t=${fStart}" muted></video>`; }
                         div.innerHTML = `${thumbHtml}<div class="video-stats"><i data-lucide="play" class="lucide-fill" style="width: 12px;"></i> ${(blog.views || 0).toLocaleString()}</div>`;
                         grid.appendChild(div);
                     });

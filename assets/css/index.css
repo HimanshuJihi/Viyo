@@ -11,7 +11,33 @@ body {
             padding-bottom: 95px; /* Global Bottom Nav Space with extra scroll padding */
             background: #050505; /* Deep futuristic black */
             color: #e2e8f0;
-            transition: background 0.3s, color 0.3s;
+            transition: background 0.45s ease, color 0.35s ease;
+        }
+        body.theme-switching {
+            animation: theme-change-pulse 0.55s ease both;
+        }
+        body.theme-switching::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99999;
+            background: radial-gradient(circle at var(--theme-x, 50%) var(--theme-y, 15%), rgba(255,255,255,0.2), transparent 32%);
+            animation: theme-change-wash 0.55s ease both;
+        }
+        @keyframes theme-change-pulse {
+            0% { filter: saturate(1); }
+            45% { filter: saturate(1.2) brightness(1.08); }
+            100% { filter: saturate(1); }
+        }
+        @keyframes theme-change-wash {
+            0% { opacity: 0; transform: scale(0.8); }
+            35% { opacity: 0.75; }
+            100% { opacity: 0; transform: scale(1.15); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            body, body.theme-switching { animation: none; transition: none; }
+            body.theme-switching::after { animation: none; }
         }
         #stories-reel::-webkit-scrollbar { display: none; }
         .story-item { text-align: center; cursor: pointer; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
@@ -858,6 +884,8 @@ body {
         .theme-dropdown::-webkit-scrollbar { width: 4px; }
         .theme-dropdown::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
     .theme-option { padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; text-align: left; display: flex; align-items: center; justify-content: flex-start; gap: 12px; transition: transform 0.2s, box-shadow 0.2s; font-family: inherit; font-size: 0.9rem; width: 100%; box-sizing: border-box; white-space: nowrap; }
+        .theme-option[data-theme] { width: 42px; height: 42px; min-width: 42px; padding: 0; flex: 0 0 42px; justify-content: center; position: relative; z-index: 1; }
+        .theme-option[data-theme] svg { pointer-events: none; }
         .theme-option:hover { transform: scale(1.05); }
         .theme-option.active { border: 2px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); transform: scale(1.02); }
 
@@ -904,6 +932,27 @@ body {
         body.solar-mode .btn-transparent:hover, body.solar-mode .btn-vertical:hover, body.solar-mode .theme-btn:hover { box-shadow: 0 4px 20px rgba(255, 186, 8, 0.4); }
         body.solar-mode .category-chip.active, body.solar-mode .category-chip:hover, body.solar-mode .feed-btn.active, body.solar-mode .feed-btn:hover { background-color: #ffba08 !important; color: black !important; border-color: #ffba08 !important; }
         body.solar-mode .bottom-nav .add-btn-inner { background: linear-gradient(135deg, #dc2f02, #ffba08); box-shadow: 0 4px 10px rgba(220, 47, 2, 0.4); }
+        /* Aurora Mode */
+        body.aurora-mode { background: radial-gradient(circle at top right, #075985, #042f35 48%, #06151d); color: #ccfbf1; }
+        body.aurora-mode .latest-news h2 { color: #5eead4; border-bottom-color: rgba(94, 234, 212, 0.25); }
+        body.aurora-mode .btn { background: linear-gradient(135deg, #0f766e, #0891b2); box-shadow: 0 4px 15px rgba(45, 212, 191, 0.28); }
+        body.aurora-mode .btn-transparent::before, body.aurora-mode .btn-vertical::before, body.aurora-mode .theme-btn::before { background: linear-gradient(45deg, #14b8a6, #38bdf8); }
+        body.aurora-mode .category-chip.active, body.aurora-mode .category-chip:hover, body.aurora-mode .feed-btn.active, body.aurora-mode .feed-btn:hover { background-color: #0f766e !important; color: white !important; border-color: #2dd4bf !important; }
+        body.aurora-mode .bottom-nav .add-btn-inner { background: linear-gradient(135deg, #0f766e, #0891b2); box-shadow: 0 4px 10px rgba(45, 212, 191, 0.35); }
+        /* Forest Mode */
+        body.forest-mode { background: radial-gradient(circle at top left, #365314, #14251a 52%, #07110c); color: #ecfccb; }
+        body.forest-mode .latest-news h2 { color: #bef264; border-bottom-color: rgba(190, 242, 100, 0.25); }
+        body.forest-mode .btn { background: linear-gradient(135deg, #3f6212, #a16207); box-shadow: 0 4px 15px rgba(163, 230, 53, 0.25); }
+        body.forest-mode .btn-transparent::before, body.forest-mode .btn-vertical::before, body.forest-mode .theme-btn::before { background: linear-gradient(45deg, #65a30d, #eab308); }
+        body.forest-mode .category-chip.active, body.forest-mode .category-chip:hover, body.forest-mode .feed-btn.active, body.forest-mode .feed-btn:hover { background-color: #4d7c0f !important; color: white !important; border-color: #a3e635 !important; }
+        body.forest-mode .bottom-nav .add-btn-inner { background: linear-gradient(135deg, #4d7c0f, #a16207); box-shadow: 0 4px 10px rgba(163, 230, 53, 0.3); }
+        /* Sunset Mode */
+        body.sunset-mode { background: radial-gradient(circle at top right, #9a3412, #57201e 48%, #1c1720); color: #ffedd5; }
+        body.sunset-mode .latest-news h2 { color: #fdba74; border-bottom-color: rgba(253, 186, 116, 0.25); }
+        body.sunset-mode .btn { background: linear-gradient(135deg, #c2410c, #eab308); box-shadow: 0 4px 15px rgba(251, 146, 60, 0.28); }
+        body.sunset-mode .btn-transparent::before, body.sunset-mode .btn-vertical::before, body.sunset-mode .theme-btn::before { background: linear-gradient(45deg, #f97316, #facc15); }
+        body.sunset-mode .category-chip.active, body.sunset-mode .category-chip:hover, body.sunset-mode .feed-btn.active, body.sunset-mode .feed-btn:hover { background-color: #c2410c !important; color: white !important; border-color: #fb923c !important; }
+        body.sunset-mode .bottom-nav .add-btn-inner { background: linear-gradient(135deg, #c2410c, #eab308); box-shadow: 0 4px 10px rgba(251, 146, 60, 0.32); }
         
         /* Cookie Banner Light Mode */
         body.light-mode #cookie-consent-banner { background: rgba(255, 255, 255, 0.95) !important; border-top-color: #ddd !important; }
@@ -1041,13 +1090,18 @@ body {
         outline: none;
             transition: background 0.2s;
         position: relative;
+        z-index: 2;
+        touch-action: manipulation;
     }
+        .header-icon-btn svg, .menu-icon-btn svg, .theme-btn svg { pointer-events: none; }
         .header-icon-btn svg { width: 24px; height: 24px; stroke: #fff !important; }
         .header-icon-btn:hover { background: rgba(255, 255, 255, 0.1); }
     
     body.light-mode .bottom-nav { background: rgba(255, 255, 255, 0.95); border-top: none; }
     
-    .bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888; font-size: 0.7rem; gap: 4px; transition: color 0.2s, transform 0.2s; width: 60px; }
+    .bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #888; font-size: 0.7rem; gap: 4px; transition: color 0.2s, transform 0.2s; width: 60px; min-height: 52px; position: relative; z-index: 1; touch-action: manipulation; }
+    .bottom-nav .nav-item svg, .bottom-nav .nav-item img, .bottom-nav .nav-item span { pointer-events: none; }
+    .bottom-nav .nav-item svg { width: 24px; height: 24px; }
     .bottom-nav .nav-item:hover, .bottom-nav .nav-item.active { color: #fff; transform: translateY(-2px); }
     body.light-mode .bottom-nav .nav-item:hover, body.light-mode .bottom-nav .nav-item.active { color: #0d6efd; }
     
@@ -1056,6 +1110,7 @@ body {
         border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
         color: white; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
         margin-top: -20px; border: 4px solid #050505; transition: transform 0.2s;
+        pointer-events: none;
     }
     body.light-mode .bottom-nav .add-btn-inner { border-color: #f4f7f6; }
     .bottom-nav .add-btn:hover .add-btn-inner { transform: scale(1.1); }

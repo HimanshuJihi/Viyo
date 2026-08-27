@@ -148,25 +148,6 @@
         let messageToDelete = null;
         const TYPING_TIMEOUT_DURATION = 2000; // 2 seconds
         
-        window.getProxiedVideoUrl = function(url) {
-            if (!url) return url;
-            let fileId = null;
-            
-            const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-            if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-            
-            const ucMatch = url.match(/[?&]id=([^&]+)/);
-            if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-            
-            const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-            if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-            if (fileId) {
-                return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-                }
-            return url;
-        };
-
         window.enableYoutubeLinks = true;
         getDoc(doc(db, "settings", "general")).then(snap => {
             if(snap.exists() && snap.data().enableYoutubeLinks !== undefined) {
@@ -534,7 +515,7 @@
                     break;
                 case 'flick':
                     let titleHtml = data.title ? `<div style="font-size:0.85rem; font-weight:bold; margin-top: 5px;">${data.title}</div>` : '';
-                    let vidSrc = window.getProxiedVideoUrl(data.videoUrl);
+                    let vidSrc = data.videoUrl;
                     messageContent = `${forwardedIndicator}
                         <div class="story-reply-preview text-only" style="margin-bottom: 5px; cursor: pointer;" onclick="window.open('index.html?blogId=${data.flickId}', '_self')">
                             <span style="font-size:0.75rem; color:#aaa; display:block;"><i class="fa-solid fa-bolt" style="color:#ff0050;"></i> Shared a Flick</span>

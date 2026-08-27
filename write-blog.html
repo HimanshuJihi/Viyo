@@ -12,6 +12,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+        button, a { touch-action: manipulation; }
+        button svg, a svg { pointer-events: none; }
         .lucide-fill { fill: currentColor; }
         .theme-dropdown { max-height: 75vh; overflow-y: auto; overflow-x: hidden; }
         .theme-dropdown::-webkit-scrollbar { width: 4px; }
@@ -89,8 +91,11 @@
     </div>
 
     <div class="container">
-        <h1>Add Your Post</h1>
-        
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="margin-bottom: 5px; font-size: 2.5rem; color: #f59e0b;">अपनी चमक दिखाएं ✨</h1>
+            <p style="margin: 0; color: #ccc; font-size: 1.1rem;">ब्लॉग और फ़्लिक्स पब्लिश करें, इनाम पाएं, और अपनी कम्युनिटी बनाएं।</p>
+        </div>
+
         <div class="tabs-container" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
             <button type="button" id="tab-blog" onclick="window.switchPostType('blog')" style="flex: 1; padding: 12px; background: transparent; color: white; border: none; border-bottom: 2px solid #6366f1; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="edit-3"></i> Blog Post</button>
             <button type="button" id="tab-video" onclick="window.switchPostType('video')" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="play-circle"></i> Long Video</button>
@@ -158,7 +163,7 @@
             <div id="video-specific-fields" style="display: none;">
                 <div class="form-group">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <label id="video-upload-label" for="video-upload" style="margin-bottom: 0;">वीडियो अपलोड करें (Video - Max 800KB)</label>
+                        <label id="video-upload-label" for="video-upload" style="margin-bottom: 0;">वीडियो अपलोड करें (Long Video - Max 1MB)</label>
                         <button type="button" id="open-flick-cam-btn" class="btn" style="display: none; padding: 4px 12px; font-size: 0.85rem; background: linear-gradient(135deg, #ff0050, #a855f7); margin-top: 0; box-shadow: 0 4px 10px rgba(255,0,80,0.3);" onclick="window.openFlickCamera()"><i data-lucide="video" style="width: 14px; height: 14px;"></i> Record</button>
                     </div>
                     <input type="file" id="video-upload" accept="video/mp4,video/webm,video/ogg,video/quicktime">
@@ -427,27 +432,8 @@
         let isUserVerified = false;
         let currentPostType = 'blog';
         window.maxUploadSizeMB = 5; // Default max upload size
-        window.maxVideoUploadSizeMB = 500;
-        window.maxFlickUploadSizeMB = 50;
-        let videoDurationForTrim = 0;
-        window.getProxiedVideoUrl = function(url) {
-        if (!url) return url;
-        let fileId = null;
-        
-        const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-        if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-        
-        const ucMatch = url.match(/[?&]id=([^&]+)/);
-        if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-        
-        const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-        if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-        if (fileId) {
-            return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-        }
-        return url;
-    };
+        window.maxVideoUploadSizeMB = 1;
+        window.maxFlickUploadSizeMB = 1;
         // Flicks Studio Variables
         let fsSegments = [];
         let fsRecorder = null;
@@ -461,6 +447,7 @@
         let fsAudioAdded = false;
         let fsOriginalAudioVolume = 0.2;
         let fsMusicVolume = 1;
+        let videoDurationForTrim = 0;
         let fsVideoDuration = 0;
         let fsTrimStart = 0;
         let fsTrimEnd = 100;
@@ -843,7 +830,7 @@
             });
         }
 
-    function uploadVideoToServer(file) {
+    function uploadVideoToFirebase(file) {
         return new Promise((resolve, reject) => {
             const overlay = document.getElementById('upload-progress-overlay');
             const bar = document.getElementById('upload-progress-bar');
@@ -851,100 +838,56 @@
             const cancelBtn = document.getElementById('cancel-upload-btn');
             overlay.style.display = 'flex';
             
-            const xhr = new XMLHttpRequest();
+            const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.]/g, '') : 'video.mp4';
+            const storagePath = `user_videos/${auth.currentUser.uid}/${Date.now()}_${safeName}`;
+            const storageRef = ref(storage, storagePath);
+            const uploadTask = uploadBytesResumable(storageRef, file, { contentType: file.type || 'video/mp4' });
             
             const cancelUpload = () => {
-                xhr.abort();
+                uploadTask.cancel();
             };
             cancelBtn.addEventListener('click', cancelUpload);
             cancelBtn.onclick = cancelUpload;
 
-            xhr.upload.onloadstart = () => {
-                bar.style.width = '0%';
-                text.innerText = '0% • Waking up server...';
-                cancelBtn.style.display = 'block';
-            };
-
-            xhr.timeout = 0; // Prevent browser from dropping connection on large files
-            const formData = new FormData();
-            formData.append('video', file);
-
-            // LIVE PRODUCTION URL (Google Drive API via Render)
-            const BACKEND_URL = 'https://viyou-in-backend.onrender.com/api/upload'; 
-
-            let startTime = Date.now();
-
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const progress = (event.loaded / event.total) * 100;
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     bar.style.width = progress + '%';
                     
-                    const timeElapsed = (Date.now() - startTime) / 1000;
                     if (progress >= 100) {
-                        text.innerText = "100%  •  Saving to Google Drive... Please wait.";
-                    } else if (timeElapsed > 0.5 && event.loaded > 0) {
-                        const speedBps = event.loaded / timeElapsed;
-                        let speedText = speedBps > 1048576 ? (speedBps / 1048576).toFixed(2) + ' MB/s' : (speedBps / 1024).toFixed(0) + ' KB/s';
-                        const secRemaining = (event.total - event.loaded) / speedBps;
-                        let etaText = secRemaining > 60 ? Math.floor(secRemaining / 60) + 'm ' + Math.floor(secRemaining % 60) + 's left' : Math.ceil(secRemaining) + 's left';
-                        text.innerText = `${Math.round(progress)}%  •  ${speedText}  •  ${etaText}`;
+                        text.innerText = "100%  •  Finalizing on server... Please wait.";
                     } else {
-                        text.innerText = Math.round(progress) + '%';
+                        const mbTransferred = (snapshot.bytesTransferred / (1024 * 1024)).toFixed(1);
+                        const mbTotal = (snapshot.totalBytes / (1024 * 1024)).toFixed(1);
+                        text.innerText = `${Math.round(progress)}%  •  ${mbTransferred}MB / ${mbTotal}MB`;
                     }
-                }
-            };
-
-            xhr.onload = () => {
-                cancelBtn.removeEventListener('click', cancelUpload);
-                cancelBtn.onclick = null;
-                if (xhr.status === 200) {
+                    cancelBtn.style.display = 'block';
+                },
+                (error) => {
+                    overlay.style.display = 'none';
+                    cancelBtn.removeEventListener('click', cancelUpload);
+                    cancelBtn.onclick = null;
+                    if (error.code !== 'storage/canceled') {
+                        const message = error.code === 'storage/unauthorized'
+                            ? 'Firebase Storage permission denied. Please sign in again or update Storage Rules for user_videos/{userId}/{fileName}.'
+                            : "Upload failed: " + error.message;
+                        reject(new Error(message));
+                    }
+                    else reject(new Error("Upload cancelled by user"));
+                },
+                async () => {
+                    cancelBtn.removeEventListener('click', cancelUpload);
+                    cancelBtn.onclick = null;
                     try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            text.innerText = "Video Uploaded! Finalizing Post...";
-                            
-                            let streamLink = response.webContentLink; // Fallback
-                            if (response.webViewLink) {
-                                const match = response.webViewLink.match(/\/file\/d\/(.*?)\/view/);
-                                if (match && match[1]) {
-                                    const serverBase = BACKEND_URL.replace('/api/upload', '');
-                                    streamLink = `${serverBase}/api/stream/${match[1]}`;
-                                }
-                            }
-                            resolve(streamLink || response.webViewLink);
-                        } else {
-                            overlay.style.display = 'none';
-                            reject(new Error(response.error || "Upload failed on server"));
-                        }
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        text.innerText = "Video Uploaded! Finalizing Post...";
+                        resolve(downloadURL);
                     } catch (e) {
                         overlay.style.display = 'none';
-                        reject(new Error("Invalid response from server"));
+                        reject(new Error("Failed to get video URL"));
                     }
-                } else if (xhr.status === 503 || xhr.status === 502) {
-                    overlay.style.display = 'none';
-                    reject(new Error("Free server is waking up! Please wait 30 seconds and click Publish again."));
-                } else {
-                    overlay.style.display = 'none';
-                    reject(new Error(`Server error: ${xhr.status}. Render limit exceeded or Drive error.`));
                 }
-            };
-
-            xhr.onerror = () => {
-                overlay.style.display = 'none';
-                cancelBtn.removeEventListener('click', cancelUpload);
-                cancelBtn.onclick = null;
-                reject(new Error("Network error (or server waking up). Wait 30 seconds and try again."));
-            };
-
-            xhr.onabort = () => {
-                overlay.style.display = 'none';
-                cancelBtn.removeEventListener('click', cancelUpload);
-                cancelBtn.onclick = null;
-                reject(new Error("Upload cancelled by user"));
-            };
-
-            xhr.open('POST', BACKEND_URL, true);
-            xhr.send(formData);
+            );
         });
     }
 
@@ -1547,7 +1490,7 @@
                             submitBtn.disabled = false;
                             return;
                         }
-                    videoPromise = uploadVideoToServer(vFile);
+                    videoPromise = uploadVideoToFirebase(vFile);
                     }
                 }
 
@@ -1559,7 +1502,7 @@
                 Promise.all([Promise.all(imagePromises), videoPromise, thumbnailPromise]).then(([imageResults, videoResult, thumbnailResult]) => {
 
                     let totalSize = JSON.stringify(imageResults).length + content.length + (videoResult ? videoResult.length : 0) + (thumbnailResult ? thumbnailResult.length : 0) + 1000;
-                    if (totalSize > 1024 * 1024) { // 1MB limit
+                    if (currentPostType === 'blog' && totalSize > 1024 * 1024) {
                         showToast("Total data size is too large (Max 1MB).", 'error');
                         submitBtn.innerHTML = originalBtnContent;
                         submitBtn.disabled = false;

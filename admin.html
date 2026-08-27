@@ -148,11 +148,11 @@
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Long Videos (MB):</label>
-                            <input type="number" id="admin-max-video-size" placeholder="e.g. 500" value="500" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                            <input type="number" id="admin-max-video-size" placeholder="e.g. 1" value="1" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Flicks (MB):</label>
-                            <input type="number" id="admin-max-flick-size" placeholder="e.g. 50" value="50" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                            <input type="number" id="admin-max-flick-size" placeholder="e.g. 1" value="1" min="1" style="width: 100%; padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Story Editor (MB):</label>
@@ -180,12 +180,6 @@
                     <button class="btn" style="background-color: #0d6efd;" onclick="window.saveHeadlines()">Save Headlines</button>
                 </div>
 
-                <div class="report-card" style="border-color: #ef4444;">
-                    <h3 style="color: #ef4444; margin-top: 0;"><i data-lucide="trash-2"></i> Drive Storage Sync</h3>
-                    <p style="color: #aaa; font-size: 0.85rem; margin-top: 0; margin-bottom: 15px;">If you manually deleted videos from your Google Drive to free up space, click here to automatically scan and remove those broken posts from the website and user profiles.</p>
-                    <button class="btn" style="background-color: #ef4444;" id="sync-drive-btn" onclick="window.syncDriveAndSite()"><i data-lucide="refresh-cw"></i> Scan & Delete Broken Posts</button>
-                    <div id="sync-drive-status" style="margin-top: 10px; color: #87ceeb; font-size: 0.9rem; font-weight: bold;"></div>
-                </div>
             </div>
 
             <!-- VAST Ads Section -->
@@ -412,25 +406,6 @@
 
         window.adminIsSuperAdmin = false;
         window.adminPermissions = {};
-
-        window.getProxiedVideoUrl = function(url) {
-            if (!url) return url;
-            let fileId = null;
-            
-            const driveMatch = url.match(/drive\.google\.com\/file\/d\/(.*?)\/view/);
-            if (driveMatch && driveMatch[1]) fileId = driveMatch[1];
-            
-            const ucMatch = url.match(/[?&]id=([^&]+)/);
-            if (ucMatch && ucMatch[1]) fileId = ucMatch[1];
-            
-            const renderMatch = url.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-            if (renderMatch && renderMatch[1]) fileId = renderMatch[1];
-
-            if (fileId) {
-                return `https://viyou-in-backend.onrender.com/api/stream/${fileId}`;
-            }
-            return url;
-        };
 
         // --- Custom Toast Notification ---
         function showToast(message, type = 'success') {
@@ -1256,13 +1231,6 @@
             if (!await window.viyouConfirm("Are you sure you want to DELETE this blog permanently? This action cannot be undone.")) return;
             try {
                 const docSnap = await getDoc(doc(db, "blogs", blogId));
-                if (docSnap.exists() && docSnap.data().video && docSnap.data().video.includes('api/stream/')) {
-                    const match = docSnap.data().video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                    if (match && match[1]) {
-                        await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
-                    }
-                }
-                
                 // Delete the blog
                 await deleteDoc(doc(db, "blogs", blogId));
                 
@@ -1353,13 +1321,6 @@
             if (!await window.viyouConfirm("Are you sure you want to DELETE this blog permanently due to a copyright strike? This action cannot be undone.")) return;
             try {
                 const docSnap = await getDoc(doc(db, "blogs", blogId));
-                if (docSnap.exists() && docSnap.data().video && docSnap.data().video.includes('api/stream/')) {
-                    const match = docSnap.data().video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                    if (match && match[1]) {
-                        await fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{});
-                    }
-                }
-                
                 await deleteDoc(doc(db, "blogs", blogId));
                 await deleteDoc(doc(db, "copyright_claims", claimId));
                 document.getElementById(`copyright-${claimId}`).remove();
@@ -1386,10 +1347,6 @@
                 const deletePromises = [];
                 snap.forEach(docSnap => {
                     const data = docSnap.data();
-                    if (data.video && data.video.includes('api/stream/')) {
-                        const match = data.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                        if (match && match[1]) deletePromises.push(fetch(`https://viyou-in-backend.onrender.com/api/file/${match[1]}`, { method: 'DELETE' }).catch(e=>{}));
-                    }
                     batch.delete(docSnap.ref);
                 });
                 await Promise.all(deletePromises);
@@ -1466,8 +1423,8 @@
 
         window.saveGeneralSettings = async () => {
             const size = parseInt(document.getElementById('admin-max-upload-size').value) || 5;
-            const videoSize = parseInt(document.getElementById('admin-max-video-size').value) || 500;
-            const flickSize = parseInt(document.getElementById('admin-max-flick-size').value) || 50;
+            const videoSize = parseInt(document.getElementById('admin-max-video-size').value) || 1;
+            const flickSize = parseInt(document.getElementById('admin-max-flick-size').value) || 1;
             const storySize = parseInt(document.getElementById('admin-max-story-size').value) || 500;
             const enableYt = document.getElementById('admin-enable-youtube').checked;
             try {
@@ -1763,7 +1720,7 @@
                             <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Requested on: ${new Date(req.date).toLocaleString()}</div>
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${req.viewsCalculated}, ${req.clicksCalculated || 0}, ${req.amount})"><i data-lucide="check"></i> Paid</button>
+                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${req.amount})"><i data-lucide="check"></i> Paid</button>
                             <button class="btn" style="background-color: #dc3545; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPayout('${reqDoc.id}', '${req.uid}', ${req.amount})"><i data-lucide="x"></i> Reject</button>
                         </div>
                     `;
@@ -1775,7 +1732,7 @@
             }
         };
 
-        window.markAsPaid = async (reqId, uid, viewsCalculated, clicksCalculated, amount) => {
+        window.markAsPaid = async (reqId, uid, amount) => {
             if (!await window.viyouConfirm("Are you sure you have transferred the money? This will mark the request as paid and reset their estimated earnings.")) return;
             try {
                 await updateDoc(doc(db, "withdrawals", reqId), { status: 'paid', paidDate: new Date().toISOString() });
@@ -2320,56 +2277,6 @@
             } catch (e) { console.error(e); showToast("Error removing promotion.", "error"); }
         };
         
-        // --- Drive Sync Logic ---
-        window.syncDriveAndSite = async function() {
-            if (!confirm("This will scan ALL posts and permanently delete the ones where the Drive video is missing. This process may take a few minutes. Continue?")) return;
-            
-            const btn = document.getElementById('sync-drive-btn');
-            const status = document.getElementById('sync-drive-status');
-            btn.innerHTML = '<i data-lucide="loader" class="fa-spin"></i> Scanning...';
-            btn.disabled = true;
-            if (window.lucide) window.lucide.createIcons({root: btn.parentElement});
-            
-            try {
-                status.innerText = "Fetching all posts from database...";
-                const snapshot = await getDocs(collection(db, "blogs"));
-                let total = snapshot.size;
-                let checked = 0; let deleted = 0;
-                
-                for (const docSnap of snapshot.docs) {
-                    const data = docSnap.data();
-                    if (data.video && data.video.includes('api/stream/')) {
-                        let fileId = null;
-                        const streamMatch = data.video.match(/api\/stream\/([a-zA-Z0-9_-]+)/);
-                        if (streamMatch) fileId = streamMatch[1];
-                        
-                        if (fileId) {
-                            status.innerText = `Checking video ${checked + 1} of ${total}...`;
-                            try {
-                                const res = await fetch(`https://viyou-in-backend.onrender.com/api/check/${fileId}`);
-                                const result = await res.json();
-                                if (!result.exists) {
-                                    await deleteDoc(doc(db, "blogs", docSnap.id));
-                                    deleted++;
-                                }
-                            } catch(e) { console.error("Check failed for", fileId, e); }
-                        }
-                    }
-                    checked++;
-                }
-                status.innerText = `Scan complete! Deleted ${deleted} broken posts from the site.`;
-                showToast(`Sync complete! Removed ${deleted} broken posts.`, "success");
-            } catch(e) {
-                console.error(e);
-                status.innerText = "Error occurred during scan.";
-                showToast("Error scanning database.", "error");
-            } finally {
-                btn.innerHTML = '<i data-lucide="refresh-cw"></i> Scan & Delete Broken Posts';
-                btn.disabled = false;
-                if (window.lucide) window.lucide.createIcons({root: btn.parentElement});
-            }
-        };
-
         // --- New function for Monetization Stats ---
         window.loadMonetizationStats = async () => {
             const paidEl = document.getElementById('total-paid-out');

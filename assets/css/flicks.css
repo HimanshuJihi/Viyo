@@ -1,21 +1,31 @@
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: 'Outfit', -apple-system, sans-serif; }
-        .navbar { position: absolute; top: 0; width: 100%; padding: 15px 20px; z-index: 100; display: flex; align-items: center; box-sizing: border-box; background: linear-gradient(rgba(0,0,0,0.6), transparent); }
-        .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .navbar { position: absolute; top: 0; width: 100%; padding: 15px 20px; z-index: 100; display: flex; align-items: center; box-sizing: border-box; background: #050505; }
+        .navbar a { color: #fff; text-decoration: none; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; touch-action: manipulation; }
+        .navbar a svg { pointer-events: none; width: 24px; height: 24px; }
         .navbar span { margin-left: 15px; font-weight: bold; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .flicks-container { height: 100vh; width: 100%; max-width: 100%; overflow-y: auto; scroll-snap-type: y mandatory; -ms-overflow-style: none; scrollbar-width: none; box-sizing: border-box; }
         .flicks-container::-webkit-scrollbar { display: none; }
         .flick-item { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; justify-content: center; align-items: center; background: #111; }
+        @media screen and (min-width: 769px) {
+            .flicks-container { display: flex; flex-direction: column; align-items: center; padding-top: 0; padding-bottom: 0; margin-top: 58px; height: calc(100dvh - 58px); }
+            .navbar { position: fixed; height: 58px; padding: 8px 20px; background: #050505; backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom: 1px solid #333; }
+            .flick-item { height: 100%; width: auto; max-width: none; max-height: 100%; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden; margin-bottom: 0; flex: 0 0 100%; }
+        }
         video { width: 100%; height: 100%; object-fit: contain; cursor: pointer; }
         .overlay { position: absolute; bottom: 25px; left: 15px; right: 75px; z-index: 10; pointer-events: none; }
-        .author-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; pointer-events: auto; }
+        .author-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer; pointer-events: auto; min-width: 0; flex-wrap: wrap; }
         .author-row img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
-        .author-row strong { font-size: 1.1rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+        .author-row > div { min-width: 0; max-width: 100%; }
+        .author-row > div > div:first-child { flex-wrap: wrap; gap: 4px; min-width: 0; }
+        .author-row strong { font-size: 1.1rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .author-row .follow-btn { margin-left: 4px !important; padding: 3px 8px !important; font-size: 0.7rem !important; line-height: 1.2; flex: 0 0 auto; }
         .title { margin: 0; font-size: 1.05rem; line-height: 1.4; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; pointer-events: auto; transition: max-height 0.3s ease; }
         .title.expanded { display: block; -webkit-line-clamp: unset; max-height: 30vh; overflow-y: auto; padding-right: 5px; }
         .show-more-flick { pointer-events: auto; background: none; border: none; color: #fff; opacity: 0.8; font-weight: bold; cursor: pointer; padding: 2px 0; font-size: 0.95rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
         .sidebar { position: absolute; bottom: 30px; right: 15px; display: flex; flex-direction: column; gap: 20px; z-index: 10; align-items: center; }
         .action-wrapper { text-align: center; }
-        .action-btn { background: rgba(0,0,0,0.4); border: none; color: white; width: 48px; height: 48px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .action-btn { background: rgba(0,0,0,0.4); border: none; color: white; width: 40px !important; height: 40px !important; border-radius: 50%; font-size: 1.1rem !important; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .action-btn svg { width: 19px; height: 19px; pointer-events: none; }
         .action-btn:hover { transform: scale(1.1); background: rgba(0,0,0,0.6); }
         .action-wrapper span { font-size: 0.85rem; font-weight: bold; margin-top: 6px; display: block; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
         

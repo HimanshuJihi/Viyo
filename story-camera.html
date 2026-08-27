@@ -944,15 +944,14 @@
                 const rect = div.getBoundingClientRect();
                 startX = touch.clientX - rect.left - rect.width/2;
                 startY = touch.clientY - rect.top - rect.height/2;
-            }, {passive:true});
-            
+            }, {passive:false});            
             div.addEventListener('touchmove', e => {
                 if(!isDragging) return;
                 hasMoved = true;
                 const touch = e.touches[0];
                 div.style.left = (touch.clientX - startX) + 'px';
                 div.style.top = (touch.clientY - startY) + 'px';
-            }, {passive:true});
+            }, {passive:false});
             
             div.addEventListener('touchend', () => {
                 isDragging = false;
@@ -964,7 +963,7 @@
                 const rect = div.getBoundingClientRect();
                 startX = e.clientX - rect.left - rect.width/2;
                 startY = e.clientY - rect.top - rect.height/2;
-            });
+            }, {passive:false});
             div.addEventListener('mousemove', e => {
                 if(!isDragging) return;
                 hasMoved = true;
