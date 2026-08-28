@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,6 +41,8 @@
         .font-neon { font-family: 'Pacifico', cursive; text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
         .font-typewriter { font-family: 'Courier New', monospace; font-weight: bold; }
         .font-strong { font-family: 'Impact', sans-serif; text-transform: uppercase; }
+        .font-serif { font-family: Georgia, serif; }
+        .font-hand { font-family: 'Pacifico', cursive; }
         #fs-color-selector { padding: 10px 15px; display: none; gap: 12px; overflow-x: auto; scrollbar-width: none; background: rgba(0,0,0,0.5); }
         #fs-color-selector::-webkit-scrollbar { display: none; }
         .color-circle { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; flex-shrink: 0; }
@@ -53,6 +55,21 @@
         #fs-text-size-slider-container { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); height: 50%; display: flex; align-items: center; z-index: 200; }
         #fs-text-size-slider { -webkit-appearance: none; appearance: none; width: 4px; height: 100%; background: rgba(255,255,255,0.3); border-radius: 4px; outline: none; writing-mode: vertical-lr; direction: rtl; }
         #fs-text-size-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: white; cursor: pointer; border: 2px solid #aaa; }
+
+        .fs-pro-panel { position: fixed; inset: auto 0 0; z-index: 100007; display: none; max-height: 76vh; overflow-y: auto; padding: 18px; color: #fff; background: rgba(12, 12, 16, 0.96); border-top: 1px solid rgba(255,255,255,0.18); box-shadow: 0 -12px 35px rgba(0,0,0,0.55); backdrop-filter: blur(18px); }
+        .fs-pro-panel.open { display: block; animation: fs-panel-in 0.22s ease-out; }
+        .fs-pro-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .fs-pro-head h3 { margin: 0; font-size: 1.05rem; }
+        .fs-pro-close { border: 0; background: transparent; color: #fff; cursor: pointer; font-size: 1.3rem; }
+        .fs-pro-section { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .fs-pro-section strong { display: block; margin-bottom: 9px; color: #f59e0b; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+        .fs-pro-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+        .fs-pro-field { min-width: 0; }
+        .fs-pro-field label { display: block; margin-bottom: 4px; color: #aaa; font-size: 0.72rem; }
+        .fs-pro-field select { width: 100%; min-height: 37px; padding: 7px 8px; border: 1px solid #454550; border-radius: 7px; background: #202027; color: #fff; font: inherit; font-size: 0.78rem; outline: none; }
+        .fs-pro-field select:focus { border-color: #f59e0b; }
+        @keyframes fs-panel-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+        @media (min-width: 700px) { .fs-pro-panel { left: auto; right: 18px; bottom: 18px; width: 430px; border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; } }
 
         .mention-dropdown { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(20,20,20,0.95); border: 1px solid #444; border-radius: 12px; width: 90%; max-width: 350px; max-height: 200px; overflow-y: auto; z-index: 200; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); display: none; margin-bottom: 10px; }
         .mention-item { padding: 12px 15px; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; color: white; cursor: pointer; }
@@ -92,8 +109,8 @@
 
     <div class="container">
         <div style="text-align: center; margin-bottom: 25px;">
-            <h1 style="margin-bottom: 5px; font-size: 2.5rem; color: #f59e0b;">अपनी चमक दिखाएं ✨</h1>
-            <p style="margin: 0; color: #ccc; font-size: 1.1rem;">ब्लॉग और फ़्लिक्स पब्लिश करें, इनाम पाएं, और अपनी कम्युनिटी बनाएं।</p>
+            <h1 style="margin-bottom: 5px; font-size: 2.5rem; color: #f59e0b;">Share Your Story ✨</h1>
+            <p style="margin: 0; color: #ccc; font-size: 1.1rem;">Publish blogs and Flicks, grow your audience, and build your community.</p>
         </div>
 
         <div class="tabs-container" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
@@ -104,12 +121,12 @@
 
         <form id="blogForm">
             <div class="form-group">
-                <label for="title"><span id="title-label-text">शीर्षक (Title)</span> <span id="title-char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 100)</span></label>
+                <label for="title"><span id="title-label-text">Title</span> <span id="title-char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 100)</span></label>
                 <input type="text" id="title" required maxlength="100" placeholder="Ex: भारत की शानदार जीत...">
             </div>
 
             <div class="form-group">
-                <label for="category">श्रेणी (Category)</label>
+                <label for="category">Category</label>
                 <select id="category" required>
                     <option value="Entertainment">Entertainment (मनोरंजन)</option>
                     <option value="Music">Music (संगीत)</option>
@@ -133,13 +150,13 @@
 
             <input type="hidden" id="author" required>
             <div class="form-group">
-                <label for="content"><span id="content-label-text">सामग्री (Content)</span> <span id="char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 10000)</span></label>
-                <textarea id="content" required maxlength="10000" placeholder="यहाँ अपने विचार लिखें..."></textarea>
+                <label for="content"><span id="content-label-text">Description</span> <span id="char-counter" style="font-size: 0.85rem; color: #aaa; font-weight: normal;">(0 / 10000)</span></label>
+                <textarea id="content" required maxlength="10000" placeholder="Write a clear description for your audience..."></textarea>
             </div>
 
             <div id="blog-specific-fields">
                 <div class="form-group">
-                    <label for="image">तस्वीरें (Images - Max 5, Auto-compressed)</label>
+                    <label for="image">Images (Max 5, auto-compressed)</label>
                     <input type="file" id="image" accept="image/*" multiple>
                 </div>
             <div class="form-group" id="youtube-url-group">
@@ -163,7 +180,7 @@
             <div id="video-specific-fields" style="display: none;">
                 <div class="form-group">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <label id="video-upload-label" for="video-upload" style="margin-bottom: 0;">वीडियो अपलोड करें (Long Video - Max 1MB)</label>
+                        <label id="video-upload-label" for="video-upload" style="margin-bottom: 0;">Upload video (Long Video - Max 1MB)</label>
                         <button type="button" id="open-flick-cam-btn" class="btn" style="display: none; padding: 4px 12px; font-size: 0.85rem; background: linear-gradient(135deg, #ff0050, #a855f7); margin-top: 0; box-shadow: 0 4px 10px rgba(255,0,80,0.3);" onclick="window.openFlickCamera()"><i data-lucide="video" style="width: 14px; height: 14px;"></i> Record</button>
                     </div>
                     <input type="file" id="video-upload" accept="video/mp4,video/webm,video/ogg,video/quicktime">
@@ -188,7 +205,7 @@
                     </div>
                 </div>
                 <div class="form-group" id="thumbnail-group" style="display: none;">
-                    <label for="thumbnail-upload">थंबनेल (Thumbnail - Auto Compress &lt; 500KB)</label>
+                    <label for="thumbnail-upload">Thumbnail (Auto-compressed &lt; 500KB)</label>
                     <input type="file" id="thumbnail-upload" accept="image/*">
                     <img id="thumbnail-preview" src="" style="max-height: 150px; display: none; margin-top: 10px; border-radius: 8px; border: 1px solid #555;">
                 </div>
@@ -251,6 +268,7 @@
             <div style="position: absolute; top: 80px; right: 15px; display: flex; flex-direction: column; gap: 15px; z-index: 50; align-items: center;">
                 <div class="fs-tool-icon" onclick="window.switchFSCamera()"><button><i data-lucide="refresh-cw"></i></button><span>Flip</span></div>
                 <div class="fs-tool-icon" onclick="window.toggleFSFilter()"><button><i data-lucide="wand-2"></i></button><span>Filter</span></div>
+                <div class="fs-tool-icon" onclick="window.toggleFSProPanel()"><button><i data-lucide="settings-2"></i></button><span>Pro</span></div>
             </div>
 
             <video id="fs-camera-feed" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
@@ -327,9 +345,42 @@
                 <div class="fs-tool-icon bottom" onclick="document.getElementById('fs-stickers-layer').style.display='flex'"><button><i data-lucide="smile"></i></button><span>Stickers</span></div>
                 <div class="fs-tool-icon bottom" onclick="window.toggleFSFilter()"><button><i data-lucide="wand-2"></i></button><span>Filter</span></div>
                 <div class="fs-tool-icon bottom" onclick="document.getElementById('fs-volume-layer').style.display='flex'"><button><i data-lucide="sliders-horizontal"></i></button><span>Volume</span></div>
+                <div class="fs-tool-icon bottom" onclick="window.toggleFSProPanel()"><button><i data-lucide="settings-2"></i></button><span>Pro</span></div>
             </div>
         </div>
         <audio id="fs-bg-audio" loop crossorigin="anonymous" style="display: none;"></audio>
+    </div>
+
+    <div id="fs-pro-panel" class="fs-pro-panel" aria-label="Advanced Flicks controls">
+        <div class="fs-pro-head"><h3>Advanced Flicks Controls</h3><button class="fs-pro-close" type="button" onclick="window.toggleFSProPanel()" aria-label="Close controls">&times;</button></div>
+        <div class="fs-pro-section"><strong>Camera & Motion</strong><div class="fs-pro-grid">
+            <div class="fs-pro-field"><label>Capture speed</label><select data-fs-setting="speed"><option value="0.25">0.25x Dream</option><option value="0.5">0.5x Slow-mo</option><option value="1" selected>1x Natural</option><option value="1.5">1.5x Quick</option><option value="2">2x Hyperlapse</option></select></div>
+            <div class="fs-pro-field"><label>Playback ramp</label><select data-fs-setting="ramp"><option value="none" selected>None</option><option value="in">Slow start</option><option value="out">Slow finish</option><option value="pulse">Pulse</option></select></div>
+            <div class="fs-pro-field"><label>Frame rate</label><select data-fs-setting="fps"><option value="24">24 fps Film</option><option value="30" selected>30 fps Smooth</option><option value="60">60 fps Action</option></select></div>
+            <div class="fs-pro-field"><label>Frame fit</label><select data-fs-setting="fit"><option value="cover" selected>Fill frame</option><option value="contain">Show all</option><option value="blur">Blur backdrop</option></select></div>
+            <div class="fs-pro-field"><label>Mirror</label><select data-fs-setting="mirror"><option value="off" selected>Original</option><option value="on">Mirror selfie</option></select></div>
+            <div class="fs-pro-field"><label>Export quality</label><select data-fs-setting="quality"><option value="standard">Standard</option><option value="high" selected>High</option><option value="max">Max detail</option></select></div>
+        </div></div>
+        <div class="fs-pro-section"><strong>Cinematic Grade</strong><div class="fs-pro-grid">
+            <div class="fs-pro-field"><label>Look</label><select data-fs-setting="look"><option value="none" selected>Clean</option><option value="cinematic">Cinematic</option><option value="noir">Noir</option><option value="vintage">Vintage</option><option value="dream">Dreamy</option><option value="vivid">Vivid</option><option value="cool">Arctic</option><option value="warm">Sunset</option></select></div>
+            <div class="fs-pro-field"><label>Filter strength</label><select data-fs-setting="strength"><option value="0.35">Soft</option><option value="0.65" selected>Balanced</option><option value="1">Intense</option></select></div>
+            <div class="fs-pro-field"><label>Exposure</label><select data-fs-setting="exposure"><option value="-0.15">Low</option><option value="0" selected>Neutral</option><option value="0.15">Bright</option><option value="0.3">Glow</option></select></div>
+            <div class="fs-pro-field"><label>Contrast</label><select data-fs-setting="contrast"><option value="0.9">Soft</option><option value="1" selected>Normal</option><option value="1.2">Punchy</option><option value="1.45">Dramatic</option></select></div>
+            <div class="fs-pro-field"><label>Saturation</label><select data-fs-setting="saturation"><option value="0">Mono</option><option value="0.85">Muted</option><option value="1" selected>Natural</option><option value="1.3">Pop</option><option value="1.6">Hyper</option></select></div>
+            <div class="fs-pro-field"><label>Temperature</label><select data-fs-setting="temperature"><option value="-18">Cool</option><option value="0" selected>Neutral</option><option value="18">Warm</option></select></div>
+            <div class="fs-pro-field"><label>Vignette</label><select data-fs-setting="vignette"><option value="0" selected>None</option><option value="0.25">Light</option><option value="0.5">Medium</option><option value="0.8">Heavy</option></select></div>
+            <div class="fs-pro-field"><label>Film grain</label><select data-fs-setting="grain"><option value="0" selected>Clean</option><option value="0.08">Fine</option><option value="0.16">Classic</option><option value="0.25">Rough</option></select></div>
+        </div></div>
+        <div class="fs-pro-section"><strong>Text Studio</strong><div class="fs-pro-grid">
+            <div class="fs-pro-field"><label>Font family</label><select data-fs-setting="textFont"><option value="font-classic" selected>Classic</option><option value="font-modern">Modern</option><option value="font-neon">Neon</option><option value="font-typewriter">Typewriter</option><option value="font-strong">Strong</option><option value="font-serif">Editorial Serif</option><option value="font-hand">Handwritten</option></select></div>
+            <div class="fs-pro-field"><label>Font weight</label><select data-fs-setting="textWeight"><option value="400">Regular</option><option value="600" selected>Semibold</option><option value="800">Heavy</option></select></div>
+            <div class="fs-pro-field"><label>Text color</label><select data-fs-setting="textColor"><option value="#ffffff" selected>White</option><option value="#000000">Black</option><option value="#f59e0b">Amber</option><option value="#22d3ee">Cyan</option><option value="#10b981">Mint</option><option value="#ff4d6d">Coral</option><option value="#c084fc">Lilac</option></select></div>
+            <div class="fs-pro-field"><label>Text style</label><select data-fs-setting="textStyle"><option value="normal" selected>Normal</option><option value="uppercase">Uppercase</option><option value="italic">Italic</option><option value="outline">Outline</option><option value="glow">Glow</option></select></div>
+            <div class="fs-pro-field"><label>Text animation</label><select data-fs-setting="textAnimation"><option value="none" selected>Static</option><option value="pop">Pop in</option><option value="rise">Rise up</option><option value="blink">Blink</option><option value="wave">Wave</option></select></div>
+            <div class="fs-pro-field"><label>Text background</label><select data-fs-setting="textBg"><option value="none" selected>None</option><option value="glass">Glass</option><option value="solid">Solid</option><option value="highlight">Highlight</option></select></div>
+            <div class="fs-pro-field"><label>Text alignment</label><select data-fs-setting="textAlign"><option value="left">Left</option><option value="center" selected>Center</option><option value="right">Right</option></select></div>
+            <div class="fs-pro-field"><label>Letter spacing</label><select data-fs-setting="letterSpacing"><option value="0" selected>Normal</option><option value="1">Wide</option><option value="3">Cinema</option><option value="6">Poster</option></select></div>
+        </div></div>
     </div>
 
     <div id="fs-stickers-layer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100005; background: rgba(0,0,0,0.85); flex-direction: column; backdrop-filter: blur(10px); display: none;">
@@ -462,6 +513,51 @@
         window.selectedFSAudioId = null;
         window.fsAudioTrimStart = 0;
         window.isFSRendering = false;
+        const fsProSettings = { speed: 1, ramp: 'none', fps: 30, fit: 'cover', mirror: 'off', quality: 'high', look: 'none', strength: 0.65, exposure: 0, contrast: 1, saturation: 1, temperature: 0, vignette: 0, grain: 0, textFont: 'font-classic', textWeight: 600, textColor: '#ffffff', textStyle: 'normal', textAnimation: 'none', textBg: 'none', textAlign: 'center', letterSpacing: 0 };
+
+        function fsGetRenderFilter() {
+            const lookFilters = { none: '', cinematic: 'sepia(12%) contrast(115%) saturate(115%)', noir: 'grayscale(100%) contrast(135%)', vintage: 'sepia(45%) saturate(85%) contrast(105%)', dream: 'brightness(110%) saturate(82%) blur(0.3px)', vivid: 'saturate(155%) contrast(115%)', cool: 'hue-rotate(175deg) saturate(110%)', warm: 'sepia(28%) saturate(125%)' };
+            const base = lookFilters[fsProSettings.look] || fsFilters[fsCurrentFilterIdx] || '';
+            return `${base} brightness(${1 + Number(fsProSettings.exposure) * Number(fsProSettings.strength)}) contrast(${Number(fsProSettings.contrast)}) saturate(${Number(fsProSettings.saturation)}) hue-rotate(${Number(fsProSettings.temperature)}deg)`;
+        }
+
+        function fsApplyProSettings() {
+            const video = document.getElementById('fs-preview-video');
+            if (!video) return;
+            video.playbackRate = Number(fsProSettings.speed) || 1;
+            video.style.filter = fsGetRenderFilter();
+            video.style.objectFit = fsProSettings.fit === 'contain' ? 'contain' : 'cover';
+            video.style.transform = fsProSettings.mirror === 'on' ? 'scaleX(-1)' : 'none';
+            document.querySelectorAll('.fs-text').forEach(el => fsApplyTextSettings(el));
+        }
+
+        function fsApplyTextSettings(el) {
+            el.classList.remove('font-classic', 'font-modern', 'font-neon', 'font-typewriter', 'font-strong', 'font-serif', 'font-hand');
+            el.classList.add(fsProSettings.textFont);
+            el.style.fontWeight = fsProSettings.textWeight;
+            el.style.color = fsProSettings.textColor;
+            el.style.textAlign = fsProSettings.textAlign;
+            el.style.letterSpacing = `${fsProSettings.letterSpacing}px`;
+            el.style.textTransform = fsProSettings.textStyle === 'uppercase' ? 'uppercase' : 'none';
+            el.style.fontStyle = fsProSettings.textStyle === 'italic' ? 'italic' : 'normal';
+            el.style.textShadow = fsProSettings.textStyle === 'glow' ? `0 0 12px ${fsProSettings.textColor}` : (fsProSettings.textStyle === 'outline' ? `1px 1px 0 #000, -1px -1px 0 #000` : '0 1px 4px rgba(0,0,0,0.8)');
+            el.style.background = fsProSettings.textBg === 'glass' ? 'rgba(255,255,255,0.18)' : (fsProSettings.textBg === 'solid' ? fsProSettings.textColor : (fsProSettings.textBg === 'highlight' ? 'rgba(245,158,11,0.75)' : 'transparent'));
+            el.style.backdropFilter = fsProSettings.textBg === 'glass' ? 'blur(8px)' : 'none';
+        }
+
+        window.toggleFSProPanel = function() {
+            const panel = document.getElementById('fs-pro-panel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) panel.querySelector('select')?.focus();
+        };
+
+        document.querySelectorAll('[data-fs-setting]').forEach(select => {
+            select.addEventListener('change', () => {
+                const key = select.dataset.fsSetting;
+                fsProSettings[key] = ['speed', 'fps', 'strength', 'exposure', 'contrast', 'saturation', 'temperature', 'vignette', 'grain', 'textWeight', 'letterSpacing'].includes(key) ? Number(select.value) : select.value;
+                fsApplyProSettings();
+            });
+        });
 
         // --- Toast Notification Logic ---
         function showToast(message, type = 'info') {
@@ -1990,7 +2086,9 @@
         // Extra Tools
         window.toggleFSFilter = function() {
             fsCurrentFilterIdx = (fsCurrentFilterIdx + 1) % fsFilters.length;
-            document.getElementById('fs-preview-video').style.filter = fsFilters[fsCurrentFilterIdx];
+            fsProSettings.look = 'none';
+            document.querySelector('[data-fs-setting="look"]').value = 'none';
+            document.getElementById('fs-preview-video').style.filter = fsGetRenderFilter();
         };
 
         // --- Advanced Text Editor Logic ---
@@ -2036,6 +2134,7 @@
                         fsActiveTextElement.style.color = fsActiveTextState.color;
                         fsActiveTextElement.style.backgroundColor = 'transparent';
                     }
+                    fsApplyTextSettings(fsActiveTextElement);
                 } else {
                     // Create new element
                     renderFSTextOnCanvas(text);
@@ -2065,6 +2164,7 @@
             } else {
                 div.style.color = fsActiveTextState.color;
             }
+            fsApplyTextSettings(div);
             
             let hasMoved = false; let sX, sY;
             div.addEventListener('pointerdown', e => {
@@ -2104,6 +2204,7 @@
             fsActiveTextState.align = div.style.textAlign || 'center';
             fsActiveTextState.scale = parseFloat(div.dataset.scale) || 1;
             document.getElementById('fs-text-size-slider').value = fsActiveTextState.scale;
+            fsApplyTextSettings(div);
             
             document.getElementById('fs-text-input-modal').style.display = 'flex';
             document.getElementById('fs-text-input-area').focus();
@@ -2467,7 +2568,7 @@
             if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
             if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
 
-            const stream = new MediaStream([...canvas.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+            const stream = new MediaStream([...canvas.captureStream(Number(fsProSettings.fps) || 30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
             recorder = new MediaRecorder(stream, options);
             const chunks = [];
             recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
@@ -2499,11 +2600,30 @@
                     }
                 }
                 
-                ctx.filter = fsFilters[fsCurrentFilterIdx] || 'none';
+                ctx.filter = fsGetRenderFilter() || 'none';
                 const ratio = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
                 const w = video.videoWidth * ratio; const h = video.videoHeight * ratio;
+                if (fsProSettings.fit === 'blur') {
+                    ctx.filter = 'blur(24px) brightness(0.55)';
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    ctx.filter = fsGetRenderFilter() || 'none';
+                }
+                ctx.save();
+                if (fsProSettings.mirror === 'on') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
                 ctx.drawImage(video, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
+                ctx.restore();
                 ctx.filter = 'none';
+
+                if (Number(fsProSettings.vignette) > 0) {
+                    const vignette = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, canvas.height * 0.22, canvas.width / 2, canvas.height / 2, canvas.height * 0.8);
+                    vignette.addColorStop(0, 'rgba(0,0,0,0)');
+                    vignette.addColorStop(1, `rgba(0,0,0,${Number(fsProSettings.vignette)})`);
+                    ctx.fillStyle = vignette; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                if (Number(fsProSettings.grain) > 0) {
+                    ctx.fillStyle = `rgba(255,255,255,${Number(fsProSettings.grain)})`;
+                    for (let grain = 0; grain < 260; grain++) ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1, 1);
+                }
                 
                 const container = document.getElementById('fs-overlays-container');
                 const scaleX = canvas.width / container.offsetWidth;
@@ -2516,16 +2636,25 @@
                     
                     if (el.classList.contains('fs-text')) {
                         const elScale = parseFloat(el.dataset.scale) || 1;
-                        const fontSize = (parseFloat(window.getComputedStyle(el).fontSize) || 30) * elScale;
-                        ctx.font = `bold ${fontSize * scaleX}px Outfit, sans-serif`;
-                        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'white';
+                        const computed = window.getComputedStyle(el);
+                        const fontSize = (parseFloat(computed.fontSize) || 30) * elScale;
+                        const animationProgress = (video.currentTime - fsTrimStart) / Math.max(0.01, fsTrimEnd - fsTrimStart);
+                        if (fsProSettings.textAnimation === 'blink' && Math.floor(animationProgress * 12) % 2 === 1) return;
+                        const animationScale = fsProSettings.textAnimation === 'pop' ? Math.min(1, animationProgress * 8) : 1;
+                        const animationY = fsProSettings.textAnimation === 'rise' ? (1 - Math.min(1, animationProgress * 5)) * 45 : 0;
+                        ctx.save(); ctx.translate(exportX, exportY - animationY); ctx.scale(animationScale, animationScale);
+                        ctx.font = `${computed.fontStyle} ${computed.fontWeight} ${fontSize * scaleX}px ${computed.fontFamily}`;
+                        ctx.textAlign = computed.textAlign || 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = computed.color || fsProSettings.textColor;
+                        ctx.shadowColor = fsProSettings.textStyle === 'glow' ? fsProSettings.textColor : 'rgba(0,0,0,0.8)';
+                        ctx.shadowBlur = fsProSettings.textStyle === 'glow' ? 18 : 4;
                         
                         const lines = el.innerText.split('\n');
                         const lineHeight = fontSize * 1.2 * scaleX;
                         const totalHeight = lines.length * lineHeight;
                         const startY = exportY - totalHeight / 2 + lineHeight / 2;
                         
-                        lines.forEach((line, i) => { ctx.fillText(line, exportX, startY + i * lineHeight); });
+                        lines.forEach((line, i) => { ctx.fillText(fsProSettings.textStyle === 'uppercase' ? line.toUpperCase() : line, 0, startY - exportY + i * lineHeight); });
+                        ctx.restore();
                     } else if (el.classList.contains('fs-sticker')) {
                         const elScale = parseFloat(el.dataset.scale) || 1;
                         const fontSize = (parseFloat(window.getComputedStyle(el).fontSize) || 80) * elScale;

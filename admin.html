@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +17,23 @@
         .scrollable-list { max-height: 400px; overflow-y: auto; padding-right: 5px; }
         .scrollable-list::-webkit-scrollbar { width: 5px; }
         .scrollable-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 5px; }
+        .admin-theme-picker { display: inline-block; position: relative; margin-bottom: 20px; }
+        .admin-theme-picker > button { margin-right: 0; }
+        .admin-theme-menu { display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 3000; min-width: 190px; padding: 8px; background: #1e1e1e; border: 1px solid #555; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        .admin-theme-menu.show { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; animation: admin-theme-menu-in 0.18s ease-out; }
+        .admin-theme-menu button { min-height: 36px; padding: 6px 8px; border: 1px solid #555; border-radius: 7px; color: #fff; cursor: pointer; font-weight: 600; }
+        @keyframes admin-theme-menu-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        body.aurora-mode { background: radial-gradient(circle at top right, #075985, #042f35 48%, #06151d); color: #ccfbf1; }
+        body.forest-mode { background: radial-gradient(circle at top left, #365314, #14251a 52%, #07110c); color: #ecfccb; }
+        body.sunset-mode { background: radial-gradient(circle at top right, #9a3412, #57201e 48%, #1c1720); color: #ffedd5; }
+        body.matrix-mode { background: radial-gradient(circle at top, #003300, #050505); color: #00ff41; }
+        body.ocean-mode { background: radial-gradient(circle at top left, #0077b6, #050505); color: #90e0ef; }
+        body.cyberpunk-mode { background: radial-gradient(circle at top right, #3a0ca3, #050505); color: #ff007c; }
+        body.dracula-mode { background: #282a36; color: #f8f8f2; }
+        body.solar-mode { background: radial-gradient(circle at center, #370617, #03071e); color: #ffba08; }
+        body.light-mode { background: #f4f7f6; color: #333; }
+        body.theme-switching { animation: admin-theme-pulse 0.5s ease both; }
+        @keyframes admin-theme-pulse { 0%, 100% { filter: saturate(1); } 45% { filter: saturate(1.2) brightness(1.08); } }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -34,27 +51,43 @@
 <body>
     <div id="toast-container"></div>
     <div class="container">
-        <h1>Admin Panel</h1>
-        <a href="index.html" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to Viyou</a>
+        <div class="admin-header">
+            <div><p class="admin-kicker">Viyou operations</p><h1><i data-lucide="shield-check"></i> Admin Panel</h1><p class="admin-subtitle">Review content, manage creators, configure monetization, and monitor platform activity.</p></div>
+            <div class="admin-header-actions"><a href="index.html" class="btn btn-secondary"><i data-lucide="arrow-left"></i> Back to Viyou</a>
         <button id="migrate-btn" class="btn btn-secondary" onclick="window.migrateUsernames()" style="margin-bottom: 20px; display: none; background-color: #ffc107; color: #000;">⚙️ Migrate Usernames</button>
+        <div class="admin-theme-picker">
+            <button id="admin-theme-toggle" class="btn btn-secondary" type="button" aria-expanded="false">🎨 Theme</button>
+            <div id="admin-theme-menu" class="admin-theme-menu" role="menu">
+                <button type="button" data-admin-theme="dark" style="background:#050505;">Dark</button>
+                <button type="button" data-admin-theme="light" style="background:#f4f7f6;color:#333;">Light</button>
+                <button type="button" data-admin-theme="cyberpunk" style="background:#3a0ca3;color:#ff007c;">Cyber</button>
+                <button type="button" data-admin-theme="matrix" style="background:#003300;color:#00ff41;">Matrix</button>
+                <button type="button" data-admin-theme="ocean" style="background:#003b66;color:#00e5ff;">Ocean</button>
+                <button type="button" data-admin-theme="dracula" style="background:#32354b;color:#ff79c6;">Dracula</button>
+                <button type="button" data-admin-theme="solar" style="background:#4a0c16;color:#ffb703;">Solar</button>
+                <button type="button" data-admin-theme="aurora" style="background:#063b46;color:#5eead4;">Aurora</button>
+                <button type="button" data-admin-theme="forest" style="background:#183a2b;color:#facc15;">Forest</button>
+                <button type="button" data-admin-theme="sunset" style="background:#762d2d;color:#fed7aa;">Sunset</button>
+            </div>
+        </div></div>
 
         <!-- Admin Global Search -->
         <div id="admin-search-container" style="display: none; margin-bottom: 20px; position: relative;">
-            <input type="text" id="admin-global-search" placeholder="🔍 Search settings, usernames, or payment IDs..." style="width: 100%; padding: 12px 15px 12px 40px; border-radius: 8px; background: rgba(0,0,0,0.5); color: white; border: 1px solid #555; font-size: 1rem; box-sizing: border-box; transition: border-color 0.3s;">
+            <input type="text" id="admin-global-search" placeholder="Search settings, users, reports, or payment IDs..." style="width: 100%; padding: 12px 15px 12px 40px; border-radius: 8px; background: rgba(0,0,0,0.5); color: white; border: 1px solid #555; font-size: 1rem; box-sizing: border-box; transition: border-color 0.3s;">
             <i data-lucide="search" style="position: absolute; left: 12px; top: 12px; color: #aaa;"></i>
         </div>
 
         <div id="admin-tabs" style="display: none; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">
-            <button id="tab-reported" class="admin-tab-btn active">🚩 Reported Blogs</button>
-            <button id="tab-monetization" class="admin-tab-btn">💎 Creator Monetization</button>
-            <button id="tab-copyright" class="admin-tab-btn">© Copyright Claims</button>
-            <button id="tab-headlines" class="admin-tab-btn">📢 Headlines</button>
-            <button id="tab-vast" class="admin-tab-btn">📺 VAST Ads</button>
-            <button id="tab-promotions" class="admin-tab-btn">🚀 Promotions</button>
-            <button id="tab-payment-settings" class="admin-tab-btn" style="display: none;">💳 Payment Settings</button>
-            <button id="tab-users" class="admin-tab-btn">👥 Users</button>
-            <button id="tab-feedback" class="admin-tab-btn">💬 User Feedback</button>
-            <button id="tab-team" class="admin-tab-btn">👥 Team Members</button>
+            <button id="tab-reported" class="admin-tab-btn active"><i data-lucide="flag"></i> Reports</button>
+            <button id="tab-monetization" class="admin-tab-btn"><i data-lucide="wallet-cards"></i> Monetization</button>
+            <button id="tab-copyright" class="admin-tab-btn"><i data-lucide="copyright"></i> Copyright</button>
+            <button id="tab-headlines" class="admin-tab-btn"><i data-lucide="settings-2"></i> Platform Settings</button>
+            <button id="tab-vast" class="admin-tab-btn"><i data-lucide="tv"></i> VAST Ads</button>
+            <button id="tab-promotions" class="admin-tab-btn"><i data-lucide="rocket"></i> Promotions</button>
+            <button id="tab-payment-settings" class="admin-tab-btn" style="display: none;"><i data-lucide="credit-card"></i> Payment Settings</button>
+            <button id="tab-users" class="admin-tab-btn"><i data-lucide="users"></i> Users</button>
+            <button id="tab-feedback" class="admin-tab-btn"><i data-lucide="message-square"></i> Feedback</button>
+            <button id="tab-team" class="admin-tab-btn"><i data-lucide="user-cog"></i> Team</button>
         </div>
 
         <div id="admin-content" style="display: none;">
@@ -378,6 +411,41 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const storage = getStorage(app);
+
+        const adminThemeToggle = document.getElementById('admin-theme-toggle');
+        const adminThemeMenu = document.getElementById('admin-theme-menu');
+        const adminThemeClasses = ['light-mode', 'cyberpunk-mode', 'matrix-mode', 'ocean-mode', 'dracula-mode', 'solar-mode', 'aurora-mode', 'forest-mode', 'sunset-mode'];
+
+        function applyAdminTheme(theme, animate = false) {
+            document.body.classList.remove(...adminThemeClasses);
+            if (theme && theme !== 'dark') document.body.classList.add(`${theme}-mode`);
+            localStorage.setItem('theme', theme || 'dark');
+            if (animate) {
+                document.body.classList.remove('theme-switching');
+                void document.body.offsetWidth;
+                document.body.classList.add('theme-switching');
+                window.setTimeout(() => document.body.classList.remove('theme-switching'), 550);
+            }
+        }
+
+        applyAdminTheme(localStorage.getItem('theme') || 'dark');
+        adminThemeToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isOpen = adminThemeMenu.classList.toggle('show');
+            adminThemeToggle.setAttribute('aria-expanded', String(isOpen));
+        });
+        adminThemeMenu.querySelectorAll('[data-admin-theme]').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                applyAdminTheme(button.dataset.adminTheme, true);
+                adminThemeMenu.classList.remove('show');
+                adminThemeToggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+        document.addEventListener('click', () => {
+            adminThemeMenu.classList.remove('show');
+            adminThemeToggle.setAttribute('aria-expanded', 'false');
+        });
 
         const adminContent = document.getElementById('admin-content');
         const authMessage = document.getElementById('auth-message');
@@ -1708,6 +1776,7 @@
                 listDiv.innerHTML = '';
                 for (const reqDoc of snap.docs) {
                     const req = reqDoc.data();
+                    const requestAmount = Number(req.amount) || 0;
                     const userSnap = await getDoc(doc(db, "users", req.uid));
                     const userData = userSnap.exists() ? userSnap.data() : {};
                     const div = document.createElement('div');
@@ -1715,13 +1784,13 @@
                     div.innerHTML = `
                         <div>
                             <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
-                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Requested Amount: <strong style="color: #198754;">₹${req.amount.toFixed(2)}</strong></div>
+                            <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Requested Amount: <strong style="color: #198754;">₹${requestAmount.toFixed(2)}</strong></div>
                             <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Payment Details:</strong> ${req.paymentInfo}</div>
                             <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Requested on: ${new Date(req.date).toLocaleString()}</div>
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${req.amount})"><i data-lucide="check"></i> Paid</button>
-                            <button class="btn" style="background-color: #dc3545; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPayout('${reqDoc.id}', '${req.uid}', ${req.amount})"><i data-lucide="x"></i> Reject</button>
+                            <button class="btn" style="background-color: #198754; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.markAsPaid('${reqDoc.id}', '${req.uid}', ${requestAmount})"><i data-lucide="check"></i> Paid</button>
+                            <button class="btn" style="background-color: #dc3545; height: fit-content; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.rejectPayout('${reqDoc.id}', '${req.uid}', ${requestAmount})"><i data-lucide="x"></i> Reject</button>
                         </div>
                     `;
                     listDiv.appendChild(div);
