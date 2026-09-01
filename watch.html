@@ -307,9 +307,9 @@
                 }
 
                 if (blog.video && !blog.youtubeUrl) {
-                    updateDoc(docRef, { views: increment(1), longVideoViews: increment(1) }).catch(e => {});
+                    updateDoc(docRef, { views: increment(1), longVideoViews: increment(1) }).catch(e => { console.warn("Failed to increment views:", e.message); });
                 } else {
-                    updateDoc(docRef, { views: increment(1) }).catch(e => {});
+                    updateDoc(docRef, { views: increment(1) }).catch(e => { console.warn("Failed to increment views:", e.message); });
                 }
             };
 
@@ -1219,7 +1219,9 @@
                     snap.forEach(docSnap => {
                         const blog = docSnap.data();
                         if (!window.enableYoutubeLinks && blog.youtubeUrl) return;
-                        if (docSnap.id === blogId || blog.isFlicker || (!blog.video && !blog.youtubeUrl) || blog.status === 'draft') return;
+                        const isScheduledNotDue = blog.status === 'scheduled' && blog.scheduledAt && new Date(blog.scheduledAt).getTime() > Date.now();
+                        const isUnlisted = blog.visibility === 'unlisted';
+                        if (docSnap.id === blogId || blog.isFlicker || (!blog.video && !blog.youtubeUrl) || blog.status === 'draft' || isScheduledNotDue || isUnlisted) return;
                         fetchedVideos.push({ id: docSnap.id, ...blog });
                     });
                     
@@ -1602,7 +1604,12 @@
             if (!currentBlog.comments) currentBlog.comments = [];
             currentBlog.comments.push(newComment);
             window.renderComments();
-            try { await updateDoc(doc(db, "blogs", blogId), { comments: arrayUnion(newComment) }); } catch(e) { console.error(e); }
+            try { 
+                await updateDoc(doc(db, "blogs", blogId), { comments: arrayUnion(newComment) }); 
+            } catch(e) { 
+                console.error("Failed to save comment:", e); 
+                await window.viyouAlert("Failed to post comment. Please try again."); 
+            }
         };
 
         window.submitVideoReply = async function(commentId) {

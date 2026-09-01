@@ -377,6 +377,180 @@ body.solar-mode .profile-tab-btn.active { color: #ffba08 !important; border-bott
         .profile-tab-content { display: none; text-align: left; }
         .profile-tab-content.active { display: block; }
 
+        .profile-strip-section {
+            margin: 20px 0 10px;
+        }
+        .profile-strip-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .profile-strip-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #f59e0b;
+        }
+        .profile-create-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .profile-search-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 8px 11px;
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            color: #e2e8f0;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .profile-search-btn .lucide { width: 14px; height: 14px; }
+        .playlist-search-result:hover,
+        .playlist-content-result:hover {
+            background: rgba(99, 102, 241, 0.18) !important;
+            border-color: rgba(129, 140, 248, 0.55) !important;
+        }
+        body.light-mode .profile-search-btn {
+            background: #fff;
+            border-color: #ddd;
+            color: #374151;
+        }
+        .profile-strip-row {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-snap-type: x proximity;
+        }
+        .profile-strip-row::-webkit-scrollbar { display: none; }
+        .profile-strip-card {
+            flex: 0 0 180px;
+            width: 180px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            scroll-snap-align: start;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .profile-strip-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+        .profile-strip-media {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            background: #111827;
+            overflow: hidden;
+        }
+        .profile-strip-media img,
+        .profile-strip-media video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-strip-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: #9ca3af;
+            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
+        }
+        .profile-strip-content {
+            padding: 10px 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .profile-strip-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: flex-start;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: bold;
+            letter-spacing: 0.02em;
+            background: rgba(59,130,246,0.15);
+            color: #93c5fd;
+        }
+        .profile-strip-tag.private { background: rgba(239,68,68,0.12); color: #fca5a5; }
+        .profile-strip-tag.unlisted { background: rgba(251,191,36,0.12); color: #fcd34d; }
+        .profile-strip-content h4 {
+            margin: 0;
+            font-size: 0.92rem;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: white;
+        }
+        .profile-strip-content p {
+            margin: 0;
+            font-size: 0.74rem;
+            color: #b3b9c6;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .profile-strip-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .playlist-delete-btn {
+            background: rgba(255,255,255,0.05);
+            color: #fca5a5;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 4px 7px;
+            cursor: pointer;
+            font-size: 0.68rem;
+        }
+        .profile-view-btn {
+            margin-top: 4px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(99, 102, 241, 0.2);
+            color: #dbeafe;
+            padding: 7px 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .profile-strip-empty {
+            margin: 0;
+            color: #9ca3af;
+            font-size: 0.84rem;
+            padding: 8px 4px;
+        }
+
         /* Grid View Styles for Videos and Flicks */
         .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; }
         .flicks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }

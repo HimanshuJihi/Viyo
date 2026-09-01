@@ -106,6 +106,24 @@
     
     <div id="badges-section" style="margin: 15px 0; text-align: left;"></div>
 
+    <div id="profile-scheduled-section" class="profile-strip-section" style="display: none;">
+        <div class="profile-strip-header">
+            <h3>Scheduled Posts</h3>
+        </div>
+        <div id="profile-scheduled-strip" class="profile-strip-row"></div>
+    </div>
+
+    <div id="profile-playlists-section" class="profile-strip-section" style="display: none;">
+        <div class="profile-strip-header">
+            <h3>Playlists</h3>
+            <div class="playlist-header-actions" style="display:none; gap:8px;">
+                <button id="search-playlists-btn" class="profile-search-btn" type="button"><i data-lucide="search"></i> Search</button>
+                <button id="create-playlist-btn" class="profile-create-btn" type="button">+ New Playlist</button>
+            </div>
+        </div>
+        <div id="profile-playlists-strip" class="profile-strip-row"></div>
+    </div>
+
     <div id="profile-action-buttons" style="display: flex; gap: 10px; margin-bottom: 15px;">
         <button id="follow-btn" class="btn" style="display: none; padding: 6px 0; border-radius: 8px; flex: 1; font-weight: bold; font-size: 0.95rem; border: none;">Follow</button>
         <button id="message-profile-btn" class="btn-transparent" style="display: none; padding: 6px 0; border-radius: 8px; flex: 1; font-weight: bold; font-size: 0.95rem; background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important;"><i data-lucide="message-square" style="width: 16px; height: 16px;"></i> Message</button>
@@ -170,6 +188,79 @@
                 <button onclick="document.getElementById('user-list-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             <div id="user-list-content" style="overflow-y:auto; flex:1;">Loading...</div>
+        </div>
+    </div>
+
+    <div id="playlist-modal" class="playlist-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2200; align-items:center; justify-content:center; padding:18px; box-sizing:border-box;" onclick="if(event.target === this) this.style.display='none'">
+        <div class="playlist-modal-card" style="width:min(90vw, 480px); background:#111827; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; color:#fff; box-shadow:0 25px 80px rgba(0,0,0,0.45);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <h3 id="playlist-modal-title" style="margin:0; color:#f59e0b;">Playlist</h3>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button id="playlist-add-content-btn" type="button" class="profile-create-btn" style="display:none;">+ Add content</button>
+                    <button type="button" onclick="document.getElementById('playlist-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.6rem; cursor:pointer;">&times;</button>
+                </div>
+            </div>
+            <p id="playlist-modal-description" style="margin:0 0 12px; color:#cbd5e1; line-height:1.5; min-height: 48px;"></p>
+            <div id="playlist-modal-items" style="display:flex; flex-direction:column; gap:10px; max-height: 50vh; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- Search existing playlists on this profile -->
+    <div id="playlist-search-modal" class="playlist-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2300; align-items:center; justify-content:center; padding:18px; box-sizing:border-box;" onclick="if(event.target === this) this.style.display='none'">
+        <div class="playlist-modal-card" style="width:min(90vw, 500px); background:#111827; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; color:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+                <h3 style="margin:0; color:#f59e0b;">Search playlists</h3>
+                <button type="button" onclick="document.getElementById('playlist-search-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.6rem; cursor:pointer;">&times;</button>
+            </div>
+            <input id="playlist-search-input" type="search" placeholder="Search by playlist name" autocomplete="off" style="width:100%; box-sizing:border-box; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:#fff;">
+            <div id="playlist-search-results" style="display:flex; flex-direction:column; gap:8px; max-height:48vh; overflow-y:auto; margin-top:12px;"></div>
+        </div>
+    </div>
+
+    <!-- Pick a playlist from a content card -->
+    <div id="playlist-picker-modal" class="playlist-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2400; align-items:center; justify-content:center; padding:18px; box-sizing:border-box;" onclick="if(event.target === this) this.style.display='none'">
+        <div class="playlist-modal-card" style="width:min(90vw, 500px); background:#111827; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; color:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+                <h3 style="margin:0; color:#f59e0b;">Save to playlist</h3>
+                <button type="button" onclick="document.getElementById('playlist-picker-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.6rem; cursor:pointer;">&times;</button>
+            </div>
+            <p id="playlist-picker-content-title" style="margin:0 0 12px; color:#cbd5e1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></p>
+            <div id="playlist-picker-list" style="display:flex; flex-direction:column; gap:8px; max-height:45vh; overflow-y:auto;"></div>
+            <button id="playlist-picker-new-btn" type="button" class="profile-create-btn" style="margin-top:12px; width:100%;">+ Create new playlist</button>
+        </div>
+    </div>
+
+    <!-- Add content inside an opened playlist -->
+    <div id="playlist-content-modal" class="playlist-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2500; align-items:center; justify-content:center; padding:18px; box-sizing:border-box;" onclick="if(event.target === this) this.style.display='none'">
+        <div class="playlist-modal-card" style="width:min(90vw, 560px); background:#111827; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; color:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+                <h3 style="margin:0; color:#f59e0b;">Add content</h3>
+                <button type="button" onclick="document.getElementById('playlist-content-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.6rem; cursor:pointer;">&times;</button>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <input id="playlist-content-search" type="search" placeholder="Search blogs, videos or flicks" autocomplete="off" style="flex:1; min-width:0; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:#fff;">
+                <select id="playlist-content-type" style="padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#1f2937; color:#fff;"><option value="all">All</option><option value="blog">Blogs</option><option value="video">Videos</option><option value="flick">Flicks</option></select>
+            </div>
+            <div id="playlist-content-results" style="display:flex; flex-direction:column; gap:8px; max-height:48vh; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <div id="new-playlist-modal" class="playlist-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2300; align-items:center; justify-content:center; padding:18px; box-sizing:border-box;" onclick="if(event.target === this) this.style.display='none'">
+        <div class="playlist-modal-card" style="width:min(90vw, 440px); background:#111827; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; color:#fff; box-shadow:0 25px 80px rgba(0,0,0,0.45);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; color:#f59e0b;">Create Playlist</h3>
+                <button type="button" onclick="document.getElementById('new-playlist-modal').style.display='none'" style="background:none; border:none; color:white; font-size:1.6rem; cursor:pointer;">&times;</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <input id="new-playlist-name" type="text" placeholder="Playlist name" maxlength="50" style="padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color:#fff; box-sizing:border-box;">
+                <textarea id="new-playlist-description" rows="3" placeholder="Description (optional)" maxlength="180" style="padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color:#fff; resize:vertical; box-sizing:border-box;"></textarea>
+                <select id="new-playlist-visibility" style="padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color:#fff; box-sizing:border-box;">
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                    <option value="unlisted">Unlisted</option>
+                </select>
+                <button id="save-playlist-btn" class="btn" type="button" style="width:100%; border-radius:10px;">Create Playlist</button>
+            </div>
         </div>
     </div>
 
@@ -289,6 +380,9 @@
     let currentUser = null;
     let currentProfileData = {}; // Store loaded profile data for lists
     let profilePageBlogs = [];
+    let profilePlaylists = [];
+    let activePlaylistId = null;
+    let pendingPlaylistContent = null;
     let isUserVerified = false; // Flag to check if current user (owner) is verified
     let isViewerAdmin = false;
     window.isViewingRestrictedProfile = false; // Use window scope for SPA access
@@ -536,6 +630,8 @@
             isProfileOwner = false;
             loadProfileData(viewUid, user);
             renderUserBlogs(viewUid, false);
+            renderScheduledPosts(viewUid, false);
+            renderPlaylists(viewUid, false);
             
             // Setup Follow Button
             if (user) { // Only show follow/message if logged in
@@ -592,6 +688,8 @@
 
                 loadProfileData(user.uid, user);
                 renderUserBlogs(user.uid, true);
+                renderScheduledPosts(user.uid, true);
+                renderPlaylists(user.uid, true);
                 renderLikedContent(user.uid);
 
                 // Check if username is required
@@ -1006,6 +1104,412 @@
         container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     };
 
+    function createScheduleStripCard(post) {
+        const item = document.createElement('div');
+        item.className = 'profile-strip-card schedule-strip-card';
+        item.onclick = () => window.location.href = `index.html?view=blog&id=${post.id}`;
+
+        let mediaHTML = '';
+        if (post.youtubeUrl) {
+            const videoId = getYoutubeVideoId(post.youtubeUrl);
+            mediaHTML = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${escapeHTML(post.title || 'Scheduled post')}" />`;
+        } else if (post.video) {
+            mediaHTML = `<video src="${post.video}#t=0.1" muted playsinline preload="metadata"></video>`;
+        } else if (post.images && post.images.length) {
+            mediaHTML = `<img src="${post.images[0]}" alt="${escapeHTML(post.title || 'Scheduled post')}" />`;
+        } else if (post.image && post.image !== 'logo.png') {
+            mediaHTML = `<img src="${post.image}" alt="${escapeHTML(post.title || 'Scheduled post')}" />`;
+        } else {
+            mediaHTML = `<div class="profile-strip-placeholder"><i data-lucide="calendar-clock"></i></div>`;
+        }
+
+        const scheduledDate = post.scheduledAt ? new Date(post.scheduledAt) : new Date(post.date || Date.now());
+        const scheduleLabel = scheduledDate.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+
+        item.innerHTML = `
+            <div class="profile-strip-media">${mediaHTML}</div>
+            <div class="profile-strip-content">
+                <span class="profile-strip-tag">Scheduled</span>
+                <h4>${escapeHTML(post.title || 'Untitled post')}</h4>
+                <p>${escapeHTML(scheduleLabel)}</p>
+            </div>
+        `;
+        return item;
+    }
+
+    async function renderScheduledPosts(uid, isOwner) {
+        const section = document.getElementById('profile-scheduled-section');
+        const container = document.getElementById('profile-scheduled-strip');
+        if (!section || !container) return;
+
+        if (!isOwner) {
+            section.style.display = 'none';
+            return;
+        }
+
+        container.innerHTML = '<p class="profile-strip-empty">Loading scheduled posts...</p>';
+        section.style.display = 'block';
+
+        try {
+            const q = query(collection(db, 'blogs'), where('authorUid', '==', uid), where('status', '==', 'scheduled'), orderBy('scheduledAt', 'desc'));
+            const snapshot = await getDocs(q);
+            const posts = [];
+            const now = Date.now();
+            const batch = writeBatch(db);
+
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                posts.push({ id: docSnap.id, ...data });
+                
+                // --- Check if scheduled time has arrived and auto-publish ---
+                if (data.scheduledAt) {
+                    const scheduledTime = new Date(data.scheduledAt).getTime();
+                    if (scheduledTime <= now) {
+                        // Auto-publish the post
+                        batch.update(doc(db, 'blogs', docSnap.id), { status: 'published' });
+                    }
+                }
+            });
+
+            // Commit batch updates
+            if (batch._mutations && batch._mutations.length > 0) {
+                await batch.commit();
+                // Reload the scheduled posts after publishing due posts
+                return renderScheduledPosts(uid, isOwner);
+            }
+
+            // Filter out published posts
+            const scheduledOnly = posts.filter(p => !p.scheduledAt || new Date(p.scheduledAt).getTime() > now);
+
+            container.innerHTML = '';
+
+            if (scheduledOnly.empty || !scheduledOnly.length) {
+                container.innerHTML = '<p class="profile-strip-empty">No scheduled posts yet.</p>';
+                return;
+            }
+
+            scheduledOnly.forEach(docData => {
+                container.appendChild(createScheduleStripCard(docData));
+            });
+        } catch (error) {
+            console.error('Error loading scheduled posts:', error);
+            container.innerHTML = '<p class="profile-strip-empty">Unable to load scheduled posts.</p>';
+        }
+    }
+
+    async function renderPlaylists(uid, isOwner) {
+        const section = document.getElementById('profile-playlists-section');
+        const container = document.getElementById('profile-playlists-strip');
+        const createBtn = document.getElementById('create-playlist-btn');
+        const headerActions = document.querySelector('.playlist-header-actions');
+        if (!section || !container) return;
+
+        section.style.display = 'block';
+        if (createBtn) createBtn.style.display = 'inline-flex';
+        if (headerActions) headerActions.style.display = isOwner ? 'flex' : 'none';
+        container.innerHTML = '<p class="profile-strip-empty">Loading playlists...</p>';
+
+        try {
+            const q = query(collection(db, 'playlists'), where('authorUid', '==', uid), orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
+            container.innerHTML = '';
+            profilePlaylists = [];
+
+            if (snapshot.empty) {
+                container.innerHTML = '<p class="profile-strip-empty">No playlists yet. Create one to organize your content.</p>';
+                return;
+            }
+
+            snapshot.forEach(docSnap => {
+                const playlist = { id: docSnap.id, ...docSnap.data() };
+                if (!isOwner && (playlist.visibility === 'private' || playlist.visibility === 'unlisted')) return;
+                profilePlaylists.push(playlist);
+
+                const card = document.createElement('div');
+                card.className = 'profile-strip-card playlist-strip-card';
+                const thumb = (playlist.coverImage && playlist.coverImage !== 'logo.png') ? `<img src="${playlist.coverImage}" alt="${escapeHTML(playlist.name || 'Playlist')}" />` : `<div class="profile-strip-placeholder"><i data-lucide="list-video"></i></div>`;
+                const itemCount = Array.isArray(playlist.items) ? playlist.items.length : 0;
+                const label = playlist.visibility ? playlist.visibility.charAt(0).toUpperCase() + playlist.visibility.slice(1) : 'Public';
+
+                card.innerHTML = `
+                    <div class="profile-strip-media">${thumb}</div>
+                    <div class="profile-strip-content">
+                        <div class="profile-strip-title-row">
+                            <span class="profile-strip-tag ${playlist.visibility || 'public'}">${label}</span>
+                            ${isOwner ? `<button type="button" class="playlist-delete-btn" data-playlist-id="${playlist.id}" title="Delete playlist">Delete</button>` : ''}
+                        </div>
+                        <h4>${escapeHTML(playlist.name || 'Untitled playlist')}</h4>
+                        <p>${escapeHTML((playlist.description || '').trim() || `${itemCount} item${itemCount === 1 ? '' : 's'}`)}</p>
+                        <button type="button" class="profile-view-btn" data-playlist-id="${playlist.id}">View</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            if (!profilePlaylists.length) {
+                container.innerHTML = `<p class="profile-strip-empty">${isOwner ? 'No playlists yet. Create one to organize your content.' : 'No public playlists yet.'}</p>`;
+                return;
+            }
+
+            container.querySelectorAll('.profile-view-btn').forEach(btn => {
+                btn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    window.openPlaylistDetails(btn.dataset.playlistId);
+                });
+            });
+
+            container.querySelectorAll('.playlist-delete-btn').forEach(btn => {
+                btn.addEventListener('click', async (event) => {
+                    event.stopPropagation();
+                    const targetId = btn.dataset.playlistId;
+                    try {
+                        await deleteDoc(doc(db, 'playlists', targetId));
+                        renderPlaylists(uid, true);
+                    } catch (error) {
+                        console.error('Error deleting playlist:', error);
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Error loading playlists:', error);
+            container.innerHTML = '<p class="profile-strip-empty">Unable to load playlists.</p>';
+        }
+    }
+
+    window.openPlaylistDetails = async function(playlistId) {
+        const modal = document.getElementById('playlist-modal');
+        const title = document.getElementById('playlist-modal-title');
+        const description = document.getElementById('playlist-modal-description');
+        const items = document.getElementById('playlist-modal-items');
+        if (!modal || !title || !description || !items) return;
+
+        try {
+            const playlistSnap = await getDoc(doc(db, 'playlists', playlistId));
+            if (!playlistSnap.exists()) {
+                modal.style.display = 'none';
+                return;
+            }
+            const playlist = playlistSnap.data();
+            activePlaylistId = playlistId;
+            title.textContent = playlist.name || 'Playlist';
+            description.textContent = playlist.description || 'This playlist has no description yet.';
+            const addButton = document.getElementById('playlist-add-content-btn');
+            const isOwner = currentUser && playlist.authorUid === currentUser.uid;
+            if (addButton) {
+                addButton.style.display = isOwner ? 'inline-flex' : 'none';
+                addButton.onclick = () => window.openPlaylistContentPicker(playlistId);
+            }
+            items.innerHTML = '';
+
+            const list = Array.isArray(playlist.items) ? playlist.items : [];
+            if (!list.length) {
+                items.innerHTML = '<p style="color:#a1a1aa; margin:0;">This playlist is empty.</p>';
+            } else {
+                list.forEach(item => {
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.alignItems = 'center';
+                    row.style.gap = '10px';
+                    row.style.padding = '10px 12px';
+                    row.style.borderRadius = '10px';
+                    row.style.background = 'rgba(255,255,255,0.04)';
+                    row.style.border = '1px solid rgba(255,255,255,0.08)';
+                    row.innerHTML = `
+                        <div style="width: 46px; height: 46px; border-radius: 8px; overflow:hidden; background:#1f2937; display:flex; align-items:center; justify-content:center;">
+                            ${item.image ? `<img src="${item.image}" style="width:100%; height:100%; object-fit:cover;" />` : '<i data-lucide="folder-video" style="width:18px; height:18px;"></i>'}
+                        </div>
+                        <div style="flex:1; min-width: 0;">
+                            <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHTML(item.title || 'Untitled item')}</div>
+                            <div style="font-size: 0.75rem; color: #9ca3af; text-transform: capitalize;">${escapeHTML(item.type || 'content')}</div>
+                        </div>
+                        ${isOwner ? `<button type="button" class="playlist-remove-item" data-content-id="${item.contentId}" style="background:none; color:#fca5a5; border:none; cursor:pointer; padding:6px;" title="Remove from playlist"><i data-lucide="x"></i></button>` : ''}
+                    `;
+                    row.onclick = () => { if (item.url) window.location.href = item.url; };
+                    items.appendChild(row);
+                });
+                if (isOwner) {
+                    items.querySelectorAll('.playlist-remove-item').forEach(button => {
+                        button.addEventListener('click', async (event) => {
+                            event.stopPropagation();
+                            await window.removePlaylistItem(playlistId, button.dataset.contentId);
+                        });
+                    });
+                }
+            }
+            if (window.lucide) window.lucide.createIcons();
+            modal.style.display = 'flex';
+        } catch (error) {
+            console.error('Error opening playlist details:', error);
+        }
+    };
+
+    function getPlaylistContentType(blog) {
+        if (blog.isFlicker) return 'flick';
+        return (blog.video || blog.youtubeUrl) ? 'video' : 'blog';
+    }
+
+    function getPlaylistContentImage(blog) {
+        if (blog.thumbnail) return blog.thumbnail;
+        if (blog.images && blog.images.length) return blog.images[0];
+        if (blog.image && blog.image !== 'logo.png') return blog.image;
+        if (blog.youtubeUrl) {
+            const videoId = getYoutubeVideoId(blog.youtubeUrl);
+            return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
+        }
+        return '';
+    }
+
+    function getPlaylistContentUrl(blog) {
+        const type = getPlaylistContentType(blog);
+        return type === 'flick' ? `flicks.html?id=${blog.id}` : type === 'video' ? `watch.html?id=${blog.id}` : `index.html?view=blog&id=${blog.id}`;
+    }
+
+    function playlistItemFromBlog(blog) {
+        return { contentId: blog.id, title: blog.title || 'Untitled content', type: getPlaylistContentType(blog), image: getPlaylistContentImage(blog), url: getPlaylistContentUrl(blog), addedAt: new Date().toISOString() };
+    }
+
+    function playlistRowHtml(playlist) {
+        const count = Array.isArray(playlist.items) ? playlist.items.length : 0;
+        return `<button type="button" class="playlist-search-result" data-playlist-id="${playlist.id}" style="width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px; text-align:left; padding:12px; border:1px solid rgba(255,255,255,.08); border-radius:10px; background:rgba(255,255,255,.04); color:#fff; cursor:pointer;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong>${escapeHTML(playlist.name || 'Untitled playlist')}</strong><small style="display:block; color:#9ca3af; margin-top:3px;">${count} item${count === 1 ? '' : 's'}</small></span><i data-lucide="chevron-right"></i></button>`;
+    }
+
+    function renderPlaylistSearch(queryText = '') {
+        const results = document.getElementById('playlist-search-results');
+        if (!results) return;
+        const needle = queryText.trim().toLowerCase();
+        const matches = profilePlaylists.filter(playlist => !needle || `${playlist.name || ''} ${playlist.description || ''}`.toLowerCase().includes(needle));
+        results.innerHTML = matches.length ? matches.map(playlistRowHtml).join('') : '<p style="color:#9ca3af; margin:8px 0;">No matching playlists.</p>';
+        results.querySelectorAll('.playlist-search-result').forEach(button => button.onclick = () => {
+            document.getElementById('playlist-search-modal').style.display = 'none';
+            window.openPlaylistDetails(button.dataset.playlistId);
+        });
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    window.openPlaylistPicker = async function(blogId) {
+        const blog = profilePageBlogs.find(item => item.id === blogId);
+        const modal = document.getElementById('playlist-picker-modal');
+        const list = document.getElementById('playlist-picker-list');
+        if (!blog || !currentUser || !modal || !list) return;
+        document.getElementById('playlist-picker-content-title').textContent = blog.title || 'Untitled content';
+        if (!profilePlaylists.length) await renderPlaylists(currentUser.uid, true);
+        list.innerHTML = profilePlaylists.length ? profilePlaylists.map(playlistRowHtml).join('') : '<p style="color:#9ca3af; margin:8px 0;">No playlists yet.</p>';
+        list.querySelectorAll('.playlist-search-result').forEach(button => button.onclick = () => window.addContentToPlaylist(button.dataset.playlistId, blog));
+        document.getElementById('playlist-picker-new-btn').onclick = () => {
+            pendingPlaylistContent = blog;
+            document.getElementById('playlist-picker-modal').style.display = 'none';
+            document.getElementById('new-playlist-modal').style.display = 'flex';
+        };
+        if (window.lucide) window.lucide.createIcons();
+        modal.style.display = 'flex';
+    };
+
+    window.addContentToPlaylist = async function(playlistId, blog) {
+        const playlistSnap = await getDoc(doc(db, 'playlists', playlistId));
+        if (!playlistSnap.exists() || !currentUser || playlistSnap.data().authorUid !== currentUser.uid) return;
+        const playlist = playlistSnap.data();
+        const item = playlistItemFromBlog(blog);
+        const currentItems = Array.isArray(playlist.items) ? playlist.items : [];
+        if (currentItems.some(existing => existing.contentId === item.contentId)) {
+            await window.viyouAlert('This content is already in the playlist.');
+            return;
+        }
+        await updateDoc(doc(db, 'playlists', playlistId), { items: [...currentItems, item], coverImage: playlist.coverImage || item.image || '' });
+        document.getElementById('playlist-picker-modal').style.display = 'none';
+        document.getElementById('playlist-content-modal').style.display = 'none';
+        await renderPlaylists(currentUser.uid, true);
+        if (activePlaylistId === playlistId) window.openPlaylistDetails(playlistId);
+    };
+
+    window.removePlaylistItem = async function(playlistId, contentId) {
+        const playlistSnap = await getDoc(doc(db, 'playlists', playlistId));
+        if (!playlistSnap.exists() || playlistSnap.data().authorUid !== currentUser?.uid) return;
+        const items = (playlistSnap.data().items || []).filter(item => item.contentId !== contentId);
+        await updateDoc(doc(db, 'playlists', playlistId), { items });
+        await renderPlaylists(currentUser.uid, true);
+        window.openPlaylistDetails(playlistId);
+    };
+
+    window.openPlaylistContentPicker = function(playlistId) {
+        activePlaylistId = playlistId;
+        const modal = document.getElementById('playlist-content-modal');
+        const search = document.getElementById('playlist-content-search');
+        const type = document.getElementById('playlist-content-type');
+        const results = document.getElementById('playlist-content-results');
+        const render = () => {
+            const needle = search.value.trim().toLowerCase();
+            const selectedType = type.value;
+            const playlist = profilePlaylists.find(item => item.id === playlistId);
+            const included = new Set((playlist?.items || []).map(item => item.contentId));
+            const matches = profilePageBlogs.filter(blog => blog.status !== 'draft' && !included.has(blog.id) && (selectedType === 'all' || getPlaylistContentType(blog) === selectedType) && (!needle || `${blog.title || ''} ${blog.content || ''}`.toLowerCase().includes(needle)));
+            results.innerHTML = matches.length ? matches.map(blog => `<button type="button" data-content-id="${blog.id}" class="playlist-content-result" style="width:100%; display:flex; align-items:center; gap:10px; padding:9px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#fff; text-align:left; cursor:pointer;"><span style="width:48px; height:40px; background:#1f2937; border-radius:6px; overflow:hidden; flex-shrink:0;">${getPlaylistContentImage(blog) ? `<img src="${getPlaylistContentImage(blog)}" style="width:100%; height:100%; object-fit:cover;">` : ''}</span><span style="min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHTML(blog.title || 'Untitled content')}<small style="display:block; color:#9ca3af; margin-top:3px; text-transform:capitalize;">${getPlaylistContentType(blog)}</small></span><i data-lucide="plus"></i></button>`).join('') : '<p style="color:#9ca3af; margin:8px 0;">No content found.</p>';
+            results.querySelectorAll('.playlist-content-result').forEach(button => button.onclick = () => {
+                const content = profilePageBlogs.find(blog => blog.id === button.dataset.contentId);
+                if (content) window.addContentToPlaylist(playlistId, content);
+            });
+            if (window.lucide) window.lucide.createIcons();
+        };
+        search.value = '';
+        type.value = 'all';
+        search.oninput = render;
+        type.onchange = render;
+        render();
+        modal.style.display = 'flex';
+    };
+
+    document.getElementById('search-playlists-btn')?.addEventListener('click', () => {
+        document.getElementById('playlist-search-modal').style.display = 'flex';
+        const input = document.getElementById('playlist-search-input');
+        input.value = '';
+        input.oninput = () => renderPlaylistSearch(input.value);
+        renderPlaylistSearch();
+        input.focus();
+    });
+
+    document.getElementById('create-playlist-btn')?.addEventListener('click', () => {
+        const modal = document.getElementById('new-playlist-modal');
+        if (modal) modal.style.display = 'flex';
+    });
+
+    document.getElementById('save-playlist-btn')?.addEventListener('click', async () => {
+        const playlistName = document.getElementById('new-playlist-name');
+        const playlistDescription = document.getElementById('new-playlist-description');
+        const playlistVisibility = document.getElementById('new-playlist-visibility');
+
+        if (!currentUser || !playlistName || !playlistDescription || !playlistVisibility) return;
+        const name = playlistName.value.trim();
+        if (!name) {
+            await window.viyouAlert('Playlist name is required.');
+            return;
+        }
+
+        try {
+            const newPlaylistRef = await addDoc(collection(db, 'playlists'), {
+                authorUid: currentUser.uid,
+                authorName: currentUser.displayName || 'User',
+                name,
+                description: playlistDescription.value.trim(),
+                visibility: playlistVisibility.value,
+                createdAt: new Date().toISOString(),
+                items: [],
+                coverImage: ''
+            });
+            document.getElementById('new-playlist-modal').style.display = 'none';
+            playlistName.value = '';
+            playlistDescription.value = '';
+            playlistVisibility.value = 'public';
+            await renderPlaylists(currentUser.uid, true);
+            if (pendingPlaylistContent) {
+                const contentToAdd = pendingPlaylistContent;
+                pendingPlaylistContent = null;
+                await window.addContentToPlaylist(newPlaylistRef.id, contentToAdd);
+            }
+        } catch (error) {
+            console.error('Error creating playlist:', error);
+            await window.viyouAlert('Unable to create playlist right now.');
+        }
+    });
+
     async function renderLikedContent(uid) {
         const list = document.getElementById('my-liked-list');
         list.innerHTML = '<p style="text-align:center; color:#aaa; grid-column: 1 / -1;">Loading liked posts...</p>';
@@ -1200,6 +1704,7 @@
                             <button onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" class="flick-grid-action-btn" title="Edit" style="color: #f59e0b;"><i data-lucide="pen" style="width: 14px; height: 14px;"></i></button>
                             <button onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" class="flick-grid-action-btn" title="Delete" style="color: #ff6b6b;"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i></button>
                         <div style="display: flex; gap: 10px; justify-content: space-around; padding-bottom: 5px;">
+                            <button onclick="event.stopPropagation(); window.openPlaylistPicker('${blog.id}')" style="background:none; border:none; color:#a5b4fc; cursor:pointer; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 4px;" title="Add to playlist"><i data-lucide="list-plus" style="width: 14px; height: 14px;"></i> Playlist</button>
                             <button onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#f59e0b; cursor:pointer; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 4px;" title="Edit"><i data-lucide="pen" style="width: 14px; height: 14px;"></i> Edit</button>
                             <button onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 4px;" title="Delete"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete</button>
                         </div>
@@ -1282,6 +1787,7 @@
 
                 editDelHtml = `
                     <div style="display: flex; gap: 15px; margin-top: 5px;">
+                        <button onclick="event.stopPropagation(); window.openPlaylistPicker('${blog.id}')" style="background:none; border:none; color:#a5b4fc; cursor:pointer; font-size: 0.85rem; padding: 0;"><i data-lucide="list-plus"></i> Playlist</button>
                         <button onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#f59e0b; cursor:pointer; font-size: 0.85rem; padding: 0;"><i data-lucide="pen"></i> Edit</button>
                         <button onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.85rem; padding: 0;"><i data-lucide="trash-2"></i> Delete</button>
                         ${promoteBtnHtmlGrid}
@@ -1386,7 +1892,7 @@
             } else {
                 promoteBtnHtmlFull = `<button onclick="window.location.href='promote.html?id=${blog.id}'" class="btn-promote" style="margin-left: auto;"><i class="fa-solid fa-rocket"></i> Promote Ad</button>`;
             }
-            actionButtons += `<div style="margin-left: auto;">${promoteBtnHtmlFull}</div>`;
+            actionButtons += `<button onclick="event.stopPropagation(); window.openPlaylistPicker('${blog.id}')" style="background:none; border:none; color:#a5b4fc; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i data-lucide="list-plus"></i> Playlist</button><div style="margin-left: auto;">${promoteBtnHtmlFull}</div>`;
         }
 
         let mediaHtml = '';

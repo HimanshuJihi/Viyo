@@ -260,7 +260,10 @@
                 
                 const blogs = [];
                 blogsSnap.forEach(doc => {
-                    if (doc.data().status !== 'draft' && doc.data().isFlicker === true) { blogs.push({ id: doc.id, ...doc.data() }); }
+                    const data = doc.data();
+                    const isScheduledNotDue = data.status === 'scheduled' && data.scheduledAt && new Date(data.scheduledAt).getTime() > Date.now();
+                    const isUnlisted = data.visibility === 'unlisted';
+                    if (data.status !== 'draft' && !isScheduledNotDue && !isUnlisted && data.isFlicker === true) { blogs.push({ id: doc.id, ...data }); }
                 });
 
                 blogs.sort((a, b) => (b.views || 0) - (a.views || 0));

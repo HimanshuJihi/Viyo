@@ -1011,6 +1011,15 @@
                 return;
             }
 
+            // Verify auth token is still valid
+            try {
+                const token = await auth.currentUser.getIdToken();
+                if (!token) throw new Error("Auth token expired");
+            } catch (err) {
+                alert("Your session has expired. Please refresh and try again.");
+                return;
+            }
+
             document.getElementById('upload-overlay').classList.remove('hidden');
             if (window.lucide) window.lucide.createIcons();
 
@@ -1102,26 +1111,44 @@
 
                 const finalDataUrl = window.isStoryVideo ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
 
-                // 2. Upload to Storage
+                // 2. Upload to Storage with better error handling
                 const uid = auth.currentUser.uid;
                 const ts = Date.now();
                 let downloadUrl = null;
                 let statusVideoUrl = null;
                 let storyDrawingUrl = null;
                 
-                if (window.isStoryVideo && window.storyVideoBlob) {
-                    const ext = window.storyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
-                    const videoRef = ref(storage, `stories/${uid}_${ts}_vid.${ext}`);
-                    await uploadBytes(videoRef, window.storyVideoBlob);
-                    statusVideoUrl = await getDownloadURL(videoRef);
+                try {
+                    if (window.isStoryVideo && window.storyVideoBlob) {
+                        const ext = window.storyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                        const videoRef = ref(storage, `stories/${uid}_${ts}_vid.${ext}`);
+                        await uploadBytes(videoRef, window.storyVideoBlob);
+                        statusVideoUrl = await getDownloadURL(videoRef);
+                        
+                        const drawRef = ref(storage, `stories/${uid}_${ts}_draw.png`);
+                        await uploadString(drawRef, finalDataUrl, 'data_url');
+                        storyDrawingUrl = await getDownloadURL(drawRef);
+                    } else {
+                        const storageRef = ref(storage, `stories/${uid}_${ts}_img.jpg`);
+                        await uploadString(storageRef, finalDataUrl, 'data_url');
+                        downloadUrl = await getDownloadURL(storageRef);
+                    }
+                } catch (storageErr) {
+                    console.error("Storage Error:", storageErr);
+                    document.getElementById('upload-overlay').classList.add('hidden');
                     
-                    const drawRef = ref(storage, `stories/${uid}_${ts}_draw.png`);
-                    await uploadString(drawRef, finalDataUrl, 'data_url');
-                    storyDrawingUrl = await getDownloadURL(drawRef);
-                } else {
-                    const storageRef = ref(storage, `stories/${uid}_${ts}_img.jpg`);
-                    await uploadString(storageRef, finalDataUrl, 'data_url');
-                    downloadUrl = await getDownloadURL(storageRef);
+                    if (storageErr.code === 'storage/unauthorized') {
+                        alert("Permission denied: Unable to upload story. Please check your internet connection and try again. If the problem persists, refresh the page and log in again.");
+                    } else if (storageErr.code === 'storage/retry-limit-exceeded') {
+                        alert("Upload failed: Network error. Please check your connection and try again.");
+                    } else if (storageErr.message && storageErr.message.includes('User does not have permission')) {
+                        alert("Your session has expired. Please refresh the page and log in again to post stories.");
+                        // Force re-authentication
+                        setTimeout(() => window.location.href = 'index.html', 2000);
+                    } else {
+                        alert("Failed to upload: " + (storageErr.message || "Unknown error"));
+                    }
+                    return;
                 }
 
                 // 3. Mentions Logic
@@ -1176,8 +1203,13 @@
 
             } catch (err) {
                 console.error("Error posting story:", err);
-                alert("Failed to post story. " + err.message);
                 document.getElementById('upload-overlay').classList.add('hidden');
+                
+                if (err.message && err.message.includes('auth')) {
+                    alert("Authentication error. Please refresh and log in again.");
+                } else {
+                    alert("Failed to post story: " + (err.message || "Unknown error"));
+                }
             }
         };
     </script>
