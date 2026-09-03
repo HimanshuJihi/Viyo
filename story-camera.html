@@ -222,7 +222,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs, limit, addDoc, doc, getDoc, orderBy, updateDoc, arrayUnion, arrayRemove, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadString, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { firebaseConfig } from "./firebase-config.js";
 
@@ -230,6 +230,13 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const storage = getStorage(app);
+        let authReadyUser = null;
+        let authReadyResolve;
+        const authReady = new Promise(resolve => { authReadyResolve = resolve; });
+        onAuthStateChanged(auth, user => {
+            authReadyUser = user;
+            authReadyResolve(user);
+        });
         
         lucide.createIcons();
 
@@ -1006,14 +1013,15 @@
         }
 
         window.postStory = async () => {
-            if (!auth.currentUser) {
+            const user = auth.currentUser || await authReady;
+            if (!user) {
                 alert("Please login to post a story!");
                 return;
             }
 
             // Verify auth token is still valid
             try {
-                const token = await auth.currentUser.getIdToken();
+                const token = await user.getIdToken(true);
                 if (!token) throw new Error("Auth token expired");
             } catch (err) {
                 alert("Your session has expired. Please refresh and try again.");
@@ -1138,7 +1146,7 @@
                 const finalDataUrl = window.isStoryVideo ? canvas.toDataURL('image/png') : await compressStoryImage(canvas, 100 * 1024);
 
                 // 2. Upload to Storage with better error handling
-                const uid = auth.currentUser.uid;
+                const uid = user.uid;
                 const ts = Date.now();
                 let downloadUrl = null;
                 let statusVideoUrl = null;
@@ -1164,7 +1172,12 @@
                     document.getElementById('upload-overlay').classList.add('hidden');
                     
                     if (storageErr.code === 'storage/unauthorized') {
-                        alert("Permission denied: Unable to upload story. Please check your internet connection and try again. If the problem persists, refresh the page and log in again.");
+                        if (!window.isStoryVideo && finalDataUrl.length <= 900000) {
+                            downloadUrl = finalDataUrl;
+                        } else {
+                            alert("Storage permission denied. Image/text stories need Firestore fallback, while video stories require Firebase Storage.");
+                            return;
+                        }
                     } else if (storageErr.code === 'storage/retry-limit-exceeded') {
                         alert("Upload failed: Network error. Please check your connection and try again.");
                     } else if (storageErr.message && storageErr.message.includes('User does not have permission')) {

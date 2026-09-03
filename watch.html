@@ -74,7 +74,7 @@
 
     <script type="module" src="playlist-actions.js"></script>
     <script type="module">
-        import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where, setDoc, serverTimestamp, startAfter } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where, setDoc, serverTimestamp, startAfter, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { db, auth } from "./firebase-config.js";
 
@@ -87,6 +87,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const blogId = urlParams.get('id');
         let currentBlog = null;
+        let followingUnsubscribe = null;
         let vastAdConfig = {};
         let preRollAdConfig = { frequency: 3, activeAds: [] };
 
@@ -262,6 +263,13 @@
                     const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
                     if (userDoc.exists()) {
                         window.currentUserFollowing = userDoc.data().following || [];
+                        if (followingUnsubscribe) followingUnsubscribe();
+                        followingUnsubscribe = onSnapshot(doc(db, "users", auth.currentUser.uid), (snapshot) => {
+                            if (!snapshot.exists()) return;
+                            window.currentUserFollowing = snapshot.data().following || [];
+                            const authorUid = currentBlog?.authorUid;
+                            if (authorUid) window.syncFollowButtons(authorUid, window.currentUserFollowing.includes(authorUid));
+                        }, (error) => console.warn("Following realtime sync unavailable:", error.message));
                     }
                 } catch(e) {}
             }
@@ -1375,6 +1383,25 @@
 
         window.shareVideo = async () => { navigator.clipboard.writeText(window.location.href); await window.viyouAlert('Link copied to clipboard!'); };
 
+        window.syncFollowButtons = function(targetUid, isFollowing) {
+            document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
+                btn.innerText = isFollowing ? 'Following' : 'Follow';
+                btn.classList.toggle('following', isFollowing);
+                if (btn.id === 'watch-follow-btn') btn.style.background = isFollowing ? 'rgba(255,255,255,0.2)' : '#ff0050';
+            });
+        };
+        window.addEventListener('storage', (event) => {
+            if (event.key !== 'viyou-follow-sync' || !event.newValue) return;
+            try {
+                const state = JSON.parse(event.newValue);
+                window.currentUserFollowing = state.isFollowing
+                    ? [...new Set([...window.currentUserFollowing, state.targetUid])]
+                    : window.currentUserFollowing.filter(id => id !== state.targetUid);
+                window.syncFollowButtons(state.targetUid, state.isFollowing);
+                if (typeof renderVideo === 'function') renderVideo();
+            } catch (error) { console.warn('Follow sync event ignored:', error); }
+        });
+
         window.toggleFollow = async function(targetUid) {
             if (!auth.currentUser) { alert("Please login to follow!"); return; }
             const myUid = auth.currentUser.uid;
@@ -1385,6 +1412,7 @@
             } else {
                 window.currentUserFollowing.push(targetUid);
             }
+            localStorage.setItem('viyou-follow-sync', JSON.stringify({ targetUid, isFollowing: !isUnfollowing, at: Date.now() }));
 
             document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
                 if (isUnfollowing) {

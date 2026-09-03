@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Story | Viyou</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { color-scheme: dark; --bg: #071012; --panel: #102023; --panel-2: #172c2e; --line: rgba(157, 211, 198, .2); --text: #f1faf7; --muted: #91aaa5; --accent: #22a889; }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; margin: 0; padding: 24px 16px; display: grid; place-items: center; background: radial-gradient(circle at 10% 0%, #16433d 0, transparent 35%), var(--bg); color: var(--text); font-family: Outfit, sans-serif; }
+        .composer { width: min(100%, 920px); overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: rgba(16, 32, 35, .96); box-shadow: 0 24px 70px rgba(0,0,0,.35); }
+        .topbar { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+        .icon-btn { display: grid; place-items: center; width: 38px; height: 38px; border: 0; border-radius: 50%; background: transparent; color: var(--text); cursor: pointer; }
+        .icon-btn:hover { background: rgba(255,255,255,.08); }
+        h1 { margin: 0; font-size: 1.2rem; }
+        .subtitle { margin: 3px 0 0; color: var(--muted); font-size: .8rem; }
+        form { padding: 22px 20px 20px; }
+        .studio-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 22px; }
+        .mode-row, .tool-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        .mode-btn, .swatch, .filter-btn { border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); color: var(--muted); cursor: pointer; font: 600 .78rem Outfit, sans-serif; }
+        .mode-btn { flex: 1; min-width: 130px; padding: 12px; }
+        .mode-btn.active, .filter-btn.active { border-color: var(--accent); background: rgba(34,168,137,.18); color: var(--text); }
+        .editor { position: relative; display: grid; place-items: center; min-height: 520px; margin-top: 17px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #182f36; }
+        .story-canvas { position: relative; width: min(100%, 360px); aspect-ratio: 9 / 16; overflow: hidden; background: #263b46; box-shadow: 0 16px 35px rgba(0,0,0,.28); }
+        .story-canvas img { display: block; width: 100%; height: 100%; object-fit: cover; transition: filter .2s; }
+        .story-canvas.blank img { display: none; }
+        .story-text-layer { position: absolute; left: 50%; top: 50%; max-width: 88%; padding: 8px 12px; color: #fff; cursor: grab; user-select: none; text-align: center; line-height: 1.15; font-weight: 700; text-shadow: 0 2px 7px rgba(0,0,0,.8); transform: translate(-50%, -50%); touch-action: none; }
+        .story-text-layer.selected { outline: 2px dashed rgba(255,255,255,.75); outline-offset: 4px; }
+        .delete-dropzone { display: none; position: absolute; left: 50%; bottom: 12px; z-index: 5; transform: translateX(-50%); padding: 9px 15px; border-radius: 20px; background: rgba(185,45,68,.92); color: white; font-size: .76rem; pointer-events: none; }
+        .editor.dragging .delete-dropzone { display: block; }
+        .story-text-layer:active { cursor: grabbing; }
+        .canvas-empty { position: absolute; color: rgba(255,255,255,.45); font-size: .8rem; pointer-events: none; }
+        .controls-panel { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.025); }
+        .control-group { margin-bottom: 17px; }
+        .control-group:last-child { margin-bottom: 0; }
+        .control-group label { margin-bottom: 8px; }
+        .control-group input[type="color"] { width: 100%; height: 38px; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
+        .control-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+        .swatch { width: 29px; height: 29px; padding: 0; border-radius: 50%; }
+        .filter-btn { padding: 7px 9px; }
+        label { display: block; margin-bottom: 7px; color: #b7cbc7; font-size: .8rem; font-weight: 600; }
+        input[type="text"], textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; outline: 0; background: var(--panel-2); color: var(--text); font: inherit; }
+        input[type="text"] { padding: 12px 13px; margin-bottom: 17px; }
+        textarea { min-height: 145px; padding: 13px; resize: vertical; line-height: 1.5; }
+        input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(34,168,137,.15); }
+        .upload { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 17px; padding: 14px; border: 1px dashed rgba(157,211,198,.35); border-radius: 12px; background: rgba(255,255,255,.025); }
+        .upload-copy strong { display: block; font-size: .9rem; }
+        .upload-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: .75rem; }
+        .choose-btn, .publish-btn { border: 0; border-radius: 9px; color: white; font: 600 .85rem Outfit, sans-serif; cursor: pointer; }
+        .choose-btn { flex: 0 0 auto; padding: 10px 13px; background: #24524c; }
+        .choose-btn:hover { background: #2c6d63; }
+        .preview { position: relative; display: none; margin-top: 14px; overflow: hidden; border-radius: 12px; background: #050909; text-align: center; }
+        .preview img { display: block; width: 100%; max-height: 330px; object-fit: contain; }
+        .remove-image { position: absolute; top: 9px; right: 9px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(0,0,0,.7); color: white; cursor: pointer; }
+        .footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+        #status { min-height: 20px; color: var(--muted); font-size: .8rem; }
+        .publish-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; background: var(--accent); }
+        .publish-btn:hover { background: #2bc19d; }
+        .publish-btn:disabled { cursor: wait; opacity: .6; }
+        @media (max-width: 760px) { .studio-grid { grid-template-columns: 1fr; } .controls-panel { order: -1; } .editor { min-height: auto; padding: 14px; } }
+        @media (max-width: 520px) { body { padding: 0; place-items: stretch; } .composer { width: 100%; min-height: 100vh; border: 0; border-radius: 0; } form { padding: 20px 16px; } .upload { align-items: flex-start; flex-direction: column; } .choose-btn { width: 100%; } .footer { align-items: stretch; flex-direction: column; } .publish-btn { justify-content: center; } }
+    </style>
+</head>
+<body>
+    <main class="composer">
+        <header class="topbar">
+            <button class="icon-btn" type="button" onclick="history.back()" title="Go back"><i data-lucide="arrow-left"></i></button>
+            <div><h1>Create a story</h1><p class="subtitle">Share a thought or one image with your followers</p></div>
+        </header>
+        <form id="story-form">
+            <div class="studio-grid">
+                <section>
+                    <label>Start with</label>
+                    <div class="mode-row">
+                        <button class="mode-btn active" id="image-mode-btn" type="button"><i data-lucide="image"></i> Image story</button>
+                        <button class="mode-btn" id="blank-mode-btn" type="button"><i data-lucide="square"></i> Blank story</button>
+                    </div>
+                    <div class="editor" id="editor">
+                        <div class="story-canvas" id="story-canvas"><img id="preview-image" alt="Story preview"><span class="canvas-empty" id="canvas-empty">Choose an image or use a blank page</span><div id="text-layer-container"></div><span class="delete-dropzone">Release to delete</span></div>
+                    </div>
+                </section>
+                <aside class="controls-panel">
+                    <div class="control-group"><label for="story-text">Add text</label><textarea id="story-text" maxlength="5000" placeholder="Write a text layer..."></textarea><button class="choose-btn" id="add-text-btn" type="button" style="width:100%; margin-top:8px;"><i data-lucide="plus"></i> Add text layer</button></div>
+                    <div class="control-group"><label>Blank background</label><div class="tool-row"><button class="swatch" type="button" data-bg="#172c2e" style="background:#172c2e"></button><button class="swatch" type="button" data-bg="#183b56" style="background:#183b56"></button><button class="swatch" type="button" data-bg="#5a2738" style="background:#5a2738"></button><button class="swatch" type="button" data-bg="#493d24" style="background:#493d24"></button><button class="swatch" type="button" data-bg="#f1eee5" style="background:#f1eee5"></button><input id="custom-bg" type="color" value="#172c2e" title="Custom background"></div></div>
+                    <div class="control-group"><label for="font-style">Font style</label><select id="font-style"><option value="Outfit, sans-serif">Outfit</option><option value="Georgia, serif">Editorial</option><option value="monospace">Typewriter</option><option value="cursive">Handwritten</option></select></div>
+                    <div class="control-group"><label for="font-size">Text size</label><input id="font-size" type="range" min="16" max="58" value="28"><output id="font-size-value">28px</output></div>
+                    <div class="control-group"><label for="text-color">Text color</label><input id="text-color" type="color" value="#ffffff"></div>
+                    <div class="control-group"><label>Image filter</label><div class="tool-row"><button class="filter-btn active" type="button" data-filter="none">Original</button><button class="filter-btn" type="button" data-filter="grayscale(1)">Mono</button><button class="filter-btn" type="button" data-filter="sepia(.65)">Warm</button><button class="filter-btn" type="button" data-filter="contrast(1.25) saturate(1.35)">Pop</button></div></div>
+                    <div class="upload"><div class="upload-copy"><strong>Add an image</strong><span>Compressed before saving</span></div><button class="choose-btn" type="button" onclick="document.getElementById('story-image').click()">Choose image</button><input id="story-image" type="file" accept="image/*" hidden></div>
+                    <div class="footer"><span id="status"></span><button class="publish-btn" id="publish-btn" type="submit"><i data-lucide="send"></i> Publish story</button></div>
+                </aside>
+            </div>
+        </form>
+    </main>
+    <script type="module">
+        import { getFirestore, collection, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { db, auth } from "./firebase-config.js";
+
+        lucide.createIcons();
+        let signedInUser = null;
+        let imageData = null;
+        let imageType = null;
+        let storyMode = 'image';
+        let storyBackground = '#172c2e';
+        let storyFilter = 'none';
+        let textLayers = [];
+        let selectedTextId = null;
+        let dragStart = null;
+        let authResolve;
+        const authReady = new Promise(resolve => { authResolve = resolve; });
+        onAuthStateChanged(auth, user => { signedInUser = user; authResolve(user); });
+
+        const status = document.getElementById('status');
+        const imageInput = document.getElementById('story-image');
+        const previewImage = document.getElementById('preview-image');
+        const canvas = document.getElementById('story-canvas');
+        const canvasEmpty = document.getElementById('canvas-empty');
+        const textLayerContainer = document.getElementById('text-layer-container');
+        const storyText = document.getElementById('story-text');
+        const fontStyle = document.getElementById('font-style');
+        const fontSize = document.getElementById('font-size');
+        const fontSizeValue = document.getElementById('font-size-value');
+        const textColor = document.getElementById('text-color');
+
+        function setStatus(message, isError = false) { status.textContent = message; status.style.color = isError ? '#ff9b9b' : ''; }
+        function updatePreview() {
+            canvas.classList.toggle('blank', storyMode === 'blank');
+            canvas.style.background = storyBackground;
+            previewImage.style.filter = storyFilter;
+            canvasEmpty.style.display = imageData || storyMode === 'blank' ? 'none' : 'block';
+            textLayerContainer.innerHTML = '';
+            textLayers.forEach(layer => {
+                const element = document.createElement('div');
+                element.className = `story-text-layer${layer.id === selectedTextId ? ' selected' : ''}`;
+                element.textContent = layer.text;
+                element.dataset.layerId = layer.id;
+                element.style.left = `${layer.x}%`;
+                element.style.top = `${layer.y}%`;
+                element.style.fontFamily = layer.font;
+                element.style.fontSize = `${layer.size}px`;
+                element.style.color = layer.color;
+                element.addEventListener('pointerdown', startLayerDrag);
+                element.addEventListener('click', () => selectLayer(layer.id));
+                textLayerContainer.appendChild(element);
+            });
+            fontSizeValue.value = `${fontSize.value}px`;
+        }
+        function removeImage() { imageData = null; imageType = null; imageInput.value = ''; previewImage.removeAttribute('src'); updatePreview(); }
+        window.removeImage = removeImage;
+
+        document.getElementById('image-mode-btn').addEventListener('click', () => { storyMode = 'image'; document.getElementById('image-mode-btn').classList.add('active'); document.getElementById('blank-mode-btn').classList.remove('active'); updatePreview(); });
+        document.getElementById('blank-mode-btn').addEventListener('click', () => { storyMode = 'blank'; document.getElementById('blank-mode-btn').classList.add('active'); document.getElementById('image-mode-btn').classList.remove('active'); updatePreview(); });
+        document.querySelectorAll('[data-bg]').forEach(button => button.addEventListener('click', () => { storyBackground = button.dataset.bg; document.getElementById('custom-bg').value = storyBackground; updatePreview(); }));
+        document.getElementById('custom-bg').addEventListener('input', event => { storyBackground = event.target.value; updatePreview(); });
+        document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => { storyFilter = button.dataset.filter; document.querySelectorAll('[data-filter]').forEach(item => item.classList.remove('active')); button.classList.add('active'); updatePreview(); }));
+        function selectLayer(id) { selectedTextId = id; const layer = textLayers.find(item => item.id === id); if (layer) { storyText.value = layer.text; fontStyle.value = layer.font; fontSize.value = layer.size; textColor.value = layer.color; setStatus('Editing selected text layer.'); } updatePreview(); }
+        function startLayerDrag(event) { event.stopPropagation(); const layer = textLayers.find(item => item.id === event.currentTarget.dataset.layerId); if (!layer) return; selectLayer(layer.id); dragStart = { id: layer.id, x: event.clientX, y: event.clientY, left: layer.x, top: layer.y }; document.getElementById('editor').classList.add('dragging'); }
+        document.addEventListener('pointermove', event => { if (!dragStart) return; const rect = canvas.getBoundingClientRect(); const layer = textLayers.find(item => item.id === dragStart.id); const element = textLayerContainer.querySelector(`[data-layer-id="${dragStart.id}"]`); if (!layer || !element) return; layer.x = Math.max(6, Math.min(94, dragStart.left + ((event.clientX - dragStart.x) / rect.width) * 100)); layer.y = Math.max(6, Math.min(94, dragStart.top + ((event.clientY - dragStart.y) / rect.height) * 100)); element.style.left = `${layer.x}%`; element.style.top = `${layer.y}%`; });
+        document.addEventListener('pointerup', event => { if (!dragStart) return; const rect = canvas.getBoundingClientRect(); const layer = textLayers.find(item => item.id === dragStart.id); if (layer && event.clientY > rect.bottom - 55) textLayers = textLayers.filter(item => item.id !== dragStart.id); dragStart = null; document.getElementById('editor').classList.remove('dragging'); updatePreview(); });
+        document.addEventListener('pointercancel', () => { dragStart = null; document.getElementById('editor').classList.remove('dragging'); });
+        document.getElementById('add-text-btn').addEventListener('click', () => { const text = storyText.value.trim(); if (!text) { setStatus('Write something before adding a layer.', true); return; } const layer = { id: `text_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, text, x: 50, y: 50, font: fontStyle.value, size: Number(fontSize.value), color: textColor.value }; textLayers.push(layer); selectedTextId = null; storyText.value = ''; updatePreview(); setStatus('Text layer added. Drag it on the canvas.'); });
+        storyText.addEventListener('input', () => { const layer = textLayers.find(item => item.id === selectedTextId); if (layer) { layer.text = storyText.value; updatePreview(); } });
+        [fontStyle, fontSize, textColor].forEach(control => control.addEventListener('input', () => { const layer = textLayers.find(item => item.id === selectedTextId); if (layer) { layer.font = fontStyle.value; layer.size = Number(fontSize.value); layer.color = textColor.value; } updatePreview(); }));
+
+        imageInput.addEventListener('change', async event => {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) { setStatus('Please choose an image file.', true); return; }
+            if (file.size > 5 * 1024 * 1024) { setStatus('Image must be smaller than 5 MB.', true); return; }
+            setStatus('Compressing image...');
+            try {
+                imageData = await compressImage(file, 700 * 1024);
+                imageType = 'image/jpeg';
+                previewImage.src = imageData;
+                setStatus('Image ready');
+                storyMode = 'image';
+                document.getElementById('image-mode-btn').classList.add('active');
+                document.getElementById('blank-mode-btn').classList.remove('active');
+                updatePreview();
+                lucide.createIcons();
+            } catch (error) { imageData = null; setStatus(error.message, true); }
+        });
+
+        async function compressImage(file, maxBytes) {
+            const source = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => { const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = reader.result; }; reader.onerror = reject; reader.readAsDataURL(file); });
+            let width = source.width; let height = source.height; let quality = .82;
+            for (let attempt = 0; attempt < 14; attempt++) {
+                const canvas = document.createElement('canvas');
+                const scale = Math.min(1, 1400 / Math.max(width, height));
+                canvas.width = Math.max(320, Math.round(width * scale)); canvas.height = Math.max(320, Math.round(height * scale));
+                canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height);
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+                if (blob && blob.size <= maxBytes) return await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); });
+                if (quality > .45) quality -= .07; else { width *= .8; height *= .8; }
+            }
+            throw new Error('Image could not be compressed enough.');
+        }
+
+        document.getElementById('story-form').addEventListener('submit', async event => {
+            event.preventDefault();
+            const user = signedInUser || await authReady;
+            if (!user) { setStatus('Please log in first.', true); return; }
+            const text = document.getElementById('story-text').value.trim();
+            if (text && !selectedTextId) { setStatus('Tap Add text layer before publishing.', true); return; }
+            if (!textLayers.length && !imageData) { setStatus('Add a text layer or an image first.', true); return; }
+            const publishButton = document.getElementById('publish-btn');
+            publishButton.disabled = true; setStatus('Publishing...');
+            try {
+                const userSnap = await getDoc(doc(db, 'users', user.uid));
+                const userData = userSnap.exists() ? userSnap.data() : {};
+                const story = {
+                    authorUid: user.uid,
+                    authorName: userData.name || user.displayName || 'User',
+                    authorPhoto: userData.photoURL || user.photoURL || 'logo.png',
+                    statusImage: storyMode === 'image' ? imageData : null,
+                    statusVideo: null,
+                    statusMessage: textLayers[0]?.text || '',
+                    texts: textLayers.map(layer => ({ text: layer.text, x: layer.x, y: layer.y, color: layer.color, size: layer.size, font: layer.font, bgColor: '#000000', bgAlpha: .35, borderColor: '#ffffff', borderSize: 0, textOutlineColor: '#000000', textOutlineSize: 2, animation: 'none', rotation: 0 })),
+                    storyGradient: storyMode === 'blank' ? storyBackground : 'none', storyTimeline: [], storyDrawing: null, imageFilter: storyFilter, mentionedUids: [], mentionMap: {},
+                    imageType: imageType, timestamp: new Date().toISOString(), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), likes: [], viewers: []
+                };
+                await addDoc(collection(db, 'stories'), story);
+                setStatus('Story published successfully.');
+                setTimeout(() => { window.location.href = 'index.html'; }, 700);
+            } catch (error) { console.error('Story publish error:', error); setStatus('Could not publish story. Please try again.', true); publishButton.disabled = false; }
+        });
+        updatePreview();
+    </script>
+</body>
+</html>

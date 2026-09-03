@@ -391,24 +391,24 @@
         <div class="latest-news" id="user-blogs-section" style="display:none;">
             <div class="category-wrapper">
                 <div id="category-bar" class="category-scroll">
-                    <button class="category-chip active" data-category="All">All</button>
-                    <button class="category-chip" data-category="Entertainment">Entertainment</button>
-                    <button class="category-chip" data-category="Music">Music</button>
-                    <button class="category-chip" data-category="Vlogs">Vlogs</button>
-                    <button class="category-chip" data-category="Gaming">Gaming</button>
-                    <button class="category-chip" data-category="Education">Education</button>
-                    <button class="category-chip" data-category="Sports">Sports</button>
-                    <button class="category-chip" data-category="News & Politics">News & Politics</button>
-                    <button class="category-chip" data-category="Science & Technology">Science & Technology</button>
-                    <button class="category-chip" data-category="Comedy">Comedy</button>
-                    <button class="category-chip" data-category="Travel & Events">Travel & Events</button>
-                    <button class="category-chip" data-category="Fashion & Beauty">Fashion & Beauty</button>
-                    <button class="category-chip" data-category="Food">Food</button>
-                    <button class="category-chip" data-category="Devotional">Devotional</button>
-                    <button class="category-chip" data-category="Gym & Fitness">Gym & Fitness</button>
-                    <button class="category-chip" data-category="Health">Health</button>
-                    <button class="category-chip" data-category="Podcasts">Podcasts</button>
-                    <button class="category-chip" data-category="Others">Others</button>
+                    <button type="button" class="category-chip active" data-category="All">All</button>
+                    <button type="button" class="category-chip" data-category="Entertainment">Entertainment</button>
+                    <button type="button" class="category-chip" data-category="Music">Music</button>
+                    <button type="button" class="category-chip" data-category="Vlogs">Vlogs</button>
+                    <button type="button" class="category-chip" data-category="Gaming">Gaming</button>
+                    <button type="button" class="category-chip" data-category="Education">Education</button>
+                    <button type="button" class="category-chip" data-category="Sports">Sports</button>
+                    <button type="button" class="category-chip" data-category="News & Politics">News & Politics</button>
+                    <button type="button" class="category-chip" data-category="Science & Technology">Science & Technology</button>
+                    <button type="button" class="category-chip" data-category="Comedy">Comedy</button>
+                    <button type="button" class="category-chip" data-category="Travel & Events">Travel & Events</button>
+                    <button type="button" class="category-chip" data-category="Fashion & Beauty">Fashion & Beauty</button>
+                    <button type="button" class="category-chip" data-category="Food">Food</button>
+                    <button type="button" class="category-chip" data-category="Devotional">Devotional</button>
+                    <button type="button" class="category-chip" data-category="Gym & Fitness">Gym & Fitness</button>
+                    <button type="button" class="category-chip" data-category="Health">Health</button>
+                    <button type="button" class="category-chip" data-category="Podcasts">Podcasts</button>
+                    <button type="button" class="category-chip" data-category="Others">Others</button>
                 </div>
             </div>
             <div id="feed-toggle-wrapper" class="category-wrapper" style="display: none; margin-bottom: 20px;">
@@ -529,14 +529,15 @@
 
   <!-- SPA Router View: Messages -->
     <div id="view-messages" class="page-view">
-        <div class="messages-container" style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 75px); height: calc(100dvh - 75px);">
-            <div class="header" style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(217, 113, 9, 0.8); margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
-                <h1 style="margin: 0; font-size: 1.5rem;">My Messages</h1>
+        <div class="messages-container">
+            <div class="messages-topbar">
+                <div><span class="messages-eyebrow">PRIVATE SPACE</span><h1>Messages</h1></div>
                 <div class="header-actions">
-                    <button onclick="window.openNewMessageModal()" style="background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; font-size: 0.85rem; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="message-square" style="width: 16px; height: 16px;"></i> New Message</button>
+                    <button class="new-message-btn" onclick="window.openNewMessageModal()" title="Start a new chat"><i data-lucide="square-pen"></i><span>New chat</span></button>
                 </div>
             </div>
-            <div style="flex-grow: 1; overflow-y: auto;">
+            <div class="messages-list-panel">
+                <label class="conversation-search"><i data-lucide="search"></i><input id="conversation-search-input" type="search" placeholder="Search conversations" autocomplete="off"></label>
                 <div id="loading-indicator-msgs" style="text-align: center; padding: 20px; color: #aaa;">Loading conversations...</div>
                 <ul class="conversation-list" id="conversation-list" style="margin: 0;"></ul>
                 <div id="no-conversations" style="text-align: center; padding: 20px; color: #aaa; display: none;">No conversations yet.</div>
@@ -549,9 +550,9 @@
 
     <!-- SPA Router View: Chat -->
     <div id="view-chat" class="page-view">
-        <div class="chat-container" style="display: flex; flex-direction: column; height: calc(100vh - 75px); height: calc(100dvh - 75px); padding: 0; max-width: 800px; margin: 0 auto; margin-bottom: 35px; border-radius: 15px;background: transparent; border: none;">
-            <div class="chat-header" style="display: flex; align-items: center; padding: 10px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 15px; background: rgba(61, 60, 61, 0.8);">
-                <button class="btn-transparent" style="padding: 5px 12px; border-radius: 5px; margin-right: 15px;" onclick="window.navigateTo('messages', event)"><i data-lucide="arrow-left"></i></button>
+        <div class="chat-container">
+            <div class="chat-header">
+                <button class="chat-back-btn" onclick="window.navigateTo('messages', event)" title="Back to messages"><i data-lucide="arrow-left"></i></button>
                 <img id="chat-partner-pic" src="https://via.placeholder.com/40" class="profile-pic" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 15px; cursor: pointer;" onclick="window.navigateTo('profile', event, window.currentChatPartnerUid)">
                 <div style="flex-grow: 1;">
                     <h2 id="chat-partner-name" style="margin: 0; font-size: 1.2rem; color: #fff;">Loading User...</h2>
@@ -562,7 +563,7 @@
                 <div id="loading-messages" style="text-align: center; padding: 20px; color: #aaa;">Loading messages...</div>
             </div>
             <div id="typing-indicator" style="height: 20px; color: #aaa; font-style: italic; padding-left: 20px; display: none; transition: opacity 0.3s; margin-bottom: 5px;"></div>
-            <div class="message-input-area" id="message-input-area" style="display: flex; align-items: center; padding: 15px 20px; border-top: 1px solid rgb(102, 83, 119); background: transparent;">
+            <div class="message-input-area" id="message-input-area">
                 <button id="attach-btn" title="Send Image or PDF" style="background: transparent; border: none; padding: 6px; display: flex; align-items: center; justify-content: center; margin-right: 8px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" onclick="document.getElementById('image-input-chat').click()"><img src="attach-icon.png" alt="Attach" style="width: 30px; height: 30px;"></button>
                 <input type="file" id="image-input-chat" style="display: none;" accept="image/*,application/pdf" onchange="window.sendChatFile(event)">
                 <input type="text" id="chat-message-input" placeholder="Type your message..." style="flex-grow: 1; padding: 12px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; font-size: 1rem; outline: none;" onkeypress="if(event.key === 'Enter') window.sendChatMessage()">
@@ -729,7 +730,7 @@
             <i data-lucide="zap"></i>
             <span>Flicks</span>
         </a>
-        <a href="write-blog.html" class="nav-item add-btn" onclick="window.requireLogin(event)">
+        <a href="story-blog.html" class="nav-item add-btn" onclick="window.requireLogin(event)">
             <div class="add-btn-inner"><i data-lucide="plus"></i></div>
         </a>
         <a href="#" class="nav-item" onclick="window.navigateTo('messages', event)" style="position: relative;">
@@ -793,7 +794,7 @@
     <!-- Story Viewer Modal -->
     <div id="story-viewer-modal" class="lightbox-modal" style="padding: 0; align-items: center; justify-content: center;" onclick="if(event.target === this) window.closeStoryViewer()">
         <span class="close-lightbox" onclick="window.closeStoryViewer()">&times;</span>
-        <div id="story-viewer-content">
+        <div id="story-viewer-content" role="dialog" aria-label="Story viewer">
             <!-- Story content will be populated here -->
         </div>
     </div>
@@ -2253,6 +2254,7 @@
             
             // Cleanup Chat Listeners if navigating away from Chat
             if (page !== 'chat') {
+                document.body.classList.remove('chat-desktop-mode');
                 if (window.chatUnsubscribeMsg) { window.chatUnsubscribeMsg(); window.chatUnsubscribeMsg = null; }
                 if (window.chatUnsubscribeConv) { window.chatUnsubscribeConv(); window.chatUnsubscribeConv = null; }
             }
@@ -2337,8 +2339,15 @@
                 window.history.pushState({page: 'messages'}, '', '?view=messages');
                 window.initMessagesView();
             } else if (page === 'chat') {
+                const desktopChat = window.matchMedia('(min-width: 769px)').matches;
+                document.body.classList.toggle('chat-desktop-mode', desktopChat);
                 document.getElementById('view-chat').style.display = 'block';
                 document.getElementById('view-chat').classList.add('active');
+                if (desktopChat) {
+                    document.getElementById('view-messages').style.display = 'block';
+                    document.getElementById('view-messages').classList.add('active');
+                    window.initMessagesView();
+                }
                 document.querySelector('.bottom-nav .nav-item:nth-child(4)').classList.add('active');
                 window.history.pushState({page: 'chat', uid: uid}, '', `?view=chat&uid=${uid}`);
                 window.initChatView(uid);
@@ -2608,6 +2617,21 @@
         };
 
         window.loadProfileData = async function(uid, viewerUser) {
+            window.currentProfileUid = uid;
+            if (window.profileRealtimeUnsubscribe) window.profileRealtimeUnsubscribe();
+            window.profileRealtimeUnsubscribe = onSnapshot(doc(db, "users", uid), (snapshot) => {
+                if (!snapshot.exists() || window.currentProfileUid !== uid) return;
+                const profileData = snapshot.data();
+                window.currentProfileData = profileData;
+                const followers = profileData.followers || [];
+                const displayFollowers = profileData.followerCountOverride !== undefined ? Number(profileData.followerCountOverride) : followers.length;
+                const followersCount = document.getElementById('followers-count');
+                const followingCount = document.getElementById('following-count');
+                if (followersCount) followersCount.innerText = displayFollowers.toLocaleString();
+                if (followingCount) followingCount.innerText = (profileData.following || []).length.toLocaleString();
+                const verifiedIndicator = document.getElementById('verified-indicator');
+                if (verifiedIndicator) verifiedIndicator.style.display = (profileData.isVerified || displayFollowers >= 200) ? 'block' : 'none';
+            }, (error) => console.warn("Profile realtime sync unavailable:", error.message));
             let data = {}; let totalBlogs = 0; let totalLikes = 0; let isVerifiedDisplay = false;
             try {
                 const docRef = doc(db, "users", uid);
@@ -3823,6 +3847,7 @@
                     if (snap.exists()) {
                         const u = snap.data();
                         const div = document.createElement('div');
+                        div.className = 'story-user-list-item';
                         div.style.cssText = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer;";
                         div.onclick = (e) => window.navigateTo('profile', e, snap.id);
                         div.innerHTML = `<img src="${u.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555;"><div><strong style="color:#fff;">${u.name || 'User'}</strong><div style="font-size:0.8rem; color:#aaa;">${u.username || ''}</div></div>`;
@@ -4089,6 +4114,17 @@
             const conversationList = document.getElementById('conversation-list');
             const loadingIndicator = document.getElementById('loading-indicator-msgs');
             const noConversationsMessage = document.getElementById('no-conversations');
+            const conversationSearch = document.getElementById('conversation-search-input');
+
+            if (conversationSearch && !conversationSearch.dataset.bound) {
+                conversationSearch.dataset.bound = 'true';
+                conversationSearch.addEventListener('input', () => {
+                    const term = conversationSearch.value.trim().toLowerCase();
+                    conversationList.querySelectorAll('.conversation-item').forEach(item => {
+                        item.style.display = item.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
+                    });
+                });
+            }
             
             loadingIndicator.style.display = 'block';
             conversationList.innerHTML = '';
@@ -5052,6 +5088,7 @@
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
                         const div = document.createElement('div');
+                        div.className = 'story-user-list-item';
                         div.style.cssText = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer;";
                         div.onclick = (e) => window.navigateTo('profile', e, userSnap.id);
                         
@@ -5193,6 +5230,7 @@
                 content.innerHTML = '';
                 viewers.forEach(viewer => {
                     const div = document.createElement('div');
+                    div.className = 'story-user-list-item';
                     div.style.cssText = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer;";
                     div.onclick = (e) => window.navigateTo('profile', e, viewer.uid);
                     
@@ -5520,6 +5558,16 @@
                         window.currentUserData = userDoc.data();
                         currentUserFollowing = userDoc.data().following || [];
                         currentUserBlocked = userDoc.data().blockedUsers || [];
+                        if (window.followStateUnsubscribe) window.followStateUnsubscribe();
+                        window.followStateUnsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+                            if (!snapshot.exists()) return;
+                            const following = snapshot.data().following || [];
+                            const previousFollowing = currentUserFollowing;
+                            currentUserFollowing = following;
+                            window.currentUserData = { ...window.currentUserData, ...snapshot.data(), following };
+                            const changedUid = [...new Set([...previousFollowing, ...following])].find(id => previousFollowing.includes(id) !== following.includes(id));
+                            if (changedUid) window.syncFollowButtons(changedUid, following.includes(changedUid));
+                        }, (error) => console.warn("Following sync unavailable:", error.message));
                     const profileIconDiv = document.getElementById('bottom-nav-profile-icon');
                     // Update profile pic if custom is set
                     if (userDoc.data().photoURL && profileIconDiv) {
@@ -5670,18 +5718,19 @@
             resetAndLoadBlogs();
         });
 
+        const activateCategory = (chip) => {
+            const category = chip.getAttribute('data-category');
+            if (!category || currentCategoryFilter === category) return;
+            document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentCategoryFilter = category;
+            resetAndLoadBlogs();
+        };
         document.querySelectorAll('.category-chip').forEach(chip => {
-            chip.addEventListener('click', (e) => {
-                // e.currentTarget ensures we get the button exactly
-                const clickedBtn = e.currentTarget;
-                
-                document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-                clickedBtn.classList.add('active');
-                
-
-                currentCategoryFilter = clickedBtn.getAttribute('data-category');
-                resetAndLoadBlogs();
+            chip.addEventListener('pointerup', (e) => {
+                if (e.pointerType === 'mouse' || e.pointerType === 'touch' || e.pointerType === 'pen') activateCategory(e.currentTarget);
             });
+            chip.addEventListener('click', (e) => activateCategory(e.currentTarget));
         });
 
         window.toggleHomeDescription = function(blogId, event) {
@@ -7241,6 +7290,33 @@
             }
         };
 
+        window.syncFollowButtons = function(targetUid, isFollowing) {
+            document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
+                btn.innerText = isFollowing ? 'Following' : 'Follow';
+                btn.classList.toggle('following', isFollowing);
+                if (btn.id === 'watch-follow-btn') btn.style.background = isFollowing ? 'rgba(255,255,255,0.2)' : '#ff0050';
+            });
+            const profileButton = document.getElementById('follow-btn');
+            if (profileButton && window.currentProfileUid === targetUid) window.updateFollowButton(isFollowing);
+        };
+
+        window.broadcastFollowState = function(targetUid, isFollowing) {
+            localStorage.setItem('viyou-follow-sync', JSON.stringify({ targetUid, isFollowing, at: Date.now() }));
+        };
+
+        window.addEventListener('storage', (event) => {
+            if (event.key !== 'viyou-follow-sync' || !event.newValue) return;
+            try {
+                const state = JSON.parse(event.newValue);
+                currentUserFollowing = state.isFollowing
+                    ? [...new Set([...currentUserFollowing, state.targetUid])]
+                    : currentUserFollowing.filter(id => id !== state.targetUid);
+                if (window.currentUserData) window.currentUserData.following = currentUserFollowing;
+                window.syncFollowButtons(state.targetUid, state.isFollowing);
+                if (typeof renderBlogs === 'function' && auth.currentUser) renderBlogs(auth.currentUser);
+            } catch (error) { console.warn('Follow sync event ignored:', error); }
+        });
+
         window.toggleFollow = function(targetUid) {
             if (!auth.currentUser) { window.viyouAlert("Please login to follow!"); return; }
             if (!auth.currentUser) { showToast("Please login to follow!", 'info'); return; }
@@ -7256,6 +7332,9 @@
             } else {
                 currentUserFollowing.push(targetUid);
             }
+            if (window.currentUserData) window.currentUserData.following = currentUserFollowing;
+            window.broadcastFollowState(targetUid, !isUnfollowing);
+            window.syncFollowButtons(targetUid, !isUnfollowing);
             renderBlogs(auth.currentUser); // Re-render to update buttons
             if (document.getElementById('flicks-viewer-modal') && document.getElementById('flicks-viewer-modal').style.display === 'flex') {
                 window.updateFlicksView();
@@ -9862,7 +9941,7 @@
                             <div class="${hasStory ? 'story-ring' : 'story-ring-empty'}">
                                 <img src="${userPhoto}" alt="Your story">
                             </div>
-                            <div class="add-story-badge" onclick="event.stopPropagation(); this.classList.add('badge-clicked'); setTimeout(() => window.location.href='story-camera.html', 300);" title="Add Story">+</div>
+                            <div class="add-story-badge" onclick="event.stopPropagation(); this.classList.add('badge-clicked'); setTimeout(() => window.location.href='story-blog.html', 300);" title="Add Story">+</div>
                         </div>
                         <p>Your Story</p>
                         <p style="display:inline-flex;justify-content:fit;align-items:center; color: #aaa; font-size:8px;">Tap + to add new story</p>
@@ -9876,7 +9955,7 @@
                         userDiv.onclick = function() {
                             const badge = this.querySelector('.add-story-badge');
                             if (badge) badge.classList.add('badge-clicked');
-                            setTimeout(() => window.location.href='story-camera.html', 300);
+                            setTimeout(() => window.location.href='story-blog.html', 300);
                         };
                     }
                     reel.appendChild(userDiv);
@@ -9993,7 +10072,7 @@
         }
 
         const bgStyle = story.storyGradient && story.storyGradient !== 'none' ? story.storyGradient : '#000';
-        storyHTML += `<div style="position: relative; width: 100%; height: 80vh; height: 80dvh; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: ${bgStyle}; border-radius: 8px; margin: 5px 0;">`;
+        storyHTML += `<div class="story-media-stage" style="position: relative; width: 100%; height: 80vh; height: 80dvh; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: ${bgStyle}; border-radius: 8px; margin: 5px 0;">`;
         const filterStyle = story.imageFilter && story.imageFilter !== 'none' ? `filter: ${story.imageFilter};` : '';
         
         if (hasTimeline) {
@@ -10074,7 +10153,7 @@
         storyHTML += `</div>`;
 
             // --- Footer with Actions ---
-            storyHTML += `<div style="position: absolute; bottom: 10px; width: calc(100% - 20px); display: flex; flex-direction: column; gap: 10px; z-index: 20;">`;
+            storyHTML += `<div class="story-action-dock" style="position: absolute; bottom: 10px; width: calc(100% - 20px); display: flex; flex-direction: column; gap: 10px; z-index: 20;">`;
 
             // Viewers count for owner
             if (isOwner) {
@@ -10113,9 +10192,9 @@
                     </div>
                 `;
                 storyHTML += `
-                        <div style="display: flex; gap: 5px; padding: 0 10px;">
-                            <input type="text" id="story-reply-input-${story.id}" placeholder="Send a message..." style="flex: 1; padding: 8px; border-radius: 20px; border: none; background: rgba(255,255,255,0.2); color: white;">
-                            <button onclick="window.sendStoryReplyAsMessage('${story.id}', '${story.authorUid}', '${story.statusImage || ''}', '${safeMsg}')" style="background:none; border:none; color:white; font-size: 1.2rem; cursor:pointer;">➤</button>
+                        <div class="story-reply-composer">
+                            <input type="text" id="story-reply-input-${story.id}" placeholder="Reply privately..." aria-label="Reply to story" onkeydown="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('story-reply-send-${story.id}').click(); }">
+                            <button id="story-reply-send-${story.id}" type="button" title="Send reply" aria-label="Send reply" onclick="window.sendStoryReplyAsMessage('${story.id}', '${story.authorUid}', '${story.statusImage || ''}', '${safeMsg}')"><i data-lucide="send"></i></button>
                         </div>
                     `;
             } else if (!user && !isOwner) {

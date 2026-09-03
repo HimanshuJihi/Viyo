@@ -799,7 +799,19 @@
         } catch (e) { console.error("Block error:", e); await window.viyouAlert("Error updating block status."); }
     }
 
+    let profileRealtimeUnsubscribe = null;
     async function loadProfileData(uid, viewerUser) {
+        if (profileRealtimeUnsubscribe) profileRealtimeUnsubscribe();
+        profileRealtimeUnsubscribe = onSnapshot(doc(db, "users", uid), (snapshot) => {
+            if (!snapshot.exists() || viewUid !== uid) return;
+            const profileData = snapshot.data();
+            const followers = profileData.followers || [];
+            const displayFollowers = profileData.followerCountOverride !== undefined ? Number(profileData.followerCountOverride) : followers.length;
+            document.getElementById('followers-count').innerText = displayFollowers.toLocaleString();
+            document.getElementById('following-count').innerText = (profileData.following || []).length.toLocaleString();
+            const verifiedIndicator = document.getElementById('verified-indicator');
+            if (verifiedIndicator) verifiedIndicator.style.display = (profileData.isVerified || displayFollowers >= 200) ? 'block' : 'none';
+        }, (error) => console.warn("Profile realtime sync unavailable:", error.message));
         let data = {};
         let totalBlogs = 0;
         let totalLikes = 0;

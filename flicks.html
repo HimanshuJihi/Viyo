@@ -272,13 +272,14 @@
 
     <script type="module" src="playlist-actions.js"></script>
     <script type="module">
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, setDoc, orderBy, limit, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, setDoc, orderBy, limit, writeBatch, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { db, auth } from "./firebase-config.js";
 
         // Start fetching data immediately to speed up load time
         const globalFlicksPromise = getDocs(query(collection(db, "blogs"), where("isFlicker", "==", true)));
         let flicksGlobalMuted = true; // Track mute state across scroll
+        let followingUnsubscribe = null;
 
         // Helper function to escape HTML for XSS prevention
         function escapeHTML(str) {
@@ -611,6 +612,25 @@
             }
         };
 
+        window.syncFollowButtons = function(targetUid, isFollowing) {
+            document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
+                btn.classList.toggle('following', isFollowing);
+                btn.innerText = isFollowing ? 'Following' : 'Follow';
+                btn.style.background = isFollowing ? 'rgba(255,255,255,0.2)' : '#ff0050';
+            });
+        };
+        window.addEventListener('storage', (event) => {
+            if (event.key !== 'viyou-follow-sync' || !event.newValue) return;
+            try {
+                const state = JSON.parse(event.newValue);
+                currentUserFollowing = state.isFollowing
+                    ? [...new Set([...currentUserFollowing, state.targetUid])]
+                    : currentUserFollowing.filter(id => id !== state.targetUid);
+                window.syncFollowButtons(state.targetUid, state.isFollowing);
+                if (typeof renderFlicks === 'function') renderFlicks();
+            } catch (error) { console.warn('Follow sync event ignored:', error); }
+        });
+
         window.toggleFollow = async function(targetUid) {
             if (!auth.currentUser) { await window.viyouAlert("Please login to follow!"); return; }
             const myUid = auth.currentUser.uid;
@@ -622,6 +642,7 @@
             } else {
                 currentUserFollowing.push(targetUid);
             }
+            localStorage.setItem('viyou-follow-sync', JSON.stringify({ targetUid, isFollowing: !isUnfollowing, at: Date.now() }));
 
             // 2. स्क्रीन पर मौजूद उस क्रिएटर के सभी Follow बटन्स को अपडेट करें
             document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
@@ -830,6 +851,15 @@
                     if (userDoc.exists()) {
                         window.currentUserData = userDoc.data(); // Store user data globally for filtering
                         currentUserFollowing = userDoc.data().following || [];
+                        if (followingUnsubscribe) followingUnsubscribe();
+                        followingUnsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+                            if (!snapshot.exists()) return;
+                            currentUserFollowing = snapshot.data().following || [];
+                            document.querySelectorAll('button[onclick*="window.toggleFollow("]').forEach(button => {
+                                const match = button.getAttribute('onclick').match(/toggleFollow\('([^']+)'\)/);
+                                if (match) window.syncFollowButtons(match[1], currentUserFollowing.includes(match[1]));
+                            });
+                        }, (error) => console.warn("Following realtime sync unavailable:", error.message));
                         window.isHistoryPaused = userDoc.data().historyPaused || false;
                         if (typeof window.updatePauseFlicksHistoryBtnUI === 'function') window.updatePauseFlicksHistoryBtnUI();
                     }
