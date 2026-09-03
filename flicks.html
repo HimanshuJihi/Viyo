@@ -270,6 +270,7 @@
     </div>
 </div>
 
+    <script type="module" src="playlist-actions.js"></script>
     <script type="module">
         import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, setDoc, orderBy, limit, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -429,6 +430,10 @@
                             <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
                                 <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="shareFlick('${flick.id}')"><i data-lucide="share-2"></i></button>
                                 <span style="font-size: 0.85rem; font-weight: bold;">Share</span>
+                            </div>
+                            <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+                                <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="window.openPlaylistSaveForContent('flick', '${flick.id}')"><i data-lucide="list-plus"></i></button>
+                                <span style="font-size: 0.85rem; font-weight: bold;">Playlist</span>
                             </div>
                         <div class="action-wrapper" style="text-align: center; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
                             <button class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; backdrop-filter: blur(5px);" onclick="window.openReportModal('${flick.id}')"><i data-lucide="flag"></i></button>

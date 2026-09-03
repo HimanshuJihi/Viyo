@@ -72,6 +72,7 @@
         </div>
     </div>
 
+    <script type="module" src="playlist-actions.js"></script>
     <script type="module">
         import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, increment, arrayUnion, arrayRemove, addDoc, where, setDoc, serverTimestamp, startAfter } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -507,6 +508,7 @@
                                 <i data-lucide="heart" class="${isLiked ? 'lucide-fill' : ''}" style="color: ${isLiked ? '#ff0050' : 'inherit'};"></i> <span id="like-count-display">${likesCount}</span>
                             </button>
                             <button class="btn" onclick="shareVideo()"><i data-lucide="share-2"></i> Share</button>
+                            <button class="btn" type="button" onclick="window.openPlaylistSaveForContent('video', '${blogId}')"><i data-lucide="list-plus"></i> Playlist</button>
                         </div>
                     </div>
                     <div class="desc-box"> 

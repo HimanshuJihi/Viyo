@@ -837,6 +837,10 @@
                     <span style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">Share</span>
                 </div>
                 <div style="text-align: center;">
+                    <button id="flicks-playlist-btn" class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i data-lucide="list-plus"></i></button>
+                    <span style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">Playlist</span>
+                </div>
+                <div style="text-align: center;">
                     <button id="flicks-send-btn" class="action-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i data-lucide="send"></i></button>
                     <span style="color: white; font-size: 0.85rem; font-weight: bold; text-shadow: 1px 1px 2px black;">Send</span>
                 </div>
@@ -1470,6 +1474,9 @@
                                 </button>
                                 <button class="btn btn-transparent" onclick="window.shareBlog('${blog.id}', '${(blog.title || '').replace(/'/g, "\\'")}')" style="padding: 6px 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
                                     <i data-lucide="share-2"></i> Share
+                                </button>
+                                <button class="btn btn-transparent" onclick="window.openSavePlaylistPicker('watch', { id: '${blog.id}' })" style="padding: 6px 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
+                                    <i data-lucide="list-plus"></i> Playlist
                                 </button>
                             </div>
                         </div>
@@ -3069,13 +3076,16 @@
             if (!mediaData || !mediaData.id) return null;
             const title = mediaData.title || 'Untitled';
             const image = mediaData.image || mediaData.thumbnail || mediaData.coverImage || '';
+            const contentType = type === 'flick' || type === 'flicks' ? 'flick' : type === 'blog' ? 'blog' : 'video';
             return {
                 id: mediaData.id,
-                type: type,
+                contentId: mediaData.id,
+                type: contentType,
                 title: title,
                 image: image,
                 video: mediaData.video || '',
                 youtubeUrl: mediaData.youtubeUrl || '',
+                url: contentType === 'flick' ? `flicks.html?id=${encodeURIComponent(mediaData.id)}` : contentType === 'blog' ? `index.html?view=blog&id=${encodeURIComponent(mediaData.id)}` : `index.html?view=watch&id=${encodeURIComponent(mediaData.id)}`,
                 createdAt: new Date().toISOString()
             };
         };
@@ -3096,11 +3106,13 @@
 
                 const item = {
                     id: mediaPayload.id,
+                    contentId: mediaPayload.contentId || mediaPayload.id,
                     type: mediaPayload.type,
                     title: mediaPayload.title || 'Untitled',
                     image: mediaPayload.image || '',
                     video: mediaPayload.video || '',
                     youtubeUrl: mediaPayload.youtubeUrl || '',
+                    url: mediaPayload.url || '',
                     addedAt: new Date().toISOString()
                 };
 
@@ -3128,10 +3140,14 @@
             const title = document.getElementById('save-playlist-picker-title');
             if (!modal || !list || !title) return;
 
+            if (mediaData && mediaData.id && !mediaData.title) {
+                const contentSnap = await getDoc(doc(db, 'blogs', mediaData.id));
+                if (contentSnap.exists()) mediaData = { id: contentSnap.id, ...contentSnap.data() };
+            }
             const payload = window.getPlaylistMediaPayload(type, mediaData);
             if (!payload) return;
 
-            title.textContent = type === 'watch' ? 'Save video to playlist' : 'Save flick to playlist';
+            title.textContent = type === 'watch' ? 'Save video to playlist' : type === 'blog' ? 'Save blog to playlist' : 'Save flick to playlist';
             list.innerHTML = '<p style="color:#aaa; margin:0;">Loading playlists...</p>';
             modal.style.display = 'flex';
 
@@ -3231,6 +3247,9 @@
                 } else {
                     list.forEach(item => {
                         const row = document.createElement('div');
+                        const contentId = item.contentId || item.id;
+                        const contentType = item.type === 'flick' || item.type === 'flicks' ? 'flick' : item.type === 'blog' ? 'blog' : 'video';
+                        const contentUrl = item.url || (contentType === 'flick' ? `flicks.html?id=${encodeURIComponent(contentId)}` : contentType === 'blog' ? `index.html?view=blog&id=${encodeURIComponent(contentId)}` : `index.html?view=watch&id=${encodeURIComponent(contentId)}`);
                         row.style.display = 'flex';
                         row.style.alignItems = 'center';
                         row.style.gap = '10px';
@@ -3238,6 +3257,8 @@
                         row.style.borderRadius = '10px';
                         row.style.background = 'rgba(255,255,255,0.04)';
                         row.style.border = '1px solid rgba(255,255,255,0.08)';
+                        row.style.cursor = 'pointer';
+                        row.tabIndex = 0;
                         row.innerHTML = `
                             <div style="width: 46px; height: 46px; border-radius: 8px; overflow:hidden; background:#1f2937; display:flex; align-items:center; justify-content:center;">
                                 ${item.image ? `<img src="${item.image}" style="width:100%; height:100%; object-fit:cover;" />` : '<i data-lucide="folder-video" style="width:18px; height:18px;"></i>'}
@@ -3247,6 +3268,13 @@
                                 <div style="font-size: 0.75rem; color: #9ca3af; text-transform: capitalize;">${escapeHTML(item.type || 'content')}</div>
                             </div>
                         `;
+                        row.onclick = () => { window.location.href = contentUrl; };
+                        row.onkeydown = event => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                row.click();
+                            }
+                        };
                         items.appendChild(row);
                     });
                 }
@@ -6074,6 +6102,7 @@
 
             let actionButtons = likeButtonHTML;
             actionButtons += `<button onclick='window.shareBlog(${JSON.stringify(blog.id)}, ${JSON.stringify(blog.title || "")})' class="blog-action-btn" style="color:#6366f1;"><i data-lucide="share-2"></i> Share</button>`;
+            actionButtons += `<button onclick="window.openSavePlaylistPicker('blog', { id: '${blog.id}' })" class="blog-action-btn" style="color:#a5b4fc;"><i data-lucide="list-plus"></i> Playlist</button>`;
 
             let menuItems = '';
             menuItems += `<button class="theme-option" onclick="event.stopPropagation(); window.readAloud('${blog.id}')" style="background:transparent; border:none; width:100%; color:inherit; justify-content: flex-start; padding: 12px 15px;"><i data-lucide="volume-2" style="color: #87ceeb; width: 16px;"></i> Read Aloud</button>`;
@@ -8906,6 +8935,7 @@
 
             likeBtn.onclick = () => window.likeFlickFromViewer(flick.id);
             document.getElementById('flicks-share-btn').onclick = () => window.shareBlog(flick.id, flick.title);
+            document.getElementById('flicks-playlist-btn').onclick = () => window.openSavePlaylistPicker('flick', { id: flick.id });
             document.getElementById('flicks-send-btn').onclick = () => window.openSendFlickModal();
         };
 

@@ -1322,7 +1322,7 @@
                             <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHTML(item.title || 'Untitled item')}</div>
                             <div style="font-size: 0.75rem; color: #9ca3af; text-transform: capitalize;">${escapeHTML(item.type || 'content')}</div>
                         </div>
-                        ${isOwner ? `<button type="button" class="playlist-remove-item" data-content-id="${item.contentId}" style="background:none; color:#fca5a5; border:none; cursor:pointer; padding:6px;" title="Remove from playlist"><i data-lucide="x"></i></button>` : ''}
+                        ${isOwner ? `<button type="button" class="playlist-remove-item" data-content-id="${item.contentId || item.id}" style="background:none; color:#fca5a5; border:none; cursor:pointer; padding:6px;" title="Remove from playlist"><i data-lucide="x"></i></button>` : ''}
                     `;
                     row.onclick = () => { if (item.url) window.location.href = item.url; };
                     items.appendChild(row);
@@ -1424,7 +1424,7 @@
     window.removePlaylistItem = async function(playlistId, contentId) {
         const playlistSnap = await getDoc(doc(db, 'playlists', playlistId));
         if (!playlistSnap.exists() || playlistSnap.data().authorUid !== currentUser?.uid) return;
-        const items = (playlistSnap.data().items || []).filter(item => item.contentId !== contentId);
+        const items = (playlistSnap.data().items || []).filter(item => (item.contentId || item.id) !== contentId);
         await updateDoc(doc(db, 'playlists', playlistId), { items });
         await renderPlaylists(currentUser.uid, true);
         window.openPlaylistDetails(playlistId);

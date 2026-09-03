@@ -1109,7 +1109,33 @@
                     });
                 });
 
-                const finalDataUrl = window.isStoryVideo ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
+                async function compressStoryImage(sourceCanvas, maxBytes) {
+                    let width = sourceCanvas.width;
+                    let height = sourceCanvas.height;
+                    let quality = 0.82;
+
+                    for (let attempt = 0; attempt < 12; attempt++) {
+                        const exportCanvas = document.createElement('canvas');
+                        exportCanvas.width = Math.max(320, Math.round(width));
+                        exportCanvas.height = Math.max(320, Math.round(height));
+                        exportCanvas.getContext('2d').drawImage(sourceCanvas, 0, 0, exportCanvas.width, exportCanvas.height);
+                        const blob = await new Promise(resolve => exportCanvas.toBlob(resolve, 'image/jpeg', quality));
+                        if (blob && blob.size <= maxBytes) {
+                            return await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result);
+                                reader.onerror = reject;
+                                reader.readAsDataURL(blob);
+                            });
+                        }
+                        if (quality > 0.45) quality -= 0.07;
+                        else { width *= 0.82; height *= 0.82; }
+                    }
+
+                    throw new Error('Story image could not be compressed below 100 KB.');
+                }
+
+                const finalDataUrl = window.isStoryVideo ? canvas.toDataURL('image/png') : await compressStoryImage(canvas, 100 * 1024);
 
                 // 2. Upload to Storage with better error handling
                 const uid = auth.currentUser.uid;
@@ -1179,7 +1205,7 @@
                         volume: 1
                     }] : null,
                     texts: finalTexts, mediaOverlays: [],
-                    mentionedUids: mentionedUids, mentionMap: mentionMap, timestamp: new Date().toISOString(), likes: [], viewers: []
+                    mentionedUids: mentionedUids, mentionMap: mentionMap, timestamp: new Date().toISOString(), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), likes: [], viewers: []
                 };
 
                 await addDoc(collection(db, "stories"), storyPayload);
