@@ -1,0 +1,4 @@
+[build]
+  # Keep the existing root website as Netlify's publish directory.
+  publish = "."
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ':!flutter_app'"

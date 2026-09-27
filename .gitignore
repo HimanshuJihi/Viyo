@@ -3,3 +3,16 @@ node_modules/
 
 # Optional: Ignore environment variables if you have any
 .env
+
+# Flutter generated files
+flutter_app/.dart_tool/
+flutter_app/build/
+flutter_app/.flutter-plugins
+flutter_app/.flutter-plugins-dependencies
+flutter_app/.packages
+flutter_app/android/.gradle/
+flutter_app/android/local.properties
+flutter_app/ios/Flutter/ephemeral/
+
+# Local Firebase/Android credentials
+flutter_app/android/app/google-services.json
