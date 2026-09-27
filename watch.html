@@ -483,7 +483,7 @@
                 const audioTitle = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : `${blog.title} - @${blog.author}`;
                 const audioThumb = blog.thumbnail || blog.authorPhoto || 'logo.png';
                 audioBoxHtml = `
-            <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="window.location.href='audio.html?url=' + encodeURIComponent('${blog.audioUrl || blog.video}')">
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="window.location.href='audio.html?id=${blogId}'">
                     <img src="${audioThumb}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
                     <div style="flex: 1; overflow: hidden; text-align: left;">
                         <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem;">${audioTitle}</div>

@@ -98,7 +98,8 @@
         lucide.createIcons();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const audioUrl = urlParams.get('url');
+        const audioId = urlParams.get('id');
+        let audioUrl = urlParams.get('url');
         let globalAudioTitle = 'Unknown Audio';
         let globalAudioId = null;
         let isSaved = false;
@@ -241,8 +242,16 @@
         };
 
         async function loadAudioDetails() {
+            if (audioId && !audioUrl) {
+                const blogSnap = await getDoc(doc(db, "blogs", audioId));
+                if (blogSnap.exists()) {
+                    const blog = blogSnap.data();
+                    audioUrl = blog.audioUrl || blog.video || null;
+                }
+            }
+
             if (!audioUrl) {
-                document.getElementById('loading').innerHTML = '<p style="color: #ff6b6b;">Invalid audio URL.</p>';
+                document.getElementById('loading').innerHTML = '<p style="color: #ff6b6b;">Audio not found.</p>';
                 return;
             }
 

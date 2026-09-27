@@ -259,7 +259,7 @@
             <!-- In-Feed Ad Pane -->
             <div id="promo-tab-infeed" class="tab-pane active">
                 <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="ext-ad-title" placeholder="e.g., Buy the new Smartwatch..."></div>
-                <div class="form-group"><label>Media (Image or Video - Max 1MB)</label><input type="file" id="ext-ad-media" accept="image/*,video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Images (1 to 5, auto-compressed to 200 KB each)</label><input type="file" id="ext-ad-media" accept="image/*" multiple style="padding: 8px; background: #222;"></div>
                 <div class="form-group"><label>Target URL (External Link)</label><input type="text" id="ext-ad-url" placeholder="https://yourwebsite.com/product"></div>
                 <div class="form-group"><label>Promotion Frequency</label><select id="ext-promo-tier" onchange="window.calculateExtPrice()"><option value="4">Show after every 4 posts (Base: ₹50 / 50 Hrs)</option><option value="3">Show after every 3 posts (Base: ₹70 / 50 Hrs)</option><option value="2">Show after every 2 posts (Base: ₹80 / 50 Hrs)</option><option value="1">Show after every 1 post (Base: ₹100 / 50 Hrs)</option></select></div>
                 <div class="form-group"><label id="ext-duration-label">Duration (Hours) - Minimum 50</label><input type="number" id="ext-promo-hours" value="50" min="50" step="50" oninput="window.calculateExtPrice()"></div>
@@ -1198,6 +1198,8 @@ window.showToast = function(message, type = 'info') {
         let prerollVideoBase64 = null;
         let blogAdVideoBase64 = null;
         let extMediaFile = null;
+        let extMediaFiles = [];
+        let extGalleryImages = [];
         let prerollVideoFile = null;
         let blogAdVideoFile = null;
         let extCalculatedTotal = 50;
@@ -1205,6 +1207,51 @@ window.showToast = function(message, type = 'info') {
         let currentPrerollRate = 100;
         let currentBlogAdRate = 150;
         let extPromoPricing = { baseHours: 50, tier4: 50, tier3: 70, tier2: 80, tier1: 100 };
+        const MAX_INFEED_IMAGES = 5;
+        const MAX_IMAGE_BYTES = 200 * 1024;
+
+        async function compressImageFile(file, maxBytes = MAX_IMAGE_BYTES) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDimension = 1200;
+                        if (width > height) {
+                            if (width > maxDimension) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                            }
+                        } else if (height > maxDimension) {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) {
+                            reject(new Error('Canvas not supported for image compression.'));
+                            return;
+                        }
+                        ctx.drawImage(img, 0, 0, width, height);
+                        let quality = 0.9;
+                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        while (dataUrl.length > maxBytes * 1.37 && quality > 0.1) {
+                            quality -= 0.05;
+                            dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        }
+                        resolve(dataUrl);
+                    };
+                    img.onerror = () => reject(new Error('Failed to process image.'));
+                    img.src = reader.result;
+                };
+                reader.onerror = () => reject(new Error('Failed to read image file.'));
+                reader.readAsDataURL(file);
+            });
+        }
 
         window.switchPromoTab = function(tabId, btn) {
             currentPromoTab = tabId;
@@ -1305,40 +1352,65 @@ window.showToast = function(message, type = 'info') {
         };
 
         document.getElementById('ext-ad-media').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) {
                 extMediaFile = null;
+                extMediaFiles = [];
+                extGalleryImages = [];
                 extMediaBase64 = null;
                 return;
             }
-            if (file.type.startsWith('image/')) {
+            if (files.length > MAX_INFEED_IMAGES) {
+                window.viyouAlert(`Please select between 1 and ${MAX_INFEED_IMAGES} images only.`);
+                e.target.value = '';
+                extMediaFiles = [];
+                extGalleryImages = [];
+                extMediaBase64 = null;
+                return;
+            }
+            try {
+                const compressed = await Promise.all(files.map(async (file) => {
+                    if (!file.type.startsWith('image/')) {
+                        throw new Error('In-feed ads accept only images.');
+                    }
+                    return await compressImageFile(file, MAX_IMAGE_BYTES);
+                }));
+                extMediaFiles = compressed;
+                extGalleryImages = compressed;
+                extMediaBase64 = compressed[0] || null;
                 extMediaType = 'image';
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width, height = img.height;
-                        const maxW = 800, maxH = 800;
-                        if (width > height) { if (width > maxW) { height *= maxW / width; width = maxW; } }
-                        else { if (height > maxH) { width *= maxH / height; height = maxH; } }
-                        canvas.width = width; canvas.height = height;
-                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                        let quality = 0.8;
-                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
-                        while (dataUrl.length > 200000 && quality > 0.1) { quality -= 0.1; dataUrl = canvas.toDataURL('image/jpeg', quality); }
-                        extMediaBase64 = dataUrl;
-                    };
-                };
-                reader.readAsDataURL(file);
-            } else if (file.type.startsWith('video/')) {
-                        if (file.size > 1 * 1024 * 1024) { window.viyouAlert("Video must be under 1MB."); e.target.value = ''; return; }
-                        extMediaType = 'video';
-                extMediaFile = file;
-                extMediaBase64 = "upload_pending";
+            } catch (error) {
+                console.error(error);
+                window.viyouAlert(error.message || 'Unable to process selected images.');
+                e.target.value = '';
+                extMediaFiles = [];
+                extGalleryImages = [];
+                extMediaBase64 = null;
             }
         });
+
+        async function validateVideoAdFile(file, label) {
+            if (!file) return null;
+            return new Promise((resolve, reject) => {
+                const tempUrl = URL.createObjectURL(file);
+                const tempVid = document.createElement('video');
+                tempVid.preload = 'metadata';
+                tempVid.onloadedmetadata = () => {
+                    const duration = tempVid.duration || 0;
+                    URL.revokeObjectURL(tempUrl);
+                    if (duration > 60) {
+                        reject(new Error(`${label} must be 60 seconds or less.`));
+                        return;
+                    }
+                    resolve({ duration });
+                };
+                tempVid.onerror = () => {
+                    URL.revokeObjectURL(tempUrl);
+                    reject(new Error(`Unable to read ${label}.`));
+                };
+                tempVid.src = tempUrl;
+            });
+        }
 
         document.getElementById('preroll-ad-video').addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -1347,9 +1419,17 @@ window.showToast = function(message, type = 'info') {
                 prerollVideoBase64 = null;
                 return;
             }
-            if (file.size > 1 * 1024 * 1024) { alert("Video must be under 1MB."); e.target.value = ''; return; }
-            prerollVideoFile = file;
-            prerollVideoBase64 = "upload_pending";
+            try {
+                await validateVideoAdFile(file, 'Pre-roll ad video');
+                prerollVideoFile = file;
+                prerollVideoBase64 = 'upload_pending';
+            } catch (error) {
+                console.error(error);
+                window.viyouAlert(error.message || 'Video duration exceeds the allowed limit.');
+                e.target.value = '';
+                prerollVideoFile = null;
+                prerollVideoBase64 = null;
+            }
         });
 
         document.getElementById('blogad-ad-video').addEventListener('change', async (e) => {
@@ -1360,30 +1440,38 @@ window.showToast = function(message, type = 'info') {
                 document.getElementById('blogad-trim-group').style.display = 'none';
                 return;
             }
-            if (file.size > 1 * 1024 * 1024) { alert("Video must be under 1MB."); e.target.value = ''; return; }
-            
-            const tempVid = document.createElement('video');
-            const previewVid = document.getElementById('blogad-video-preview');
-            tempVid.preload = 'metadata';
-            tempVid.onloadedmetadata = () => {
-                window.URL.revokeObjectURL(tempVid.src);
-                
-                document.getElementById('blogad-trim-group').style.display = 'block';
-                const startSlider = document.getElementById('blogad-trim-start');
-                const endSlider = document.getElementById('blogad-trim-end');
-                
-                startSlider.max = tempVid.duration;
-                endSlider.max = tempVid.duration;
-                startSlider.value = 0;
-                endSlider.value = Math.min(tempVid.duration, 60);
-                
-                blogAdVideoFile = file;
-                blogAdVideoBase64 = "upload_pending";
-                
-                previewVid.src = URL.createObjectURL(file);
-                window.updateBlogAdTrimDisplay();
-            };
-            tempVid.src = URL.createObjectURL(file);
+            try {
+                await validateVideoAdFile(file, 'Blog ad video');
+                const tempVid = document.createElement('video');
+                const previewVid = document.getElementById('blogad-video-preview');
+                tempVid.preload = 'metadata';
+                tempVid.onloadedmetadata = () => {
+                    window.URL.revokeObjectURL(tempVid.src);
+                    
+                    document.getElementById('blogad-trim-group').style.display = 'block';
+                    const startSlider = document.getElementById('blogad-trim-start');
+                    const endSlider = document.getElementById('blogad-trim-end');
+                    
+                    startSlider.max = tempVid.duration;
+                    endSlider.max = tempVid.duration;
+                    startSlider.value = 0;
+                    endSlider.value = Math.min(tempVid.duration, 60);
+                    
+                    blogAdVideoFile = file;
+                    blogAdVideoBase64 = 'upload_pending';
+                    
+                    previewVid.src = URL.createObjectURL(file);
+                    window.updateBlogAdTrimDisplay();
+                };
+                tempVid.src = URL.createObjectURL(file);
+            } catch (error) {
+                console.error(error);
+                window.viyouAlert(error.message || 'Video duration exceeds the allowed limit.');
+                e.target.value = '';
+                blogAdVideoFile = null;
+                blogAdVideoBase64 = null;
+                document.getElementById('blogad-trim-group').style.display = 'none';
+            }
         });
 
         window.updateBlogAdTrimDisplay = function() {
@@ -1468,9 +1556,13 @@ window.showToast = function(message, type = 'info') {
             if (currentPromoTab === 'infeed') {
                 const title = document.getElementById('ext-ad-title').value.trim();
                 const targetUrl = document.getElementById('ext-ad-url').value.trim();
-                if (!title || !extMediaBase64 || !targetUrl) { alert("Please fill all In-Feed Ad fields (Title, Media, URL)."); return; }
+                if (!title || extGalleryImages.length === 0 || !targetUrl) { alert("Please fill all In-Feed Ad fields (Title, 1-5 images, URL)."); return; }
                 payload = {
-                    type: "external", mediaType: extMediaType, mediaData: extMediaBase64, targetUrl: targetUrl,
+                    type: "external",
+                    mediaType: 'image',
+                    mediaData: extMediaBase64,
+                    mediaGallery: extGalleryImages,
+                    targetUrl: targetUrl,
                     frequency: parseInt(document.getElementById('ext-promo-tier').value),
                     hours: parseInt(document.getElementById('ext-promo-hours').value) || extPromoPricing.baseHours,
                 };
@@ -1571,7 +1663,7 @@ window.showToast = function(message, type = 'info') {
             const previewVid = document.getElementById('blogad-video-preview');
             if(previewVid) { previewVid.pause(); previewVid.removeAttribute('src'); previewVid.load(); }
             extMediaBase64 = null; extPaymentScreenshotBase64 = null; prerollVideoBase64 = null; blogAdVideoBase64 = null;
-            extMediaFile = null; prerollVideoFile = null; blogAdVideoFile = null;
+            extMediaFile = null; extMediaFiles = []; extGalleryImages = []; prerollVideoFile = null; blogAdVideoFile = null;
             window.selectedPromoCats = [];
             document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('selected'));
         } catch (e) { console.error(e); alert("Error submitting request: " + e.message); } 

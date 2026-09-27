@@ -5498,22 +5498,15 @@
                 const adminBtn = document.getElementById('admin-btn');
                 if (adminBtn) {
                     const adminEmails = ["nshuhima246@gmail.com", "manahoo09@zohomail.in", "himanshusainiaggarwal@gmail.com"];
-                    let showAdminButton = user.email && adminEmails.includes(user.email.toLowerCase());
+                    const showAdminButton = user.emailVerified && user.email && adminEmails.includes(user.email.toLowerCase());
                     
-                    if (!showAdminButton) {
-                        try {
-                            const userDocSnap = await getDoc(doc(db, "users", user.uid));
-                            if (userDocSnap.exists()) {
-                                const userData = userDocSnap.data();
-                        window.isHistoryPaused = userDocSnap.data().historyPaused || false;
-                        if (typeof window.updatePauseHistoryBtnUI === 'function') window.updatePauseHistoryBtnUI();
-                                // Show if they are an old admin OR have any admin permissions object (i.e., are a team member)
-                                if (userData.isAdmin === true || (userData.adminPermissions && typeof userData.adminPermissions === 'object')) {
-                                    showAdminButton = true;
-                                }
-                            }
-                        } catch(e) { console.error("Error checking admin status:", e); }
-                    }
+                    try {
+                        const userDocSnap = await getDoc(doc(db, "users", user.uid));
+                        if (userDocSnap.exists()) {
+                            window.isHistoryPaused = userDocSnap.data().historyPaused || false;
+                            if (typeof window.updatePauseHistoryBtnUI === 'function') window.updatePauseHistoryBtnUI();
+                        }
+                    } catch(e) { console.error("Error loading user preferences:", e); }
                     adminBtn.style.display = showAdminButton ? 'flex' : 'none';
                 }
 
