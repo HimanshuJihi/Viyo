@@ -301,7 +301,6 @@
                             </div>
                         </div>
                         <div style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 5px;">
-                            <a href="admin.html" id="admin-btn" style="display: none; text-decoration: none; color: inherit; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; align-items: center; gap: 10px; font-size: 0.9rem;"><i data-lucide="shield" style="width: 16px;"></i> Admin</a>
                             <button id="login-btn" style="width: 100%; text-decoration: none; color: inherit; background: transparent; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;"><i data-lucide="log-in" style="width: 16px;"></i> Login</button>
                             <button id="logout-btn" style="display: none; width: 100%; text-decoration: none; color: inherit; background: transparent; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;"><i data-lucide="log-out" style="width: 16px;"></i> Logout</button>
                         </div>
@@ -2384,7 +2383,6 @@
         
         let profilePageBlogs = [];
         let isUserVerifiedProfile = false;
-        let isViewerAdminProfile = false;
         let isProfileOwnerProfile = false;
         let profileBase64Image = null;
         let profileCropper;
@@ -2486,11 +2484,6 @@
             document.getElementById('photo-hint').style.display = 'none';
             const verifiedIndicator = document.getElementById('verified-indicator');
             if (verifiedIndicator) verifiedIndicator.style.display = 'none';
-
-            if (user) {
-                const viewerDoc = await getDoc(doc(db, "users", user.uid));
-                if (viewerDoc.exists() && viewerDoc.data().isAdmin) isViewerAdminProfile = true;
-            }
 
             if (viewUid && (!user || viewUid !== user?.uid)) {
                 // View Mode
@@ -5495,20 +5488,13 @@
                 if(document.getElementById('feed-toggle-wrapper')) document.getElementById('feed-toggle-wrapper').style.display = 'block';
                 document.getElementById('feed-toggle').style.display = 'flex'; // Show feed toggle
 
-                const adminBtn = document.getElementById('admin-btn');
-                if (adminBtn) {
-                    const adminEmails = ["nshuhima246@gmail.com", "manahoo09@zohomail.in", "himanshusainiaggarwal@gmail.com"];
-                    const showAdminButton = user.emailVerified && user.email && adminEmails.includes(user.email.toLowerCase());
-                    
-                    try {
-                        const userDocSnap = await getDoc(doc(db, "users", user.uid));
-                        if (userDocSnap.exists()) {
-                            window.isHistoryPaused = userDocSnap.data().historyPaused || false;
-                            if (typeof window.updatePauseHistoryBtnUI === 'function') window.updatePauseHistoryBtnUI();
-                        }
-                    } catch(e) { console.error("Error loading user preferences:", e); }
-                    adminBtn.style.display = showAdminButton ? 'flex' : 'none';
-                }
+                try {
+                    const userDocSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userDocSnap.exists()) {
+                        window.isHistoryPaused = userDocSnap.data().historyPaused || false;
+                        if (typeof window.updatePauseHistoryBtnUI === 'function') window.updatePauseHistoryBtnUI();
+                    }
+                } catch(e) { console.error("Error loading user preferences:", e); }
 
                 // --- NEW: Trigger story cleanup on user login ---
                 cleanupExpiredStories();
@@ -5599,8 +5585,6 @@
                 applyTheme(localStorage.getItem('theme') || 'dark');
                 if(loginBtn) loginBtn.style.display = 'flex';
                 if(logoutBtn) logoutBtn.style.display = 'none';
-                const adminBtn = document.getElementById('admin-btn');
-                if (adminBtn) adminBtn.style.display = 'none';
             const profileIconDiv = document.getElementById('bottom-nav-profile-icon');
             if (profileIconDiv) {
                 profileIconDiv.innerHTML = `<i data-lucide="user"></i>`;
@@ -10337,7 +10321,7 @@
                     if (d.exists()) {
                         const blog = d.data();
                         if (!window.enableYoutubeLinks && blog.youtubeUrl) return;
-                        if (blog.isFlicker !== true && (blog.video || blog.youtubeUrl)) {
+                        if (blog.isFlicker === true || blog.video || blog.youtubeUrl) {
                             blogs.push({ id: d.id, ...blog, viewedAt: historyItems[idx].viewedAt });
                         }
                     }
@@ -10441,19 +10425,9 @@
                 let historyItems = [];
                 snap.forEach(d => historyItems.push({ docRef: d.ref, blogId: d.data().blogId }));
                 
-                const docPromises = historyItems.map(item => getDoc(doc(db, "blogs", item.blogId)));
-                const docSnaps = await Promise.all(docPromises);
-                
-                const batch = writeBatch(db);
-                let deleteCount = 0;
-                docSnaps.forEach((d, idx) => {
-                    if (!d.exists() || d.data().isFlicker !== true) {
-                        batch.delete(historyItems[idx].docRef);
-                        deleteCount++;
-                    }
-                });
-                
-                if (deleteCount > 0) {
+                for (let start = 0; start < historyItems.length; start += 450) {
+                    const batch = writeBatch(db);
+                    historyItems.slice(start, start + 450).forEach(item => batch.delete(item.docRef));
                     await batch.commit();
                 }
                 window.showToast("Watch history cleared.", "success");

@@ -47,6 +47,8 @@ dependencies:
   youtube_player_flutter: ^10.0.1
   file_picker: ^13.1.0
   pdfrx: ^2.2.24
+  permission_handler: 12.0.1
+  speech_to_text: ^7.4.0
 
 dev_dependencies:
   flutter_test:

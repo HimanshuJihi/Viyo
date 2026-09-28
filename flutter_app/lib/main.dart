@@ -15,6 +15,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:file_picker/file_picker.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -172,6 +174,105 @@ Future<VideoPlayerController> _initializeVideoControllerWithFallback(
   }
 }
 
+Future<bool> _requestAppPermission(
+  BuildContext context,
+  Permission permission, {
+  required String title,
+  required String explanation,
+}) async {
+  var status = await permission.status;
+  if (status.isGranted || status.isLimited || status.isProvisional) return true;
+  if (!context.mounted) return false;
+
+  final mustOpenSettings = status.isPermanentlyDenied || status.isRestricted;
+  final proceed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(title),
+      content: Text(explanation),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Not now'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: Text(mustOpenSettings ? 'Open settings' : 'Continue'),
+        ),
+      ],
+    ),
+  );
+  if (proceed != true) return false;
+  if (mustOpenSettings) {
+    await openAppSettings();
+    return false;
+  }
+
+  status = await permission.request();
+  if (status.isGranted || status.isLimited || status.isProvisional) return true;
+  if ((status.isPermanentlyDenied || status.isRestricted) && context.mounted) {
+    final openSettings = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Permission is off'),
+        content: const Text(
+          'You can enable this permission later in the app settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Open settings'),
+          ),
+        ],
+      ),
+    );
+    if (openSettings == true) await openAppSettings();
+  }
+  return false;
+}
+
+Future<XFile?> _pickImageWithCameraChoice(
+  BuildContext context, {
+  required String purpose,
+}) async {
+  final source = await showModalBottomSheet<ImageSource>(
+    context: context,
+    backgroundColor: const Color(0xff151515),
+    builder: (sheetContext) => SafeArea(
+      child: Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: const Text('Choose from gallery'),
+            onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: const Text('Take a photo'),
+            onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (source == null) return null;
+  if (source == ImageSource.camera &&
+      !kIsWeb &&
+      !await _requestAppPermission(
+        context,
+        Permission.camera,
+        title: 'Allow camera access?',
+        explanation: 'Viyou needs camera access to $purpose.',
+      )) {
+    return null;
+  }
+  return ImagePicker().pickImage(source: source);
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -195,9 +296,268 @@ class ViyouApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const ViyouHomePage(),
+      home: const ViyouEntryGate(),
     );
   }
+}
+
+class ViyouEntryGate extends StatelessWidget {
+  const ViyouEntryGate({super.key});
+
+  @override
+  Widget build(BuildContext context) => StreamBuilder<User?>(
+    stream: FirebaseAuth.instance.authStateChanges(),
+    builder: (context, authSnapshot) {
+      if (authSnapshot.connectionState == ConnectionState.waiting) {
+        return const _ViyouLoadingScreen();
+      }
+      final user = authSnapshot.data;
+      if (user == null) return const ViyouHomePage();
+
+      return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots(),
+        builder: (context, profileSnapshot) {
+          if (profileSnapshot.connectionState == ConnectionState.waiting &&
+              !profileSnapshot.hasData) {
+            return const _ViyouLoadingScreen();
+          }
+          if (profileSnapshot.hasError) {
+            return _ViyouGateError(user: user);
+          }
+
+          final profile = profileSnapshot.data?.data() ?? {};
+          final name = '${profile['name'] ?? ''}'.trim();
+          final username = '${profile['username'] ?? ''}'.trim();
+          if (name.isEmpty || username.isEmpty) {
+            return ViyouProfileSetupPage(
+              key: ValueKey(user.uid),
+              user: user,
+              initialName: name.isEmpty ? user.displayName ?? '' : name,
+              initialUsername: username,
+              initialBio: '${profile['bio'] ?? ''}',
+            );
+          }
+          return const ViyouHomePage();
+        },
+      );
+    },
+  );
+}
+
+class _ViyouLoadingScreen extends StatelessWidget {
+  const _ViyouLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: CircularProgressIndicator()));
+}
+
+class _ViyouGateError extends StatelessWidget {
+  const _ViyouGateError({required this.user});
+
+  final User user;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Could not load your profile. Check your connection and try again.',
+            ),
+            const SizedBox(height: 12),
+            FilledButton.tonal(
+              onPressed: () => FirebaseAuth.instance.signOut(),
+              child: const Text('Sign out'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Future<bool> _isUsernameAvailable(String username, String currentUid) async {
+  final normalized = username.trim().toLowerCase();
+  final matches = await FirebaseFirestore.instance
+      .collection('users')
+      .where('usernameLower', isEqualTo: normalized)
+      .get();
+  return matches.docs.every((document) => document.id == currentUid);
+}
+
+class ViyouProfileSetupPage extends StatefulWidget {
+  const ViyouProfileSetupPage({
+    required this.user,
+    required this.initialName,
+    required this.initialUsername,
+    required this.initialBio,
+    super.key,
+  });
+
+  final User user;
+  final String initialName;
+  final String initialUsername;
+  final String initialBio;
+
+  @override
+  State<ViyouProfileSetupPage> createState() => _ViyouProfileSetupPageState();
+}
+
+class _ViyouProfileSetupPageState extends State<ViyouProfileSetupPage> {
+  late final _name = TextEditingController(text: widget.initialName);
+  late final _username = TextEditingController(text: widget.initialUsername);
+  late final _bio = TextEditingController(text: widget.initialBio);
+  final _formKey = GlobalKey<FormState>();
+  bool _saving = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _username.dispose();
+    _bio.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _saving = true;
+      _errorMessage = null;
+    });
+
+    final name = _name.text.trim();
+    final username = _username.text.trim();
+    try {
+      if (!await _isUsernameAvailable(username, widget.user.uid)) {
+        setState(() {
+          _saving = false;
+          _errorMessage = 'That Unique ID is already taken. Try another one.';
+        });
+        return;
+      }
+
+      await widget.user.updateDisplayName(name);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.user.uid)
+          .set({
+            'name': name,
+            'username': username,
+            'usernameLower': username.toLowerCase(),
+            'bio': _bio.text.trim(),
+            'email': widget.user.email,
+            'photoURL': widget.user.photoURL,
+          }, SetOptions(merge: true));
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _errorMessage = 'Could not save your profile. Please try again.';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Set up your profile'),
+      actions: [
+        IconButton(
+          tooltip: 'Sign out',
+          onPressed: _saving ? null : () => FirebaseAuth.instance.signOut(),
+          icon: const Icon(Icons.logout_rounded),
+        ),
+      ],
+    ),
+    body: SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(24),
+              shrinkWrap: true,
+              children: [
+                const Text(
+                  'Create your Viyou identity',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 8),
+                const Text('Choose a name and a unique ID to continue.'),
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _name,
+                  enabled: !_saving,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(labelText: 'Name *'),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Name is required'
+                      : null,
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _username,
+                  enabled: !_saving,
+                  maxLength: 30,
+                  decoration: const InputDecoration(
+                    labelText: 'Unique ID *',
+                    prefixText: '@',
+                  ),
+                  validator: (value) {
+                    final username = value?.trim() ?? '';
+                    if (username.isEmpty) return 'Unique ID is required';
+                    if (username.length > 30) {
+                      return 'Unique ID can be at most 30 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _bio,
+                  enabled: !_saving,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Bio (optional)',
+                  ),
+                ),
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _errorMessage!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: _saving ? null : _save,
+                  child: _saving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Continue'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class ViyouSearchPage extends StatefulWidget {
@@ -210,6 +570,10 @@ class ViyouSearchPage extends StatefulWidget {
 }
 
 class _ViyouSearchPageState extends State<ViyouSearchPage> {
+  static final SpeechToText _speech = SpeechToText();
+  static final ValueNotifier<bool> _speechListening = ValueNotifier(false);
+  static Future<bool>? _speechInitialization;
+
   late final TextEditingController _queryController;
   Timer? _debounce;
   Future<List<BlogRecord>>? _resultsFuture;
@@ -226,7 +590,7 @@ class _ViyouSearchPageState extends State<ViyouSearchPage> {
   }
 
   Future<List<BlogRecord>> _search(String rawQuery) async {
-    final query = rawQuery.trim().toLowerCase();
+    final query = _normalizeSearchText(rawQuery);
     final collection = FirebaseFirestore.instance.collection('blogs');
     if (query.isEmpty) {
       final recent = await collection
@@ -238,16 +602,28 @@ class _ViyouSearchPageState extends State<ViyouSearchPage> {
       return results.take(20).toList();
     }
 
-    final titleFuture = collection
-        .where('titleLower', isGreaterThanOrEqualTo: query)
-        .where('titleLower', isLessThan: '$query\uf8ff')
-        .limit(40)
-        .get();
-    final keywordFuture = collection
-        .where('keywords', arrayContains: query)
-        .limit(40)
-        .get();
-    final snapshots = await Future.wait([titleFuture, keywordFuture]);
+    final terms = _searchTerms(query);
+    final searchQueries = <Future<QuerySnapshot<Map<String, dynamic>>>>[
+      collection
+          .where('titleLower', isGreaterThanOrEqualTo: query)
+          .where('titleLower', isLessThan: '$query\uf8ff')
+          .limit(30)
+          .get(),
+      collection.where('keywords', arrayContains: query).limit(30).get(),
+    ];
+    for (final term in terms.take(5)) {
+      if (term == query) continue;
+      searchQueries.addAll([
+        collection
+            .where('titleLower', isGreaterThanOrEqualTo: term)
+            .where('titleLower', isLessThan: '$term\uf8ff')
+            .limit(20)
+            .get(),
+        collection.where('keywords', arrayContains: term).limit(20).get(),
+      ]);
+    }
+
+    final snapshots = await Future.wait(searchQueries);
     final documents = <String, QueryDocumentSnapshot<Map<String, dynamic>>>{};
     for (final snapshot in snapshots) {
       for (final document in snapshot.docs) {
@@ -255,38 +631,140 @@ class _ViyouSearchPageState extends State<ViyouSearchPage> {
       }
     }
 
-    final results = documents.values
-        .map(BlogRecord.fromDocument)
-        .where((post) => post.status == 'published')
-        .where((post) {
-          final haystack =
-              '${post.title} ${post.author} ${post.category} ${post.content}'
-                  .toLowerCase();
-          return haystack.contains(query) ||
-              post.title.toLowerCase().startsWith(query);
-        })
-        .toList();
-    if (results.isEmpty) {
+    final results = <BlogRecord>[];
+    final scores = <String, int>{};
+    void addRankedResults(
+      Iterable<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+    ) {
+      for (final document in docs) {
+        if (scores.containsKey(document.id)) continue;
+        final data = document.data();
+        if (data['status'] != 'published') continue;
+        final post = BlogRecord.fromDocument(document);
+        final score = _searchScore(post, data, query, terms);
+        if (score <= 0) continue;
+        scores[document.id] = score;
+        results.add(post);
+      }
+    }
+
+    addRankedResults(documents.values);
+    if (results.length < 5) {
       final recent = await collection
           .where('status', isEqualTo: 'published')
-          .limit(100)
+          .limit(120)
           .get();
-      results.addAll(
-        recent.docs.map(BlogRecord.fromDocument).where((post) {
-          final haystack =
-              '${post.title} ${post.author} ${post.category} ${post.content}'
-                  .toLowerCase();
-          return haystack.contains(query);
-        }),
-      );
+      addRankedResults(recent.docs);
     }
     results.sort((a, b) {
-      final aTitle = a.title.toLowerCase().startsWith(query);
-      final bTitle = b.title.toLowerCase().startsWith(query);
-      if (aTitle != bTitle) return aTitle ? -1 : 1;
+      final byRelevance = (scores[b.id] ?? 0).compareTo(scores[a.id] ?? 0);
+      if (byRelevance != 0) return byRelevance;
       return b.date.compareTo(a.date);
     });
     return results.take(30).toList();
+  }
+
+  String _normalizeSearchText(String value) => value
+      .toLowerCase()
+      .replaceAll(RegExp(r'''[.,!?;:()\[\]{}"'“”‘’/\\_|+।-]+'''), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  List<String> _searchTerms(String query) {
+    const ignoredWords = {
+      'find',
+      'search',
+      'show',
+      'please',
+      'me',
+      'the',
+      'a',
+      'an',
+      'for',
+      'with',
+      'in',
+      'on',
+      'of',
+      'and',
+      'to',
+      'hai',
+      'hain',
+      'ka',
+      'ki',
+      'ke',
+      'mein',
+      'mujhe',
+      'dikhao',
+      'batao',
+      'chahiye',
+      'karo',
+      'kar',
+      'do',
+      'wala',
+      'wali',
+      'wale',
+    };
+    final terms = query
+        .split(' ')
+        .where((term) => term.length > 1 && !ignoredWords.contains(term))
+        .toSet()
+        .toList();
+    return terms.isEmpty ? [query] : terms;
+  }
+
+  int _searchScore(
+    BlogRecord post,
+    Map<String, dynamic> data,
+    String query,
+    List<String> terms,
+  ) {
+    final title = _normalizeSearchText(post.title);
+    final creator = _normalizeSearchText(post.author);
+    final category = _normalizeSearchText(post.category);
+    final content = _normalizeSearchText(post.content);
+    final keywordsValue = data['keywords'];
+    final keywords = keywordsValue is Iterable
+        ? keywordsValue.whereType<String>().map(_normalizeSearchText).toList()
+        : keywordsValue is String
+        ? [_normalizeSearchText(keywordsValue)]
+        : const <String>[];
+    final keywordText = keywords.join(' ');
+
+    var score = 0;
+    if (title == query) {
+      score += 500;
+    } else if (title.startsWith(query)) {
+      score += 350;
+    } else if (title.contains(query)) {
+      score += 240;
+    }
+    if (keywordText.contains(query)) score += 180;
+
+    var matchedTerms = 0;
+    for (final term in terms) {
+      var termScore = 0;
+      if (title.split(' ').contains(term)) {
+        termScore += 30;
+      } else if (title.contains(term)) {
+        termScore += 20;
+      }
+      if (keywords.any((keyword) => keyword.split(' ').contains(term))) {
+        termScore += 22;
+      }
+      if (creator.contains(term) || category.contains(term)) termScore += 8;
+      if (content.contains(term)) termScore += 3;
+      if (termScore > 0) {
+        matchedTerms++;
+        score += termScore;
+      }
+    }
+
+    final minimumMatches = terms.length <= 2
+        ? terms.length
+        : (terms.length * 0.6).ceil();
+    if (matchedTerms < minimumMatches) return 0;
+    if (matchedTerms == terms.length) score += 25;
+    return score;
   }
 
   void _scheduleSearch(String value) {
@@ -334,8 +812,74 @@ class _ViyouSearchPageState extends State<ViyouSearchPage> {
         .toList();
   }
 
+  Future<void> _toggleVoiceSearch() async {
+    if (_speech.isListening) {
+      await _speech.stop();
+      _speechListening.value = false;
+      return;
+    }
+
+    final allowed = await _requestAppPermission(
+      context,
+      Permission.microphone,
+      title: 'Allow microphone access?',
+      explanation:
+          'Viyou uses your microphone only while you dictate a content search.',
+    );
+    if (!allowed || !mounted) return;
+
+    try {
+      final available = await (_speechInitialization ??= _speech.initialize(
+        onStatus: (status) {
+          _speechListening.value = status == SpeechToText.listeningStatus;
+        },
+        onError: (_) => _speechListening.value = false,
+        options: [SpeechToText.androidNoBluetooth],
+      ));
+      if (!mounted) return;
+      if (!available) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Voice search is unavailable on this device'),
+          ),
+        );
+        return;
+      }
+
+      final systemLocale = await _speech.systemLocale();
+      await _speech.listen(
+        localeId: systemLocale?.localeId,
+        listenFor: const Duration(seconds: 20),
+        pauseFor: const Duration(seconds: 3),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: ListenMode.search,
+        onResult: (result) {
+          final transcript = result.recognizedWords.trim();
+          if (transcript.isNotEmpty && mounted) {
+            _queryController.value = TextEditingValue(
+              text: transcript,
+              selection: TextSelection.collapsed(offset: transcript.length),
+            );
+            _scheduleSearch(transcript);
+          }
+          if (result.finalResult) _speechListening.value = false;
+        },
+      );
+      _speechListening.value = _speech.isListening;
+    } catch (error) {
+      _speechListening.value = false;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Voice search could not start: $error')),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
+    if (_speech.isListening) unawaited(_speech.stop());
     _debounce?.cancel();
     _queryController.dispose();
     super.dispose();
@@ -408,6 +952,20 @@ class _ViyouSearchPageState extends State<ViyouSearchPage> {
             prefixIcon: Icon(Icons.search_rounded),
           ),
         ),
+        actions: [
+          ValueListenableBuilder<bool>(
+            valueListenable: _speechListening,
+            builder: (context, listening, _) => IconButton(
+              onPressed: _toggleVoiceSearch,
+              tooltip: listening ? 'Stop voice search' : 'Voice search',
+              icon: Icon(
+                listening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                color: listening ? Colors.redAccent : null,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
       body: Column(
         children: [
@@ -730,7 +1288,10 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   Future<void> _changeProfilePhoto() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final file = await _pickImageWithCameraChoice(
+      context,
+      purpose: 'take your profile photo',
+    );
     if (file == null) return;
     final dataUrl = await _compressProfileImage(file);
     if (dataUrl == null) {
@@ -1037,6 +1598,14 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
       await _showAuthDialog();
       return;
     }
+    await _requestAppPermission(
+      context,
+      Permission.notification,
+      title: 'Allow notifications?',
+      explanation:
+          'Enable notifications to hear about new messages and activity on Viyou. You can change this later in app settings.',
+    );
+    if (!mounted) return;
     final snapshot = await FirebaseFirestore.instance
         .collection('notifications')
         .where('recipientUid', isEqualTo: user.uid)
@@ -2631,7 +3200,10 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         if (storyText == null || storyText.isEmpty) return;
       } else {
         final media = result == 'image'
-            ? await picker.pickImage(source: ImageSource.gallery)
+            ? await _pickImageWithCameraChoice(
+                context,
+                purpose: 'capture a story photo',
+              )
             : await picker.pickVideo(source: ImageSource.gallery);
         if (media == null) return;
 
@@ -4872,6 +5444,7 @@ class BlogRecord {
     this.images = const [],
     this.thumbnail,
     this.video,
+    this.videoQualities = const {},
     this.youtubeUrl,
     this.authorUid,
     this.audioUrl,
@@ -4902,6 +5475,7 @@ class BlogRecord {
   final List<String> images;
   final String? thumbnail;
   final String? video;
+  final Map<String, String> videoQualities;
   final String? youtubeUrl;
   final String? authorUid;
   final String? audioUrl;
@@ -4969,6 +5543,13 @@ class BlogRecord {
           : const [],
       thumbnail: data['thumbnail'] as String?,
       video: data['video'] as String?,
+      videoQualities: data['videoQualities'] is Map
+          ? Map<String, String>.from(
+              (data['videoQualities'] as Map).map(
+                (key, value) => MapEntry('$key', '$value'),
+              ),
+            )
+          : const {},
       youtubeUrl: data['youtubeUrl'] as String?,
       authorUid: data['authorUid'] as String?,
       audioUrl: data['audioUrl'] as String?,
@@ -5012,6 +5593,13 @@ class BlogRecord {
           : const [],
       thumbnail: data['thumbnail'] as String?,
       video: data['video'] as String?,
+      videoQualities: data['videoQualities'] is Map
+          ? Map<String, String>.from(
+              (data['videoQualities'] as Map).map(
+                (key, value) => MapEntry('$key', '$value'),
+              ),
+            )
+          : const {},
       youtubeUrl: data['youtubeUrl'] as String?,
       authorUid: data['authorUid'] as String?,
       audioUrl: data['audioUrl'] as String?,
@@ -5306,7 +5894,10 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
   }
 
   Future<void> _pickThumbnail() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final image = await _pickImageWithCameraChoice(
+      context,
+      purpose: 'take a video thumbnail',
+    );
     if (image == null) return;
     final bytes = await _compressImageToBytes(image);
     if (bytes == null) return;
@@ -6976,65 +7567,405 @@ class ViyouScheduledPage extends StatelessWidget {
   }
 }
 
-class ViyouHistoryPage extends StatelessWidget {
+Future<void> _recordSyncedWatchHistory(String blogId) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+  try {
+    final profile = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    if (profile.data()?['historyPaused'] == true) return;
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('watchHistory')
+        .doc(blogId)
+        .set({
+          'blogId': blogId,
+          'viewedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+  } catch (error) {
+    debugPrint('Could not sync watch history: $error');
+  }
+}
+
+class ViyouHistoryPage extends StatefulWidget {
   const ViyouHistoryPage({super.key});
+
+  @override
+  State<ViyouHistoryPage> createState() => _ViyouHistoryPageState();
+}
+
+class _ViyouHistoryPageState extends State<ViyouHistoryPage> {
+  final Map<String, Future<_HistoryEntry?>> _entries = {};
+  bool _busy = false;
+
+  Future<_HistoryEntry?> _loadEntry(
+    QueryDocumentSnapshot<Map<String, dynamic>> historyDocument,
+  ) {
+    final history = historyDocument.data();
+    final blogId = '${history['blogId'] ?? historyDocument.id}';
+    final viewedAt = history['viewedAt'];
+    final cacheKey =
+        '$blogId-${viewedAt is Timestamp ? viewedAt.microsecondsSinceEpoch : viewedAt}';
+    return _entries.putIfAbsent(cacheKey, () async {
+      final post = await FirebaseFirestore.instance
+          .collection('blogs')
+          .doc(blogId)
+          .get();
+      if (!post.exists) return null;
+      final time = viewedAt is Timestamp
+          ? viewedAt.toDate()
+          : DateTime.tryParse('$viewedAt') ?? DateTime.now();
+      return _HistoryEntry(
+        blog: BlogRecord.fromMap(blogId, post.data() ?? const {}),
+        viewedAt: time,
+      );
+    });
+  }
+
+  Future<void> _removeHistoryItem(String blogId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('watchHistory')
+          .doc(blogId)
+          .delete();
+    } catch (error) {
+      _showHistoryMessage('Could not remove history item: $error');
+    }
+  }
+
+  Future<void> _clearHistory() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _busy) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Clear all history?'),
+        content: const Text(
+          'This removes watched videos and Flicks from your synced history.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Clear all'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      final reference = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('watchHistory');
+      final snapshot = await reference.get();
+      for (var start = 0; start < snapshot.docs.length; start += 450) {
+        final batch = FirebaseFirestore.instance.batch();
+        for (final document in snapshot.docs.skip(start).take(450)) {
+          batch.delete(document.reference);
+        }
+        await batch.commit();
+      }
+      _entries.clear();
+    } catch (error) {
+      _showHistoryMessage('Could not clear history: $error');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _toggleHistoryPause(bool paused) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _busy) return;
+    setState(() => _busy = true);
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'historyPaused': !paused,
+      }, SetOptions(merge: true));
+    } catch (error) {
+      _showHistoryMessage('Could not update history setting: $error');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _showHistoryMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null)
-      return const Scaffold(
-        body: Center(child: Text('Please login to view history')),
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Watch History')),
+        body: const Center(child: Text('Log in to view synced history')),
       );
-    return Scaffold(
-      appBar: AppBar(title: const Text('Watch History')),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('watchHistory')
-            .orderBy('viewedAt', descending: true)
-            .limit(100)
-            .snapshots(),
-        builder: (context, snapshot) {
-          final items = snapshot.data?.docs ?? [];
-          if (items.isEmpty)
-            return const Center(child: Text('No watch history yet'));
-          return ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const Divider(color: Colors.white12),
-            itemBuilder: (context, index) =>
-                FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                  future: FirebaseFirestore.instance
-                      .collection('blogs')
-                      .doc('${items[index].data()['blogId']}')
-                      .get(),
-                  builder: (context, postSnapshot) {
-                    final data = postSnapshot.data?.data() ?? {};
-                    return ListTile(
-                      leading: const Icon(Icons.history),
-                      title: Text('${data['title'] ?? 'Watched content'}'),
-                      subtitle: Text('${data['author'] ?? ''}'),
-                      onTap: () {
-                        if (data['video'] is String)
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ViyouVideoPlayer(
-                                video: BlogRecord.fromMap(
-                                  items[index].data()['blogId'] as String,
-                                  data,
-                                ),
-                              ),
-                            ),
-                          );
-                      },
-                    );
-                  },
+    }
+    final historyReference = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('watchHistory');
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Watch History'),
+          actions: [
+            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                final paused = snapshot.data?.data()?['historyPaused'] == true;
+                return IconButton(
+                  onPressed: _busy ? null : () => _toggleHistoryPause(paused),
+                  icon: Icon(
+                    paused
+                        ? Icons.play_circle_outline
+                        : Icons.pause_circle_outline,
+                  ),
+                  tooltip: paused ? 'Resume history' : 'Pause history',
+                );
+              },
+            ),
+            IconButton(
+              onPressed: _busy ? null : _clearHistory,
+              icon: const Icon(Icons.delete_sweep_outlined),
+              tooltip: 'Clear all history',
+            ),
+          ],
+          bottom: const TabBar(
+            isScrollable: false,
+            tabs: [
+              Tab(text: 'All History'),
+              Tab(text: 'Video History'),
+              Tab(text: 'Flicks History'),
+            ],
+          ),
+        ),
+        body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: historyReference
+              .orderBy('viewedAt', descending: true)
+              .limit(100)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Text('Could not load history: ${snapshot.error}'),
+              );
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final documents = snapshot.data?.docs ?? const [];
+            if (documents.isEmpty) {
+              return const TabBarView(
+                children: [
+                  _HistoryEmptyState(),
+                  _HistoryEmptyState(),
+                  _HistoryEmptyState(),
+                ],
+              );
+            }
+            return FutureBuilder<List<_HistoryEntry>>(
+              future: Future.wait(documents.map(_loadEntry)).then(
+                (entries) =>
+                    entries.whereType<_HistoryEntry>().toList()
+                      ..sort((a, b) => b.viewedAt.compareTo(a.viewedAt)),
+              ),
+              builder: (context, entriesSnapshot) {
+                if (entriesSnapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (entriesSnapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Could not load watched videos: ${entriesSnapshot.error}',
+                    ),
+                  );
+                }
+                final entries = entriesSnapshot.data ?? const <_HistoryEntry>[];
+                return TabBarView(
+                  children: [
+                    _historyList(entries, null),
+                    _historyList(entries, false),
+                    _historyList(entries, true),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _historyList(List<_HistoryEntry> entries, bool? flicksOnly) {
+    final filtered = entries.where((entry) {
+      if (flicksOnly == null) {
+        return entry.blog.isFlicker ||
+            entry.blog.video != null ||
+            entry.blog.youtubeUrl != null;
+      }
+      return flicksOnly
+          ? entry.blog.isFlicker
+          : !entry.blog.isFlicker &&
+                (entry.blog.video != null || entry.blog.youtubeUrl != null);
+    }).toList();
+    if (filtered.isEmpty) {
+      return _HistoryEmptyState(
+        message: flicksOnly == true
+            ? 'No Flicks in your history'
+            : flicksOnly == false
+            ? 'No videos in your history'
+            : 'No watch history yet',
+      );
+    }
+
+    final grouped = <DateTime, List<_HistoryEntry>>{};
+    for (final entry in filtered) {
+      final date = DateTime(
+        entry.viewedAt.year,
+        entry.viewedAt.month,
+        entry.viewedAt.day,
+      );
+      grouped.putIfAbsent(date, () => []).add(entry);
+    }
+    final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+    final rows = <Widget>[];
+    for (final date in dates) {
+      rows.add(_HistoryDateHeader(date: date));
+      for (final entry in grouped[date]!) {
+        rows.add(_historyTile(entry));
+      }
+    }
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 28),
+      children: rows,
+    );
+  }
+
+  Widget _historyTile(_HistoryEntry entry) {
+    final blog = entry.blog;
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(vertical: 4),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(7),
+        child: SizedBox(
+          width: 78,
+          height: 54,
+          child: blog.primaryImage != null
+              ? Image.network(blog.primaryImage!, fit: BoxFit.cover)
+              : ColoredBox(
+                  color: const Color(0xff202020),
+                  child: Icon(
+                    blog.isFlicker
+                        ? Icons.bolt_rounded
+                        : Icons.play_arrow_rounded,
+                    color: blog.isFlicker
+                        ? const Color(0xffff0050)
+                        : Colors.white,
+                  ),
                 ),
-          );
+        ),
+      ),
+      title: Text(blog.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+      subtitle: Text(
+        '${blog.author}  •  ${_historyTime(entry.viewedAt)}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: PopupMenuButton<String>(
+        onSelected: (action) {
+          if (action == 'remove') _removeHistoryItem(blog.id);
         },
+        itemBuilder: (_) => const [
+          PopupMenuItem(value: 'remove', child: Text('Remove from history')),
+        ],
+      ),
+      onTap: () => Navigator.push<void>(
+        context,
+        MaterialPageRoute(builder: (_) => ViyouVideoPlayer(video: blog)),
+      ),
+    );
+  }
+
+  String _historyTime(DateTime time) =>
+      '${time.hour % 12 == 0 ? 12 : time.hour % 12}:${time.minute.toString().padLeft(2, '0')} ${time.hour >= 12 ? 'PM' : 'AM'}';
+}
+
+class _HistoryEntry {
+  const _HistoryEntry({required this.blog, required this.viewedAt});
+
+  final BlogRecord blog;
+  final DateTime viewedAt;
+}
+
+class _HistoryEmptyState extends StatelessWidget {
+  const _HistoryEmptyState({this.message = 'No watch history yet'});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.history_rounded, size: 40, color: Colors.grey[600]),
+        const SizedBox(height: 10),
+        Text(message, style: TextStyle(color: Colors.grey[400])),
+      ],
+    ),
+  );
+}
+
+class _HistoryDateHeader extends StatelessWidget {
+  const _HistoryDateHeader({required this.date});
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final age = today.difference(date).inDays;
+    final label = age == 0
+        ? 'Today'
+        : age == 1
+        ? 'Yesterday'
+        : age < 7
+        ? const [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
+          ][date.weekday - 1]
+        : '${date.day} ${const ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][date.month - 1]} ${date.year}';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 18, 2, 7),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
       ),
     );
   }
@@ -7077,6 +8008,18 @@ class ViyouSettingsHubPage extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ViyouSettingsPage()),
+            ),
+          ),
+        ),
+        Card(
+          child: ListTile(
+            leading: const CircleAvatar(child: Icon(Icons.history_rounded)),
+            title: const Text('Watch History'),
+            subtitle: const Text('Videos and Flicks you have watched'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ViyouHistoryPage()),
             ),
           ),
         ),
@@ -9933,7 +10876,6 @@ class _FlickPageState extends State<_FlickPage> {
   bool _isLiked = false;
   bool _isFollowing = false;
   bool _isSaved = false;
-  bool _historyPaused = false;
   bool _showHeart = false;
   bool _countedView = false;
   double _startSeconds = 0;
@@ -9994,20 +10936,7 @@ class _FlickPageState extends State<_FlickPage> {
       await controller.pause();
       return;
     }
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null && !_historyPaused) {
-      unawaited(
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('watchHistory')
-            .doc(widget.blog.id)
-            .set({
-              'blogId': widget.blog.id,
-              'viewedAt': FieldValue.serverTimestamp(),
-            }, SetOptions(merge: true)),
-      );
-    }
+    unawaited(_recordSyncedWatchHistory(widget.blog.id));
     await controller.play();
   }
 
@@ -10071,7 +11000,6 @@ class _FlickPageState extends State<_FlickPage> {
           following is List &&
           following.contains(authorUid);
       _isSaved = savedBlogs is List && savedBlogs.contains(widget.blog.id);
-      _historyPaused = data['historyPaused'] == true;
     });
   }
 
@@ -12230,6 +13158,10 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
 
   double _playbackRate = 1.0;
   double _rateBeforeLongPress = 1.0;
+  Timer? _sleepTimer;
+  Duration? _sleepTimerDuration;
+  String _selectedResolution = 'Auto';
+  bool _switchingResolution = false;
   bool _isFullscreen = false;
   bool _viewCounted = false;
   Duration _position = Duration.zero;
@@ -12247,6 +13179,7 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
   }
 
   Future<void> _initialize() async {
+    unawaited(_recordSyncedWatchHistory(widget.video.id));
     final youtubeId = [widget.video.youtubeUrl, widget.video.video]
         .whereType<String>()
         .map(YoutubePlayerController.convertUrlToId)
@@ -12445,9 +13378,331 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
 
   Future<void> _setPlaybackRate(double value) async {
     _playbackRate = value;
-    await _controller.setPlaybackSpeed(value);
+    final youtube = _youtubeController;
+    if (youtube != null) {
+      await youtube.setPlaybackRate(value);
+    } else {
+      await _controller.setPlaybackSpeed(value);
+    }
     if (mounted) setState(() {});
   }
+
+  Future<List<double>> _availablePlaybackRates() async {
+    final youtube = _youtubeController;
+    if (youtube != null) {
+      try {
+        final rates = await youtube.availablePlaybackRates;
+        if (rates.isNotEmpty) return rates;
+      } catch (_) {}
+    }
+    return const [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+  }
+
+  void _setSleepTimer(Duration? duration) {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+    _sleepTimerDuration = duration;
+    if (duration != null) {
+      _sleepTimer = Timer(duration, _pauseForSleepTimer);
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _pauseForSleepTimer() async {
+    _sleepTimer = null;
+    _sleepTimerDuration = null;
+    final youtube = _youtubeController;
+    if (youtube != null) {
+      await youtube.pauseVideo();
+    } else if (_controller.value.isInitialized) {
+      await _controller.pause();
+    }
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sleep timer paused playback')),
+    );
+  }
+
+  List<MapEntry<String, String>> _availableResolutions() {
+    final entries = widget.video.videoQualities.entries
+        .where(
+          (entry) =>
+              entry.key.trim().isNotEmpty && entry.value.trim().isNotEmpty,
+        )
+        .toList();
+    int resolutionValue(String label) =>
+        int.tryParse(RegExp(r'\d+').firstMatch(label)?.group(0) ?? '') ?? 0;
+    entries.sort(
+      (first, second) =>
+          resolutionValue(second.key).compareTo(resolutionValue(first.key)),
+    );
+    return entries;
+  }
+
+  Future<void> _setResolution(String quality, String? source) async {
+    final targetSource = quality == 'Auto' ? widget.video.video : source;
+    if (targetSource == null || targetSource.isEmpty) {
+      if (quality == 'Auto' && mounted) {
+        setState(() => _selectedResolution = 'Auto');
+      }
+      return;
+    }
+    if (quality == 'Auto' && _selectedResolution == 'Auto') {
+      if (mounted) setState(() => _selectedResolution = 'Auto');
+      return;
+    }
+    if (_youtubeController != null) return;
+
+    final oldController = _controller;
+    final wasPlaying = oldController.value.isPlaying;
+    final position = oldController.value.position;
+    if (mounted) setState(() => _switchingResolution = true);
+    VideoPlayerController? replacement;
+    try {
+      replacement = await _initializeVideoControllerWithFallback(targetSource);
+      await replacement.setLooping(widget.video.isFlicker);
+      await replacement.setPlaybackSpeed(_playbackRate);
+      await replacement.seekTo(position);
+      replacement.addListener(_syncPlaybackState);
+      oldController.removeListener(_syncPlaybackState);
+      _controller = replacement;
+      await oldController.dispose();
+      if (wasPlaying) await replacement.play();
+      if (mounted) setState(() => _selectedResolution = quality);
+    } catch (error) {
+      if (replacement != null && !identical(replacement, _controller)) {
+        await replacement.dispose();
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not change resolution: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _switchingResolution = false);
+    }
+  }
+
+  Future<void> _showPlayerSettings() async {
+    var section = 'main';
+    final ratesFuture = _availablePlaybackRates();
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xff181818),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final youtube = _youtubeController != null;
+          final resolutions = _availableResolutions();
+          final sleepLabel = _sleepTimerDuration == null
+              ? 'Off'
+              : '${_sleepTimerDuration!.inMinutes} minutes';
+          final title = switch (section) {
+            'speed' => 'Playback speed',
+            'sleep' => 'Sleep timer',
+            'quality' => 'Quality',
+            _ => 'Settings',
+          };
+          void goTo(String next) => setSheetState(() => section = next);
+          final items = <Widget>[];
+
+          if (section == 'main') {
+            items.addAll([
+              ListTile(
+                leading: const Icon(Icons.timer_outlined),
+                title: const Text('Sleep timer'),
+                trailing: _settingsValue(sleepLabel),
+                onTap: () => goTo('sleep'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.speed_rounded),
+                title: const Text('Playback speed'),
+                trailing: _settingsValue(
+                  _playbackRate == 1 ? 'Normal' : '${_playbackRate}x',
+                ),
+                onTap: () => goTo('speed'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.high_quality_outlined),
+                title: const Text('Quality'),
+                trailing: _settingsValue(
+                  _switchingResolution ? 'Changing...' : _selectedResolution,
+                ),
+                onTap: () => goTo('quality'),
+              ),
+            ]);
+          } else if (section == 'speed') {
+            items.add(
+              FutureBuilder<List<double>>(
+                future: ratesFuture,
+                builder: (context, snapshot) {
+                  final rates = snapshot.data ?? const <double>[];
+                  if (rates.isEmpty) {
+                    return const ListTile(
+                      title: Text('Loading available speeds...'),
+                    );
+                  }
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: rates.map((rate) {
+                      final selected = rate == _playbackRate;
+                      return ListTile(
+                        title: Text(rate == 1 ? 'Normal' : '${rate}x'),
+                        trailing: selected
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: Color(0xfff59e0b),
+                              )
+                            : null,
+                        onTap: () {
+                          unawaited(_setPlaybackRate(rate));
+                          goTo('main');
+                        },
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+            );
+          } else if (section == 'sleep') {
+            const options = <Duration?>[
+              null,
+              Duration(minutes: 5),
+              Duration(minutes: 10),
+              Duration(minutes: 15),
+              Duration(minutes: 30),
+              Duration(minutes: 45),
+              Duration(minutes: 60),
+            ];
+            items.addAll(
+              options.map((duration) {
+                final label = duration == null
+                    ? 'Off'
+                    : '${duration.inMinutes} minutes';
+                final selected = duration == _sleepTimerDuration;
+                return ListTile(
+                  title: Text(label),
+                  trailing: selected
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: Color(0xfff59e0b),
+                        )
+                      : null,
+                  onTap: () {
+                    _setSleepTimer(duration);
+                    goTo('main');
+                  },
+                );
+              }),
+            );
+          } else {
+            items.add(
+              ListTile(
+                title: const Text('Auto'),
+                subtitle: Text(
+                  youtube
+                      ? 'YouTube adjusts quality automatically'
+                      : resolutions.isEmpty
+                      ? 'No alternate source qualities are available'
+                      : 'Use the default video source',
+                ),
+                trailing: _selectedResolution == 'Auto'
+                    ? const Icon(Icons.check_rounded, color: Color(0xfff59e0b))
+                    : null,
+                onTap: () {
+                  _setResolution('Auto', null);
+                  goTo('main');
+                },
+              ),
+            );
+            if (!youtube) {
+              items.addAll(
+                resolutions.map((entry) {
+                  final selected = entry.key == _selectedResolution;
+                  return ListTile(
+                    title: Text(entry.key),
+                    trailing: selected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: Color(0xfff59e0b),
+                          )
+                        : null,
+                    onTap: () {
+                      unawaited(_setResolution(entry.key, entry.value));
+                      goTo('main');
+                    },
+                  );
+                }),
+              );
+            }
+          }
+
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.72,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 34,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white30,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Row(
+                  children: [
+                    if (section != 'main')
+                      IconButton(
+                        onPressed: () => goTo('main'),
+                        icon: const Icon(Icons.arrow_back_rounded),
+                        tooltip: 'Back to settings',
+                      ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      icon: const Icon(Icons.close_rounded),
+                      tooltip: 'Close settings',
+                    ),
+                  ],
+                ),
+                const Divider(height: 1, color: Colors.white12),
+                Flexible(child: ListView(shrinkWrap: true, children: items)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _settingsValue(String value) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(value, style: TextStyle(color: Colors.grey[400])),
+      const SizedBox(width: 6),
+      const Icon(Icons.chevron_right_rounded),
+    ],
+  );
 
   void _togglePlayback() {
     if (_controller.value.isPlaying) {
@@ -12545,20 +13800,12 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                   style: TextStyle(color: Colors.grey[200], fontSize: 12),
                 ),
               ),
-              PopupMenuButton<double>(
-                tooltip: 'Playback speed',
-                padding: EdgeInsets.zero,
+              IconButton(
                 constraints: controlButtonConstraints,
-                initialValue: _playbackRate,
-                onSelected: _setPlaybackRate,
+                padding: EdgeInsets.zero,
+                tooltip: 'Player settings',
+                onPressed: _showPlayerSettings,
                 icon: const Icon(Icons.settings_outlined),
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 0.75, child: Text('0.75x')),
-                  PopupMenuItem(value: 1.0, child: Text('1.0x')),
-                  PopupMenuItem(value: 1.25, child: Text('1.25x')),
-                  PopupMenuItem(value: 1.5, child: Text('1.5x')),
-                  PopupMenuItem(value: 2.0, child: Text('2.0x')),
-                ],
               ),
               IconButton(
                 constraints: controlButtonConstraints,
@@ -12579,11 +13826,29 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
   Widget _buildPlayerSurface({bool fullscreen = false}) {
     final youtubeController = _youtubeController;
     if (youtubeController != null) {
-      return YoutubePlayer(
-        controller: youtubeController,
-        aspectRatio: 16 / 9,
-        autoFullScreen: true,
-        enableFullScreenOnVerticalDrag: true,
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          YoutubePlayer(
+            controller: youtubeController,
+            aspectRatio: 16 / 9,
+            autoFullScreen: true,
+            enableFullScreenOnVerticalDrag: true,
+          ),
+          Positioned(
+            right: 8,
+            bottom: 48,
+            child: Material(
+              color: Colors.black.withValues(alpha: 0.62),
+              shape: const CircleBorder(),
+              child: IconButton(
+                onPressed: _showPlayerSettings,
+                tooltip: 'Player settings',
+                icon: const Icon(Icons.settings_outlined, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       );
     }
     final aspectRatio = _controller.value.aspectRatio > 0
@@ -12700,6 +13965,7 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
 
   @override
   void dispose() {
+    _sleepTimer?.cancel();
     _youtubeController?.close();
     if (_isFullscreen) {
       SystemChrome.setPreferredOrientations(const [
