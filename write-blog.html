@@ -1368,8 +1368,8 @@
                 return;
             }
             
-            if (currentPostType === 'blog' && content.length < 1200) {
-                showToast("Blog content must be at least 1200 characters long.", 'error');
+            if (currentPostType === 'blog' && content.length < 1) {
+                showToast("Blog content must be at least 1 character long.", 'error');
                 return;
             }
 

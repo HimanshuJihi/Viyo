@@ -279,6 +279,241 @@ Future<void> main() async {
   runApp(const ViyouApp());
 }
 
+class _MiniPlayerManager extends ChangeNotifier {
+  static final instance = _MiniPlayerManager();
+
+  BlogRecord? video;
+  VideoPlayerController? videoController;
+  YoutubePlayerController? youtubeController;
+  final Set<String> _hiddenReasons = <String>{};
+  bool _restoring = false;
+  bool _isPlaying = true;
+  bool _resumeAfterHidden = false;
+  bool viewCounted = false;
+  double playbackRate = 1;
+
+  bool get shouldShow => video != null && _hiddenReasons.isEmpty && !_restoring;
+  bool get isPlaying => _isPlaying;
+
+  void start(
+    BlogRecord nextVideo, {
+    VideoPlayerController? videoController,
+    YoutubePlayerController? youtubeController,
+    required bool isPlaying,
+    required bool viewCounted,
+    required double playbackRate,
+  }) {
+    video = nextVideo;
+    this.videoController = videoController;
+    this.youtubeController = youtubeController;
+    _restoring = false;
+    _isPlaying = isPlaying;
+    _resumeAfterHidden = false;
+    this.viewCounted = viewCounted;
+    this.playbackRate = playbackRate;
+    videoController?.addListener(_syncPlaybackState);
+    notifyListeners();
+  }
+
+  ({
+    VideoPlayerController? video,
+    YoutubePlayerController? youtube,
+    bool viewCounted,
+    double playbackRate,
+    bool isPlaying,
+  })?
+  take(String videoId) {
+    if (video?.id != videoId) return null;
+    final controllers = (
+      video: videoController,
+      youtube: youtubeController,
+      viewCounted: viewCounted,
+      playbackRate: playbackRate,
+      isPlaying: _isPlaying,
+    );
+    videoController?.removeListener(_syncPlaybackState);
+    video = null;
+    videoController = null;
+    youtubeController = null;
+    _restoring = false;
+    notifyListeners();
+    return controllers;
+  }
+
+  Future<void> close() async {
+    final nativeController = videoController;
+    final youtube = youtubeController;
+    nativeController?.removeListener(_syncPlaybackState);
+    video = null;
+    videoController = null;
+    youtubeController = null;
+    _restoring = false;
+    _isPlaying = false;
+    _resumeAfterHidden = false;
+    _hiddenReasons.clear();
+    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (nativeController != null) unawaited(nativeController.dispose());
+      youtube?.close();
+    });
+  }
+
+  Future<void> togglePlayback() async {
+    final nativeController = videoController;
+    final youtube = youtubeController;
+    final shouldPlay = !_isPlaying;
+    _isPlaying = shouldPlay;
+    notifyListeners();
+    if (nativeController != null) {
+      if (shouldPlay) {
+        await nativeController.play();
+      } else {
+        await nativeController.pause();
+      }
+    } else if (youtube != null) {
+      if (shouldPlay) {
+        await youtube.playVideo();
+      } else {
+        await youtube.pauseVideo();
+      }
+    }
+  }
+
+  void setHidden(String reason, bool hidden) {
+    final wasHidden = _hiddenReasons.isNotEmpty;
+    if (hidden) {
+      _hiddenReasons.add(reason);
+    } else {
+      _hiddenReasons.remove(reason);
+    }
+    final isHidden = _hiddenReasons.isNotEmpty;
+    if (wasHidden == isHidden) return;
+    if (isHidden) {
+      _resumeAfterHidden = _isPlaying;
+      if (_isPlaying) unawaited(togglePlayback());
+    } else {
+      final shouldResume = _resumeAfterHidden && video != null;
+      _resumeAfterHidden = false;
+      if (shouldResume && !_isPlaying) unawaited(togglePlayback());
+    }
+    notifyListeners();
+  }
+
+  void openFullPlayer(BuildContext context) {
+    final currentVideo = video;
+    if (currentVideo == null || _restoring) return;
+    _restoring = true;
+    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      Navigator.of(context)
+          .push<void>(
+            MaterialPageRoute<void>(
+              builder: (_) => ViyouVideoPlayer(video: currentVideo),
+            ),
+          )
+          .whenComplete(() {
+            if (video?.id == currentVideo.id && _restoring) {
+              _restoring = false;
+              notifyListeners();
+            }
+          });
+    });
+  }
+
+  void _syncPlaybackState() {
+    final controller = videoController;
+    if (controller == null || !controller.value.isInitialized) return;
+    final isPlaying = controller.value.isPlaying;
+    if (_isPlaying == isPlaying) return;
+    _isPlaying = isPlaying;
+    notifyListeners();
+  }
+}
+
+class _MiniPlayerOverlay extends StatelessWidget {
+  const _MiniPlayerOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    final manager = _MiniPlayerManager.instance;
+    return AnimatedBuilder(
+      animation: manager,
+      builder: (context, _) {
+        final video = manager.video;
+        if (!manager.shouldShow || video == null) {
+          return const SizedBox.shrink();
+        }
+        final nativeController = manager.videoController;
+        final youtubeController = manager.youtubeController;
+        final bottomInset = MediaQuery.paddingOf(context).bottom;
+        return Positioned(
+          left: 10,
+          right: 10,
+          bottom: bottomInset + 72,
+          child: Material(
+            color: const Color(0xff202020),
+            elevation: 12,
+            borderRadius: BorderRadius.circular(10),
+            clipBehavior: Clip.antiAlias,
+            child: SizedBox(
+              height: 78,
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: () => manager.openFullPlayer(context),
+                    child: SizedBox(
+                      width: 132,
+                      height: 78,
+                      child: nativeController != null
+                          ? VideoPlayer(nativeController)
+                          : youtubeController != null
+                          ? YoutubePlayer(
+                              controller: youtubeController,
+                              aspectRatio: 16 / 9,
+                            )
+                          : const ColoredBox(color: Colors.black),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => manager.openFullPlayer(context),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          video.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: manager.togglePlayback,
+                    tooltip: manager.isPlaying ? 'Pause video' : 'Play video',
+                    icon: Icon(
+                      manager.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: manager.close,
+                    tooltip: 'Close miniplayer',
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class ViyouApp extends StatelessWidget {
   const ViyouApp({super.key});
 
@@ -295,6 +530,10 @@ class ViyouApp extends StatelessWidget {
           seedColor: const Color(0xff6366f1),
           brightness: Brightness.dark,
         ),
+      ),
+      builder: (context, child) => Stack(
+        fit: StackFit.expand,
+        children: [if (child != null) child, const _MiniPlayerOverlay()],
       ),
       home: const ViyouEntryGate(),
     );
@@ -779,11 +1018,13 @@ class _ViyouSearchPageState extends State<ViyouSearchPage> {
     }
     setState(() {
       _showSuggestions = true;
-      _suggestionsFuture = _loadSuggestions(value);
     });
     _debounce = Timer(const Duration(milliseconds: 280), () {
       if (!mounted) return;
-      setState(() => _resultsFuture = _search(value));
+      setState(() {
+        _suggestionsFuture = _loadSuggestions(value);
+        _resultsFuture = _search(value);
+      });
     });
   }
 
@@ -1092,11 +1333,19 @@ class _SearchResultTile extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 5),
-                    Text(
-                      '${post.author} • ${post.category}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    InkWell(
+                      onTap: post.authorUid == null
+                          ? null
+                          : () => _openCreatorProfilePage(
+                              context,
+                              post.authorUid,
+                            ),
+                      child: Text(
+                        '${post.author} • ${post.category}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -1110,6 +1359,7 @@ class _SearchResultTile extends StatelessWidget {
                   ],
                 ),
               ),
+              _CreatorFollowButton(creatorUid: post.authorUid),
               const Icon(Icons.chevron_right_rounded),
             ],
           ),
@@ -1139,6 +1389,7 @@ class _SearchFlickViewerPageState extends State<_SearchFlickViewerPage> {
   @override
   void initState() {
     super.initState();
+    _MiniPlayerManager.instance.setHidden('searchFlicks', true);
     _activeIndex = widget.initialIndex.clamp(0, widget.flicks.length - 1);
     _controller = PageController(initialPage: _activeIndex);
   }
@@ -1146,6 +1397,7 @@ class _SearchFlickViewerPageState extends State<_SearchFlickViewerPage> {
   @override
   void dispose() {
     _controller.dispose();
+    _MiniPlayerManager.instance.setHidden('searchFlicks', false);
     super.dispose();
   }
 
@@ -1179,6 +1431,7 @@ class _SearchContentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = blog.primaryImage;
+    final authorPhoto = _creatorAvatarProvider(blog.authorPhoto);
     return Scaffold(
       appBar: AppBar(title: const Text('Content')),
       body: ListView(
@@ -1189,9 +1442,42 @@ class _SearchContentPage extends StatelessWidget {
             style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
-          Text(
-            '${blog.author} • ${blog.category}',
-            style: TextStyle(color: Colors.grey[400]),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: blog.authorUid == null
+                      ? null
+                      : () => _openCreatorProfilePage(context, blog.authorUid),
+                  borderRadius: BorderRadius.circular(24),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundImage: authorPhoto,
+                        child: authorPhoto == null
+                            ? Text(
+                                blog.author.isEmpty
+                                    ? 'V'
+                                    : blog.author[0].toUpperCase(),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${blog.author} • ${blog.category}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.grey[400]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              _CreatorFollowButton(creatorUid: blog.authorUid),
+            ],
           ),
           if (image != null && image.isNotEmpty) ...[
             const SizedBox(height: 18),
@@ -1233,12 +1519,20 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   int _profileSection = 0;
   final Set<String> _likedBlogIds = <String>{};
   final Map<String, int> _likeCounts = <String, int>{};
+  final Set<int> _visitedTabs = <int>{0};
+  final Map<String, Future<QuerySnapshot<Map<String, dynamic>>>>
+  _profileCollectionFutures = {};
   late Future<List<BlogRecord>> _blogsFuture;
   late Future<List<BlogRecord>> _videosFuture;
-  late Future<List<BlogRecord>> _flicksFuture;
-  late Future<UserProfile> _profileFuture;
+  Future<List<BlogRecord>>? _flicksFuture;
+  late Future<List<BlogRecord>> _flickSuggestionsFuture;
+  Future<UserProfile>? _profileFuture;
+  String? _profileUserId;
+  late Future<List<List<Map<String, dynamic>>>> _storiesFuture;
+  late Future<List<Map<String, dynamic>>> _adsFuture;
   final _searchController = TextEditingController();
   final _messageSearchController = TextEditingController();
+  final ScrollController _homeScrollController = ScrollController();
   final PageController _flicksPageController = PageController();
 
   final _categories = const [
@@ -1266,9 +1560,10 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   void initState() {
     super.initState();
     _blogsFuture = _loadBlogs();
-    _videosFuture = _loadVideos();
-    _flicksFuture = _loadFlicks();
-    _profileFuture = _loadProfile();
+    _videosFuture = Future.value(const <BlogRecord>[]);
+    _flickSuggestionsFuture = _loadFlicks(limit: 12);
+    _storiesFuture = _loadStoryGroups();
+    _adsFuture = _loadActiveInFeedAds();
   }
 
   Future<String?> _compressProfileImage(XFile file) async {
@@ -1310,7 +1605,10 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
       blogs.docs.map((blog) => blog.reference.update({'authorPhoto': dataUrl})),
     );
     if (!mounted) return;
-    setState(() => _profileFuture = _loadProfile());
+    setState(() {
+      _profileUserId = user.uid;
+      _profileFuture = _loadProfile();
+    });
     _showMessage(context, 'Profile photo updated');
   }
 
@@ -1505,7 +1803,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     return videos;
   }
 
-  Future<List<BlogRecord>> _loadFlicks() async {
+  Future<List<BlogRecord>> _loadFlicks({int limit = 100}) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     final currentUserDoc = currentUser == null
         ? null
@@ -1521,7 +1819,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         .collection('blogs')
         .where('status', isEqualTo: 'published')
         .where('isFlicker', isEqualTo: true)
-        .limit(100)
+        .limit(limit)
         .get();
 
     final allFlicks = snapshot.docs
@@ -1541,23 +1839,74 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   Future<UserProfile> _loadProfile() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return UserProfile.empty;
-    final snapshot = await FirebaseFirestore.instance
+    final profileFuture = FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .get();
-    final postsSnapshot = await FirebaseFirestore.instance
+    final postsFuture = FirebaseFirestore.instance
         .collection('blogs')
         .where('authorUid', isEqualTo: user.uid)
         .limit(30)
         .get();
+    final snapshot = await profileFuture;
+    final postsSnapshot = await postsFuture;
     final posts = postsSnapshot.docs.map(BlogRecord.fromDocument).toList();
     return UserProfile.fromDocument(snapshot, user, posts);
+  }
+
+  void _selectTab(int index) {
+    _MiniPlayerManager.instance.setHidden('flicksTab', index == 1);
+    if (index == 1) _flicksFuture ??= _loadFlicks();
+    if (index == 4) {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (_profileUserId != userId || _profileFuture == null) {
+        _profileUserId = userId;
+        _profileFuture = _loadProfile();
+      }
+    }
+    if (index == 0 && _selectedTab == 0) {
+      if (_homeScrollController.hasClients) {
+        _homeScrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 380),
+          curve: Curves.easeOutCubic,
+        );
+      }
+      return;
+    }
+    _visitedTabs.add(index);
+    setState(() => _selectedTab = index);
+  }
+
+  Future<void> _refreshHome() async {
+    setState(() {
+      _blogsFuture = _loadBlogs();
+      _flickSuggestionsFuture = _loadFlicks(limit: 12);
+      if (_flicksFuture != null) _flicksFuture = _loadFlicks();
+      _storiesFuture = _loadStoryGroups();
+      _adsFuture = _loadActiveInFeedAds();
+    });
+    await _blogsFuture;
+    await _flickSuggestionsFuture;
+    if (_flicksFuture != null) await _flicksFuture!;
+    await _storiesFuture;
+    await _adsFuture;
+  }
+
+  Future<void> _refreshProfile() async {
+    setState(() {
+      _profileCollectionFutures.clear();
+      _profileUserId = FirebaseAuth.instance.currentUser?.uid;
+      _profileFuture = _loadProfile();
+    });
+    await _profileFuture;
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _messageSearchController.dispose();
+    _homeScrollController.dispose();
     _flicksPageController.dispose();
     super.dispose();
   }
@@ -1572,13 +1921,21 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
           body: SafeArea(
             top: false,
             bottom: false,
-            child: switch (_selectedTab) {
-              0 => _buildHome(isDesktop),
-              1 => _buildFlicks(),
-              3 => _buildMessages(),
-              4 => _buildProfile(),
-              _ => _buildPlaceholderTab(),
-            },
+            child: IndexedStack(
+              index: _selectedTab,
+              children: List<Widget>.generate(5, (index) {
+                if (!_visitedTabs.contains(index)) {
+                  return const SizedBox.shrink();
+                }
+                return switch (index) {
+                  0 => _buildHome(isDesktop),
+                  1 => _buildFlicks(),
+                  3 => _buildMessages(),
+                  4 => _buildProfile(),
+                  _ => _buildPlaceholderTab(),
+                };
+              }),
+            ),
           ),
           bottomNavigationBar: isDesktop ? null : _buildBottomNavigation(),
         );
@@ -1737,95 +2094,136 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   }
 
   Widget _buildHome(bool isDesktop) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        isDesktop ? 28 : 14,
-        20,
-        isDesktop ? 28 : 14,
-        100,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1220),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildStories(),
-              const SizedBox(height: 28),
-              _sectionTitle(
-                'Latest from creators',
-                Icons.auto_awesome_rounded,
-                const Color(0xff6366f1),
+    return RefreshIndicator(
+      onRefresh: _refreshHome,
+      child: CustomScrollView(
+        controller: _homeScrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              isDesktop ? 28 : 14,
+              20,
+              isDesktop ? 28 : 14,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1220),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildStories(),
+                      const SizedBox(height: 28),
+                      _sectionTitle(
+                        'Latest from creators',
+                        Icons.auto_awesome_rounded,
+                        const Color(0xff6366f1),
+                      ),
+                      const SizedBox(height: 14),
+                      _buildCategories(),
+                      const SizedBox(height: 18),
+                      _buildFlickSuggestions(),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 14),
-              _buildCategories(),
-              const SizedBox(height: 18),
-              _buildFlickSuggestions(),
-              _buildLiveFeed(isDesktop),
-              const SizedBox(height: 34),
-              Center(
+            ),
+          ),
+          _buildLiveFeed(isDesktop),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(14, 20, 14, 100),
+            sliver: SliverToBoxAdapter(
+              child: Center(
                 child: Text(
                   '© Viyou.in  Empowering Creators',
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildLiveFeed(bool isDesktop) {
-    return FutureBuilder<List<BlogRecord>>(
-      future: _blogsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final blogs = snapshot.data ?? const <BlogRecord>[];
-        final filtered = _selectedCategory == 'All'
-            ? blogs
-            : blogs
-                  .where((blog) => blog.category == _selectedCategory)
-                  .toList();
-        if (filtered.isEmpty)
-          return _emptyState(
-            'No published posts in this category yet. Please check back later.',
-          );
-        return FutureBuilder<List<Map<String, dynamic>>>(
-          future: _loadActiveInFeedAds(),
-          builder: (context, adSnapshot) {
-            final ads = adSnapshot.data ?? const <Map<String, dynamic>>[];
-            final children = <Widget>[];
-            for (var index = 0; index < filtered.length; index++) {
-              children.add(_livePostCard(filtered[index]));
-              final postNumber = index + 1;
-              final dueAds = ads
-                  .where((ad) => postNumber % _promotionFrequency(ad) == 0)
-                  .toList();
-              if (dueAds.isNotEmpty) {
-                children.add(
-                  _promotionCard(dueAds[(postNumber - 1) % dueAds.length]),
-                );
-              }
-            }
-            final feed = Column(children: children);
-            return isDesktop
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: feed),
-                      const SizedBox(width: 24),
-                      SizedBox(width: 290, child: _buildSidebar()),
-                    ],
-                  )
-                : feed;
-          },
+  Widget _buildLiveFeed(bool isDesktop) => FutureBuilder<List<BlogRecord>>(
+    future: _blogsFuture,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const SliverToBoxAdapter(
+          child: Center(child: CircularProgressIndicator()),
         );
-      },
-    );
-  }
+      }
+      final blogs = snapshot.data ?? const <BlogRecord>[];
+      final filtered = _selectedCategory == 'All'
+          ? blogs
+          : blogs.where((blog) => blog.category == _selectedCategory).toList();
+      if (filtered.isEmpty)
+        return SliverToBoxAdapter(
+          child: _emptyState(
+            'No published posts in this category yet. Please check back later.',
+          ),
+        );
+      return FutureBuilder<List<Map<String, dynamic>>>(
+        future: _adsFuture,
+        builder: (context, adSnapshot) {
+          final ads = adSnapshot.data ?? const <Map<String, dynamic>>[];
+          final feedItems = <Object>[];
+          for (var index = 0; index < filtered.length; index++) {
+            feedItems.add(filtered[index]);
+            final postNumber = index + 1;
+            final dueAds = ads
+                .where((ad) => postNumber % _promotionFrequency(ad) == 0)
+                .toList();
+            if (dueAds.isNotEmpty) {
+              feedItems.add(dueAds[(postNumber - 1) % dueAds.length]);
+            }
+          }
+          Widget buildFeedItem(int index) {
+            final item = feedItems[index];
+            return item is BlogRecord
+                ? _livePostCard(item)
+                : _promotionCard(item as Map<String, dynamic>);
+          }
+
+          if (isDesktop) {
+            return SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: List<Widget>.generate(
+                          feedItems.length,
+                          buildFeedItem,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    SizedBox(width: 290, child: _buildSidebar()),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => buildFeedItem(index),
+                childCount: feedItems.length,
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 
   Future<List<Map<String, dynamic>>> _loadActiveInFeedAds() async {
     final adsSettings = await FirebaseFirestore.instance
@@ -1983,7 +2381,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   );
 
   Widget _buildFlickSuggestions() => FutureBuilder<List<BlogRecord>>(
-    future: _flicksFuture,
+    future: _flickSuggestionsFuture,
     builder: (context, snapshot) {
       final flicks = snapshot.data ?? const <BlogRecord>[];
       if (flicks.isEmpty) return const SizedBox.shrink();
@@ -2082,13 +2480,16 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   }
 
   Future<void> _openFlickInFeed(BlogRecord flick) async {
-    final flicks = await _flicksFuture;
+    _flicksFuture ??= _loadFlicks();
+    final flicks = await _flicksFuture!;
     final index = flicks.indexWhere((item) => item.id == flick.id);
     if (!mounted || index < 0) return;
     setState(() {
+      _visitedTabs.add(1);
       _selectedTab = 1;
       _currentFlickIndex = index;
     });
+    _MiniPlayerManager.instance.setHidden('flicksTab', true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _flicksPageController.hasClients) {
         _flicksPageController.jumpToPage(index);
@@ -2144,6 +2545,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
 
   Widget _livePostCard(BlogRecord blog) {
     final media = blog.primaryImage;
+    final authorPhoto = _creatorAvatarProvider(blog.authorPhoto);
     final hasImage = _isImageSource(media);
     final hasVideo = blog.video != null || blog.youtubeUrl != null;
     final isLiked = _likedBlogIds.contains(blog.id) || blog.isLiked;
@@ -2166,34 +2568,55 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 21,
-                    backgroundImage: blog.authorPhoto == null
-                        ? null
-                        : NetworkImage(blog.authorPhoto!),
-                    child: blog.authorPhoto == null
-                        ? Text(blog.author[0])
-                        : null,
-                  ),
-                  const SizedBox(width: 10),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          blog.author,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        Text(
-                          '${blog.category} • ${_formatUploadAge(blog.date)}',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 12,
+                    child: InkWell(
+                      onTap: blog.authorUid == null
+                          ? null
+                          : () => _openPublicProfile(blog.authorUid!),
+                      borderRadius: BorderRadius.circular(24),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 21,
+                            backgroundImage: authorPhoto,
+                            child: authorPhoto == null
+                                ? Text(
+                                    blog.author.isEmpty
+                                        ? 'V'
+                                        : blog.author[0].toUpperCase(),
+                                  )
+                                : null,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  blog.author,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Text(
+                                  '${blog.category} • ${_formatUploadAge(blog.date)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                  _CreatorFollowButton(creatorUid: blog.authorUid),
                   IconButton(
                     onPressed: blog.authorUid == null
                         ? null
@@ -2289,30 +2712,8 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     );
   }
 
-  Future<void> _openPublicProfile(String uid) async {
-    final userSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get();
-    final postsSnapshot = await FirebaseFirestore.instance
-        .collection('blogs')
-        .where('authorUid', isEqualTo: uid)
-        .where('status', isEqualTo: 'published')
-        .limit(30)
-        .get();
-    if (!mounted) return;
-    final profile = UserProfile.fromDocument(
-      userSnapshot,
-      FirebaseAuth.instance.currentUser,
-      postsSnapshot.docs.map(BlogRecord.fromDocument).toList(),
-    );
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ViyouPublicProfilePage(profile: profile),
-      ),
-    );
-  }
+  Future<void> _openPublicProfile(String uid) =>
+      _openCreatorProfilePage(context, uid);
 
   Future<void> _showBlogDetail(BlogRecord blog) async {
     final media = blog.primaryImage;
@@ -2328,6 +2729,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
           future: _loadActiveBlogAd(blog.category),
           builder: (context, adSnapshot) {
             final ad = adSnapshot.data;
+            final authorPhoto = _creatorAvatarProvider(blog.authorPhoto);
             return ListView(
               controller: controller,
               padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
@@ -2351,9 +2753,45 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  '${blog.author}  •  ${blog.category}',
-                  style: TextStyle(color: Colors.grey[500]),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: blog.authorUid == null
+                            ? null
+                            : () => _openCreatorProfilePage(
+                                context,
+                                blog.authorUid,
+                              ),
+                        borderRadius: BorderRadius.circular(24),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundImage: authorPhoto,
+                              child: authorPhoto == null
+                                  ? Text(
+                                      blog.author.isEmpty
+                                          ? 'V'
+                                          : blog.author[0].toUpperCase(),
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${blog.author} • ${blog.category}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.grey[500]),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _CreatorFollowButton(creatorUid: blog.authorUid),
+                  ],
                 ),
                 if (_isImageSource(media)) ...[
                   const SizedBox(height: 18),
@@ -4050,7 +4488,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         ),
         const SizedBox(height: 12),
         FutureBuilder<List<List<Map<String, dynamic>>>>(
-          future: _loadStoryGroups(),
+          future: _storiesFuture,
           builder: (context, snapshot) {
             final groups =
                 snapshot.data ?? const <List<Map<String, dynamic>>>[];
@@ -4237,7 +4675,10 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         return ChoiceChip(
           label: Text(category),
           selected: active,
-          onSelected: (_) => setState(() => _selectedCategory = category),
+          onSelected: (_) => setState(() {
+            _selectedCategory = category;
+            _adsFuture = _loadActiveInFeedAds();
+          }),
           selectedColor: const Color(0xff6366f1),
           backgroundColor: const Color(0xff151515),
           labelStyle: TextStyle(
@@ -4280,27 +4721,33 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     },
   );
 
-  Widget _buildFlicks() => FutureBuilder<List<BlogRecord>>(
-    future: _flicksFuture,
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting)
-        return const Center(child: CircularProgressIndicator());
-      final flicks = snapshot.data ?? const <BlogRecord>[];
-      if (flicks.isEmpty) {
-        return _emptyState('No Flicks published yet');
-      }
-      return PageView.builder(
-        controller: _flicksPageController,
-        scrollDirection: Axis.vertical,
-        itemCount: flicks.length,
-        onPageChanged: (index) => setState(() => _currentFlickIndex = index),
-        itemBuilder: (context, index) => _FlickPage(
-          blog: flicks[index],
-          isActive: index == _currentFlickIndex,
-        ),
-      );
-    },
-  );
+  Widget _buildFlicks() {
+    final flicksFuture = _flicksFuture;
+    if (flicksFuture == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return FutureBuilder<List<BlogRecord>>(
+      future: flicksFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
+        final flicks = snapshot.data ?? const <BlogRecord>[];
+        if (flicks.isEmpty) {
+          return _emptyState('No Flicks published yet');
+        }
+        return PageView.builder(
+          controller: _flicksPageController,
+          scrollDirection: Axis.vertical,
+          itemCount: flicks.length,
+          onPageChanged: (index) => setState(() => _currentFlickIndex = index),
+          itemBuilder: (context, index) => _FlickPage(
+            blog: flicks[index],
+            isActive: index == _currentFlickIndex,
+          ),
+        );
+      },
+    );
+  }
 
   Widget _videoCard(BlogRecord video) {
     final image = video.primaryImage;
@@ -4354,12 +4801,6 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         context,
         MaterialPageRoute(builder: (_) => ViyouVideoPlayer(video: video)),
       );
-      if (mounted) {
-        setState(() {
-          _videosFuture = _loadVideos();
-          _blogsFuture = _loadBlogs();
-        });
-      }
       return;
     }
     _showMessage(context, 'This flick is not playable yet');
@@ -4387,9 +4828,9 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
           onPublished: () {
             setState(() {
               _blogsFuture = _loadBlogs();
-              _videosFuture = _loadVideos();
-              _flicksFuture = _loadFlicks();
-              _profileFuture = _loadProfile();
+              _flickSuggestionsFuture = _loadFlicks(limit: 12);
+              if (_flicksFuture != null) _flicksFuture = _loadFlicks();
+              if (_profileFuture != null) _profileFuture = _loadProfile();
             });
           },
         ),
@@ -4424,178 +4865,235 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
           )
           .toList();
       final tabs = [blogs, flicks, videos];
-      return SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(14, 18, 14, 100),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
+      return RefreshIndicator(
+        onRefresh: _refreshProfile,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(14, 18, 14, 0),
+              sliver: SliverToBoxAdapter(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 900),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Stack(
-                          clipBehavior: Clip.none,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              radius: 46,
-                              backgroundImage: profile.photoUrl == null
-                                  ? null
-                                  : NetworkImage(profile.photoUrl!),
-                              child: profile.photoUrl == null
-                                  ? Text(
-                                      profile.name.isEmpty
-                                          ? '?'
-                                          : profile.name[0].toUpperCase(),
-                                      style: const TextStyle(fontSize: 30),
-                                    )
-                                  : null,
-                            ),
-                            Positioned(
-                              right: -2,
-                              bottom: -2,
-                              child: Material(
-                                color: const Color(0xfff59e0b),
-                                shape: const CircleBorder(),
-                                child: IconButton(
-                                  onPressed: _changeProfilePhoto,
-                                  icon: const Icon(
-                                    Icons.camera_alt_outlined,
-                                    color: Colors.black,
-                                    size: 18,
-                                  ),
-                                  tooltip: 'Change profile photo',
+                            Column(
+                              children: [
+                                Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 46,
+                                      backgroundImage: profile.photoUrl == null
+                                          ? null
+                                          : NetworkImage(profile.photoUrl!),
+                                      child: profile.photoUrl == null
+                                          ? Text(
+                                              profile.name.isEmpty
+                                                  ? '?'
+                                                  : profile.name[0]
+                                                        .toUpperCase(),
+                                              style: const TextStyle(
+                                                fontSize: 30,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    Positioned(
+                                      right: -2,
+                                      bottom: -2,
+                                      child: Material(
+                                        color: const Color(0xfff59e0b),
+                                        shape: const CircleBorder(),
+                                        child: IconButton(
+                                          onPressed: _changeProfilePhoto,
+                                          icon: const Icon(
+                                            Icons.camera_alt_outlined,
+                                            color: Colors.black,
+                                            size: 18,
+                                          ),
+                                          tooltip: 'Change profile photo',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                              ],
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          profile.name.isEmpty
+                                              ? 'Viyou creator'
+                                              : profile.name,
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (profile.username.isNotEmpty)
+                                    Text(
+                                      '@${profile.username}',
+                                      style: TextStyle(color: Colors.grey[500]),
+                                    ),
+                                  if (profile.userId.isNotEmpty)
+                                    Text(
+                                      'ID: ${profile.userId}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  const SizedBox(height: 12),
+                                  Wrap(
+                                    spacing: 16,
+                                    runSpacing: 6,
+                                    children: [
+                                      Text('${profile.posts} Posts'),
+                                      InkWell(
+                                        onTap: () =>
+                                            _openConnections('followers'),
+                                        child: Text(
+                                          '${profile.followers} Followers',
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: () =>
+                                            _openConnections('following'),
+                                        child: Text(
+                                          '${profile.following} Following',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (profile.bio.isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      profile.bio,
+                                      style: TextStyle(color: Colors.grey[300]),
+                                    ),
+                                  ],
+                                  if (profile.email.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      profile.email,
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 24),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _profileActionChip(
+                                icon: Icons.playlist_play_rounded,
+                                label: 'Playlist',
+                                onPressed: _createPlaylistFromProfile,
+                              ),
+                              const SizedBox(width: 8),
+                              _profileActionChip(
+                                icon: Icons.schedule_rounded,
+                                label: 'Schedule',
+                                onPressed: _showScheduledContent,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _profileTabChip(
+                                0,
+                                Icons.article_outlined,
+                                'Blogs',
+                              ),
+                              _profileTabChip(1, Icons.bolt, 'Flicks'),
+                              _profileTabChip(
+                                2,
+                                Icons.play_circle_outline,
+                                'Videos',
+                              ),
+                              _profileTabChip(3, Icons.edit_note, 'Drafts'),
+                              _profileTabChip(
+                                4,
+                                Icons.favorite_border,
+                                'Liked',
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
                       ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  profile.name.isEmpty
-                                      ? 'Viyou creator'
-                                      : profile.name,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (profile.username.isNotEmpty)
-                            Text(
-                              '@${profile.username}',
-                              style: TextStyle(color: Colors.grey[500]),
-                            ),
-                          if (profile.userId.isNotEmpty)
-                            Text(
-                              'ID: ${profile.userId}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 16,
-                            runSpacing: 6,
-                            children: [
-                              Text('${profile.posts} Posts'),
-                              InkWell(
-                                onTap: () => _openConnections('followers'),
-                                child: Text('${profile.followers} Followers'),
-                              ),
-                              InkWell(
-                                onTap: () => _openConnections('following'),
-                                child: Text('${profile.following} Following'),
-                              ),
-                            ],
-                          ),
-                          if (profile.bio.isNotEmpty) ...[
-                            const SizedBox(height: 10),
-                            Text(
-                              profile.bio,
-                              style: TextStyle(color: Colors.grey[300]),
-                            ),
-                          ],
-                          if (profile.email.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              profile.email,
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ],
+                  ),
+                ),
+              ),
+            ),
+            if (_profileSection < 3 && tabs[_profileSection].isEmpty)
+              SliverToBoxAdapter(
+                child: _emptyState(
+                  _profileSection == 1
+                      ? 'No flicks published yet'
+                      : 'Nothing here yet',
+                ),
+              ),
+            if (_profileSection < 3 && tabs[_profileSection].isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 900),
+                        child: _livePostCard(tabs[_profileSection][index]),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _profileActionChip(
-                        icon: Icons.playlist_play_rounded,
-                        label: 'Playlist',
-                        onPressed: _createPlaylistFromProfile,
-                      ),
-                      const SizedBox(width: 8),
-                      _profileActionChip(
-                        icon: Icons.schedule_rounded,
-                        label: 'Schedule',
-                        onPressed: _showScheduledContent,
-                      ),
-                    ],
+                    childCount: tabs[_profileSection].length,
                   ),
                 ),
-                const SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _profileTabChip(0, Icons.article_outlined, 'Blogs'),
-                      _profileTabChip(1, Icons.bolt, 'Flicks'),
-                      _profileTabChip(2, Icons.play_circle_outline, 'Videos'),
-                      _profileTabChip(3, Icons.edit_note, 'Drafts'),
-                      _profileTabChip(4, Icons.favorite_border, 'Liked'),
-                    ],
+              ),
+            if (_profileSection == 3 || _profileSection == 4)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                sliver: SliverToBoxAdapter(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 900),
+                      child: _profileSection == 3
+                          ? _profileCollection('draft', 'No drafts yet')
+                          : _profileCollection('liked', 'No liked videos yet'),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 18),
-                if (_profileSection < 3 && tabs[_profileSection].isEmpty)
-                  _emptyState(
-                    _profileSection == 1
-                        ? 'No flicks published yet'
-                        : 'Nothing here yet',
-                  ),
-                if (_profileSection < 3)
-                  ...tabs[_profileSection].map(_livePostCard),
-                if (_profileSection == 3)
-                  _profileCollection('draft', 'No drafts yet'),
-                if (_profileSection == 4)
-                  _profileCollection('liked', 'No liked videos yet'),
-              ],
-            ),
-          ),
+              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
         ),
       );
     },
@@ -4614,8 +5112,9 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
               .collection('blogs')
               .where('likes', arrayContains: user.uid)
               .limit(30);
+    final future = _profileCollectionFutures.putIfAbsent(type, query.get);
     return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      future: query.get(),
+      future: future,
       builder: (context, snapshot) {
         final posts =
             snapshot.data?.docs
@@ -4755,6 +5254,11 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
                         final other = Map<String, dynamic>.from(
                           details[otherUid] ?? const {},
                         );
+                        final otherPhoto = _creatorAvatarProvider(
+                          other['photoURL'] is String
+                              ? other['photoURL'] as String
+                              : null,
+                        );
                         final last = Map<String, dynamic>.from(
                           data['lastMessage'] ?? const {},
                         );
@@ -4772,42 +5276,59 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
                               horizontal: 12,
                               vertical: 5,
                             ),
-                            leading: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                CircleAvatar(
-                                  radius: 26,
-                                  backgroundImage: other['photoURL'] is String
-                                      ? NetworkImage(other['photoURL'])
-                                      : null,
-                                  child: other['photoURL'] == null
-                                      ? const Icon(Icons.person_outline_rounded)
-                                      : null,
-                                ),
-                                if (unread)
-                                  Positioned(
-                                    right: -2,
-                                    bottom: -1,
-                                    child: Container(
-                                      width: 13,
-                                      height: 13,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xff10b981),
-                                        shape: BoxShape.circle,
+                            leading: InkWell(
+                              onTap: otherUid.isEmpty
+                                  ? null
+                                  : () => _openCreatorProfilePage(
+                                      context,
+                                      otherUid,
+                                    ),
+                              customBorder: const CircleBorder(),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 26,
+                                    backgroundImage: otherPhoto,
+                                    child: otherPhoto == null
+                                        ? const Icon(
+                                            Icons.person_outline_rounded,
+                                          )
+                                        : null,
+                                  ),
+                                  if (unread)
+                                    Positioned(
+                                      right: -2,
+                                      bottom: -1,
+                                      child: Container(
+                                        width: 13,
+                                        height: 13,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xff10b981),
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
                             title: Row(
                               children: [
                                 Expanded(
-                                  child: Text(
-                                    '${other['name'] ?? 'User'}',
-                                    style: TextStyle(
-                                      fontWeight: unread
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
+                                  child: InkWell(
+                                    onTap: otherUid.isEmpty
+                                        ? null
+                                        : () => _openCreatorProfilePage(
+                                            context,
+                                            otherUid,
+                                          ),
+                                    child: Text(
+                                      '${other['name'] ?? 'User'}',
+                                      style: TextStyle(
+                                        fontWeight: unread
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -4912,16 +5433,22 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
               ),
             ...snapshots.where((doc) => doc.exists).map((doc) {
               final data = doc.data() ?? <String, dynamic>{};
+              final photo = _creatorAvatarProvider(
+                data['photoURL'] is String ? data['photoURL'] as String : null,
+              );
               return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: data['photoURL'] is String
-                      ? NetworkImage(data['photoURL'])
-                      : null,
-                  child: data['photoURL'] == null
-                      ? const Icon(Icons.person)
-                      : null,
+                leading: InkWell(
+                  onTap: () => _openCreatorProfilePage(context, doc.id),
+                  customBorder: const CircleBorder(),
+                  child: CircleAvatar(
+                    backgroundImage: photo,
+                    child: photo == null ? const Icon(Icons.person) : null,
+                  ),
                 ),
-                title: Text('${data['name'] ?? 'User'}'),
+                title: InkWell(
+                  onTap: () => _openCreatorProfilePage(context, doc.id),
+                  child: Text('${data['name'] ?? 'User'}'),
+                ),
                 subtitle: Text('@${data['username'] ?? ''}'),
                 onTap: () {
                   Navigator.pop(context);
@@ -4970,7 +5497,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: const Text('Open Profile'),
-          onTap: () => setState(() => _selectedTab = 4),
+          onTap: () => _selectTab(4),
         ),
       ],
     ),
@@ -5006,7 +5533,9 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   );
 
   Widget _buildBottomNavigation() => FutureBuilder<UserProfile>(
-    future: _profileFuture,
+    future: _profileUserId == FirebaseAuth.instance.currentUser?.uid
+        ? _profileFuture
+        : null,
     builder: (context, snapshot) {
       final profile = snapshot.data ?? UserProfile.empty;
       final photo =
@@ -5028,7 +5557,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
           if (index == 2) {
             _showUploadDialog();
           } else {
-            setState(() => _selectedTab = index);
+            _selectTab(index);
           }
         },
         destinations: [
@@ -5188,7 +5717,12 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
                 await _showAuthDialog();
               } else {
                 await FirebaseAuth.instance.signOut();
-                if (mounted) setState(() {});
+                if (mounted) {
+                  setState(() {
+                    _profileFuture = null;
+                    _profileUserId = null;
+                  });
+                }
               }
             },
           ),
@@ -5277,7 +5811,12 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
                               );
                         }
                         if (dialogContext.mounted) Navigator.pop(dialogContext);
-                        if (mounted) setState(() {});
+                        if (mounted) {
+                          setState(() {
+                            _profileFuture = null;
+                            _profileUserId = null;
+                          });
+                        }
                         _showMessage(
                           context,
                           isSignup ? 'Account created' : 'Welcome back',
@@ -5322,7 +5861,8 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
       if (dialogContext.mounted) Navigator.pop(dialogContext);
       if (mounted) {
         setState(() {
-          _profileFuture = _loadProfile();
+          _profileFuture = null;
+          _profileUserId = null;
         });
         _showMessage(context, 'Welcome to Viyou.in');
       }
@@ -5828,6 +6368,21 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
   static const int _blogImageMaxCount = 5;
   static const int _maxCompressedImageBytes = 100 * 1024;
 
+  Future<double> _maxVideoUploadSizeMb() async {
+    final setting = _contentType == 'flick'
+        ? 'maxFlickSizeMB'
+        : 'maxVideoSizeMB';
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('settings')
+          .doc('general')
+          .get();
+      final value = snapshot.data()?[setting];
+      if (value is num && value > 0) return value.toDouble();
+    } catch (_) {}
+    return 1;
+  }
+
   Future<Uint8List?> _compressImageToBytes(XFile file) async {
     final originalBytes = await file.readAsBytes();
     final decoded = img.decodeImage(originalBytes);
@@ -5983,6 +6538,15 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
       return;
     }
 
+    if (_contentType == 'blog' && descriptionText.length < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Blog content must be at least 1 character'),
+        ),
+      );
+      return;
+    }
+
     if (!_isTitleLengthValid()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -6016,18 +6580,23 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
       return;
     }
 
-    if (_contentType == 'blog' && _selectedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Choose 1 to 5 blog images')),
-      );
-      return;
-    }
-
     if (!_isFlickClipValid()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Flick clip must be 60 seconds or less')),
       );
       return;
+    }
+
+    if (_contentType != 'blog' && _selectedVideo != null) {
+      final maxSizeMb = await _maxVideoUploadSizeMb();
+      final selectedSize = await _selectedVideo!.length();
+      if (selectedSize > maxSizeMb * 1024 * 1024) {
+        final typeLabel = _contentType == 'flick' ? 'Flick' : 'Long video';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$typeLabel limit is ${maxSizeMb}MB')),
+        );
+        return;
+      }
     }
 
     setState(() => _uploading = true);
@@ -6117,9 +6686,9 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
         'views': 0,
         'status': 'published',
         'visibility': 'public',
-        'trimStart': _contentType == 'flick' ? _trimStart : null,
-        'trimEnd': _contentType == 'flick' ? _trimEnd : null,
-        'videoDuration': _videoDurationSeconds,
+        'duration': _videoDurationSeconds ?? 0,
+        'flickStartTime': _contentType == 'flick' ? _trimStart : null,
+        'flickEndTime': _contentType == 'flick' ? _trimEnd : null,
       };
 
       await FirebaseFirestore.instance.collection('blogs').add(payload);
@@ -6357,7 +6926,7 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
         : _videoDescriptionLimit;
     final mediaLabel = _contentType == 'blog'
         ? (_selectedImages.isEmpty
-              ? 'Choose 1–5 images'
+              ? 'Add blog images (optional)'
               : '${_selectedImages.length} image${_selectedImages.length == 1 ? '' : 's'} selected')
         : (_selectedVideo == null ? 'Choose video' : _selectedVideo!.name);
     final thumbnailLabel = _selectedThumbnail == null
@@ -6826,6 +7395,247 @@ class UserProfile {
   }
 }
 
+ImageProvider? _creatorAvatarProvider(String? source) {
+  if (source == null || source.isEmpty) return null;
+  if (source.startsWith('data:image/')) {
+    final comma = source.indexOf(',');
+    if (comma < 0) return null;
+    try {
+      return MemoryImage(base64Decode(source.substring(comma + 1)));
+    } catch (_) {
+      return null;
+    }
+  }
+  if (source.startsWith('http://') || source.startsWith('https://')) {
+    return NetworkImage(source);
+  }
+  return null;
+}
+
+Future<void> _openCreatorProfilePage(
+  BuildContext context,
+  String? creatorUid,
+) async {
+  if (creatorUid == null || creatorUid.isEmpty) return;
+  final profileFuture = FirebaseFirestore.instance
+      .collection('users')
+      .doc(creatorUid)
+      .get();
+  final postsFuture = FirebaseFirestore.instance
+      .collection('blogs')
+      .where('authorUid', isEqualTo: creatorUid)
+      .where('status', isEqualTo: 'published')
+      .limit(30)
+      .get();
+  final profileSnapshot = await profileFuture;
+  if (!profileSnapshot.exists) return;
+  final postsSnapshot = await postsFuture;
+  if (!context.mounted) return;
+  final currentUser = FirebaseAuth.instance.currentUser;
+  final profile = UserProfile.fromDocument(
+    profileSnapshot,
+    currentUser?.uid == creatorUid ? currentUser : null,
+    postsSnapshot.docs.map(BlogRecord.fromDocument).toList(),
+  );
+  await Navigator.of(context).push<void>(
+    MaterialPageRoute<void>(
+      builder: (_) => ViyouPublicProfilePage(profile: profile),
+    ),
+  );
+}
+
+class _CreatorFollowStore extends ChangeNotifier {
+  static final instance = _CreatorFollowStore();
+
+  String? _userId;
+  final Set<String> _following = <String>{};
+  Future<void>? _loading;
+  bool _loaded = false;
+
+  bool get isLoaded => _loaded;
+  String? get userId => _userId;
+
+  bool isFollowing(String creatorUid) => _following.contains(creatorUid);
+
+  Future<void> ensureLoaded() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (_userId != null || _following.isNotEmpty) {
+        _userId = null;
+        _loading = null;
+        _loaded = false;
+        _following.clear();
+        notifyListeners();
+      }
+      return;
+    }
+    if (_userId == user.uid && _loaded) return;
+    if (_userId == user.uid && _loading != null) return _loading;
+
+    _userId = user.uid;
+    _loaded = false;
+    _following.clear();
+    notifyListeners();
+    final load = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get()
+        .then((snapshot) {
+          if (_userId != user.uid) return;
+          final following = snapshot.data()?['following'];
+          if (following is List) {
+            _following.addAll(following.whereType<String>());
+          }
+          _loaded = true;
+        });
+    _loading = load;
+    try {
+      await load;
+    } finally {
+      if (_userId == user.uid) {
+        _loading = null;
+        notifyListeners();
+      }
+    }
+  }
+
+  void syncFromUserDocument(String userId, Object? rawFollowing) {
+    if (_userId != userId) {
+      _userId = userId;
+      _following.clear();
+    }
+    _following.clear();
+    if (rawFollowing is List) {
+      _following.addAll(rawFollowing.whereType<String>());
+    }
+    _loaded = true;
+    notifyListeners();
+  }
+
+  Future<void> toggle(String creatorUid) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Log in to follow creators');
+    if (creatorUid == user.uid) return;
+    await ensureLoaded();
+    final wasFollowing = _following.contains(creatorUid);
+    if (wasFollowing) {
+      _following.remove(creatorUid);
+    } else {
+      _following.add(creatorUid);
+    }
+    notifyListeners();
+
+    final currentUserRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
+    final creatorRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(creatorUid);
+    try {
+      await Future.wait([
+        currentUserRef.set({
+          'following': wasFollowing
+              ? FieldValue.arrayRemove([creatorUid])
+              : FieldValue.arrayUnion([creatorUid]),
+        }, SetOptions(merge: true)),
+        creatorRef.set({
+          'followers': wasFollowing
+              ? FieldValue.arrayRemove([user.uid])
+              : FieldValue.arrayUnion([user.uid]),
+        }, SetOptions(merge: true)),
+      ]);
+    } catch (_) {
+      if (wasFollowing) {
+        _following.add(creatorUid);
+      } else {
+        _following.remove(creatorUid);
+      }
+      notifyListeners();
+      rethrow;
+    }
+    if (!wasFollowing) {
+      try {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'recipientUid': creatorUid,
+          'senderUid': user.uid,
+          'senderName': user.displayName ?? 'Someone',
+          'type': 'follow',
+          'date': DateTime.now().toIso8601String(),
+          'read': false,
+        });
+      } catch (_) {
+        // Follow state is already saved; notification failure is non-fatal.
+      }
+    }
+  }
+}
+
+class _CreatorFollowButton extends StatefulWidget {
+  const _CreatorFollowButton({required this.creatorUid});
+
+  final String? creatorUid;
+
+  @override
+  State<_CreatorFollowButton> createState() => _CreatorFollowButtonState();
+}
+
+class _CreatorFollowButtonState extends State<_CreatorFollowButton> {
+  @override
+  Widget build(BuildContext context) {
+    final creatorUid = widget.creatorUid;
+    final user = FirebaseAuth.instance.currentUser;
+    if (creatorUid == null || creatorUid.isEmpty || creatorUid == user?.uid) {
+      return const SizedBox.shrink();
+    }
+
+    final store = _CreatorFollowStore.instance;
+    if (store.userId != user?.uid || (user != null && !store.isLoaded)) {
+      unawaited(store.ensureLoaded());
+    }
+    return AnimatedBuilder(
+      animation: store,
+      builder: (context, _) {
+        final isFollowing = store.isFollowing(creatorUid);
+        return OutlinedButton.icon(
+          onPressed: user != null && !store.isLoaded
+              ? null
+              : () async {
+                  if (user == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Log in to follow creators'),
+                      ),
+                    );
+                    return;
+                  }
+                  try {
+                    await store.toggle(creatorUid);
+                  } catch (_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Could not update follow status'),
+                        ),
+                      );
+                    }
+                  }
+                },
+          icon: Icon(
+            isFollowing ? Icons.check_rounded : Icons.person_add_alt_1_rounded,
+            size: 16,
+          ),
+          label: Text(isFollowing ? 'Following' : 'Follow'),
+          style: OutlinedButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            minimumSize: const Size(0, 36),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class ViyouPublicProfilePage extends StatefulWidget {
   const ViyouPublicProfilePage({super.key, required this.profile});
 
@@ -6908,6 +7718,8 @@ class ViyouConnectionsPage extends StatelessWidget {
               subtitle: data['username'] == null
                   ? null
                   : Text('@${data['username']}'),
+              onTap: () =>
+                  _openCreatorProfilePage(context, '${data['id'] ?? ''}'),
             );
           },
         );
@@ -6938,35 +7750,29 @@ class _ViyouPublicProfilePageState extends State<ViyouPublicProfilePage> {
         .collection('users')
         .doc(current.uid)
         .get();
-    if (mounted)
-      setState(
-        () => following = List<String>.from(
-          snap.data()?['following'] ?? const [],
-        ).contains(widget.profile.userId),
-      );
+    if (!mounted) return;
+    final store = _CreatorFollowStore.instance;
+    store.syncFromUserDocument(current.uid, snap.data()?['following']);
+    setState(() => following = store.isFollowing(widget.profile.userId));
   }
 
   Future<void> _toggleFollowing() async {
     final current = FirebaseAuth.instance.currentUser;
     if (current == null || widget.profile.userId.isEmpty) return;
-    final next = !following;
-    setState(() => following = next);
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(current.uid)
-        .update({
-          'following': next
-              ? FieldValue.arrayUnion([widget.profile.userId])
-              : FieldValue.arrayRemove([widget.profile.userId]),
-        });
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.profile.userId)
-        .update({
-          'followers': next
-              ? FieldValue.arrayUnion([current.uid])
-              : FieldValue.arrayRemove([current.uid]),
-        });
+    final store = _CreatorFollowStore.instance;
+    await store.ensureLoaded();
+    if (!mounted) return;
+    final wasFollowing = store.isFollowing(widget.profile.userId);
+    setState(() => following = !wasFollowing);
+    try {
+      await store.toggle(widget.profile.userId);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => following = wasFollowing);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not update follow status')),
+      );
+    }
   }
 
   Future<void> _markStoryAsSeen(String storyId) async {
@@ -7041,6 +7847,7 @@ class _ViyouPublicProfilePageState extends State<ViyouPublicProfilePage> {
   Widget build(BuildContext context) {
     final isOwner =
         FirebaseAuth.instance.currentUser?.uid == widget.profile.userId;
+    final profilePhoto = _creatorAvatarProvider(widget.profile.photoUrl);
     final blogs = widget.profile.postsList
         .where(
           (post) =>
@@ -7142,10 +7949,8 @@ class _ViyouPublicProfilePageState extends State<ViyouPublicProfilePage> {
                 },
                 child: CircleAvatar(
                   radius: 42,
-                  backgroundImage: widget.profile.photoUrl == null
-                      ? null
-                      : NetworkImage(widget.profile.photoUrl!),
-                  child: widget.profile.photoUrl == null
+                  backgroundImage: profilePhoto,
+                  child: profilePhoto == null
                       ? Text(
                           widget.profile.name.isEmpty
                               ? '?'
@@ -7296,7 +8101,7 @@ class ViyouPlaylistsPage extends StatefulWidget {
 }
 
 class _ViyouPlaylistsPageState extends State<ViyouPlaylistsPage> {
-  late Future<QuerySnapshot<Map<String, dynamic>>> _playlists;
+  late Future<QuerySnapshot<Map<String, dynamic>>?> _playlists;
 
   @override
   void initState() {
@@ -7367,7 +8172,7 @@ class _ViyouPlaylistsPageState extends State<ViyouPlaylistsPage> {
       icon: const Icon(Icons.add),
       label: const Text('New playlist'),
     ),
-    body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>?>(
       future: _playlists,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -10256,6 +11061,9 @@ class _BlogCommentsState extends State<BlogComments> {
             else
               ..._comments.map((comment) {
                 final commentId = '${comment['id'] ?? ''}';
+                final commentUid = comment['userUid'] is String
+                    ? comment['userUid'] as String
+                    : null;
                 final currentUserId = FirebaseAuth.instance.currentUser?.uid;
                 final likes = List<String>.from(
                   comment['likes'] ?? const <String>[],
@@ -10282,11 +11090,20 @@ class _BlogCommentsState extends State<BlogComments> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(
-                            radius: 16,
-                            child: Text(
-                              '${comment['author'] ?? 'U'}'.characters.first
-                                  .toUpperCase(),
+                          InkWell(
+                            onTap: commentUid == null
+                                ? null
+                                : () => _openCreatorProfilePage(
+                                    context,
+                                    commentUid,
+                                  ),
+                            borderRadius: BorderRadius.circular(20),
+                            child: CircleAvatar(
+                              radius: 16,
+                              child: Text(
+                                '${comment['author'] ?? 'U'}'.characters.first
+                                    .toUpperCase(),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -10297,10 +11114,18 @@ class _BlogCommentsState extends State<BlogComments> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        '${comment['author'] ?? 'User'}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
+                                      child: InkWell(
+                                        onTap: commentUid == null
+                                            ? null
+                                            : () => _openCreatorProfilePage(
+                                                context,
+                                                commentUid,
+                                              ),
+                                        child: Text(
+                                          '${comment['author'] ?? 'User'}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -10553,7 +11378,7 @@ class _StoryViewerDialogState extends State<_StoryViewerDialog> {
   Widget build(BuildContext context) {
     final story = widget.stories[_index];
     final authorName = '${story['authorName'] ?? 'Creator'}';
-    final authorPhoto = story['authorPhoto'] as String?;
+    final authorPhoto = _creatorAvatarProvider(story['authorPhoto'] as String?);
     final imageUrl = story['statusImage'] as String?;
     final videoUrl = story['statusVideo'] as String?;
     final textStory =
@@ -10733,26 +11558,40 @@ class _StoryViewerDialogState extends State<_StoryViewerDialog> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundImage:
-                                authorPhoto == null || authorPhoto.isEmpty
-                                ? null
-                                : NetworkImage(authorPhoto),
-                            child: authorPhoto == null || authorPhoto.isEmpty
-                                ? const Icon(Icons.person_outline, size: 18)
-                                : null,
-                          ),
-                          const SizedBox(width: 10),
                           Expanded(
-                            child: Text(
-                              authorName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
+                            child: InkWell(
+                              onTap: () => _openCreatorProfilePage(
+                                context,
+                                widget.authorUid,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundImage: authorPhoto,
+                                    child: authorPhoto == null
+                                        ? const Icon(
+                                            Icons.person_outline,
+                                            size: 18,
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      authorName,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
+                          _CreatorFollowButton(creatorUid: widget.authorUid),
                           IconButton(
                             onPressed: () => Navigator.pop(context),
                             icon: const Icon(Icons.close, color: Colors.white),
@@ -10816,7 +11655,7 @@ class _VideoFramePreview extends StatefulWidget {
 }
 
 class _VideoFramePreviewState extends State<_VideoFramePreview> {
-  late final VideoPlayerController _controller;
+  VideoPlayerController? _controller;
 
   @override
   void initState() {
@@ -10825,24 +11664,36 @@ class _VideoFramePreviewState extends State<_VideoFramePreview> {
   }
 
   Future<void> _initialize() async {
-    final controller = await _buildVideoController(widget.url);
-    _controller = controller;
-    await controller.initialize();
-    if (mounted) setState(() {});
+    VideoPlayerController? controller;
+    try {
+      controller = await _buildVideoController(widget.url);
+      await controller.initialize();
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      _controller = controller;
+      setState(() {});
+    } catch (_) {
+      await controller?.dispose();
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_controller.value.isInitialized) return _placeholder();
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) {
+      return _placeholder();
+    }
     return AspectRatio(
-      aspectRatio: _controller.value.aspectRatio,
-      child: VideoPlayer(_controller),
+      aspectRatio: controller.value.aspectRatio,
+      child: VideoPlayer(controller),
     );
   }
 
@@ -10991,14 +11842,14 @@ class _FlickPageState extends State<_FlickPage> {
         .get();
     if (!mounted) return;
     final data = userDoc.data() ?? {};
-    final following = data['following'];
+    final store = _CreatorFollowStore.instance;
+    store.syncFromUserDocument(user.uid, data['following']);
     final savedBlogs = data['savedBlogs'];
     setState(() {
       _isFollowing =
           authorUid != null &&
           user.uid != authorUid &&
-          following is List &&
-          following.contains(authorUid);
+          store.isFollowing(authorUid);
       _isSaved = savedBlogs is List && savedBlogs.contains(widget.blog.id);
     });
   }
@@ -11066,37 +11917,13 @@ class _FlickPageState extends State<_FlickPage> {
       return;
     }
     if (authorUid == null || authorUid == user.uid) return;
-    final wasFollowing = _isFollowing;
+    final store = _CreatorFollowStore.instance;
+    await store.ensureLoaded();
+    if (!mounted) return;
+    final wasFollowing = store.isFollowing(authorUid);
     setState(() => _isFollowing = !wasFollowing);
-    final currentUserRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid);
-    final authorRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(authorUid);
     try {
-      await Future.wait([
-        currentUserRef.set({
-          'following': wasFollowing
-              ? FieldValue.arrayRemove([authorUid])
-              : FieldValue.arrayUnion([authorUid]),
-        }, SetOptions(merge: true)),
-        authorRef.set({
-          'followers': wasFollowing
-              ? FieldValue.arrayRemove([user.uid])
-              : FieldValue.arrayUnion([user.uid]),
-        }, SetOptions(merge: true)),
-      ]);
-      if (!wasFollowing) {
-        await FirebaseFirestore.instance.collection('notifications').add({
-          'recipientUid': authorUid,
-          'senderUid': user.uid,
-          'senderName': user.displayName ?? 'Someone',
-          'type': 'follow',
-          'date': DateTime.now().toIso8601String(),
-          'read': false,
-        });
-      }
+      await store.toggle(authorUid);
     } catch (error) {
       if (mounted) setState(() => _isFollowing = wasFollowing);
       _showMessage('Could not update follow: $error');
@@ -11478,31 +12305,7 @@ class _FlickPageState extends State<_FlickPage> {
   }
 
   Future<void> _openCreatorProfile() async {
-    final authorUid = widget.blog.authorUid;
-    if (authorUid == null) return;
-    final userSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(authorUid)
-        .get();
-    if (!userSnapshot.exists || !mounted) return;
-    final postsSnapshot = await FirebaseFirestore.instance
-        .collection('blogs')
-        .where('authorUid', isEqualTo: authorUid)
-        .where('status', isEqualTo: 'published')
-        .limit(30)
-        .get();
-    if (!mounted) return;
-    final profile = UserProfile.fromDocument(
-      userSnapshot,
-      FirebaseAuth.instance.currentUser,
-      postsSnapshot.docs.map(BlogRecord.fromDocument).toList(),
-    );
-    await Navigator.push<void>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ViyouPublicProfilePage(profile: profile),
-      ),
-    );
+    await _openCreatorProfilePage(context, widget.blog.authorUid);
   }
 
   Future<void> _showFlickMore() async {
@@ -12231,6 +13034,7 @@ class _ViyouChatPageState extends State<ViyouChatPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
+    final partnerPhoto = _creatorAvatarProvider(widget.partnerPhoto);
     final stream = FirebaseFirestore.instance
         .collection('conversations')
         .doc(_conversationId)
@@ -12240,51 +13044,59 @@ class _ViyouChatPageState extends State<ViyouChatPage> {
       backgroundColor: const Color(0xff080808),
       appBar: AppBar(
         backgroundColor: const Color(0xff111111),
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 17,
-              backgroundImage: widget.partnerPhoto == null
-                  ? null
-                  : NetworkImage(widget.partnerPhoto!),
-              child: widget.partnerPhoto == null
-                  ? const Icon(Icons.person, size: 18)
-                  : null,
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(widget.partnerName),
-                StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                  stream: _conversationStream,
-                  builder: (context, snapshot) {
-                    final typing = Map<String, dynamic>.from(
-                      snapshot.data?.data()?['typingStatus'] ?? const {},
-                    );
-                    final typingAt = typing[widget.partnerUid];
-                    final isTyping =
-                        typingAt is Timestamp &&
-                        DateTime.now().difference(typingAt.toDate()).inSeconds <
-                            6;
-                    return Text(
-                      _blockedByPartner
-                          ? 'You cannot reply to this conversation'
-                          : isTyping
-                          ? 'Typing...'
-                          : 'Message securely on Viyou',
-                      style: TextStyle(
-                        color: isTyping
-                            ? const Color(0xff10b981)
-                            : Colors.grey[500],
-                        fontSize: 11,
-                      ),
-                    );
-                  },
+        title: InkWell(
+          onTap: () => _openCreatorProfilePage(context, widget.partnerUid),
+          borderRadius: BorderRadius.circular(24),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 17,
+                backgroundImage: partnerPhoto,
+                child: partnerPhoto == null
+                    ? const Icon(Icons.person, size: 18)
+                    : null,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.partnerName),
+                    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      stream: _conversationStream,
+                      builder: (context, snapshot) {
+                        final typing = Map<String, dynamic>.from(
+                          snapshot.data?.data()?['typingStatus'] ?? const {},
+                        );
+                        final typingAt = typing[widget.partnerUid];
+                        final isTyping =
+                            typingAt is Timestamp &&
+                            DateTime.now()
+                                    .difference(typingAt.toDate())
+                                    .inSeconds <
+                                6;
+                        return Text(
+                          _blockedByPartner
+                              ? 'You cannot reply to this conversation'
+                              : isTyping
+                              ? 'Typing...'
+                              : 'Message securely on Viyou',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isTyping
+                                ? const Color(0xff10b981)
+                                : Colors.grey[500],
+                            fontSize: 11,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -13055,7 +13867,9 @@ class _ChatPdfReaderPageState extends State<_ChatPdfReaderPage> {
     return bytes;
   }
 
-  void _retry() => setState(() => _pdfBytes = _loadPdf());
+  void _retry() => setState(() {
+    _pdfBytes = _loadPdf();
+  });
 
   Future<void> _openExternally() async {
     final uri = Uri.tryParse(widget.url);
@@ -13164,12 +13978,17 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
   bool _switchingResolution = false;
   bool _isFullscreen = false;
   bool _viewCounted = false;
-  Duration _position = Duration.zero;
-  Duration _duration = Duration.zero;
+  bool _controllerInitialized = false;
+  bool _transferredToMiniPlayer = false;
+  int _viewsCount = 0;
 
   @override
   void initState() {
     super.initState();
+    if (widget.video.isFlicker) {
+      _MiniPlayerManager.instance.setHidden('flickVideo', true);
+    }
+    _viewsCount = widget.video.viewsCount;
     _likesStream = FirebaseFirestore.instance
         .collection('blogs')
         .doc(widget.video.id)
@@ -13179,6 +13998,22 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
   }
 
   Future<void> _initialize() async {
+    final miniPlayback = _MiniPlayerManager.instance.take(widget.video.id);
+    if (miniPlayback != null) {
+      _controllerInitialized = miniPlayback.video != null;
+      if (miniPlayback.video != null) _controller = miniPlayback.video!;
+      _youtubeController = miniPlayback.youtube;
+      _viewCounted = miniPlayback.viewCounted;
+      _playbackRate = miniPlayback.playbackRate;
+      if (_controllerInitialized) {
+        _controller.addListener(_syncPlaybackState);
+        _syncPlaybackState();
+      }
+      return;
+    }
+    if (_MiniPlayerManager.instance.video != null) {
+      await _MiniPlayerManager.instance.close();
+    }
     unawaited(_recordSyncedWatchHistory(widget.video.id));
     final youtubeId = [widget.video.youtubeUrl, widget.video.video]
         .whereType<String>()
@@ -13199,6 +14034,7 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
       throw const FormatException('This video has no playable media source');
     }
     _controller = await _initializeVideoControllerWithFallback(source!);
+    _controllerInitialized = true;
     _controller.addListener(_syncPlaybackState);
     _controller.setLooping(widget.video.isFlicker);
     await _controller.setPlaybackSpeed(_playbackRate);
@@ -13214,15 +14050,12 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
   }
 
   void _syncPlaybackState() {
-    if (!mounted) return;
-    setState(() {
-      _position = _controller.value.position;
-      _duration = _controller.value.duration;
-    });
+    if (!mounted || !_controllerInitialized) return;
     if (!_viewCounted &&
         _controller.value.isPlaying &&
         _controller.value.position >= const Duration(seconds: 10)) {
       _viewCounted = true;
+      setState(() => _viewsCount++);
       final updates = <String, FieldValue>{'views': FieldValue.increment(1)};
       if (!widget.video.isFlicker) {
         updates['longVideoViews'] = FieldValue.increment(1);
@@ -13713,6 +14546,25 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
     if (mounted) setState(() {});
   }
 
+  void _minimizeToMiniPlayer() {
+    if (widget.video.isFlicker) return;
+    final youtube = _youtubeController;
+    final native = youtube == null && _controllerInitialized
+        ? _controller
+        : null;
+    if (native == null && youtube == null) return;
+    _MiniPlayerManager.instance.start(
+      widget.video,
+      videoController: native,
+      youtubeController: youtube,
+      isPlaying: native?.value.isPlaying ?? true,
+      viewCounted: _viewCounted,
+      playbackRate: _playbackRate,
+    );
+    _transferredToMiniPlayer = true;
+    Navigator.pop(context);
+  }
+
   void _skipBy(int seconds) {
     final target = _controller.value.position + Duration(seconds: seconds);
     final duration = _controller.value.duration;
@@ -13741,7 +14593,12 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
     if (mounted) setState(() => _isFullscreen = entering);
   }
 
-  Widget _buildPlayerControls({required bool fullscreen}) {
+  Widget _buildPlayerControls({
+    required bool fullscreen,
+    required VideoPlayerValue value,
+  }) {
+    final position = value.position;
+    final duration = value.duration;
     final controlButtonConstraints = const BoxConstraints.tightFor(
       width: 40,
       height: 40,
@@ -13754,11 +14611,11 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
         children: [
           Slider(
             min: 0,
-            max: _duration.inMilliseconds > 0
-                ? _duration.inMilliseconds.toDouble()
+            max: duration.inMilliseconds > 0
+                ? duration.inMilliseconds.toDouble()
                 : 1,
-            value: _position.inMilliseconds
-                .clamp(0, _duration.inMilliseconds)
+            value: position.inMilliseconds
+                .clamp(0, duration.inMilliseconds)
                 .toDouble(),
             onChanged: (value) =>
                 _controller.seekTo(Duration(milliseconds: value.round())),
@@ -13779,7 +14636,7 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                 tooltip: 'Play or pause',
                 onPressed: _togglePlayback,
                 icon: Icon(
-                  _controller.value.isPlaying
+                  value.isPlaying
                       ? Icons.pause_rounded
                       : Icons.play_arrow_rounded,
                 ),
@@ -13793,7 +14650,7 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
               ),
               Flexible(
                 child: Text(
-                  '${_formatDuration(_position)} / ${_formatDuration(_duration)}',
+                  '${_formatDuration(position)} / ${_formatDuration(duration)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -13854,54 +14711,61 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
     final aspectRatio = _controller.value.aspectRatio > 0
         ? _controller.value.aspectRatio
         : 16 / 9;
-    return LayoutBuilder(
-      builder: (context, constraints) => Center(
-        child: AspectRatio(
-          aspectRatio: aspectRatio,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(fullscreen ? 0 : 18),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                GestureDetector(
-                  onTapUp: (details) {
-                    final fraction =
-                        details.localPosition.dx / constraints.maxWidth;
-                    if (fraction < 0.4) {
-                      _skipBy(-10);
-                    } else if (fraction > 0.6) {
-                      _skipBy(10);
-                    } else {
-                      _togglePlayback();
-                    }
-                  },
-                  onLongPressStart: (_) {
-                    _rateBeforeLongPress = _playbackRate;
-                    _setPlaybackRate(2.0);
-                  },
-                  onLongPressEnd: (_) => _setPlaybackRate(_rateBeforeLongPress),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      VideoPlayer(_controller),
-                      if (!_controller.value.isPlaying)
-                        const Center(
-                          child: Icon(
-                            Icons.play_circle_fill_rounded,
-                            size: 78,
-                            color: Colors.white70,
+    return ValueListenableBuilder<VideoPlayerValue>(
+      valueListenable: _controller,
+      builder: (context, value, _) => LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: AspectRatio(
+            aspectRatio: aspectRatio,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(fullscreen ? 0 : 18),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  GestureDetector(
+                    onTapUp: (details) {
+                      final fraction =
+                          details.localPosition.dx / constraints.maxWidth;
+                      if (fraction < 0.4) {
+                        _skipBy(-10);
+                      } else if (fraction > 0.6) {
+                        _skipBy(10);
+                      } else {
+                        _togglePlayback();
+                      }
+                    },
+                    onLongPressStart: (_) {
+                      _rateBeforeLongPress = _playbackRate;
+                      _setPlaybackRate(2.0);
+                    },
+                    onLongPressEnd: (_) =>
+                        _setPlaybackRate(_rateBeforeLongPress),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        VideoPlayer(_controller),
+                        if (!value.isPlaying)
+                          const Center(
+                            child: Icon(
+                              Icons.play_circle_fill_rounded,
+                              size: 78,
+                              color: Colors.white70,
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: _buildPlayerControls(fullscreen: fullscreen),
-                ),
-              ],
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _buildPlayerControls(
+                      fullscreen: fullscreen,
+                      value: value,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -13966,16 +14830,21 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
   @override
   void dispose() {
     _sleepTimer?.cancel();
-    _youtubeController?.close();
+    if (widget.video.isFlicker) {
+      _MiniPlayerManager.instance.setHidden('flickVideo', false);
+    }
     if (_isFullscreen) {
       SystemChrome.setPreferredOrientations(const [
         DeviceOrientation.portraitUp,
       ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
-    if (_youtubeController == null) {
+    if (_controllerInitialized) {
       _controller.removeListener(_syncPlaybackState);
-      _controller.dispose();
+      if (!_transferredToMiniPlayer) unawaited(_controller.dispose());
+    }
+    if (_youtubeController != null && !_transferredToMiniPlayer) {
+      _youtubeController!.close();
     }
     super.dispose();
   }
@@ -14027,9 +14896,15 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '@${post.author}',
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  InkWell(
+                    onTap: post.authorUid == null
+                        ? null
+                        : () =>
+                              _openCreatorProfilePage(context, post.authorUid),
+                    child: Text(
+                      '@${post.author}',
+                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -14039,6 +14914,7 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                 ],
               ),
             ),
+            _CreatorFollowButton(creatorUid: post.authorUid),
           ],
         ),
       ),
@@ -14070,7 +14946,18 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
       backgroundColor: Colors.black,
       appBar: _isFullscreen
           ? null
-          : AppBar(title: const Text('Watch'), backgroundColor: Colors.black),
+          : AppBar(
+              title: const Text('Watch'),
+              backgroundColor: Colors.black,
+              actions: [
+                if (!widget.video.isFlicker)
+                  IconButton(
+                    onPressed: _minimizeToMiniPlayer,
+                    tooltip: 'Minimize player',
+                    icon: const Icon(Icons.picture_in_picture_alt_rounded),
+                  ),
+              ],
+            ),
       body: FutureBuilder<void>(
         future: _ready,
         builder: (context, snapshot) {
@@ -14108,6 +14995,9 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                 );
               }
               final isWide = constraints.maxWidth >= 980;
+              final authorPhoto = _creatorAvatarProvider(
+                widget.video.authorPhoto,
+              );
               final mainColumn = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -14123,41 +15013,58 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundImage: widget.video.authorPhoto == null
-                            ? null
-                            : NetworkImage(widget.video.authorPhoto!),
-                        child: widget.video.authorPhoto == null
-                            ? Text(
-                                widget.video.author.isEmpty
-                                    ? 'V'
-                                    : widget.video.author[0],
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 10),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.video.author,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
+                        child: InkWell(
+                          onTap: () => _openCreatorProfilePage(
+                            context,
+                            widget.video.authorUid,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundImage: authorPhoto,
+                                child: authorPhoto == null
+                                    ? Text(
+                                        widget.video.author.isEmpty
+                                            ? 'V'
+                                            : widget.video.author[0]
+                                                  .toUpperCase(),
+                                      )
+                                    : null,
                               ),
-                            ),
-                            Text(
-                              '${widget.video.category} • ${widget.video.date.year}',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 12,
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.video.author,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${widget.video.category} • ${widget.video.date.year} • $_viewsCount views',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
+                      _CreatorFollowButton(creatorUid: widget.video.authorUid),
                       StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                         stream: _likesStream,
                         builder: (context, snapshot) {
