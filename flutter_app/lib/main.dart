@@ -287,12 +287,17 @@ class _MiniPlayerManager extends ChangeNotifier {
   YoutubePlayerController? youtubeController;
   final Set<String> _hiddenReasons = <String>{};
   bool _restoring = false;
+  bool _overlaySuppressed = false;
   bool _isPlaying = true;
   bool _resumeAfterHidden = false;
   bool viewCounted = false;
   double playbackRate = 1;
 
-  bool get shouldShow => video != null && _hiddenReasons.isEmpty && !_restoring;
+  bool get shouldShow =>
+      video != null &&
+      _hiddenReasons.isEmpty &&
+      !_restoring &&
+      !_overlaySuppressed;
   bool get isPlaying => _isPlaying;
 
   void start(
@@ -307,6 +312,7 @@ class _MiniPlayerManager extends ChangeNotifier {
     this.videoController = videoController;
     this.youtubeController = youtubeController;
     _restoring = false;
+    _overlaySuppressed = false;
     _isPlaying = isPlaying;
     _resumeAfterHidden = false;
     this.viewCounted = viewCounted;
@@ -349,6 +355,7 @@ class _MiniPlayerManager extends ChangeNotifier {
     youtubeController = null;
     _restoring = false;
     _isPlaying = false;
+    _overlaySuppressed = false;
     _resumeAfterHidden = false;
     _hiddenReasons.clear();
     notifyListeners();
@@ -396,6 +403,12 @@ class _MiniPlayerManager extends ChangeNotifier {
       _resumeAfterHidden = false;
       if (shouldResume && !_isPlaying) unawaited(togglePlayback());
     }
+    notifyListeners();
+  }
+
+  void setOverlaySuppressed(bool suppressed) {
+    if (_overlaySuppressed == suppressed) return;
+    _overlaySuppressed = suppressed;
     notifyListeners();
   }
 
@@ -1340,11 +1353,29 @@ class _SearchResultTile extends StatelessWidget {
                               context,
                               post.authorUid,
                             ),
-                      child: Text(
-                        '${post.author} • ${post.category}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              '${post.author} • ${post.category}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          if (post.authorVerified)
+                            const Padding(
+                              padding: EdgeInsets.only(left: 4),
+                              child: Icon(
+                                Icons.verified_rounded,
+                                color: Color(0xff1da1f2),
+                                size: 14,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1465,11 +1496,26 @@ class _SearchContentPage extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          '${blog.author} • ${blog.category}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Colors.grey[400]),
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                '${blog.author} • ${blog.category}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.grey[400]),
+                              ),
+                            ),
+                            if (blog.authorVerified)
+                              const Padding(
+                                padding: EdgeInsets.only(left: 4),
+                                child: Icon(
+                                  Icons.verified_rounded,
+                                  color: Color(0xff1da1f2),
+                                  size: 15,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ],
@@ -1515,7 +1561,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   int _selectedTab = 0;
   int _currentFlickIndex = 0;
   String _selectedCategory = 'All';
-  bool _likedFirstPost = false;
+  String _selectedFeedMode = 'all';
   int _profileSection = 0;
   final Set<String> _likedBlogIds = <String>{};
   final Map<String, int> _likeCounts = <String, int>{};
@@ -1523,7 +1569,6 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   final Map<String, Future<QuerySnapshot<Map<String, dynamic>>>>
   _profileCollectionFutures = {};
   late Future<List<BlogRecord>> _blogsFuture;
-  late Future<List<BlogRecord>> _videosFuture;
   Future<List<BlogRecord>>? _flicksFuture;
   late Future<List<BlogRecord>> _flickSuggestionsFuture;
   Future<UserProfile>? _profileFuture;
@@ -1560,8 +1605,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   void initState() {
     super.initState();
     _blogsFuture = _loadBlogs();
-    _videosFuture = Future.value(const <BlogRecord>[]);
-    _flickSuggestionsFuture = _loadFlicks(limit: 12);
+    _flickSuggestionsFuture = _loadHomeFlickSuggestions();
     _storiesFuture = _loadStoryGroups();
     _adsFuture = _loadActiveInFeedAds();
   }
@@ -1774,36 +1818,254 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     );
   }
 
-  Future<List<BlogRecord>> _loadBlogs() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('blogs')
-        .where('status', isEqualTo: 'published')
-        .limit(30)
-        .get();
-    final blogs = snapshot.docs.map(BlogRecord.fromDocument).toList();
-    blogs.sort((a, b) => b.date.compareTo(a.date));
-    return blogs;
+  Future<List<BlogRecord>> _loadBlogs({String feedMode = 'all'}) async {
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
+      'blogs',
+    );
+    if (feedMode != 'all') {
+      query = query.where('status', isEqualTo: 'published');
+    }
+    final currentUser = FirebaseAuth.instance.currentUser;
+    var followedUsers = const <String>[];
+    if (feedMode == 'following') {
+      if (currentUser == null) return const <BlogRecord>[];
+      final followStore = _CreatorFollowStore.instance;
+      await followStore.ensureLoaded();
+      followedUsers = followStore.followingUserIds.take(30).toList();
+      if (followedUsers.isEmpty) return const <BlogRecord>[];
+      query = query.where('authorUid', whereIn: followedUsers);
+    }
+
+    final userSnapshot = currentUser == null
+        ? null
+        : await FirebaseFirestore.instance
+              .collection('users')
+              .doc(currentUser.uid)
+              .get();
+    final blockedUsers = List<String>.from(
+      userSnapshot?.data()?['blockedUsers'] ?? const <String>[],
+    );
+    final preferencesFuture = feedMode == 'all'
+        ? _loadHomeFeedPreferences(currentUser?.uid, userSnapshot?.data())
+        : null;
+    final blogs = <BlogRecord>[];
+    final verifiedAuthors = <String, bool>{};
+    QueryDocumentSnapshot<Map<String, dynamic>>? lastDocument;
+    var hasMore = true;
+    const pageSize = 40;
+    while (hasMore && blogs.length < 30) {
+      var pageQuery = query.orderBy('date', descending: true).limit(pageSize);
+      if (lastDocument != null) {
+        pageQuery = pageQuery.startAfterDocument(lastDocument);
+      }
+      final snapshot = await pageQuery.get();
+      if (snapshot.docs.isEmpty) break;
+      lastDocument = snapshot.docs.last;
+      hasMore = snapshot.docs.length == pageSize;
+      final pageBlogs = snapshot.docs.map(BlogRecord.fromDocument).toList();
+      if (feedMode == 'verified') {
+        await _loadVerifiedAuthors(
+          pageBlogs
+              .where((blog) => !blog.authorVerified)
+              .map((blog) => blog.authorUid)
+              .whereType<String>()
+              .where((userId) => !verifiedAuthors.containsKey(userId))
+              .toSet(),
+          verifiedAuthors,
+        );
+      }
+      for (final blog in pageBlogs) {
+        if (blog.status != 'published' ||
+            blog.isFlicker ||
+            blog.visibility == 'unlisted' ||
+            blockedUsers.contains(blog.authorUid) ||
+            (feedMode == 'following' &&
+                !followedUsers.contains(blog.authorUid)) ||
+            (feedMode == 'verified' &&
+                !blog.authorVerified &&
+                verifiedAuthors[blog.authorUid] != true) ||
+            (feedMode == 'blogsOnly' && _hasVideoContent(blog)) ||
+            (feedMode == 'videosOnly' && !_hasVideoContent(blog))) {
+          continue;
+        }
+        blogs.add(blog);
+        if (blogs.length == 30) break;
+      }
+    }
+    if (feedMode != 'all' || blogs.isEmpty) return blogs;
+    final preferences = await preferencesFuture!;
+    return _arrangeHomeFeed(
+      blogs,
+      interestCategories: preferences.categories,
+      watchedBlogIds: preferences.watchedBlogIds,
+    );
   }
 
-  Future<List<BlogRecord>> _loadVideos() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('blogs')
-        .where('status', isEqualTo: 'published')
-        .limit(50)
-        .get();
-    final videos = snapshot.docs
-        .map(BlogRecord.fromDocument)
-        .where(
-          (blog) =>
-              !blog.isFlicker &&
-              (blog.video != null || blog.youtubeUrl != null),
-        )
+  Future<void> _loadVerifiedAuthors(
+    Set<String> authorIds,
+    Map<String, bool> verifiedAuthors,
+  ) async {
+    if (authorIds.isEmpty) return;
+    final ids = authorIds.toList();
+    for (var start = 0; start < ids.length; start += 30) {
+      final pageIds = ids.skip(start).take(30).toList();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where(FieldPath.documentId, whereIn: pageIds)
+          .get();
+      final profiles = {
+        for (final profile in snapshot.docs) profile.id: profile.data(),
+      };
+      for (final userId in pageIds) {
+        final profile = profiles[userId];
+        final followers = profile?['followers'];
+        final followerCountOverride = profile?['followerCountOverride'];
+        final followerCount = followerCountOverride is num
+            ? followerCountOverride.toInt()
+            : followers is List
+            ? followers.length
+            : followers is num
+            ? followers.toInt()
+            : 0;
+        verifiedAuthors[userId] =
+            profile?['isVerified'] == true || followerCount >= 200;
+      }
+    }
+  }
+
+  bool _hasVideoContent(BlogRecord blog) =>
+      (blog.video?.trim().isNotEmpty ?? false) ||
+      (blog.youtubeUrl?.trim().isNotEmpty ?? false);
+
+  Future<({Set<String> categories, Set<String> watchedBlogIds})>
+  _loadHomeFeedPreferences(
+    String? userId,
+    Map<String, dynamic>? userData,
+  ) async {
+    final categories = <String>{};
+    final watchedBlogIds = <String>{};
+
+    void addCategories(dynamic value) {
+      if (value is String && value.trim().isNotEmpty) {
+        categories.add(value.trim());
+      } else if (value is List) {
+        categories.addAll(
+          value
+              .whereType<String>()
+              .map((item) => item.trim())
+              .where((item) => item.isNotEmpty),
+        );
+      }
+    }
+
+    addCategories(userData?['interests']);
+    addCategories(userData?['preferredCategories']);
+    if (userId == null) {
+      return (categories: categories, watchedBlogIds: watchedBlogIds);
+    }
+
+    try {
+      final userReference = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId);
+      final snapshots = await Future.wait([
+        FirebaseFirestore.instance
+            .collection('blogs')
+            .where('likes', arrayContains: userId)
+            .limit(50)
+            .get(),
+        userReference
+            .collection('watchHistory')
+            .orderBy('viewedAt', descending: true)
+            .limit(50)
+            .get(),
+      ]);
+      final likedPosts = snapshots[0];
+      final watchHistory = snapshots[1];
+      for (final post in likedPosts.docs) {
+        final category = post.data()['category'];
+        if (category is String && category.trim().isNotEmpty) {
+          categories.add(category.trim());
+        }
+      }
+      for (final historyItem in watchHistory.docs) {
+        final data = historyItem.data();
+        final blogId = data['blogId'];
+        watchedBlogIds.add(
+          blogId is String && blogId.isNotEmpty ? blogId : historyItem.id,
+        );
+        final category = data['category'];
+        if (category is String && category.trim().isNotEmpty) {
+          categories.add(category.trim());
+        }
+      }
+    } catch (error) {
+      debugPrint('Could not load home feed preferences: $error');
+    }
+
+    return (categories: categories, watchedBlogIds: watchedBlogIds);
+  }
+
+  List<BlogRecord> _arrangeHomeFeed(
+    List<BlogRecord> posts, {
+    required Set<String> interestCategories,
+    required Set<String> watchedBlogIds,
+  }) {
+    final remaining = List<BlogRecord>.of(posts)..shuffle();
+    if (remaining.length < 2 || interestCategories.isEmpty) return remaining;
+
+    final interests = remaining
+        .where((post) => interestCategories.contains(post.category))
         .toList();
-    videos.sort((a, b) => b.date.compareTo(a.date));
-    return videos;
+    final videoPosts = remaining
+        .where((post) => (post.video != null || post.youtubeUrl != null))
+        .toList();
+    final outsideInterestVideos = videoPosts
+        .where((post) => !interestCategories.contains(post.category))
+        .toList();
+    final unseenDiscoveries = outsideInterestVideos
+        .where((post) => !watchedBlogIds.contains(post.id))
+        .toList();
+    final unseenVideos = videoPosts
+        .where((post) => !watchedBlogIds.contains(post.id))
+        .toList();
+    final discoveryPool = unseenDiscoveries.isNotEmpty
+        ? unseenDiscoveries
+        : unseenVideos.isNotEmpty
+        ? unseenVideos
+        : outsideInterestVideos.isNotEmpty
+        ? outsideInterestVideos
+        : videoPosts;
+
+    final arranged = <BlogRecord>[];
+    final firstPost = remaining.removeAt(0);
+    arranged.add(firstPost);
+    interests.removeWhere((post) => post.id == firstPost.id);
+    discoveryPool.removeWhere((post) => post.id == firstPost.id);
+
+    while (interests.isNotEmpty || discoveryPool.isNotEmpty) {
+      for (var count = 0; count < 2 && interests.isNotEmpty; count++) {
+        final post = interests.removeAt(0);
+        discoveryPool.removeWhere((item) => item.id == post.id);
+        remaining.removeWhere((item) => item.id == post.id);
+        arranged.add(post);
+      }
+      if (discoveryPool.isNotEmpty) {
+        final post = discoveryPool.removeAt(0);
+        interests.removeWhere((item) => item.id == post.id);
+        remaining.removeWhere((item) => item.id == post.id);
+        arranged.add(post);
+      }
+    }
+
+    arranged.addAll(remaining);
+    return arranged;
   }
 
-  Future<List<BlogRecord>> _loadFlicks({int limit = 100}) async {
+  Future<List<BlogRecord>> _loadFlicks({
+    int limit = 100,
+    bool shuffleResults = true,
+  }) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     final currentUserDoc = currentUser == null
         ? null
@@ -1817,8 +2079,8 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
 
     final snapshot = await FirebaseFirestore.instance
         .collection('blogs')
-        .where('status', isEqualTo: 'published')
         .where('isFlicker', isEqualTo: true)
+        .orderBy('date', descending: true)
         .limit(limit)
         .get();
 
@@ -1826,14 +2088,23 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         .map(BlogRecord.fromDocument)
         .where(
           (blog) =>
+              blog.status == 'published' &&
               !blockedByMe.contains(blog.authorUid) &&
               (hasPlayableMediaSource(blog.video) ||
                   hasPlayableMediaSource(blog.youtubeUrl)),
         )
         .toList();
 
-    allFlicks.shuffle();
+    if (shuffleResults) allFlicks.shuffle();
     return allFlicks;
+  }
+
+  Future<List<BlogRecord>> _loadHomeFlickSuggestions() async {
+    final flicks = await _loadFlicks(limit: 100, shuffleResults: false);
+    if (flicks.length <= 2) return flicks;
+    final newest = flicks.take(2).toList();
+    final randomPool = flicks.skip(2).toList()..shuffle();
+    return [...newest, ...randomPool.take(3)];
   }
 
   Future<UserProfile> _loadProfile() async {
@@ -1878,10 +2149,22 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     setState(() => _selectedTab = index);
   }
 
+  Future<void> _selectFeedMode(String feedMode) async {
+    if (feedMode == 'following' && FirebaseAuth.instance.currentUser == null) {
+      await _showAuthDialog();
+      return;
+    }
+    if (_selectedFeedMode == feedMode) return;
+    setState(() {
+      _selectedFeedMode = feedMode;
+      _blogsFuture = _loadBlogs(feedMode: feedMode);
+    });
+  }
+
   Future<void> _refreshHome() async {
     setState(() {
-      _blogsFuture = _loadBlogs();
-      _flickSuggestionsFuture = _loadFlicks(limit: 12);
+      _blogsFuture = _loadBlogs(feedMode: _selectedFeedMode);
+      _flickSuggestionsFuture = _loadHomeFlickSuggestions();
       if (_flicksFuture != null) _flicksFuture = _loadFlicks();
       _storiesFuture = _loadStoryGroups();
       _adsFuture = _loadActiveInFeedAds();
@@ -2116,6 +2399,8 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
                     children: [
                       _buildStories(),
                       const SizedBox(height: 28),
+                      _buildFlickSuggestions(),
+                      const SizedBox(height: 8),
                       _sectionTitle(
                         'Latest from creators',
                         Icons.auto_awesome_rounded,
@@ -2124,7 +2409,8 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
                       const SizedBox(height: 14),
                       _buildCategories(),
                       const SizedBox(height: 18),
-                      _buildFlickSuggestions(),
+                      _buildFeedFilters(),
+                      const SizedBox(height: 18),
                     ],
                   ),
                 ),
@@ -2151,6 +2437,11 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   Widget _buildLiveFeed(bool isDesktop) => FutureBuilder<List<BlogRecord>>(
     future: _blogsFuture,
     builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return SliverToBoxAdapter(
+          child: _emptyState('Unable to load posts. Pull down to retry.'),
+        );
+      }
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const SliverToBoxAdapter(
           child: Center(child: CircularProgressIndicator()),
@@ -2226,24 +2517,32 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   );
 
   Future<List<Map<String, dynamic>>> _loadActiveInFeedAds() async {
-    final adsSettings = await FirebaseFirestore.instance
-        .collection('settings')
-        .doc('ads')
-        .get();
-    final settings = adsSettings.data() ?? const <String, dynamic>{};
-    if (settings['showAds'] == false || settings['enableInFeedAds'] == false)
+    try {
+      final adsSettings = await FirebaseFirestore.instance
+          .collection('settings')
+          .doc('ads')
+          .get();
+      final settings = adsSettings.data() ?? const <String, dynamic>{};
+      if (settings['showAds'] == false ||
+          settings['enableInFeedAds'] == false) {
+        return [];
+      }
+      final snapshot = await FirebaseFirestore.instance
+          .collection('promotions')
+          .where('status', isEqualTo: 'approved')
+          .limit(30)
+          .get();
+      final items = snapshot.docs.map((doc) => doc.data()).toList();
+      return ViyouPromotionHelper.filterApprovedPromotions(
+        items,
+        type: 'external',
+        category: _selectedCategory == 'All' ? null : _selectedCategory,
+      );
+    } on FirebaseException catch (error) {
+      if (error.code != 'permission-denied') rethrow;
+      debugPrint('In-feed ads unavailable: ${error.message}');
       return [];
-    final snapshot = await FirebaseFirestore.instance
-        .collection('promotions')
-        .where('status', isEqualTo: 'approved')
-        .limit(30)
-        .get();
-    final items = snapshot.docs.map((doc) => doc.data()).toList();
-    return ViyouPromotionHelper.filterApprovedPromotions(
-      items,
-      type: 'external',
-      category: _selectedCategory == 'All' ? null : _selectedCategory,
-    );
+    }
   }
 
   int _promotionFrequency(Map<String, dynamic> ad) {
@@ -2253,25 +2552,31 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   }
 
   Future<Map<String, dynamic>?> _loadActiveBlogAd(String category) async {
-    final settings =
-        (await FirebaseFirestore.instance
-                .collection('settings')
-                .doc('ads')
-                .get())
-            .data();
-    if (settings?['showAds'] == false) return null;
-    final snapshot = await FirebaseFirestore.instance
-        .collection('promotions')
-        .where('status', isEqualTo: 'approved')
-        .limit(30)
-        .get();
-    final items = snapshot.docs.map((doc) => doc.data()).toList();
-    final matches = ViyouPromotionHelper.filterApprovedPromotions(
-      items,
-      type: 'blog_ad',
-      category: category,
-    );
-    return matches.isEmpty ? null : matches.first;
+    try {
+      final settings =
+          (await FirebaseFirestore.instance
+                  .collection('settings')
+                  .doc('ads')
+                  .get())
+              .data();
+      if (settings?['showAds'] == false) return null;
+      final snapshot = await FirebaseFirestore.instance
+          .collection('promotions')
+          .where('status', isEqualTo: 'approved')
+          .limit(30)
+          .get();
+      final items = snapshot.docs.map((doc) => doc.data()).toList();
+      final matches = ViyouPromotionHelper.filterApprovedPromotions(
+        items,
+        type: 'blog_ad',
+        category: category,
+      );
+      return matches.isEmpty ? null : matches.first;
+    } on FirebaseException catch (error) {
+      if (error.code != 'permission-denied') rethrow;
+      debugPrint('Blog ad unavailable: ${error.message}');
+      return null;
+    }
   }
 
   Widget _promotionCard(Map<String, dynamic> ad) => Card(
@@ -2592,13 +2897,28 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  blog.author,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        blog.author,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    if (blog.authorVerified)
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 4),
+                                        child: Icon(
+                                          Icons.verified_rounded,
+                                          color: Color(0xff1da1f2),
+                                          size: 15,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                                 Text(
                                   '${blog.category} • ${_formatUploadAge(blog.date)}',
@@ -3118,32 +3438,6 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     }
   }
 
-  Future<bool> _userHasActiveStory(String userId) async {
-    if (userId.isEmpty) return false;
-    final snapshot = await FirebaseFirestore.instance
-        .collection('stories')
-        .where('authorUid', isEqualTo: userId)
-        .orderBy('timestamp', descending: true)
-        .limit(10)
-        .get();
-
-    final now = DateTime.now();
-    for (final doc in snapshot.docs) {
-      final data = doc.data();
-      final timestampValue = data['timestamp'];
-      DateTime? timestamp;
-      if (timestampValue is Timestamp) {
-        timestamp = timestampValue.toDate();
-      } else if (timestampValue is String) {
-        timestamp = DateTime.tryParse(timestampValue);
-      }
-      if (timestamp != null && now.difference(timestamp).inHours <= 24) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   Future<void> _showCreateStorySheet() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -3650,7 +3944,6 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         final editorResult = await showDialog<Map<String, dynamic>>(
           context: context,
           builder: (previewContext) {
-            final defaultText = 'Tap to add text';
             final canvasKey = GlobalKey();
             final textController = TextEditingController();
             List<Map<String, dynamic>> stickers = <Map<String, dynamic>>[];
@@ -4690,36 +4983,38 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     ),
   );
 
-  Widget _buildVideos() => FutureBuilder<List<BlogRecord>>(
-    future: _videosFuture,
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      final videos = snapshot.data ?? [];
-      return SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(14, 24, 14, 100),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _sectionTitle(
-                  'Videos',
-                  Icons.play_circle_fill_rounded,
-                  const Color(0xff6366f1),
-                ),
-                const SizedBox(height: 18),
-                if (videos.isEmpty) _emptyState('No videos published yet'),
-                ...videos.map(_videoCard),
-              ],
+  Widget _buildFeedFilters() {
+    const filters = <(String, String)>[
+      ('all', 'All Posts'),
+      ('following', 'Following'),
+      ('verified', 'Verified'),
+      ('blogsOnly', 'Blogs'),
+      ('videosOnly', 'Videos'),
+    ];
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final (mode, label) = filters[index];
+          final selected = _selectedFeedMode == mode;
+          return ChoiceChip(
+            label: Text(label),
+            selected: selected,
+            onSelected: (_) => _selectFeedMode(mode),
+            selectedColor: const Color(0xff6366f1),
+            backgroundColor: const Color(0xff151515),
+            labelStyle: TextStyle(
+              color: selected ? Colors.white : Colors.grey[400],
+              fontWeight: FontWeight.w600,
             ),
-          ),
-        ),
-      );
-    },
-  );
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildFlicks() {
     final flicksFuture = _flicksFuture;
@@ -4746,51 +5041,6 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _videoCard(BlogRecord video) {
-    final image = video.primaryImage;
-    return GestureDetector(
-      onTap: () => _openVideo(video),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 18),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xff101010),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_isImageSource(image))
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: _imageSource(image),
-              ),
-            if (!_isImageSource(image) && video.video != null)
-              _VideoFramePreview(url: video.video!),
-            const SizedBox(height: 12),
-            Text(
-              video.title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              '${video.author}  •  ${video.category}',
-              style: TextStyle(color: Colors.grey[500]),
-            ),
-            if (video.video != null || video.youtubeUrl != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: Text(
-                  'Video available in Viyou Watch',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -4827,8 +5077,8 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         builder: (_) => ViyouCreatePage(
           onPublished: () {
             setState(() {
-              _blogsFuture = _loadBlogs();
-              _flickSuggestionsFuture = _loadFlicks(limit: 12);
+              _blogsFuture = _loadBlogs(feedMode: _selectedFeedMode);
+              _flickSuggestionsFuture = _loadHomeFlickSuggestions();
               if (_flicksFuture != null) _flicksFuture = _loadFlicks();
               if (_profileFuture != null) _profileFuture = _loadProfile();
             });
@@ -5591,146 +5841,6 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     },
   );
 
-  void _showMenu(BuildContext context) => showModalBottomSheet<void>(
-    context: context,
-    backgroundColor: const Color(0xff151515),
-    builder: (_) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.history),
-            title: const Text('Watch History'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ViyouHistoryPage()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('About Viyou.in'),
-            onTap: () {
-              Navigator.pop(context);
-              _openWebsite('https://viyou.in/about-us.html');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.shield_outlined),
-            title: const Text('Privacy Policy'),
-            onTap: () {
-              Navigator.pop(context);
-              _openWebsite('https://viyou.in/privacy.html');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.account_balance_outlined),
-            title: const Text('Monetization Policy'),
-            onTap: () {
-              Navigator.pop(context);
-              _openWebsite('https://viyou.in/monetization-policy.html');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.description_outlined),
-            title: const Text('Terms of Service'),
-            onTap: () {
-              Navigator.pop(context);
-              _openWebsite('https://viyou.in/terms.html');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.mail_outline),
-            title: const Text('Contact Us'),
-            onTap: () {
-              Navigator.pop(context);
-              _openWebsite('https://viyou.in/contact-us.html');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.campaign_outlined),
-            title: const Text('Advertise with Us'),
-            onTap: () {
-              Navigator.pop(context);
-              _openWebsite('https://viyou.in/advertise.html');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.add_circle_outline),
-            title: const Text('Create post / upload video'),
-            onTap: () {
-              Navigator.pop(context);
-              _showUploadDialog();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ViyouSettingsPage()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.insights_rounded),
-            title: const Text('Creator Studio'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ViyouStudioDashboardPage(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.admin_panel_settings_outlined),
-            title: const Text('Admin Panel'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ViyouAdminPage()),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              FirebaseAuth.instance.currentUser == null
-                  ? Icons.login_rounded
-                  : Icons.logout_rounded,
-            ),
-            title: Text(
-              FirebaseAuth.instance.currentUser == null
-                  ? 'Login / Sign up'
-                  : 'Logout',
-            ),
-            onTap: () async {
-              Navigator.pop(context);
-              if (FirebaseAuth.instance.currentUser == null) {
-                await _showAuthDialog();
-              } else {
-                await FirebaseAuth.instance.signOut();
-                if (mounted) {
-                  setState(() {
-                    _profileFuture = null;
-                    _profileUserId = null;
-                  });
-                }
-              }
-            },
-          ),
-        ],
-      ),
-    ),
-  );
-
   Future<void> _showAuthDialog() async {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
@@ -5882,12 +5992,6 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
 }
 
 class ViyouPromotionHelper {
-  static bool _isWithinExpiry(String? value) {
-    if (value == null || value.isEmpty) return true;
-    final expiry = DateTime.tryParse(value);
-    return expiry == null || expiry.isAfter(DateTime.now());
-  }
-
   static bool _matchesCategory(
     String? category,
     List<dynamic>? targetCategories,
@@ -5993,6 +6097,8 @@ class BlogRecord {
     this.duration = 0,
     this.flickStartTime = 0,
     this.flickEndTime,
+    this.authorVerified = false,
+    this.visibility = 'public',
   });
 
   final String title;
@@ -6024,6 +6130,8 @@ class BlogRecord {
   final double duration;
   final double flickStartTime;
   final double? flickEndTime;
+  final bool authorVerified;
+  final String visibility;
 
   String? get primaryImage {
     if (thumbnail != null && thumbnail!.isNotEmpty) return thumbnail;
@@ -6098,6 +6206,8 @@ class BlogRecord {
       duration: (data['duration'] as num?)?.toDouble() ?? 0,
       flickStartTime: (data['flickStartTime'] as num?)?.toDouble() ?? 0,
       flickEndTime: (data['flickEndTime'] as num?)?.toDouble(),
+      authorVerified: data['authorVerified'] == true,
+      visibility: '${data['visibility'] ?? 'public'}',
     );
   }
 
@@ -6148,6 +6258,8 @@ class BlogRecord {
       duration: (data['duration'] as num?)?.toDouble() ?? 0,
       flickStartTime: (data['flickStartTime'] as num?)?.toDouble() ?? 0,
       flickEndTime: (data['flickEndTime'] as num?)?.toDouble(),
+      authorVerified: data['authorVerified'] == true,
+      visibility: '${data['visibility'] ?? 'public'}',
     );
   }
 
@@ -6603,7 +6715,6 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
 
     try {
       String? videoUrl;
-      String? imageUrl;
       String? thumbnailUrl;
       final imageUrls = <String>[];
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -6656,6 +6767,23 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
         }
       }
 
+      final authorSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+      final authorData = authorSnapshot.data() ?? const <String, dynamic>{};
+      final followers = authorData['followers'];
+      final overrideFollowers = authorData['followerCountOverride'];
+      final followerCount = overrideFollowers is num
+          ? overrideFollowers.toInt()
+          : followers is List
+          ? followers.length
+          : followers is num
+          ? followers.toInt()
+          : 0;
+      final authorVerified =
+          authorData['isVerified'] == true || followerCount >= 200;
+
       final finalTitle = titleText.isEmpty
           ? (_contentType == 'blog'
                 ? 'Untitled blog'
@@ -6669,11 +6797,13 @@ class _ViyouCreatePageState extends State<ViyouCreatePage> {
         'titleLower': finalTitle.toLowerCase(),
         'category': _category,
         'author':
+            authorData['name'] ??
             currentUser.displayName ??
             currentUser.email?.split('@').first ??
             'Viyou creator',
         'authorUid': currentUser.uid,
-        'authorPhoto': currentUser.photoURL,
+        'authorPhoto': authorData['photoURL'] ?? currentUser.photoURL,
+        'authorVerified': authorVerified,
         'content': descriptionText,
         'isFlicker': _contentType == 'flick',
         'video': videoUrl,
@@ -7345,6 +7475,7 @@ class UserProfile {
     required this.postsList,
     this.bio = '',
     this.email = '',
+    this.isVerified = false,
   });
 
   static const empty = UserProfile(
@@ -7365,6 +7496,7 @@ class UserProfile {
   final List<BlogRecord> postsList;
   final String bio;
   final String email;
+  final bool isVerified;
 
   int get posts => postsList.length;
 
@@ -7376,6 +7508,12 @@ class UserProfile {
     final data = document.data() ?? {};
     final followers = data['followers'];
     final following = data['following'];
+    final followerCountOverride = data['followerCountOverride'];
+    final followerCount = followerCountOverride is num
+        ? followerCountOverride.toInt()
+        : followers is List
+        ? followers.length
+        : (followers is num ? followers.toInt() : 0);
     return UserProfile(
       userId: document.id,
       name:
@@ -7385,6 +7523,7 @@ class UserProfile {
       followers: followers is List
           ? followers.length
           : (followers is int ? followers : 0),
+      isVerified: data['isVerified'] == true || followerCount >= 200,
       following: following is List
           ? following.length
           : (following is int ? following : 0),
@@ -7454,6 +7593,7 @@ class _CreatorFollowStore extends ChangeNotifier {
 
   bool get isLoaded => _loaded;
   String? get userId => _userId;
+  List<String> get followingUserIds => List<String>.unmodifiable(_following);
 
   bool isFollowing(String creatorUid) => _following.contains(creatorUid);
 
@@ -7964,14 +8104,29 @@ class _ViyouPublicProfilePageState extends State<ViyouPublicProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.profile.name.isEmpty
-                          ? 'Viyou creator'
-                          : widget.profile.name,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            widget.profile.name.isEmpty
+                                ? 'Viyou creator'
+                                : widget.profile.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        if (widget.profile.isVerified)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 5),
+                            child: Icon(
+                              Icons.verified_rounded,
+                              color: Color(0xff1da1f2),
+                              size: 19,
+                            ),
+                          ),
+                      ],
                     ),
                     if (widget.profile.username.isNotEmpty)
                       Text(
@@ -8372,7 +8527,10 @@ class ViyouScheduledPage extends StatelessWidget {
   }
 }
 
-Future<void> _recordSyncedWatchHistory(String blogId) async {
+Future<void> _recordSyncedWatchHistory(
+  String blogId, {
+  String? category,
+}) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
   try {
@@ -8388,6 +8546,7 @@ Future<void> _recordSyncedWatchHistory(String blogId) async {
         .doc(blogId)
         .set({
           'blogId': blogId,
+          if (category != null && category.isNotEmpty) 'category': category,
           'viewedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
   } catch (error) {
@@ -11279,7 +11438,6 @@ class _StoryViewerDialogState extends State<_StoryViewerDialog> {
   VideoPlayerController? _videoController;
   Timer? _autoAdvanceTimer;
   bool _isPaused = false;
-  bool _isLiked = false;
 
   static const Duration _storyDuration = Duration(seconds: 5);
 
@@ -11388,8 +11546,6 @@ class _StoryViewerDialogState extends State<_StoryViewerDialog> {
     final textColorValue = story['storyTextColor'] as int? ?? 0xffffffff;
     final textColor = Color(textColorValue);
     final textSize = (story['storyTextSize'] as num?)?.toDouble() ?? 26;
-    final storyBackground =
-        story['storyBackgroundColor'] as int? ?? const Color(0xff1f2937).value;
     final hasMedia =
         (imageUrl != null && imageUrl.isNotEmpty) ||
         (videoUrl != null && videoUrl.isNotEmpty);
@@ -11399,6 +11555,9 @@ class _StoryViewerDialogState extends State<_StoryViewerDialog> {
       backgroundColor: Colors.black,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
+        onLongPressStart: (_) => _togglePause(true),
+        onLongPressEnd: (_) => _togglePause(false),
+        onLongPressCancel: () => _togglePause(false),
         onTapUp: (details) {
           final width = MediaQuery.sizeOf(context).width;
           final localX = details.localPosition.dx;
@@ -11787,7 +11946,9 @@ class _FlickPageState extends State<_FlickPage> {
       await controller.pause();
       return;
     }
-    unawaited(_recordSyncedWatchHistory(widget.blog.id));
+    unawaited(
+      _recordSyncedWatchHistory(widget.blog.id, category: widget.blog.category),
+    );
     await controller.play();
   }
 
@@ -14014,7 +14175,12 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
     if (_MiniPlayerManager.instance.video != null) {
       await _MiniPlayerManager.instance.close();
     }
-    unawaited(_recordSyncedWatchHistory(widget.video.id));
+    unawaited(
+      _recordSyncedWatchHistory(
+        widget.video.id,
+        category: widget.video.category,
+      ),
+    );
     final youtubeId = [widget.video.youtubeUrl, widget.video.video]
         .whereType<String>()
         .map(YoutubePlayerController.convertUrlToId)
@@ -14546,14 +14712,15 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
     if (mounted) setState(() {});
   }
 
-  void _minimizeToMiniPlayer() {
+  Future<void> _minimizeToMiniPlayer() async {
     if (widget.video.isFlicker) return;
     final youtube = _youtubeController;
     final native = youtube == null && _controllerInitialized
         ? _controller
         : null;
     if (native == null && youtube == null) return;
-    _MiniPlayerManager.instance.start(
+    final manager = _MiniPlayerManager.instance;
+    manager.start(
       widget.video,
       videoController: native,
       youtubeController: youtube,
@@ -14561,8 +14728,11 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
       viewCounted: _viewCounted,
       playbackRate: _playbackRate,
     );
+    final route = ModalRoute.of(context);
     _transferredToMiniPlayer = true;
     Navigator.pop(context);
+    if (route != null) await route.completed;
+    manager.setOverlaySuppressed(false);
   }
 
   void _skipBy(int seconds) {
@@ -15039,14 +15209,29 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      widget.video.author,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 15,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            widget.video.author,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ),
+                                        if (widget.video.authorVerified)
+                                          const Padding(
+                                            padding: EdgeInsets.only(left: 4),
+                                            child: Icon(
+                                              Icons.verified_rounded,
+                                              color: Color(0xff1da1f2),
+                                              size: 15,
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     Text(
                                       '${widget.video.category} • ${widget.video.date.year} • $_viewsCount views',
