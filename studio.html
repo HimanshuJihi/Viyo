@@ -6,10 +6,12 @@
     <title>Creator Studio - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
     <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet"></noscript>
     <!-- Modern Icons (Lucide) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
     <style>
         .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
         .lucide-fill { fill: currentColor; }
@@ -54,7 +56,7 @@
             showStudioView(window.location.hash.slice(1) || 'overview');
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <link rel="stylesheet" href="assets/css/studio.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993635171115303"
      crossorigin="anonymous"></script>
@@ -453,7 +455,10 @@ window.showToast = function(message, type = 'info') {
         // Load monetization config from Firestore
         async function loadMonetizationConfig() {
             try {
-                const settingsDoc = await getDoc(doc(db, "settings", "monetization"));
+                const [settingsDoc, promoDoc] = await Promise.all([
+                    getDoc(doc(db, "settings", "monetization")),
+                    getDoc(doc(db, "settings", "promotions"))
+                ]);
                 if (settingsDoc.exists()) {
                     monetizationSettings = settingsDoc.data();
                     if (!monetizationSettings.tierFollowers) {
@@ -462,7 +467,6 @@ window.showToast = function(message, type = 'info') {
                 }
                 
                 // SYNC: Ensure Creator Earnings match Advertiser Rates
-                const promoDoc = await getDoc(doc(db, "settings", "promotions"));
                 if (promoDoc.exists()) {
                     const promoData = promoDoc.data();
                     if (promoData.prerollRate) monetizationSettings.preRollRate = promoData.prerollRate;
@@ -487,9 +491,8 @@ window.showToast = function(message, type = 'info') {
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                await loadMonetizationConfig(); // Wait for config to load first
+                await Promise.all([loadMonetizationConfig(), loadStudioHeadline()]);
                 loadCreatorData(user.uid);
-            loadStudioHeadline();
             } else {
                     await window.viyouAlert("Please login to access the Creator Studio.");
                     window.location.href = 'index.html';
@@ -505,19 +508,23 @@ window.showToast = function(message, type = 'info') {
                 const userDocSnap = await getDoc(userDocRef);
                 const userData = userDocSnap.exists() ? userDocSnap.data() : {};
                 const actualFollowers = userData.followers ? userData.followers.length : 0;
-                const followersCount = userData.followerCountOverride !== undefined ? Number(userData.followerCountOverride) : actualFollowers;
+                const followersCount = Number(userData.followerCountOverride !== undefined ? userData.followerCountOverride : actualFollowers) || 0;
                 const isMonetized = userData.isMonetized === true;
                 const paidLongVideoViews = Number(userData.paidLongVideoViews) || Number(userData.paidViews) || 0; 
 
-                // Check for pending withdrawal requests
                 const pendingQuery = query(collection(db, "withdrawals"), where("uid", "==", uid), where("status", "==", "pending"));
-                const pendingSnap = await getDocs(pendingQuery);
+                const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid));
+                const extPromoQuery = query(collection(db, "promotions"), where("uid", "==", uid), where("status", "==", "approved"));
+                const [pendingSnap, blogsSnapshot, extPromoSnap] = await Promise.all([
+                    getDocs(pendingQuery),
+                    getDocs(blogsQuery),
+                    getDocs(extPromoQuery)
+                ]);
+
+                // Check for pending withdrawal requests
                 const hasPending = !pendingSnap.empty;
 
                 // Get all blogs by user to calculate stats
-                const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid));
-                const blogsSnapshot = await getDocs(blogsQuery);
-
                 let totalViews = 0;
                 let totalLongVideoViews = 0;
                 let totalFlicksViews = 0;
@@ -553,8 +560,6 @@ window.showToast = function(message, type = 'info') {
                 });
 
                 // Get External Active Promotions
-                const extPromoQuery = query(collection(db, "promotions"), where("uid", "==", uid), where("status", "==", "approved"));
-                const extPromoSnap = await getDocs(extPromoQuery);
                 extPromoSnap.forEach(docSnap => {
                     const pData = docSnap.data();
                     if (pData.type === 'external' && pData.promoExpiry && new Date(pData.promoExpiry) > now) {
@@ -1022,8 +1027,8 @@ window.showToast = function(message, type = 'info') {
                     container.innerHTML = '<p>Loading eligibility data...</p>';
                     return;
                 }
-                const views = stats.totalViews || 0;
-                const followers = stats.followers || 0;
+                const views = Number(stats.totalViews) || 0;
+                const followers = Number(stats.followers) || 0;
                 const viewsProgress = Math.min(100, (views / MONETIZATION_VIEWS) * 100);
                 const followersProgress = Math.min(100, (followers / MONETIZATION_FOLLOWERS) * 100);
                 const canApply = viewsProgress >= 100 && followersProgress >= 100;
@@ -1674,21 +1679,6 @@ window.showToast = function(message, type = 'info') {
         }
         };
     </script>
-
-studio.html:716
- Error loading creator data: TypeError: Cannot read properties of undefined (reading 'toLocaleString')
-    at updateMonetizationUI (studio.html:1001:44)
-    at loadCreatorData (studio.html:559:17)
-loadCreatorData	@	studio.html:716
-await in loadCreatorData		
-(anonymous)	@	studio.html:464
-await in (anonymous)		
-(anonymous)	@	auth_impl.ts:681
-Promise.then		
-registerStateListener	@	auth_impl.ts:681
-onAuthStateChanged	@	auth_impl.ts:482
-onAuthStateChanged	@	index.ts:210
-(anonymous)	@	studio.html:461
     <!-- Custom Viyou Popup -->
     <div id="viyou-custom-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999999; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
         <div style="background:#1e1e1e; padding:25px; border-radius:12px; width:90%; max-width:400px; text-align:center; border:1px solid #444; box-shadow:0 10px 30px rgba(0,0,0,0.5); color:#fff; font-family:'Outfit', sans-serif;">

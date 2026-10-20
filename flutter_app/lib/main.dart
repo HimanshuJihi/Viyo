@@ -292,6 +292,7 @@ class _MiniPlayerManager extends ChangeNotifier {
   bool _resumeAfterHidden = false;
   bool viewCounted = false;
   double playbackRate = 1;
+  Offset? _miniPlayerOffset;
 
   bool get shouldShow =>
       video != null &&
@@ -299,6 +300,61 @@ class _MiniPlayerManager extends ChangeNotifier {
       !_restoring &&
       !_overlaySuppressed;
   bool get isPlaying => _isPlaying;
+
+  Offset miniPlayerPosition({
+    required Size viewport,
+    required Size playerSize,
+    required EdgeInsets safePadding,
+  }) {
+    final minX = safePadding.left + 8;
+    final maxX = (viewport.width - safePadding.right - playerSize.width - 8)
+        .clamp(minX, double.infinity)
+        .toDouble();
+    final minY = safePadding.top + 8;
+    final maxY = (viewport.height - safePadding.bottom - playerSize.height - 8)
+        .clamp(minY, double.infinity)
+        .toDouble();
+    final current =
+        _miniPlayerOffset ??
+        Offset(
+          maxX,
+          (viewport.height - safePadding.bottom - playerSize.height - 72)
+              .clamp(minY, maxY)
+              .toDouble(),
+        );
+    final clamped = Offset(
+      current.dx.clamp(minX, maxX).toDouble(),
+      current.dy.clamp(minY, maxY).toDouble(),
+    );
+    _miniPlayerOffset = clamped;
+    return clamped;
+  }
+
+  void moveMiniPlayer(
+    Offset delta, {
+    required Size viewport,
+    required Size playerSize,
+    required EdgeInsets safePadding,
+  }) {
+    final current = miniPlayerPosition(
+      viewport: viewport,
+      playerSize: playerSize,
+      safePadding: safePadding,
+    );
+    final minX = safePadding.left + 8;
+    final maxX = (viewport.width - safePadding.right - playerSize.width - 8)
+        .clamp(minX, double.infinity)
+        .toDouble();
+    final minY = safePadding.top + 8;
+    final maxY = (viewport.height - safePadding.bottom - playerSize.height - 8)
+        .clamp(minY, double.infinity)
+        .toDouble();
+    _miniPlayerOffset = Offset(
+      (current.dx + delta.dx).clamp(minX, maxX).toDouble(),
+      (current.dy + delta.dy).clamp(minY, maxY).toDouble(),
+    );
+    notifyListeners();
+  }
 
   void start(
     BlogRecord nextVideo, {
@@ -459,64 +515,146 @@ class _MiniPlayerOverlay extends StatelessWidget {
         }
         final nativeController = manager.videoController;
         final youtubeController = manager.youtubeController;
-        final bottomInset = MediaQuery.paddingOf(context).bottom;
+        final safePadding = MediaQuery.paddingOf(context);
+        final viewport = MediaQuery.sizeOf(context);
+        final width = (viewport.width - 24).clamp(0.0, 380.0).toDouble();
+        final height = (width * 0.29).clamp(88.0, 112.0).toDouble();
+        final playerSize = Size(width, height);
+        final position = manager.miniPlayerPosition(
+          viewport: viewport,
+          playerSize: playerSize,
+          safePadding: safePadding,
+        );
         return Positioned(
-          left: 10,
-          right: 10,
-          bottom: bottomInset + 72,
-          child: Material(
-            color: const Color(0xff202020),
-            elevation: 12,
-            borderRadius: BorderRadius.circular(10),
-            clipBehavior: Clip.antiAlias,
-            child: SizedBox(
-              height: 78,
-              child: Row(
+          left: position.dx,
+          top: position.dy,
+          width: width,
+          height: height,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => manager.openFullPlayer(context),
+            onPanUpdate: (details) => manager.moveMiniPlayer(
+              details.delta,
+              viewport: viewport,
+              playerSize: playerSize,
+              safePadding: safePadding,
+            ),
+            child: Material(
+              color: const Color(0xff202020),
+              elevation: 16,
+              shadowColor: Colors.black.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(14),
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
                 children: [
-                  InkWell(
-                    onTap: () => manager.openFullPlayer(context),
-                    child: SizedBox(
-                      width: 132,
-                      height: 78,
-                      child: nativeController != null
-                          ? VideoPlayer(nativeController)
-                          : youtubeController != null
-                          ? YoutubePlayer(
-                              controller: youtubeController,
-                              aspectRatio: 16 / 9,
-                            )
-                          : const ColoredBox(color: Colors.black),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => manager.openFullPlayer(context),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          video.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: height * 1.55,
+                        height: height,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (nativeController != null)
+                              IgnorePointer(
+                                child: VideoPlayer(nativeController),
+                              )
+                            else if (youtubeController != null)
+                              IgnorePointer(
+                                child: YoutubePlayer(
+                                  controller: youtubeController,
+                                  aspectRatio: 16 / 9,
+                                ),
+                              )
+                            else
+                              const ColoredBox(color: Colors.black),
+                            if (!manager.isPlaying)
+                              const Center(
+                                child: Icon(
+                                  Icons.play_circle_fill_rounded,
+                                  color: Colors.white,
+                                  size: 34,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    video.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                video.author,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: manager.togglePlayback,
+                        tooltip: manager.isPlaying
+                            ? 'Pause video'
+                            : 'Play video',
+                        icon: Icon(
+                          manager.isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: manager.close,
+                        tooltip: 'Close mini-player',
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  if (nativeController != null)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: ValueListenableBuilder<VideoPlayerValue>(
+                        valueListenable: nativeController,
+                        builder: (context, value, _) {
+                          final duration = value.duration.inMilliseconds;
+                          final progress = duration <= 0
+                              ? 0.0
+                              : (value.position.inMilliseconds / duration)
+                                    .clamp(0.0, 1.0);
+                          return LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 2,
+                            backgroundColor: Colors.white24,
+                            valueColor: const AlwaysStoppedAnimation(
+                              Color(0xfff59e0b),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: manager.togglePlayback,
-                    tooltip: manager.isPlaying ? 'Pause video' : 'Play video',
-                    icon: Icon(
-                      manager.isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: manager.close,
-                    tooltip: 'Close miniplayer',
-                    icon: const Icon(Icons.close_rounded),
-                  ),
                 ],
               ),
             ),
@@ -14133,6 +14271,7 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
 
   double _playbackRate = 1.0;
   double _rateBeforeLongPress = 1.0;
+  double _playerSwipeDistance = 0;
   Timer? _sleepTimer;
   Duration? _sleepTimerDuration;
   String _selectedResolution = 'Auto';
@@ -14730,9 +14869,26 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
     );
     final route = ModalRoute.of(context);
     _transferredToMiniPlayer = true;
+    manager.setOverlaySuppressed(true);
     Navigator.pop(context);
     if (route != null) await route.completed;
     manager.setOverlaySuppressed(false);
+  }
+
+  void _onPlayerVerticalDragStart(DragStartDetails details) {
+    _playerSwipeDistance = 0;
+  }
+
+  void _onPlayerVerticalDragUpdate(DragUpdateDetails details) {
+    _playerSwipeDistance += details.delta.dy;
+  }
+
+  void _onPlayerVerticalDragEnd(DragEndDetails details) {
+    final shouldMinimize =
+        _playerSwipeDistance > 80 ||
+        details.primaryVelocity != null && details.primaryVelocity! > 650;
+    _playerSwipeDistance = 0;
+    if (shouldMinimize) unawaited(_minimizeToMiniPlayer());
   }
 
   void _skipBy(int seconds) {
@@ -14856,11 +15012,57 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
       return Stack(
         fit: StackFit.expand,
         children: [
-          YoutubePlayer(
-            controller: youtubeController,
-            aspectRatio: 16 / 9,
-            autoFullScreen: true,
-            enableFullScreenOnVerticalDrag: true,
+          GestureDetector(
+            onVerticalDragStart: _onPlayerVerticalDragStart,
+            onVerticalDragUpdate: _onPlayerVerticalDragUpdate,
+            onVerticalDragEnd: _onPlayerVerticalDragEnd,
+            child: YoutubePlayer(
+              controller: youtubeController,
+              aspectRatio: 16 / 9,
+              autoFullScreen: true,
+              enableFullScreenOnVerticalDrag: false,
+            ),
+          ),
+          Positioned(
+            top: 8,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: GestureDetector(
+                onVerticalDragStart: _onPlayerVerticalDragStart,
+                onVerticalDragUpdate: _onPlayerVerticalDragUpdate,
+                onVerticalDragEnd: _onPlayerVerticalDragEnd,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.62),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.keyboard_double_arrow_down_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'Swipe down to minimize',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
           Positioned(
             right: 8,
@@ -14893,6 +15095,9 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                 fit: StackFit.expand,
                 children: [
                   GestureDetector(
+                    onVerticalDragStart: _onPlayerVerticalDragStart,
+                    onVerticalDragUpdate: _onPlayerVerticalDragUpdate,
+                    onVerticalDragEnd: _onPlayerVerticalDragEnd,
                     onTapUp: (details) {
                       final fraction =
                           details.localPosition.dx / constraints.maxWidth;
@@ -14913,7 +15118,7 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        VideoPlayer(_controller),
+                        IgnorePointer(child: VideoPlayer(_controller)),
                         if (!value.isPlaying)
                           const Center(
                             child: Icon(

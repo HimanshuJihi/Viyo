@@ -6,10 +6,12 @@
     <title>Messages - Viyou</title>
     <link rel="icon" href="logo.png" type="image/png">
     <!-- Modern Futuristic Font -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet"></noscript>
     <!-- Modern Icons (Lucide) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
     <style>
         .lucide { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
         .lucide-fill { fill: currentColor; }
@@ -205,7 +207,7 @@
                         };
                             
                             div.innerHTML = `
-                                <img src="${u.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555;">
+                                <img src="${u.photoURL || 'https://via.placeholder.com/40'}" loading="lazy" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555;">
                                 <div>
                                     <strong>${u.name || 'User'}</strong>
                                     <div style="font-size:0.8rem; color:#aaa;">${u.username || ''}</div>
@@ -294,7 +296,7 @@
                     if (isUnread) li.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
 
                     li.innerHTML = `
-                        <img src="${otherUser.photoURL || 'https://via.placeholder.com/50'}" class="profile-pic">
+                        <img src="${otherUser.photoURL || 'https://via.placeholder.com/50'}" loading="lazy" class="profile-pic">
                         <div class="conversation-info">
                             <h3>${otherUser.name || 'Unknown User'}</h3>
                             <p style="color: ${isUnread ? '#fff' : '#ccc'};">${lastMessageText}</p>

@@ -87,7 +87,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, or, addDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { firebaseConfig } from "./firebase-config.js";
 
@@ -112,6 +112,23 @@
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
             return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        async function ensureAudioDocument() {
+            if (globalAudioId) return globalAudioId;
+
+            const audioRef = await addDoc(collection(db, "audios"), {
+                title: globalAudioTitle,
+                ownerUid: "system",
+                ownerName: document.getElementById('audio-author').innerText.replace('@', '') || "User",
+                audioUrl: audioUrl,
+                coverImage: document.getElementById('audio-cover').querySelector('img')?.src || 'logo.png',
+                allowRemix: true,
+                usageCount: parseInt(document.getElementById('post-count').innerText) || 1,
+                timestamp: new Date().toISOString()
+            });
+            globalAudioId = audioRef.id;
+            return globalAudioId;
         }
 
         window.toggleMainAudio = function() {
@@ -172,35 +189,20 @@
                 btn.innerHTML = '<i data-lucide="bookmark"></i> Save';
             }
             if (window.lucide) window.lucide.createIcons({ root: btn });
-        }
+        };
 
         window.useThisAudio = async function(targetApp = 'story') {
+            try {
+                await ensureAudioDocument();
+            } catch(e) {
+                console.error("Error preparing audio:", e);
+                return;
+            }
+
             localStorage.setItem('viyou_import_audio_url', audioUrl);
             localStorage.setItem('viyou_import_audio_name', globalAudioTitle);
-            if (globalAudioId) localStorage.setItem('viyou_import_audio_id', globalAudioId);
+            localStorage.setItem('viyou_import_audio_id', globalAudioId);
             localStorage.setItem('viyou_import_audio_start', selectedStartTime);
-            
-            try {
-                if (!globalAudioId) {
-                const q = query(collection(db, "audios"), where("audioUrl", "==", audioUrl));
-                const snap = await getDocs(q);
-                if (snap.empty) {
-                    const newDoc = await addDoc(collection(db, "audios"), {
-                        title: globalAudioTitle,
-                        ownerUid: "system",
-                        ownerName: document.getElementById('audio-author').innerText.replace('@', '') || "User",
-                        audioUrl: audioUrl,
-                        coverImage: document.getElementById('audio-cover').querySelector('img')?.src || 'logo.png',
-                        allowRemix: true,
-                        usageCount: 1,
-                        timestamp: new Date().toISOString()
-                    });
-                    localStorage.setItem('viyou_import_audio_id', newDoc.id);
-                } else {
-                    localStorage.setItem('viyou_import_audio_id', snap.docs[0].id);
-                }
-            }
-            } catch(e) { console.error("Error creating audio doc:", e); }
             
             if (targetApp === 'flick') {
                 window.location.href = 'write-blog.html?importAudio=true';
@@ -217,17 +219,7 @@
 
             if (!globalAudioId) {
                 try {
-                    const newAudioRef = await addDoc(collection(db, "audios"), {
-                        title: globalAudioTitle,
-                        ownerUid: "system",
-                        ownerName: document.getElementById('audio-author').innerText.replace('@', '') || "User",
-                        audioUrl: audioUrl,
-                        coverImage: document.getElementById('audio-cover').querySelector('img')?.src || 'logo.png',
-                        allowRemix: true,
-                        usageCount: parseInt(document.getElementById('post-count').innerText) || 1,
-                        timestamp: new Date().toISOString()
-                    });
-                    globalAudioId = newAudioRef.id;
+                    await ensureAudioDocument();
                 } catch(e) { console.error("Error creating audio doc for saving:", e); return; }
             }
 
@@ -242,11 +234,12 @@
         };
 
         async function loadAudioDetails() {
+            let sourceBlog = null;
             if (audioId && !audioUrl) {
                 const blogSnap = await getDoc(doc(db, "blogs", audioId));
                 if (blogSnap.exists()) {
-                    const blog = blogSnap.data();
-                    audioUrl = blog.audioUrl || blog.video || null;
+                    sourceBlog = { id: blogSnap.id, ...blogSnap.data() };
+                    audioUrl = sourceBlog.audioUrl || sourceBlog.video || null;
                 }
             }
 
@@ -257,23 +250,40 @@
 
             try {
                 let audioData = null;
-                const audioQ = query(collection(db, "audios"), where("audioUrl", "==", audioUrl));
-                const audioSnap = await getDocs(audioQ);
-                if (!audioSnap.empty) { 
-                    audioData = audioSnap.docs[0].data(); 
-                    globalAudioId = audioSnap.docs[0].id; 
+                const linkedAudioId = sourceBlog?.audioId;
+                if (linkedAudioId) {
+                    const audioSnap = await getDoc(doc(db, "audios", linkedAudioId));
+                    if (audioSnap.exists()) {
+                        audioData = audioSnap.data();
+                        globalAudioId = audioSnap.id;
+                    }
                 }
 
-                const blogsQ = query(collection(db, "blogs"), or(where("audioUrl", "==", audioUrl), where("video", "==", audioUrl)));
-                const blogsSnap = await getDocs(blogsQ);
-                
                 const blogs = [];
-                blogsSnap.forEach(doc => {
-                    const data = doc.data();
+                const addVisibleFlick = (id, data) => {
                     const isScheduledNotDue = data.status === 'scheduled' && data.scheduledAt && new Date(data.scheduledAt).getTime() > Date.now();
                     const isUnlisted = data.visibility === 'unlisted';
-                    if (data.status !== 'draft' && !isScheduledNotDue && !isUnlisted && data.isFlicker === true) { blogs.push({ id: doc.id, ...data }); }
-                });
+                    if (data.status !== 'draft' && !isScheduledNotDue && !isUnlisted && data.isFlicker === true && !blogs.some(blog => blog.id === id)) {
+                        blogs.push({ id, ...data });
+                    }
+                };
+
+                if (linkedAudioId) {
+                    const linkedBlogsSnap = await getDocs(query(collection(db, "blogs"), where("audioId", "==", linkedAudioId)));
+                    linkedBlogsSnap.forEach(blogDoc => addVisibleFlick(blogDoc.id, blogDoc.data()));
+                    if (sourceBlog) addVisibleFlick(sourceBlog.id, sourceBlog);
+                } else {
+                    // Older posts and legacy URL links may not have an audioId; match URLs in memory
+                    // instead of querying Firestore with long signed URLs.
+                    const flicksSnap = await getDocs(query(collection(db, "blogs"), where("isFlicker", "==", true)));
+                    flicksSnap.forEach(blogDoc => {
+                        const data = blogDoc.data();
+                        if (data.audioUrl === audioUrl || data.video === audioUrl) addVisibleFlick(blogDoc.id, data);
+                    });
+                    if (sourceBlog && (sourceBlog.audioUrl === audioUrl || sourceBlog.video === audioUrl)) {
+                        addVisibleFlick(sourceBlog.id, sourceBlog);
+                    }
+                }
 
                 blogs.sort((a, b) => (b.views || 0) - (a.views || 0));
 

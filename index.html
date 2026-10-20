@@ -39,7 +39,9 @@
 
     <!-- Modern Futuristic Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet"></noscript>
 
     <!-- Modern Icons (Lucide) -->
     <script src="https://unpkg.com/lucide@latest" defer></script>
@@ -64,6 +66,15 @@
         .privacy-list-item .remove-btn { background: #555; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .privacy-search-results .privacy-list-item { cursor: pointer; }
         .privacy-search-results .privacy-list-item:hover { background: rgba(255,255,255,0.1); }
+        .creator-studio-button { width: 100%; min-height: 82px; display: none; align-items: center; gap: 14px; padding: 14px 16px; text-align: left; color: #fff; background: linear-gradient(115deg, #24143f, #171a35 65%, #20204a); border: 1px solid rgba(192, 132, 252, 0.55); border-radius: 16px; box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2); cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; }
+        .creator-studio-button:hover { transform: translateY(-2px); border-color: rgba(216, 180, 254, 0.9); box-shadow: 0 12px 28px rgba(124, 58, 237, 0.32); }
+        .creator-studio-button:focus-visible { outline: 3px solid #c084fc; outline-offset: 3px; }
+        .creator-studio-icon { width: 46px; height: 46px; flex: 0 0 46px; display: grid; place-items: center; color: #fff; background: linear-gradient(145deg, #a855f7, #6d28d9); border-radius: 14px; }
+        .creator-studio-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 4px; }
+        .creator-studio-eyebrow { color: #d8b4fe; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.13em; }
+        .creator-studio-title { color: #fff; font-size: 1.02rem; font-weight: 800; }
+        .creator-studio-description { color: #c4bdd2; font-size: 0.78rem; line-height: 1.35; }
+        .creator-studio-arrow { width: 20px; height: 20px; flex: 0 0 20px; color: #d8b4fe; }
     </style>
     <script>
         window.saveStoryMediaToIndexedDB = function(file) {
@@ -216,8 +227,8 @@
      crossorigin="anonymous"></script>
      
     <!-- CropperJS for Profile Edit -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
     <link rel="stylesheet" href="assets/css/profile.css">
     <link rel="stylesheet" href="assets/css/messages.css">
     <link rel="stylesheet" href="assets/css/chat.css">
@@ -627,9 +638,16 @@
                 <button id="block-btn" class="btn-transparent" style="display: none; padding: 6px 10px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important;"><i data-lucide="user-x" style="width: 16px; height: 16px;"></i></button>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="create-story-btn" class="btn" style="background-color: #f59e0b; color: black; flex: 1; display: none; padding: 8px; border-radius: 8px; border: none;" onclick="window.location.href='story-editor.html'"><i data-lucide="plus" style="width: 18px; height: 18px;"></i> New Post</button>
-                <button id="studio-btn" class="btn" style="background: linear-gradient(45deg, #9b59b6, #8e44ad); flex: 1; display: none; padding: 8px; border-radius: 8px; border: none;" onclick="window.location.href='studio.html'"><i data-lucide="line-chart" style="width: 18px; height: 18px;"></i> Studio</button>
+            <div style="margin-top: 18px;">
+                <button id="studio-btn" class="creator-studio-button" type="button" aria-label="Open Creator Studio" onclick="window.location.href='studio.html'">
+                    <span class="creator-studio-icon"><i data-lucide="bar-chart-3" style="width: 23px; height: 23px;"></i></span>
+                    <span class="creator-studio-copy">
+                        <span class="creator-studio-eyebrow">FOR CREATORS</span>
+                        <span class="creator-studio-title">Creator Studio</span>
+                        <span class="creator-studio-description">Track your content, audience growth and earnings</span>
+                    </span>
+                    <i class="creator-studio-arrow" data-lucide="arrow-right"></i>
+                </button>
             </div>
 
             <div class="profile-tabs" style="margin-top: 20px;">                <button id="btn-tab-blogs" class="profile-tab-btn active" onclick="window.switchProfileTab('blogs')">Blogs</button>
@@ -1440,7 +1458,7 @@
                 const audioTitle = (blog.isOriginalAudio === false && blog.audioTitle) ? blog.audioTitle : `${blog.title} - @${blog.author}`;
                     const audioThumb = blog.thumbnail || blog.authorPhoto || 'logo.png';
                     audioBoxHtml = `
-            <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="window.location.href='audio.html?url=' + encodeURIComponent('${blog.audioUrl || blog.video}')">
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="window.location.href='audio.html?id=${encodeURIComponent(blog.id)}'">
                         <img src="${audioThumb}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
                         <div style="flex: 1; overflow: hidden; text-align: left;">
                             <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem;">${audioTitle}</div>
@@ -2473,11 +2491,11 @@
 
         window.initProfileView = async function(viewUid) {
             const user = auth.currentUser;
+            let viewerProfileData = null;
 
             // Reset profile UI state
             document.getElementById('profile-action-buttons').style.display = 'none';
             document.getElementById('studio-btn').style.display = 'none';
-            document.getElementById('create-story-btn').style.display = 'none';
             document.getElementById('btn-tab-liked').style.display = 'none';
             document.getElementById('btn-tab-drafts').style.display = 'none';
             document.getElementById('open-settings-btn').style.display = 'none';
@@ -2496,9 +2514,12 @@
 
                 if (user) {
                     const myDocSnap = await getDoc(doc(db, "users", user.uid));
-                    if (myDocSnap.exists() && myDocSnap.data().blockedBy && myDocSnap.data().blockedBy.includes(viewUid)) {
-                        window.handleBlockedProfile("This user has blocked you.");
-                        return;
+                    if (myDocSnap.exists()) {
+                        viewerProfileData = myDocSnap.data();
+                        if (viewerProfileData.blockedBy && viewerProfileData.blockedBy.includes(viewUid)) {
+                            window.handleBlockedProfile("This user has blocked you.");
+                            return;
+                        }
                     }
                 }
 
@@ -2520,24 +2541,21 @@
                     }
 
                     try {
-                        const myDoc = await getDoc(doc(db, "users", user.uid));
-                        if (myDoc.exists()) {
-                            const myData = myDoc.data();
-                            const isFollowing = myData.following && myData.following.includes(viewUid);
+                        if (viewerProfileData) {
+                            const isFollowing = (viewerProfileData.following || []).includes(viewUid);
                             window.updateFollowButton(isFollowing);
                             if (followBtn) {
                                 followBtn.onclick = () => window.toggleFollow(viewUid);
                             }
 
-                            const isBlocked = myData.blockedUsers && myData.blockedUsers.includes(viewUid);
+                            const isBlocked = (viewerProfileData.blockedUsers || []).includes(viewUid);
                             window.setupBlockButton(viewUid, isBlocked);
                         }
                     } catch(e) { console.error(e); }
                 }
             } else if (user) {
                 // Edit Mode (My Profile)
-                document.getElementById('studio-btn').style.display = 'inline-block';
-                document.getElementById('create-story-btn').style.display = 'inline-block';
+                document.getElementById('studio-btn').style.display = 'inline-flex';
                 document.getElementById('btn-tab-liked').style.display = 'inline-block';
                 document.getElementById('btn-tab-drafts').style.display = 'inline-block';
                 document.getElementById('open-settings-btn').style.display = 'flex';
@@ -3591,14 +3609,14 @@
                     let thumbHtml = '';
                     if (blog.youtubeUrl) {
                         const videoId = getYoutubeVideoId(blog.youtubeUrl);
-                        thumbHtml = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                        thumbHtml = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else if (blog.video) {
-                        if (blog.thumbnail) { thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; } 
-                        else { thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`; }
+                        if (blog.thumbnail) { thumbHtml = `<img src="${blog.thumbnail}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; }
+                        else { thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="none"></video>`; }
                 } else if (blog.images && blog.images.length > 0) {
-                    thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                    thumbHtml = `<img src="${blog.images[0]}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else if (blog.image && blog.image !== 'logo.png') {
-                        thumbHtml = `<img src="${blog.image}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                        thumbHtml = `<img src="${blog.image}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else {
                         thumbHtml = `<div class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" style="display:flex; align-items:center; justify-content:center; background:#222; border: 1px solid #444;"><i data-lucide="newspaper" style="font-size:2rem; color:#555;"></i></div>`;
                     }
@@ -3680,7 +3698,7 @@
                     wrapper.appendChild(item);
                     let thumbUrl = blog.thumbnail || (blog.image && blog.image !== 'logo.png') ? (blog.thumbnail || blog.image) : '';
                     let mediaHtml = '';
-                    if (blog.video) mediaHtml += `<video src="${blog.video}#t=0.1" muted playsinline loop preload="metadata" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:inherit;"></video>`;
+                    if (blog.video) mediaHtml += `<video src="${blog.video}#t=0.1" muted playsinline loop preload="none" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:inherit;"></video>`;
                     if (thumbUrl) mediaHtml += `<img src="${thumbUrl}" class="flick-thumb-img" loading="lazy" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; transition: opacity 0.3s; z-index: 1; border-radius:inherit;">`;                   
                     else mediaHtml += `<div style="display:flex; align-items:center; justify-content:center; height:100%; background:#222; position:absolute; top:0; left:0; width:100%;"><i data-lucide="zap" style="font-size:2rem; color:#555;"></i></div>`;
                     let editDelHtml = isOwner ? `<div style="display: flex; gap: 10px; justify-content: space-around; padding-bottom: 5px;"><button onclick="event.stopPropagation(); window.editMyBlog('${blog.id}')" style="background:none; border:none; color:#f59e0b; cursor:pointer; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 4px;" title="Edit"><i data-lucide="pen" style="width: 14px; height: 14px;"></i> Edit</button><button onclick="event.stopPropagation(); window.deleteMyBlog('${blog.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 4px;" title="Delete"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete</button></div>` : '';
@@ -3707,13 +3725,13 @@
                 let thumbHtml = '';
                 if (blog.youtubeUrl) {
                     const videoId = getYoutubeVideoId(blog.youtubeUrl);
-                    thumbHtml = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                    thumbHtml = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                 } else if (blog.video) {
                     let vidSrc = blog.video;
-                    if (blog.thumbnail) thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
-                    else thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
-                } else if (blog.images && blog.images.length > 0) { thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; } 
-                else if (blog.image && blog.image !== 'logo.png') { thumbHtml = `<img src="${blog.image}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; } 
+                    if (blog.thumbnail) thumbHtml = `<img src="${blog.thumbnail}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                    else thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="none"></video>`;
+                } else if (blog.images && blog.images.length > 0) { thumbHtml = `<img src="${blog.images[0]}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; }
+                else if (blog.image && blog.image !== 'logo.png') { thumbHtml = `<img src="${blog.image}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; }
                 else { thumbHtml = `<div class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" style="display:flex; align-items:center; justify-content:center; background:#222; border: 1px solid #444;"><i data-lucide="newspaper" style="font-size:2rem; color:#555;"></i></div>`; }
 
                 let editDelHtml = '';
@@ -5785,15 +5803,15 @@
                         } else if (blog.video) {
                             let vidSrc = blog.video;
                             if (blog.thumbnail) {
-                                thumbHtml = `<img src="${blog.thumbnail}" class="${thumbClass}" alt="Thumbnail">`;
+                                thumbHtml = `<img src="${blog.thumbnail}" loading="lazy" class="${thumbClass}" alt="Thumbnail">`;
                             } else {
-                                thumbHtml = `<video src="${vidSrc}#t=0.1" class="${thumbClass}" muted playsinline preload="metadata"></video>`;
+                                thumbHtml = `<video src="${vidSrc}#t=0.1" class="${thumbClass}" muted playsinline preload="none"></video>`;
                             }
                             iconHtml = blog.isFlicker ? '<i class="fa-solid fa-bolt" style="color: #ff0050;"></i>' : '<i class="fa-solid fa-play"></i>';
                         } else if (blog.images && blog.images.length > 0) {
-                            thumbHtml = `<img src="${blog.images[0]}" class="${thumbClass}" alt="Thumbnail">`;
+                            thumbHtml = `<img src="${blog.images[0]}" loading="lazy" class="${thumbClass}" alt="Thumbnail">`;
                         } else if (blog.image && blog.image !== 'logo.png') {
-                            thumbHtml = `<img src="${blog.image}" class="${thumbClass}" alt="Thumbnail">`;
+                            thumbHtml = `<img src="${blog.image}" loading="lazy" class="${thumbClass}" alt="Thumbnail">`;
                         } else {
                         thumbHtml = `<div class="${thumbClass}" style="display:flex; align-items:center; justify-content:center; background:#222; border: 1px solid #444;"><i data-lucide="newspaper" style="font-size:2rem; color:#555;"></i></div>`;
                         }
@@ -6069,7 +6087,7 @@
                         let thumbUrl = flick.thumbnail || (flick.image && flick.image !== 'logo.png') ? (flick.thumbnail || flick.image) : '';
                         let mediaHtml = '';
                         if (flick.video) {
-                            mediaHtml += `<video src="${flick.video}#t=0.1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" muted playsinline loop preload="metadata"></video>`;
+                            mediaHtml += `<video src="${flick.video}#t=0.1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" muted playsinline loop preload="none"></video>`;
                         }
                         if (thumbUrl) {
                             mediaHtml += `<img src="${thumbUrl}" class="flick-thumb-img" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; z-index: 1;">`;
@@ -6876,14 +6894,14 @@
                     } else if (blog.video) {
                     let vidSrc = blog.video;
                         if (blog.thumbnail) {
-                            thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                            thumbHtml = `<img src="${blog.thumbnail}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                         } else {
-                        thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
+                        thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="none"></video>`;
                         }
                     } else if (blog.images && blog.images.length > 0) {
-                        thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                        thumbHtml = `<img src="${blog.images[0]}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else if (blog.image && blog.image !== 'logo.png') {
-                        thumbHtml = `<img src="${blog.image}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                        thumbHtml = `<img src="${blog.image}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else {
                         thumbHtml = `<div class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" style="display:flex; align-items:center; justify-content:center; background:#222; border: 1px solid #444;"><i data-lucide="newspaper" style="font-size:2rem; color:#555;"></i></div>`;
                     }
@@ -10367,14 +10385,14 @@
                     } else if (blog.video) {
                         let vidSrc = blog.video;
                         if (blog.thumbnail) {
-                            thumbHtml = `<img src="${blog.thumbnail}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                            thumbHtml = `<img src="${blog.thumbnail}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                         } else {
-                            thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="metadata"></video>`;
+                            thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="none"></video>`;
                         }
                     } else if (blog.images && blog.images.length > 0) {
-                        thumbHtml = `<img src="${blog.images[0]}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                        thumbHtml = `<img src="${blog.images[0]}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else if (blog.image && blog.image !== 'logo.png') {
-                        thumbHtml = `<img src="${blog.image}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                        thumbHtml = `<img src="${blog.image}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else {
                         thumbHtml = `<div class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" style="display:flex; align-items:center; justify-content:center; background:#222; border: 1px solid #444;"><i data-lucide="newspaper" style="font-size:2rem; color:#555;"></i></div>`;
                     }
