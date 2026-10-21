@@ -87,6 +87,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const blogId = urlParams.get('id');
         let currentBlog = null;
+        let currentUserProfile = null;
+        let profileUnsubscribe = null;
         let followingUnsubscribe = null;
         let vastAdConfig = {};
         let preRollAdConfig = { frequency: 3, activeAds: [] };
@@ -1381,7 +1383,18 @@
             }
         };
 
-        window.shareVideo = async () => { navigator.clipboard.writeText(window.location.href); await window.viyouAlert('Link copied to clipboard!'); };
+        window.shareVideo = async () => {
+            const url = new URL('https://viyou.in/');
+            url.searchParams.set('view', 'watch');
+            url.searchParams.set('id', blogId);
+            try {
+                await navigator.clipboard.writeText(url.toString());
+                await window.viyouAlert('Link copied to clipboard!');
+            } catch (error) {
+                console.error("Could not copy video link:", error);
+                await window.viyouAlert('Could not copy the video link. Please try again.');
+            }
+        };
 
         window.syncFollowButtons = function(targetUid, isFollowing) {
             document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
@@ -1516,6 +1529,10 @@
             const commentsSection = document.getElementById('comments-section');
             if (!commentsSection || !currentBlog) return;
             const user = auth.currentUser;
+            const currentUserPhoto = currentUserProfile?.photoURL || user?.photoURL || 'logo.png';
+            const watchAuthorPhoto = user && currentBlog.authorUid === user.uid
+                ? currentUserPhoto
+                : (currentBlog.authorPhoto || 'logo.png');
             const comments = currentBlog.comments || [];
             const sortedComments = [...comments].sort((a, b) => {
                 const aLikes = a.likes ? a.likes.length : 0;
@@ -1529,18 +1546,20 @@
 
             let commentsHtml = commentsToShow.map(c => {
                 const isOwner = user && c.userUid === user.uid;
+                const commentPhoto = isOwner ? currentUserPhoto : (c.photo || 'logo.png');
                 const isLiked = user && (c.likes || []).includes(user.uid);
                 const authorLiked = (c.likes || []).includes(currentBlog.authorUid);
-                const authorLikeBadge = authorLiked ? `<span class="author-liked-badge"><img src="${currentBlog.authorPhoto || 'logo.png'}"> Liked by author</span>` : '';
+                const authorLikeBadge = authorLiked ? `<span class="author-liked-badge"><img src="${watchAuthorPhoto}"> Liked by author</span>` : '';
                 
                 const repliesHtml = (c.replies || []).map(r => {
                     const rIsOwner = user && r.userUid === user.uid;
+                    const replyPhoto = rIsOwner ? currentUserPhoto : (r.photo || 'logo.png');
                     const rIsLiked = user && (r.likes || []).includes(user.uid);
                     const rAuthorLiked = (r.likes || []).includes(currentBlog.authorUid);
-                    const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2);"><img src="${currentBlog.authorPhoto || 'logo.png'}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author</span>` : '';
+                    const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2);"><img src="${watchAuthorPhoto}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author</span>` : '';
                     return `
                     <div class="comment-wrapper" style="margin-bottom: 12px; ${rAuthorLiked ? 'background: linear-gradient(to right, rgba(255,0,80,0.1), transparent); border-left: 2px solid #ff0050; padding: 8px; border-radius: 8px;' : ''}">
-                        <img src="${r.photo || 'logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
+                        <img src="${replyPhoto}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.location.href='profile.html?uid=${r.userUid}'">
                         <div class="comment-body">
                             <div class="comment-header">
                                 <div>
@@ -1561,7 +1580,7 @@
 
                 return `
                 <div class="comment-wrapper">
-                    <img src="${c.photo || 'logo.png'}" class="comment-avatar" onclick="window.location.href='profile.html?uid=${c.userUid}'">
+                    <img src="${commentPhoto}" class="comment-avatar" onclick="window.location.href='profile.html?uid=${c.userUid}'">
                     <div class="comment-body">
                         <div class="comment-header">
                             <div>
@@ -1594,7 +1613,7 @@
                     <div style="position: relative; margin-bottom: 30px;">
                         <div id="video-mention-dropdown" class="mention-dropdown"></div>
                         <div style="display: flex; gap: 12px;">
-                            <img src="${user.photoURL || 'logo.png'}" class="comment-avatar">
+                            <img src="${currentUserProfile?.photoURL || user.photoURL || 'logo.png'}" class="comment-avatar">
                             <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
                                 <input type="text" id="comment-input" placeholder="Add a comment..." style="width: 100%; padding: 12px 16px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); color: white; font-size: 0.95rem; box-sizing: border-box;" oninput="window.handleMentionInput(event, 'video-mention-dropdown')" autocomplete="off">
                                 <div style="display: flex; justify-content: flex-end;">
@@ -1627,7 +1646,7 @@
             const { mentionedUids, mentionMap } = await parseMentions(text);
             const newComment = {
                 id: Date.now().toString(), author: auth.currentUser.displayName || "User", userUid: auth.currentUser.uid,
-                photo: auth.currentUser.photoURL || "logo.png", text, date: new Date().toISOString(),
+                photo: currentUserProfile?.photoURL || auth.currentUser.photoURL || "logo.png", text, date: new Date().toISOString(),
                 likes: [], replies: [], mentionedUids, mentionMap
             };
 
@@ -1651,7 +1670,7 @@
             const { mentionedUids, mentionMap } = await parseMentions(text);
             const newReply = {
                 id: Date.now().toString(), author: auth.currentUser.displayName || "User", userUid: auth.currentUser.uid,
-                photo: auth.currentUser.photoURL || "logo.png", text, date: new Date().toISOString(),
+                photo: currentUserProfile?.photoURL || auth.currentUser.photoURL || "logo.png", text, date: new Date().toISOString(),
                 likes: [], mentionedUids, mentionMap
             };
             const c = currentBlog.comments.find(x => x.id === commentId);
@@ -1808,8 +1827,21 @@
             }
         });
 
-        onAuthStateChanged(auth, async () => {
-            await Promise.all([globalVastPromise, globalPreRollPromise]);
+        onAuthStateChanged(auth, async (user) => {
+            if (profileUnsubscribe) profileUnsubscribe();
+            currentUserProfile = null;
+            const profilePromise = user
+                ? getDoc(doc(db, "users", user.uid)).then(userDoc => {
+                    currentUserProfile = userDoc.exists() ? userDoc.data() : null;
+                    profileUnsubscribe = onSnapshot(doc(db, "users", user.uid), userSnapshot => {
+                        currentUserProfile = userSnapshot.exists() ? userSnapshot.data() : null;
+                        if (currentBlog && typeof window.renderComments === 'function') window.renderComments();
+                    }, error => console.error("Error syncing comment profile photo:", error));
+                }).catch(error => {
+                    console.error("Error loading comment profile photo:", error);
+                })
+                : Promise.resolve();
+            await Promise.all([globalVastPromise, globalPreRollPromise, profilePromise]);
             loadVideo(); 
             loadSuggestions();
         });

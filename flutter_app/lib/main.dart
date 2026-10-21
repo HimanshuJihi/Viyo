@@ -23,6 +23,9 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
 
+Uri _viyouContentUri(String view, String id) =>
+    Uri.https('viyou.in', '/', {'view': view, 'id': id});
+
 const _mediaMimeTypesByExtension = <String, String>{
   'mp4': 'video/mp4',
   'm4v': 'video/x-m4v',
@@ -1841,8 +1844,13 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   }
 
   Future<void> _copyPostLink(BlogRecord blog) async {
-    final link = blog.video ?? blog.image ?? blog.id;
-    await Clipboard.setData(ClipboardData(text: link));
+    final view = blog.isFlicker
+        ? 'flick'
+        : blog.video != null || blog.youtubeUrl != null
+        ? 'watch'
+        : 'blog';
+    final link = _viyouContentUri(view, blog.id);
+    await Clipboard.setData(ClipboardData(text: link.toString()));
     if (mounted) _showMessage(context, 'Link copied');
   }
 
@@ -1956,12 +1964,18 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     );
   }
 
-  Future<List<BlogRecord>> _loadBlogs({String feedMode = 'all'}) async {
+  Future<List<BlogRecord>> _loadBlogs({
+    String feedMode = 'all',
+    String category = 'All',
+  }) async {
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
       'blogs',
     );
     if (feedMode != 'all') {
       query = query.where('status', isEqualTo: 'published');
+    }
+    if (feedMode == 'all' && category != 'All') {
+      query = query.where('category', isEqualTo: category);
     }
     final currentUser = FirebaseAuth.instance.currentUser;
     var followedUsers = const <String>[];
@@ -2205,22 +2219,25 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     bool shuffleResults = true,
   }) async {
     final currentUser = FirebaseAuth.instance.currentUser;
-    final currentUserDoc = currentUser == null
-        ? null
-        : await FirebaseFirestore.instance
+    final currentUserDocFuture = currentUser == null
+        ? Future<DocumentSnapshot<Map<String, dynamic>>?>.value()
+        : FirebaseFirestore.instance
               .collection('users')
               .doc(currentUser.uid)
-              .get();
-    final blockedByMe = currentUserDoc?.data()?['blockedUsers'] is List
-        ? List<String>.from(currentUserDoc!.data()!['blockedUsers'])
-        : <String>[];
-
-    final snapshot = await FirebaseFirestore.instance
+              .get()
+              .then((snapshot) => snapshot);
+    final flicksFuture = FirebaseFirestore.instance
         .collection('blogs')
         .where('isFlicker', isEqualTo: true)
         .orderBy('date', descending: true)
         .limit(limit)
         .get();
+    final currentUserDoc = await currentUserDocFuture;
+    final blockedByMe = currentUserDoc?.data()?['blockedUsers'] is List
+        ? List<String>.from(currentUserDoc!.data()!['blockedUsers'])
+        : <String>[];
+
+    final snapshot = await flicksFuture;
 
     final allFlicks = snapshot.docs
         .map(BlogRecord.fromDocument)
@@ -2238,7 +2255,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
   }
 
   Future<List<BlogRecord>> _loadHomeFlickSuggestions() async {
-    final flicks = await _loadFlicks(limit: 100, shuffleResults: false);
+    final flicks = await _loadFlicks(limit: 30, shuffleResults: false);
     if (flicks.length <= 2) return flicks;
     final newest = flicks.take(2).toList();
     final randomPool = flicks.skip(2).toList()..shuffle();
@@ -2295,13 +2312,19 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     if (_selectedFeedMode == feedMode) return;
     setState(() {
       _selectedFeedMode = feedMode;
-      _blogsFuture = _loadBlogs(feedMode: feedMode);
+      _blogsFuture = _loadBlogs(
+        feedMode: feedMode,
+        category: _selectedCategory,
+      );
     });
   }
 
   Future<void> _refreshHome() async {
     setState(() {
-      _blogsFuture = _loadBlogs(feedMode: _selectedFeedMode);
+      _blogsFuture = _loadBlogs(
+        feedMode: _selectedFeedMode,
+        category: _selectedCategory,
+      );
       _flickSuggestionsFuture = _loadHomeFlickSuggestions();
       if (_flicksFuture != null) _flicksFuture = _loadFlicks();
       _storiesFuture = _loadStoryGroups();
@@ -2962,6 +2985,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
           return Image.memory(
             base64Decode(source.substring(comma + 1)),
             fit: fit,
+            cacheWidth: 512,
             errorBuilder: (_, __, ___) => _mediaFallback(false),
           );
         } catch (_) {
@@ -2972,6 +2996,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     return Image.network(
       source,
       fit: fit,
+      cacheWidth: 512,
       errorBuilder: (_, __, ___) => _mediaFallback(false),
     );
   }
@@ -3448,10 +3473,22 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
       return const <List<Map<String, dynamic>>>[];
     }
 
-    final userDoc = await FirebaseFirestore.instance
+    final userDocFuture = FirebaseFirestore.instance
         .collection('users')
         .doc(currentUserUid)
         .get();
+    final snapshotFuture = FirebaseFirestore.instance
+        .collection('stories')
+        .where(
+          'timestamp',
+          isGreaterThan: Timestamp.fromDate(
+            now.subtract(const Duration(hours: 24)),
+          ),
+        )
+        .orderBy('timestamp', descending: true)
+        .limit(100)
+        .get();
+    final userDoc = await userDocFuture;
     final userData = userDoc.data() ?? const <String, dynamic>{};
     currentUserName =
         '${userData['name'] ?? currentUser?.displayName ?? 'You'}';
@@ -3461,11 +3498,7 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
     );
     final allowedUids = <String>{currentUserUid, ...following};
 
-    final snapshot = await FirebaseFirestore.instance
-        .collection('stories')
-        .orderBy('timestamp', descending: true)
-        .limit(200)
-        .get();
+    final snapshot = await snapshotFuture;
 
     final groups = <String, List<Map<String, dynamic>>>{};
     for (final doc in snapshot.docs) {
@@ -5106,10 +5139,17 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         return ChoiceChip(
           label: Text(category),
           selected: active,
-          onSelected: (_) => setState(() {
-            _selectedCategory = category;
-            _adsFuture = _loadActiveInFeedAds();
-          }),
+          onSelected: (_) {
+            if (_selectedCategory == category) return;
+            setState(() {
+              _selectedCategory = category;
+              _blogsFuture = _loadBlogs(
+                feedMode: _selectedFeedMode,
+                category: category,
+              );
+              _adsFuture = _loadActiveInFeedAds();
+            });
+          },
           selectedColor: const Color(0xff6366f1),
           backgroundColor: const Color(0xff151515),
           labelStyle: TextStyle(
@@ -5215,7 +5255,10 @@ class _ViyouHomePageState extends State<ViyouHomePage> {
         builder: (_) => ViyouCreatePage(
           onPublished: () {
             setState(() {
-              _blogsFuture = _loadBlogs(feedMode: _selectedFeedMode);
+              _blogsFuture = _loadBlogs(
+                feedMode: _selectedFeedMode,
+                category: _selectedCategory,
+              );
               _flickSuggestionsFuture = _loadHomeFlickSuggestions();
               if (_flicksFuture != null) _flicksFuture = _loadFlicks();
               if (_profileFuture != null) _profileFuture = _loadProfile();
@@ -6436,6 +6479,7 @@ class _BlogImageCarouselState extends State<_BlogImageCarousel> {
           return Image.memory(
             base64Decode(source.substring(comma + 1)),
             fit: BoxFit.cover,
+            cacheWidth: 960,
             errorBuilder: (_, __, ___) => _fallback(),
           );
         } catch (_) {
@@ -6446,6 +6490,7 @@ class _BlogImageCarouselState extends State<_BlogImageCarousel> {
     return Image.network(
       source,
       fit: BoxFit.cover,
+      cacheWidth: 960,
       errorBuilder: (_, __, ___) => _fallback(),
     );
   }
@@ -7678,13 +7723,16 @@ ImageProvider? _creatorAvatarProvider(String? source) {
     final comma = source.indexOf(',');
     if (comma < 0) return null;
     try {
-      return MemoryImage(base64Decode(source.substring(comma + 1)));
+      return ResizeImage(
+        MemoryImage(base64Decode(source.substring(comma + 1))),
+        width: 192,
+      );
     } catch (_) {
       return null;
     }
   }
   if (source.startsWith('http://') || source.startsWith('https://')) {
-    return NetworkImage(source);
+    return ResizeImage(NetworkImage(source), width: 192);
   }
   return null;
 }
@@ -12354,7 +12402,7 @@ class _FlickPageState extends State<_FlickPage> {
   }
 
   Future<void> _copyFlickLink() async {
-    final link = Uri.https('viyou.in', '/flicks.html', {'id': widget.blog.id});
+    final link = _viyouContentUri('flick', widget.blog.id);
     await Clipboard.setData(ClipboardData(text: link.toString()));
     _showMessage('Flick link copied');
   }
@@ -13318,7 +13366,7 @@ class _ViyouChatPageState extends State<ViyouChatPage> {
         uri = Uri.https('www.youtube.com', '/watch', {'v': content});
       }
     } else if (type == 'watch' && data['blogId'] is String) {
-      uri = Uri.https('viyou.in', '/', {'view': 'watch', 'id': data['blogId']});
+      uri = _viyouContentUri('watch', data['blogId'] as String);
     }
     if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
@@ -14496,8 +14544,8 @@ class _ViyouVideoPlayerState extends State<ViyouVideoPlayer> {
   }
 
   Future<void> _shareVideo() async {
-    final value = widget.video.video ?? widget.video.id;
-    await Clipboard.setData(ClipboardData(text: value));
+    final link = _viyouContentUri('watch', widget.video.id);
+    await Clipboard.setData(ClipboardData(text: link.toString()));
     if (mounted) {
       ScaffoldMessenger.of(
         context,

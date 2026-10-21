@@ -538,8 +538,11 @@
 
         if (auth.currentUser) {
             (async () => {
+                let profilePhotoSaved = false;
                 try {
                     await setDoc(doc(db, "users", auth.currentUser.uid), { photoURL: dataURL }, { merge: true });
+                    profilePhotoSaved = true;
+                    window.currentUserData = { ...window.currentUserData, photoURL: dataURL };
                     
                     const allBlogsSnapshot = await getDocs(collection(db, "blogs"));
                     const updatePromises = [];
@@ -576,7 +579,13 @@
                         }
                     });
                     await Promise.all(updatePromises);
-                } catch(e) { console.error("Error saving photo in background:", e); }
+                } catch(e) {
+                    console.error("Error syncing profile photo across content:", e);
+                    const message = profilePhotoSaved
+                        ? "Photo saved, but some older posts may still show the previous image. Please retry later."
+                        : "Could not save your profile photo. Please try again.";
+                    await window.viyouAlert(message);
+                }
             })();
         }
     });
@@ -587,6 +596,7 @@
 
         let currentUserFollowing = []; // Keep track of who the current user follows
         let viewerData = {};
+        window.currentUserData = null;
         if (user) {
             currentUser = user;
             try {
@@ -594,6 +604,7 @@
                 const userDocSnap = await getDoc(userDocRef);
                 if (userDocSnap.exists()) {
                     viewerData = userDocSnap.data();
+                    window.currentUserData = viewerData;
                     isViewerAdmin = viewerData.isAdmin === true;
                 }
                 let themeToApply = 'dark'; // default
@@ -1880,9 +1891,10 @@
             </div>
         `;
 
+        const shareType = blog.isFlicker ? 'flick' : ((blog.video || blog.youtubeUrl) ? 'watch' : 'blog');
         let actionButtons = `
         <button onclick="window.likeUserBlog('${blog.id}')" style="background:none; border:none; color:#ff0050; cursor:pointer; font-size: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${isLiked ? '<i data-lucide="heart" class="lucide-fill"></i>' : '<i data-lucide="heart"></i>'} ${likeCount}</button>
-        <button onclick='window.shareBlog(${JSON.stringify(blog.id)}, ${JSON.stringify(blog.title || "")})' style="background:none; border:none; color:#6366f1; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i data-lucide="share-2"></i> Share</button>
+        <button onclick='window.shareBlog(${JSON.stringify(blog.id)}, ${JSON.stringify(blog.title || "")}, ${JSON.stringify(shareType)})' style="background:none; border:none; color:#6366f1; cursor:pointer; font-size: 1rem; margin-left: 10px;"><i data-lucide="share-2"></i> Share</button>
         `;
 
         if (isOwner) {
@@ -2223,7 +2235,31 @@
         }
     };
 
-    window.shareBlog = async function(id, title) { /* ... (existing code) ... */ };
+    window.shareBlog = async function(id, title, contentType = 'blog') {
+        const url = new URL('https://viyou.in/');
+        url.searchParams.set('view', contentType);
+        url.searchParams.set('id', id);
+        const shareData = {
+            title,
+            text: `Check out this post on Viyou: ${title}`,
+            url: url.toString()
+        };
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (error) {
+                if (error.name !== 'AbortError') console.error("Could not share post:", error);
+            }
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(url.toString());
+            if (window.showToast) window.showToast("Link copied to clipboard!", "success");
+        } catch (error) {
+            console.error("Could not copy post link:", error);
+            await window.viyouAlert("Could not copy the post link. Please try again.");
+        }
+    };
     window.readAloud = function(blogId) { /* ... (existing code) ... */ };
 
     window.addBlogComment = async function(blogId) {
@@ -2525,7 +2561,7 @@
         const name = document.getElementById('name').value;
         const username = document.getElementById('username').value.trim();
         const bio = document.getElementById('bio').value;
-        const photoURL = base64Image || currentUser.photoURL;
+        const photoURL = base64Image || window.currentUserData?.photoURL || currentUser.photoURL;
         const actualFollowers = currentProfileData.followers ? currentProfileData.followers.length : 0;
         const displayFollowers = currentProfileData.followerCountOverride !== undefined ? Number(currentProfileData.followerCountOverride) : actualFollowers;
         let isVerified = displayFollowers >= 200;
@@ -2586,6 +2622,7 @@
                             isVerified: isVerified,
                             usernameChangeHistory: currentProfileData.usernameChangeHistory || []
             }, { merge: true });
+            window.currentUserData = { ...window.currentUserData, name, photoURL, username, bio, isVerified };
 
             // Update author details in all existing blogs AND comments
             const allBlogsSnapshot = await getDocs(collection(db, "blogs"));

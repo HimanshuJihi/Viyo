@@ -1308,7 +1308,7 @@
                     if (authorDoc.exists() && authorDoc.data().isMonetized) {
                         isAuthorMonetized = true;
                     }
-                } catch(e) {}
+                } catch(e) { console.error("Error loading author monetization status:", e); }
 
             let followBtnHtml = '';
             if (auth.currentUser && blog.authorUid && blog.authorUid !== auth.currentUser.uid) {
@@ -1491,7 +1491,7 @@
                                 <button class="btn" id="like-btn-watch" onclick="window.likeUserBlog('${id}')">
                                     <i data-lucide="heart" class="${isLiked ? 'lucide-fill' : ''}" style="color: ${isLiked ? '#ff0050' : 'inherit'};"></i> <span id="like-count-display-watch">${likesCount}</span>
                                 </button>
-                                <button class="btn btn-transparent" onclick="window.shareBlog('${blog.id}', '${(blog.title || '').replace(/'/g, "\\'")}')" style="padding: 6px 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
+                                <button class="btn btn-transparent" onclick="window.shareBlog('${blog.id}', '${(blog.title || '').replace(/'/g, "\\'")}', 'watch')" style="padding: 6px 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
                                     <i data-lucide="share-2"></i> Share
                                 </button>
                                 <button class="btn btn-transparent" onclick="window.openSavePlaylistPicker('watch', { id: '${blog.id}' })" style="padding: 6px 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
@@ -2136,6 +2136,10 @@
             const containers = document.querySelectorAll('.watch-comments-container');
             if (containers.length === 0 || !window.currentWatchBlog) return;
             const user = auth.currentUser;
+            const currentUserPhoto = window.currentUserData?.photoURL || user?.photoURL || 'logo.png';
+            const watchAuthorPhoto = user && window.currentWatchBlog.authorUid === user.uid
+                ? currentUserPhoto
+                : (window.currentWatchBlog.authorPhoto || 'logo.png');
             const comments = window.currentWatchBlog.comments || [];
             const sortedComments = [...comments].sort((a, b) => {
                 const aLikes = a.likes ? a.likes.length : 0;
@@ -2149,18 +2153,20 @@
 
             let commentsHtml = commentsToShow.map(c => {
                 const isOwner = user && c.userUid === user.uid;
+                const commentPhoto = isOwner ? currentUserPhoto : (c.photo || 'logo.png');
                 const isLiked = user && (c.likes || []).includes(user.uid);
                 const authorLiked = (c.likes || []).includes(window.currentWatchBlog.authorUid);
-                const authorLikeBadge = authorLiked ? `<span class="author-liked-badge"><img src="${window.currentWatchBlog.authorPhoto || 'logo.png'}"> Liked by author</span>` : '';
+                const authorLikeBadge = authorLiked ? `<span class="author-liked-badge"><img src="${watchAuthorPhoto}"> Liked by author</span>` : '';
                 
                 const repliesHtml = (c.replies || []).map(r => {
                     const rIsOwner = user && r.userUid === user.uid;
+                    const replyPhoto = rIsOwner ? currentUserPhoto : (r.photo || 'logo.png');
                     const rIsLiked = user && (r.likes || []).includes(user.uid);
                     const rAuthorLiked = (r.likes || []).includes(window.currentWatchBlog.authorUid);
-                    const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2);"><img src="${window.currentWatchBlog.authorPhoto || 'logo.png'}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author</span>` : '';
+                    const rAuthorLikeBadge = rAuthorLiked ? `<span class="author-liked-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 0, 80, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: #ff0050; border: 1px solid rgba(255, 0, 80, 0.2);"><img src="${watchAuthorPhoto}" style="width: 14px; height: 14px; border-radius: 50%;"> Liked by author</span>` : '';
                     return `
                     <div class="comment-wrapper" style="margin-bottom: 12px; ${rAuthorLiked ? 'background: linear-gradient(to right, rgba(255,0,80,0.1), transparent); border-left: 2px solid #ff0050; padding: 8px; border-radius: 8px;' : ''}">
-                        <img src="${r.photo || 'logo.png'}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.navigateTo('profile', event, '${r.userUid}')">
+                        <img src="${replyPhoto}" class="comment-avatar" style="width: 28px; height: 28px;" onclick="window.navigateTo('profile', event, '${r.userUid}')">
                         <div class="comment-body">
                             <div class="comment-header">
                                 <div>
@@ -2181,7 +2187,7 @@
 
                 return `
                 <div class="comment-wrapper">
-                    <img src="${c.photo || 'logo.png'}" class="comment-avatar" onclick="window.navigateTo('profile', event, '${c.userUid}')">
+                    <img src="${commentPhoto}" class="comment-avatar" onclick="window.navigateTo('profile', event, '${c.userUid}')">
                     <div class="comment-body">
                         <div class="comment-header">
                             <div>
@@ -2212,7 +2218,7 @@
                     ${user ? `
                     <div style="position: relative; margin-bottom: 30px;">
                         <div style="display: flex; gap: 12px;">
-                            <img src="${user.photoURL || 'logo.png'}" class="comment-avatar">
+                            <img src="${currentUserPhoto}" class="comment-avatar">
                             <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
                                 <input type="text" class="watch-comment-input-class" placeholder="Add a comment..." style="width: 100%; padding: 10px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); color: white; font-size: 0.9rem; box-sizing: border-box;" autocomplete="off">
                                 <div style="display: flex; justify-content: flex-end; width: 100%;">
@@ -2397,6 +2403,72 @@
             window.scrollTo(0, 0);
         };
 
+        async function routeInitialSpaView() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const view = urlParams.get('view');
+            const id = urlParams.get('id');
+            if (view === 'blog' && id) {
+                window.navigateTo('blog', null, id);
+                return true;
+            }
+            if (view === 'watch' && id) {
+                window.navigateTo('watch', null, id);
+                return true;
+            }
+            if (view === 'flick' && id) {
+                resetAndLoadBlogs();
+                return true;
+            }
+            if (view === 'profile' && urlParams.get('uid')) {
+                window.navigateTo('profile', null, urlParams.get('uid'));
+                return true;
+            }
+            if (view === 'messages') {
+                window.navigateTo('messages', null);
+                return true;
+            }
+            if (view === 'chat' && urlParams.get('uid')) {
+                window.navigateTo('chat', null, urlParams.get('uid'));
+                return true;
+            }
+            if (view === 'search' && urlParams.has('q')) {
+                window.navigateTo('search', null, urlParams.get('q'));
+                return true;
+            }
+            if (view === 'history') {
+                window.navigateTo('history', null);
+                return true;
+            }
+
+            const legacyBlogId = urlParams.get('blogId');
+            if (!legacyBlogId) return false;
+            try {
+                const legacyPost = await getDoc(doc(db, "blogs", legacyBlogId));
+                if (!legacyPost.exists()) {
+                    window.navigateTo('blog', null, legacyBlogId);
+                    return true;
+                }
+                const postData = legacyPost.data();
+                if (postData.isFlicker) {
+                    const flickUrl = new URL(window.location.href);
+                    flickUrl.search = '';
+                    flickUrl.searchParams.set('view', 'flick');
+                    flickUrl.searchParams.set('id', legacyBlogId);
+                    window.history.replaceState({ page: 'flick', id: legacyBlogId }, '', flickUrl);
+                    resetAndLoadBlogs();
+                } else if (postData.video || postData.youtubeUrl) {
+                    window.navigateTo('watch', null, legacyBlogId);
+                } else {
+                    window.navigateTo('blog', null, legacyBlogId);
+                }
+                return true;
+            } catch (error) {
+                console.error("Error resolving legacy shared post URL:", error);
+                window.navigateTo('blog', null, legacyBlogId);
+                return true;
+            }
+        }
+
         // --- HUGE PROFILE SPA LOGIC ---
         
         let profilePageBlogs = [];
@@ -2442,14 +2514,19 @@
             
             if (auth.currentUser) {
                 (async () => {
+                    let profilePhotoSaved = false;
                     try {
                         await setDoc(doc(db, "users", auth.currentUser.uid), { photoURL: dataURL }, { merge: true });
+                        profilePhotoSaved = true;
+                        window.currentUserData = { ...window.currentUserData, photoURL: dataURL };
+                        syncCachedProfilePhoto(auth.currentUser.uid, dataURL);
+                        if (typeof window.renderBlogs === 'function') window.renderBlogs(auth.currentUser);
+                        if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
+                        if (typeof window.renderFlickComments === 'function') window.renderFlickComments();
                         const profileIconDiv = document.getElementById('bottom-nav-profile-icon');
                         if (profileIconDiv) {
                             profileIconDiv.innerHTML = `<img src="${dataURL}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #555;">`;
                         }
-                        if(window.showToast) window.showToast("Profile photo updated successfully!", "success");
-
                         const allBlogsSnapshot = await getDocs(collection(db, "blogs"));
                         const updatePromises = [];
                         allBlogsSnapshot.forEach((blogDoc) => {
@@ -2484,7 +2561,17 @@
                             }
                         });
                         await Promise.all(updatePromises);
-                    } catch(e) { console.error("Error saving photo in background:", e); }
+                        if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
+                        if (window.showToast) window.showToast("Profile photo updated successfully!", "success");
+                    } catch(e) {
+                        console.error("Error syncing profile photo across content:", e);
+                        if (window.showToast) {
+                            const message = profilePhotoSaved
+                                ? "Photo saved, but some older posts may still show the previous image. Please retry later."
+                                : "Could not save your profile photo. Please try again.";
+                            window.showToast(message, "error");
+                        }
+                    }
                 })();
             }
         });
@@ -3877,7 +3964,7 @@
                 const name = document.getElementById('name').value;
                 const username = document.getElementById('username').value.trim();
                 const bio = document.getElementById('bio').value;
-                const photoURL = profileBase64Image || auth.currentUser.photoURL;
+                const photoURL = profileBase64Image || window.currentUserData?.photoURL || auth.currentUser.photoURL;
                 const actualFollowers = window.currentProfileData.followers ? window.currentProfileData.followers.length : 0;
                 const displayFollowers = window.currentProfileData.followerCountOverride !== undefined ? Number(window.currentProfileData.followerCountOverride) : actualFollowers;
                 let isVerified = displayFollowers >= 200;
@@ -3914,6 +4001,11 @@
                     } else if (!username) { await window.viyouAlert("Unique ID (Username) is required!"); return; }
 
                     await setDoc(doc(db, "users", auth.currentUser.uid), { name: name, username: username, usernameLower: username.toLowerCase(), bio: bio, photoURL: photoURL, email: auth.currentUser.email, isVerified: isVerified, usernameChangeHistory: window.currentProfileData.usernameChangeHistory || [] }, { merge: true });
+                    window.currentUserData = { ...window.currentUserData, name, username, photoURL, bio, isVerified };
+                    syncCachedProfilePhoto(auth.currentUser.uid, photoURL);
+                    if (typeof window.renderBlogs === 'function') window.renderBlogs(auth.currentUser);
+                    if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
+                    if (typeof window.renderFlickComments === 'function') window.renderFlickComments();
 
                     const allBlogsSnapshot = await getDocs(collection(db, "blogs"));
                     const updatePromises = [];
@@ -4805,12 +4897,111 @@
 
         // --- Smart Feed: User Interests Tracking ---
         let userInterests = JSON.parse(localStorage.getItem('viyou_user_interests') || '{}');
+        let homeFeedPreferences = {
+            categories: new Set(Object.keys(userInterests)),
+            watchedBlogIds: new Set()
+        };
+        let homeFeedPreferencesPromise = Promise.resolve(homeFeedPreferences);
 
         function updateUserInterest(category, weight) {
             if (!category) return;
             userInterests[category] = (userInterests[category] || 0) + weight;
             if (userInterests[category] > 100) userInterests[category] = 100; // Cap at 100 to prevent runaway scores
+            homeFeedPreferences.categories.add(category);
             localStorage.setItem('viyou_user_interests', JSON.stringify(userInterests));
+        }
+
+        async function loadHomeFeedPreferences(userId, userData) {
+            const categories = new Set(Object.keys(userInterests));
+            const watchedBlogIds = new Set();
+            const addCategories = value => {
+                if (typeof value === 'string' && value.trim()) {
+                    categories.add(value.trim());
+                } else if (Array.isArray(value)) {
+                    value.forEach(item => {
+                        if (typeof item === 'string' && item.trim()) categories.add(item.trim());
+                    });
+                }
+            };
+
+            addCategories(userData?.interests);
+            addCategories(userData?.preferredCategories);
+            if (!userId) {
+                homeFeedPreferences = { categories, watchedBlogIds };
+                return homeFeedPreferences;
+            }
+
+            const preferenceQueries = await Promise.allSettled([
+                getDocs(query(collection(db, "blogs"), where("likes", "array-contains", userId), limit(50))),
+                getDocs(query(collection(db, "users", userId, "watchHistory"), orderBy("viewedAt", "desc"), limit(50)))
+            ]);
+
+            const likedPosts = preferenceQueries[0];
+            if (likedPosts.status === 'fulfilled') {
+                likedPosts.value.forEach(post => addCategories(post.data().category));
+            } else {
+                console.error("Error loading liked-post feed preferences:", likedPosts.reason);
+            }
+
+            const watchHistory = preferenceQueries[1];
+            if (watchHistory.status === 'fulfilled') {
+                watchHistory.value.forEach(item => {
+                    const data = item.data();
+                    watchedBlogIds.add(typeof data.blogId === 'string' && data.blogId ? data.blogId : item.id);
+                    addCategories(data.category);
+                });
+            } else {
+                console.error("Error loading watch-history feed preferences:", watchHistory.reason);
+            }
+
+            homeFeedPreferences = { categories, watchedBlogIds };
+            return homeFeedPreferences;
+        }
+
+        function arrangeHomeFeed(posts, preferences) {
+            const remaining = [...posts];
+            for (let index = remaining.length - 1; index > 0; index--) {
+                const swapIndex = Math.floor(Math.random() * (index + 1));
+                [remaining[index], remaining[swapIndex]] = [remaining[swapIndex], remaining[index]];
+            }
+            const interestCategories = preferences.categories;
+            if (remaining.length < 2 || interestCategories.size === 0) return remaining;
+
+            const interests = remaining.filter(post => interestCategories.has(post.category));
+            const videoPosts = remaining.filter(post => post.video || post.youtubeUrl);
+            const outsideInterestVideos = videoPosts.filter(post => !interestCategories.has(post.category));
+            const unseenDiscoveries = outsideInterestVideos.filter(post => !preferences.watchedBlogIds.has(post.id));
+            const unseenVideos = videoPosts.filter(post => !preferences.watchedBlogIds.has(post.id));
+            const discoveryPool = [...(unseenDiscoveries.length ? unseenDiscoveries
+                : unseenVideos.length ? unseenVideos
+                : outsideInterestVideos.length ? outsideInterestVideos
+                : videoPosts)];
+            const arranged = [];
+            const firstPost = remaining.shift();
+            arranged.push(firstPost);
+
+            const removePost = (list, post) => {
+                const index = list.findIndex(item => item.id === post.id);
+                if (index !== -1) list.splice(index, 1);
+            };
+            removePost(interests, firstPost);
+            removePost(discoveryPool, firstPost);
+
+            while (interests.length || discoveryPool.length) {
+                for (let count = 0; count < 2 && interests.length; count++) {
+                    const post = interests.shift();
+                    removePost(discoveryPool, post);
+                    removePost(remaining, post);
+                    arranged.push(post);
+                }
+                if (discoveryPool.length) {
+                    const post = discoveryPool.shift();
+                    removePost(interests, post);
+                    removePost(remaining, post);
+                    arranged.push(post);
+                }
+            }
+            return arranged.concat(remaining);
         }
 
         // --- Toast Notification Logic ---
@@ -5554,15 +5745,24 @@
                         }
                         // -------------------------
                         window.currentUserData = userDoc.data();
+                        homeFeedPreferencesPromise = loadHomeFeedPreferences(user.uid, window.currentUserData);
                         currentUserFollowing = userDoc.data().following || [];
                         currentUserBlocked = userDoc.data().blockedUsers || [];
                         if (window.followStateUnsubscribe) window.followStateUnsubscribe();
                         window.followStateUnsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
                             if (!snapshot.exists()) return;
+                            const profileData = snapshot.data();
+                            const photoChanged = profileData.photoURL !== window.currentUserData?.photoURL;
                             const following = snapshot.data().following || [];
                             const previousFollowing = currentUserFollowing;
                             currentUserFollowing = following;
-                            window.currentUserData = { ...window.currentUserData, ...snapshot.data(), following };
+                            window.currentUserData = { ...window.currentUserData, ...profileData, following };
+                            if (photoChanged && profileData.photoURL) {
+                                syncCachedProfilePhoto(user.uid, profileData.photoURL);
+                                if (typeof window.renderBlogs === 'function') window.renderBlogs(auth.currentUser);
+                                if (typeof window.renderFlickComments === 'function') window.renderFlickComments();
+                            }
+                            if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
                             const changedUid = [...new Set([...previousFollowing, ...following])].find(id => previousFollowing.includes(id) !== following.includes(id));
                             if (changedUid) window.syncFollowButtons(changedUid, following.includes(changedUid));
                         }, (error) => console.warn("Following sync unavailable:", error.message));
@@ -5576,6 +5776,8 @@
 
                 loadStories(user);
 
+                if (await routeInitialSpaView()) return;
+
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (!userDoc.exists() || !userDoc.data().username) {
                     // Redirect to profile to create unique ID
@@ -5583,22 +5785,11 @@
                     return;
                 }
 
-                // Check if URL specifies a view (SPA Routing)
-                const urlParams = new URLSearchParams(window.location.search);
-                const viewParam = urlParams.get('view');
-                if (viewParam) {
-                    if (viewParam === 'blog') { window.navigateTo('blog', null, urlParams.get('id')); return; }
-                    if (viewParam === 'profile') { window.navigateTo('profile', null, urlParams.get('uid')); return; }
-                    if (viewParam === 'messages') { window.navigateTo('messages', null); return; }
-                    if (viewParam === 'chat') { window.navigateTo('chat', null, urlParams.get('uid')); return; }
-                    if (viewParam === 'watch') { window.navigateTo('watch', null, urlParams.get('id')); return; }
-                    if (viewParam === 'search') { window.navigateTo('search', null, urlParams.get('q')); return; }
-                    if (viewParam === 'history') { window.navigateTo('history', null); return; }
-                }
-
                 resetAndLoadBlogs(); // Call this instead of renderBlogs directly
             } else {
                 // User is logged out, just use local storage
+                window.currentUserData = null;
+                homeFeedPreferencesPromise = loadHomeFeedPreferences(null, null);
                 document.getElementById('stories-reel-container').style.display = 'none';
                 applyTheme(localStorage.getItem('theme') || 'dark');
                 if(loginBtn) loginBtn.style.display = 'flex';
@@ -5611,7 +5802,7 @@
                 document.getElementById('feed-toggle').style.display = 'none'; // Hide feed toggle
                 currentFeedMode = 'all'; // Reset to all posts on logout
                 currentUserBlocked = []; // Clear blocked list on logout
-                resetAndLoadBlogs(); // Call this to load all posts
+                if (!(await routeInitialSpaView())) resetAndLoadBlogs(); // Load requested SPA content or the home feed
             }
         });
 
@@ -5620,6 +5811,35 @@
         
         let fetchedBlogs = [];
         let isFetchingBlogs = false;
+
+        function syncCachedProfilePhoto(userId, photoURL) {
+            const cachedBlogs = new Set([
+                ...fetchedBlogs,
+                ...profilePageBlogs,
+                ...(Array.isArray(window.globalFlicks) ? window.globalFlicks : [])
+            ]);
+            if (window.currentWatchBlog) cachedBlogs.add(window.currentWatchBlog);
+
+            cachedBlogs.forEach(blog => {
+                if (blog.authorUid === userId) blog.authorPhoto = photoURL;
+                if (!Array.isArray(blog.comments)) return;
+                blog.comments.forEach(comment => {
+                    if (comment.userUid === userId) comment.photo = photoURL;
+                    if (Array.isArray(comment.replies)) {
+                        comment.replies.forEach(reply => {
+                            if (reply.userUid === userId) reply.photo = photoURL;
+                        });
+                    }
+                });
+            });
+
+            globalGroupedStories.forEach(group => {
+                if (group.authorUid === userId) group.authorPhoto = photoURL;
+                group.stories.forEach(story => {
+                    if (story.authorUid === userId) story.authorPhoto = photoURL;
+                });
+            });
+        }
 
         // New functions for feed toggle
         function updateFeedToggleUI() {
@@ -5943,23 +6163,7 @@
 
                 // --- Smart Feed: Algorithm Logic ---
                 if (currentFeedMode === 'all' && currentCategoryFilter === 'All' && newBlogs.length > 0) {
-                    newBlogs.forEach(blog => {
-                        let score = 0;
-                        // 1. Personalization (User Interest Match)
-                        if (blog.category && userInterests[blog.category]) {
-                            score += userInterests[blog.category] * 2.5; 
-                        }
-                        // 2. Engagement (Popularity)
-                        const likesCount = Array.isArray(blog.likes) ? blog.likes.length : (blog.likes || 0);
-                        score += likesCount * 1.5;
-                        score += (blog.views || 0) * 0.1;
-                        // 3. Recency Penalty (Deduct points for older posts)
-                        const hoursOld = (Date.now() - new Date(blog.date).getTime()) / (1000 * 60 * 60);
-                        score -= Math.min(hoursOld * 0.5, 50); // Cap the penalty to 50
-
-                        blog._smartScore = score;
-                    });
-                    newBlogs.sort((a, b) => b._smartScore - a._smartScore);
+                    newBlogs = arrangeHomeFeed(newBlogs, await homeFeedPreferencesPromise);
                 }
 
                 if (hasMoreDocs) {
@@ -6051,9 +6255,9 @@
                 let flicks = [...recentFlicks, ...randomFlicks];
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const targetBlogId = urlParams.get('blogId');
                 const targetSpaBlogId = urlParams.get('id');
-                const theTargetId = targetBlogId || (urlParams.get('view') === 'blog' ? targetSpaBlogId : null);
+                const targetBlogId = urlParams.get('blogId');
+                const theTargetId = targetBlogId || (urlParams.get('view') === 'flick' ? targetSpaBlogId : null);
                 let targetFlick = null;
                 if (theTargetId) {
                     targetFlick = allFlicks.find(f => f.id === theTargetId);
@@ -6146,7 +6350,8 @@
             let likeButtonHTML = `<button onclick="window.likeUserBlog('${blog.id}')" class="blog-action-btn" style="color:#ff0050;" id="like-btn-${blog.id}">${likeIcon} <span>${likeCount}</span></button>`;
 
             let actionButtons = likeButtonHTML;
-            actionButtons += `<button onclick='window.shareBlog(${JSON.stringify(blog.id)}, ${JSON.stringify(blog.title || "")})' class="blog-action-btn" style="color:#6366f1;"><i data-lucide="share-2"></i> Share</button>`;
+            const shareType = blog.isFlicker ? 'flick' : ((blog.video || blog.youtubeUrl) ? 'watch' : 'blog');
+            actionButtons += `<button onclick='window.shareBlog(${JSON.stringify(blog.id)}, ${JSON.stringify(blog.title || "")}, ${JSON.stringify(shareType)})' class="blog-action-btn" style="color:#6366f1;"><i data-lucide="share-2"></i> Share</button>`;
             actionButtons += `<button onclick="window.openSavePlaylistPicker('blog', { id: '${blog.id}' })" class="blog-action-btn" style="color:#a5b4fc;"><i data-lucide="list-plus"></i> Playlist</button>`;
 
             let menuItems = '';
@@ -7115,16 +7320,6 @@
                     }
                 });
 
-                const hash = window.location.hash;
-                const urlParams = new URLSearchParams(window.location.search);
-                const blogId = urlParams.get('blogId');
-                
-                if (blogId) { // Redirect legacy URLs to SPA view
-                    setTimeout(() => {
-                        window.navigateTo('blog', null, blogId);
-                    }, 500);
-                }
-                
                 if (window.lucide) window.lucide.createIcons();
             }
         }
@@ -7491,19 +7686,21 @@
             }
         };
 
-        window.shareBlog = async function(id, title) {
-            const url = `${window.location.origin}${window.location.pathname}?blogId=${id}`;
+        window.shareBlog = async function(id, title, contentType = 'blog') {
+            const url = new URL('https://viyou.in/');
+            url.searchParams.set('view', contentType);
+            url.searchParams.set('id', id);
             const shareData = {
                 title: title,
                 text: `Check out this post on Viyou: ${title}`,
-                url: url
+                url: url.toString()
             };
 
             if (navigator.share) {
                 try { await navigator.share(shareData); } catch (err) { console.log('Share canceled'); }
             } else {
                 try {
-                    await navigator.clipboard.writeText(url);
+                    await navigator.clipboard.writeText(url.toString());
                     showToast("Link copied to clipboard!", 'success');
                 } catch (err) {
                     showToast("Could not copy link.", 'error');
@@ -7768,7 +7965,7 @@
             // ------------------------------
             
             let authorName = auth.currentUser.displayName || "User";
-            let authorPhoto = "https://via.placeholder.com/40";
+            let authorPhoto = window.currentUserData?.photoURL || auth.currentUser.photoURL || "https://via.placeholder.com/40";
             let isVerified = false;
             
             try {
@@ -7779,7 +7976,7 @@
                     if (userData.photoURL) authorPhoto = userData.photoURL;
                     if (userData.isVerified) isVerified = true;
                 }
-            } catch(e) { console.log("Profile fetch error", e); }
+            } catch(e) { console.error("Profile fetch error while posting comment:", e); }
 
             // --- Mention Logic ---
             const mentionRegex = /@([\w_]+)/g;
@@ -7931,7 +8128,7 @@
             if (!text) return;
 
             let authorName = auth.currentUser.displayName || "User";
-            let authorPhoto = auth.currentUser.photoURL;
+            let authorPhoto = window.currentUserData?.photoURL || auth.currentUser.photoURL || "logo.png";
             let isVerified = false;
             
             try {
@@ -9009,7 +9206,7 @@
             document.getElementById('flicks-like-count').innerText = likes.length;
 
             likeBtn.onclick = () => window.likeFlickFromViewer(flick.id);
-            document.getElementById('flicks-share-btn').onclick = () => window.shareBlog(flick.id, flick.title);
+            document.getElementById('flicks-share-btn').onclick = () => window.shareBlog(flick.id, flick.title, 'flick');
             document.getElementById('flicks-playlist-btn').onclick = () => window.openSavePlaylistPicker('flick', { id: flick.id });
             document.getElementById('flicks-send-btn').onclick = () => window.openSendFlickModal();
         };
@@ -9238,7 +9435,7 @@
             const user = auth.currentUser;
 
             let authorName = user.displayName || "User";
-            let authorPhoto = user.photoURL || "logo.png";
+            let authorPhoto = window.currentUserData?.photoURL || user.photoURL || "logo.png";
             let isVerified = false;
 
             try {
@@ -9249,7 +9446,7 @@
                     if (userData.photoURL) authorPhoto = userData.photoURL;
                     if (userData.isVerified) isVerified = true;
                 }
-            } catch(e) {}
+            } catch(e) { console.error("Error loading comment author profile:", e); }
 
             // --- Mention Logic ---
             const mentionRegex = /@([\w_]+)/g;
@@ -9440,7 +9637,7 @@
             const user = auth.currentUser;
 
             let authorName = user.displayName || "User";
-            let authorPhoto = user.photoURL || "logo.png";
+            let authorPhoto = window.currentUserData?.photoURL || user.photoURL || "logo.png";
             let isVerified = false;
             try {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -9450,7 +9647,7 @@
                     if (userData.photoURL) authorPhoto = userData.photoURL;
                     if (userData.isVerified) isVerified = true;
                 }
-            } catch(e) {}
+            } catch(e) { console.error("Error loading reply author profile:", e); }
 
             // --- Mention Logic for Replies ---
             const mentionRegex = /@([\w_]+)/g;
@@ -9689,7 +9886,7 @@
             try {
                 await addDoc(messagesRef, { type: 'flick', flickId: flick.id, videoUrl: flick.video, title: flick.title, senderUid: auth.currentUser.uid, timestamp: serverTimestamp() });
                 const partnerProfileSnap = await getDoc(doc(db, "users", targetUid));
-                await setDoc(convRef, { participants: [auth.currentUser.uid, targetUid], participantDetails: { [auth.currentUser.uid]: { name: auth.currentUser.displayName || "User", photoURL: auth.currentUser.photoURL || null }, [targetUid]: { name: partnerProfileSnap.exists() ? partnerProfileSnap.data().name : "User", photoURL: partnerProfileSnap.exists() ? partnerProfileSnap.data().photoURL : null } }, lastMessage: { text: "Sent a Flick", senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } }, { merge: true });
+                await setDoc(convRef, { participants: [auth.currentUser.uid, targetUid], participantDetails: { [auth.currentUser.uid]: { name: window.currentUserData?.name || auth.currentUser.displayName || "User", photoURL: window.currentUserData?.photoURL || auth.currentUser.photoURL || null }, [targetUid]: { name: partnerProfileSnap.exists() ? partnerProfileSnap.data().name : "User", photoURL: partnerProfileSnap.exists() ? partnerProfileSnap.data().photoURL : null } }, lastMessage: { text: "Sent a Flick", senderUid: auth.currentUser.uid, timestamp: serverTimestamp(), isRead: false } }, { merge: true });
                 btnElement.innerText = "Sent!"; btnElement.style.background = "#198754"; btnElement.style.borderColor = "#198754"; btnElement.style.color = "white";
             } catch (e) { console.error(e); btnElement.innerText = "Error"; }
         };
