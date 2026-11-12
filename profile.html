@@ -395,6 +395,7 @@
     import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, onSnapshot, deleteField, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, updateProfile, deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { db, auth } from "./firebase-config.js";
+    import { syncProfilePhotoReferences } from "./assets/js/profile-photo-sync.js";
     let currentUser = null;
     let currentProfileData = {}; // Store loaded profile data for lists
     let profilePageBlogs = [];
@@ -544,45 +545,11 @@
                     profilePhotoSaved = true;
                     window.currentUserData = { ...window.currentUserData, photoURL: dataURL };
                     
-                    const allBlogsSnapshot = await getDocs(collection(db, "blogs"));
-                    const updatePromises = [];
-                    allBlogsSnapshot.forEach((blogDoc) => {
-                        const blogData = blogDoc.data();
-                        const updates = {}; let needsUpdate = false;
-                        if (blogData.authorUid === auth.currentUser.uid) {
-                            updates.authorPhoto = dataURL; needsUpdate = true;
-                        }
-                        if (blogData.comments && Array.isArray(blogData.comments)) {
-                            let commentsChanged = false;
-                            const updatedComments = blogData.comments.map(comment => {
-                                let c = { ...comment }; let cChanged = false;
-                                if (c.userUid === auth.currentUser.uid) { c.photo = dataURL; cChanged = true; }
-                                if (c.replies && Array.isArray(c.replies)) {
-                                    const newReplies = c.replies.map(reply => {
-                                        if (reply.userUid === auth.currentUser.uid) { cChanged = true; return { ...reply, photo: dataURL }; }
-                                        return reply;
-                                    });
-                                    if (cChanged) c.replies = newReplies;
-                                }
-                                if (cChanged) commentsChanged = true;
-                                return c;
-                            });
-                            if (commentsChanged) { updates.comments = updatedComments; needsUpdate = true; }
-                        }
-                        if (needsUpdate) updatePromises.push(updateDoc(doc(db, "blogs", blogDoc.id), updates));
-                    });
-                    
-                    const allStoriesSnapshot = await getDocs(collection(db, "stories"));
-                    allStoriesSnapshot.forEach((storyDoc) => {
-                        if (storyDoc.data().authorUid === auth.currentUser.uid) {
-                            updatePromises.push(updateDoc(doc(db, "stories", storyDoc.id), { authorPhoto: dataURL }));
-                        }
-                    });
-                    await Promise.all(updatePromises);
+                    await syncProfilePhotoReferences(db, auth.currentUser.uid, dataURL);
                 } catch(e) {
                     console.error("Error syncing profile photo across content:", e);
                     const message = profilePhotoSaved
-                        ? "Photo saved, but some older posts may still show the previous image. Please retry later."
+                        ? "Photo saved, but some posts, comments, or chat profiles may still show the previous image. Please retry later."
                         : "Could not save your profile photo. Please try again.";
                     await window.viyouAlert(message);
                 }

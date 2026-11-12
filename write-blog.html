@@ -74,6 +74,19 @@
         .mention-dropdown { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(20,20,20,0.95); border: 1px solid #444; border-radius: 12px; width: 90%; max-width: 350px; max-height: 200px; overflow-y: auto; z-index: 200; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); display: none; margin-bottom: 10px; }
         .mention-item { padding: 12px 15px; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; color: white; cursor: pointer; }
         .mention-item img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        @media (max-width: 600px) {
+            .tabs-container { flex-wrap: wrap; }
+            .tabs-container button { min-width: calc(50% - 5px); }
+        }
+        .drama-playlist-panel { margin-bottom: 20px; }
+        .drama-episode-card { margin-bottom: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; background: rgba(0,0,0,0.22); }
+        .drama-episode-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; color: #f59e0b; }
+        .drama-playlist-fields { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+        .drama-playlist-fields textarea { min-height: 90px; height: auto; }
+        .drama-duration-status { margin: 7px 0 0; color: #aaa; font-size: 0.85rem; }
+        .drama-remove-episode { border: 0; border-radius: 8px; padding: 6px 10px; background: rgba(239,68,68,0.15); color: #fca5a5; cursor: pointer; }
+        #drama-validation-message { min-height: 1.4em; margin: 10px 0; color: #fca5a5; }
+        .drama-thumbnail-preview { display: none; width: 90px; aspect-ratio: 9 / 16; margin-top: 10px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -114,9 +127,23 @@
         </div>
 
         <div class="tabs-container" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-            <button type="button" id="tab-blog" onclick="window.switchPostType('blog')" style="flex: 1; padding: 12px; background: transparent; color: white; border: none; border-bottom: 2px solid #6366f1; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="edit-3"></i> Blog Post</button>
-            <button type="button" id="tab-video" onclick="window.switchPostType('video')" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="play-circle"></i> Long Video</button>
-            <button type="button" id="tab-flick" onclick="window.switchPostType('flick')" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;"><i data-lucide="zap"></i> Flick</button>
+            <button type="button" id="tab-blog" onclick="window.switchPostType('blog')" style="flex: 1; padding: 12px; background: transparent; color: white; border: none; border-bottom: 2px solid #6366f1; cursor: pointer; font-weight: bold; transition: 0.3s;" aria-pressed="true"><i data-lucide="edit-3"></i> Blog Post</button>
+            <button type="button" id="tab-video" onclick="window.switchPostType('video')" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;" aria-pressed="false"><i data-lucide="play-circle"></i> Long Video</button>
+            <button type="button" id="tab-flick" onclick="window.switchPostType('flick')" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;" aria-pressed="false"><i data-lucide="zap"></i> Flick</button>
+            <button type="button" id="tab-flick-drama" onclick="window.switchPostType('flick-drama')" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; transition: 0.3s;" aria-pressed="false"><i data-lucide="clapperboard"></i> Flicks Drama</button>
+        </div>
+
+        <div id="flick-drama-placeholder" class="drama-playlist-panel" style="display: none;">
+            <div style="margin-bottom: 18px;">
+                <h2 style="margin: 0 0 6px; color: #f59e0b;"><i data-lucide="clapperboard"></i> Flicks Drama Playlist</h2>
+                <p style="margin: 0; color: #aaa;">Har playlist mein kam-se-kam 5 videos hon. Har video 10 seconds se 3 minutes tak ka ho sakta hai.</p>
+                <a href="flicks-drama-policy.html" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 8px; color: #fbbf24; font-weight: 700;">Read Flicks Drama upload policy / अपलोड नीति पढ़ें</a>
+            </div>
+            <div id="drama-episode-list"></div>
+            <button type="button" id="add-drama-episode" class="btn btn-transparent" style="width: auto;" aria-label="Add video to playlist. No maximum video count."><i data-lucide="plus"></i> Add Video</button>
+            <span id="drama-episode-count" style="margin-left: 10px; color: #aaa;" aria-live="polite"></span>
+            <p id="drama-validation-message" role="status" aria-live="polite"></p>
+            <button type="button" id="publish-drama-playlist" class="btn"><i data-lucide="upload"></i> Publish Drama Playlist</button>
         </div>
 
         <form id="blogForm">
@@ -484,7 +511,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc, query, where, getDocs, orderBy, limit, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc, query, where, getDocs, orderBy, limit, arrayUnion, arrayRemove, increment, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { firebaseConfig, storage } from "./firebase-config.js";
@@ -712,7 +739,28 @@
         });
 
         window.switchPostType = function(type) {
+            const dramaTab = document.getElementById('tab-flick-drama');
+            const dramaPanel = document.getElementById('flick-drama-placeholder');
+            const blogForm = document.getElementById('blogForm');
+            if (type === 'flick-drama') {
+                ensureDramaEpisodeMinimum();
+                dramaTab.style.color = 'white';
+                dramaTab.style.borderBottomColor = '#6366f1';
+                dramaTab.setAttribute('aria-pressed', 'true');
+                ['tab-blog', 'tab-video', 'tab-flick'].forEach(id => {
+                    const tab = document.getElementById(id);
+                    tab.style.color = '#888';
+                    tab.style.borderBottomColor = 'transparent';
+                    tab.setAttribute('aria-pressed', 'false');
+                });
+                blogForm.style.display = 'none';
+                dramaPanel.style.display = 'block';
+                return;
+            }
+
             currentPostType = type;
+            blogForm.style.display = '';
+            dramaPanel.style.display = 'none';
             document.getElementById('video-upload').value = ''; // Clear video input to enforce new ratio validation
             
             document.getElementById('video-preview').style.display = 'none';
@@ -746,6 +794,12 @@
             document.getElementById('tab-video').style.borderBottomColor = type === 'video' ? '#6366f1' : 'transparent';
             document.getElementById('tab-flick').style.color = type === 'flick' ? 'white' : '#888';
             document.getElementById('tab-flick').style.borderBottomColor = type === 'flick' ? '#6366f1' : 'transparent';
+            dramaTab.style.color = '#888';
+            dramaTab.style.borderBottomColor = 'transparent';
+            dramaTab.setAttribute('aria-pressed', 'false');
+            ['tab-blog', 'tab-video', 'tab-flick'].forEach(id => {
+                document.getElementById(id).setAttribute('aria-pressed', document.getElementById(id).id === `tab-${type}` ? 'true' : 'false');
+            });
 
             const blogFields = document.getElementById('blog-specific-fields');
             const videoFields = document.getElementById('video-specific-fields');
@@ -792,6 +846,384 @@
             }
             updateCharCounter();
         };
+
+        const dramaEpisodeList = document.getElementById('drama-episode-list');
+        const dramaEpisodeDurations = new WeakMap();
+        let isPublishingDramaPlaylist = false;
+
+        function renderDramaEpisodes() {
+            const episodeIndex = dramaEpisodeList.children.length;
+            const card = document.createElement('section');
+            card.className = 'drama-episode-card';
+            card.dataset.episodeIndex = String(episodeIndex);
+
+            if (episodeIndex === 0) {
+                const playlistFields = document.createElement('div');
+                playlistFields.className = 'drama-playlist-fields';
+                playlistFields.innerHTML = `
+                    <h3 style="margin: 0 0 12px; color: #fff;">Playlist details (Video 1)</h3>
+                    <div class="form-group">
+                        <label for="drama-playlist-title">Playlist Title</label>
+                        <input type="text" id="drama-playlist-title" maxlength="100" required placeholder="Enter your drama playlist title">
+                    </div>
+                    <div class="form-group">
+                        <label for="drama-playlist-thumbnail">Playlist Thumbnail (9:16)</label>
+                        <input type="file" id="drama-playlist-thumbnail" accept="image/*" required>
+                        <img id="drama-playlist-thumbnail-preview" class="drama-thumbnail-preview" alt="Playlist thumbnail preview">
+                        <p id="drama-thumbnail-status" class="drama-duration-status">Upload a vertical 9:16 image.</p>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="drama-playlist-description">Playlist Description</label>
+                        <textarea id="drama-playlist-description" maxlength="10000" placeholder="Describe this drama playlist"></textarea>
+                    </div>`;
+                card.appendChild(playlistFields);
+            }
+
+            const heading = document.createElement('h3');
+            heading.className = 'drama-episode-heading';
+            heading.innerHTML = `<span>Video ${episodeIndex + 1}</span>`;
+            if (episodeIndex >= 5) {
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'drama-remove-episode';
+                removeButton.innerHTML = '<i data-lucide="trash-2"></i> Remove';
+                removeButton.addEventListener('click', () => {
+                    card.remove();
+                    refreshDramaEpisodeLabels();
+                });
+                heading.appendChild(removeButton);
+            }
+            card.appendChild(heading);
+
+            const titleGroup = document.createElement('div');
+            titleGroup.className = 'form-group';
+            const titleLabel = document.createElement('label');
+            titleLabel.textContent = `Video ${episodeIndex + 1} Title`;
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.className = 'drama-episode-title';
+            titleInput.maxLength = 100;
+            titleInput.placeholder = `Optional — defaults to F-D EP.${episodeIndex + 1}`;
+            titleGroup.append(titleLabel, titleInput);
+            card.appendChild(titleGroup);
+
+            const videoGroup = document.createElement('div');
+            videoGroup.className = 'form-group';
+            const videoLabel = document.createElement('label');
+            videoLabel.textContent = `Video ${episodeIndex + 1} (10 seconds - 3 minutes)`;
+            const videoInput = document.createElement('input');
+            videoInput.type = 'file';
+            videoInput.className = 'drama-episode-file';
+            videoInput.accept = 'video/mp4,video/webm,video/ogg,video/quicktime';
+            videoInput.required = true;
+            const durationStatus = document.createElement('p');
+            durationStatus.className = 'drama-duration-status';
+            durationStatus.textContent = 'Select a video to check its duration.';
+            videoGroup.append(videoLabel, videoInput, durationStatus);
+            card.appendChild(videoGroup);
+            dramaEpisodeList.appendChild(card);
+            document.getElementById('drama-episode-count').textContent = `${dramaEpisodeList.children.length} videos added`;
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function ensureDramaEpisodeMinimum() {
+            while (dramaEpisodeList.children.length < 5) renderDramaEpisodes();
+        }
+
+        ensureDramaEpisodeMinimum();
+
+        function refreshDramaEpisodeLabels() {
+            Array.from(dramaEpisodeList.children).forEach((card, index) => {
+                card.dataset.episodeIndex = String(index);
+                card.querySelector('.drama-episode-heading span').textContent = `Video ${index + 1}`;
+                card.querySelector('.drama-episode-title').previousElementSibling.textContent = `Video ${index + 1} Title`;
+                card.querySelector('.drama-episode-title').placeholder = `Optional — defaults to F-D EP.${index + 1}`;
+                card.querySelector('.drama-episode-file').previousElementSibling.textContent = `Video ${index + 1} (10 seconds - 3 minutes)`;
+            });
+        }
+
+        function readDramaVideoMetadata(file) {
+            if (dramaEpisodeDurations.has(file)) return Promise.resolve(dramaEpisodeDurations.get(file));
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video');
+                const objectUrl = URL.createObjectURL(file);
+                const cleanup = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    video.removeAttribute('src');
+                    video.load();
+                };
+                video.preload = 'metadata';
+                video.onloadedmetadata = () => {
+                    const metadata = { duration: video.duration, width: video.videoWidth, height: video.videoHeight };
+                    cleanup();
+                    if (!Number.isFinite(metadata.duration) || !metadata.width || !metadata.height) {
+                        reject(new Error('Video duration or dimensions could not be read.'));
+                        return;
+                    }
+                    dramaEpisodeDurations.set(file, metadata);
+                    resolve(metadata);
+                };
+                video.onerror = () => {
+                    cleanup();
+                    reject(new Error('This video file could not be opened.'));
+                };
+                video.src = objectUrl;
+            });
+        }
+
+        function isDramaVerticalRatio(width, height) {
+            return Math.abs(width / height - 9 / 16) <= 0.02;
+        }
+
+        function readDramaImageDimensions(file) {
+            return new Promise((resolve, reject) => {
+                const image = new Image();
+                const objectUrl = URL.createObjectURL(file);
+                image.onload = () => {
+                    const dimensions = { width: image.naturalWidth, height: image.naturalHeight };
+                    URL.revokeObjectURL(objectUrl);
+                    resolve(dimensions);
+                };
+                image.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    reject(new Error('This thumbnail image could not be opened.'));
+                };
+                image.src = objectUrl;
+            });
+        }
+
+        let dramaThumbnailPreviewUrl = null;
+        document.getElementById('drama-playlist-thumbnail').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            const status = document.getElementById('drama-thumbnail-status');
+            const preview = document.getElementById('drama-playlist-thumbnail-preview');
+            if (dramaThumbnailPreviewUrl) URL.revokeObjectURL(dramaThumbnailPreviewUrl);
+            dramaThumbnailPreviewUrl = null;
+            preview.style.display = 'none';
+            status.style.color = '#aaa';
+            if (!file) return;
+            if (file.type && !file.type.startsWith('image/')) {
+                status.textContent = 'Please select an image file.';
+                status.style.color = '#fca5a5';
+                event.target.value = '';
+                return;
+            }
+            try {
+                const { width, height } = await readDramaImageDimensions(file);
+                if (!isDramaVerticalRatio(width, height)) {
+                    status.textContent = 'Thumbnail must use a 9:16 vertical ratio.';
+                    status.style.color = '#fca5a5';
+                    event.target.value = '';
+                    return;
+                }
+                dramaThumbnailPreviewUrl = URL.createObjectURL(file);
+                preview.src = dramaThumbnailPreviewUrl;
+                preview.style.display = 'block';
+                status.textContent = 'Valid 9:16 playlist thumbnail.';
+                status.style.color = '#86efac';
+            } catch (error) {
+                status.textContent = error.message;
+                status.style.color = '#fca5a5';
+                event.target.value = '';
+            }
+        });
+
+        dramaEpisodeList.addEventListener('change', async (event) => {
+            const input = event.target.closest('.drama-episode-file');
+            if (!input) return;
+            const status = input.parentElement.querySelector('.drama-duration-status');
+            const file = input.files[0];
+            if (!file) {
+                status.textContent = 'Select a video to check its duration.';
+                return;
+            }
+            if (file.type && !file.type.startsWith('video/')) {
+                status.textContent = 'Please select a valid video file.';
+                input.value = '';
+                return;
+            }
+            status.textContent = 'Checking video duration...';
+            try {
+                const { duration, width, height } = await readDramaVideoMetadata(file);
+                if (!isDramaVerticalRatio(width, height)) {
+                    status.textContent = 'Video must use a 9:16 vertical ratio.';
+                    status.style.color = '#fca5a5';
+                    input.value = '';
+                    return;
+                }
+                status.textContent = duration < 10 || duration > 180
+                    ? `Invalid duration: ${duration.toFixed(1)} seconds. Allowed: 10-180 seconds.`
+                    : `Valid 9:16 video — ${duration.toFixed(1)} seconds`;
+                status.style.color = duration < 10 || duration > 180 ? '#fca5a5' : '#86efac';
+                if (duration < 10 || duration > 180) input.value = '';
+            } catch (error) {
+                status.textContent = error.message;
+                status.style.color = '#fca5a5';
+                input.value = '';
+            }
+        });
+
+        const addDramaEpisodeButton = document.getElementById('add-drama-episode');
+        addDramaEpisodeButton.disabled = false;
+        addDramaEpisodeButton.addEventListener('click', () => {
+            renderDramaEpisodes();
+            const newEpisode = dramaEpisodeList.lastElementChild;
+            newEpisode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newEpisode.querySelector('.drama-episode-title').focus({ preventScroll: true });
+        });
+
+        document.getElementById('publish-drama-playlist').addEventListener('click', async () => {
+            if (isPublishingDramaPlaylist) return;
+            const cards = Array.from(dramaEpisodeList.querySelectorAll('.drama-episode-card'));
+            const playlistTitle = document.getElementById('drama-playlist-title').value.trim();
+            const playlistDescription = document.getElementById('drama-playlist-description').value.trim();
+            const thumbnailFile = document.getElementById('drama-playlist-thumbnail').files[0] || null;
+            const message = document.getElementById('drama-validation-message');
+            const publishButton = document.getElementById('publish-drama-playlist');
+            const episodes = cards.map((card) => ({
+                title: card.querySelector('.drama-episode-title').value.trim(),
+                file: card.querySelector('.drama-episode-file').files[0] || null
+            }));
+            episodes.forEach((episode, index) => {
+                if (!episode.title) episode.title = `F-D EP.${index + 1}`;
+            });
+
+            message.textContent = '';
+            if (!playlistTitle) {
+                message.textContent = 'Playlist title is required.';
+                document.getElementById('drama-playlist-title').focus();
+                return;
+            }
+            if (!thumbnailFile) {
+                message.textContent = 'Please add a 9:16 playlist thumbnail.';
+                document.getElementById('drama-playlist-thumbnail').focus();
+                return;
+            }
+            if (episodes.length < 5) {
+                message.textContent = 'A Flicks Drama playlist needs at least 5 videos.';
+                return;
+            }
+            const missingEpisode = episodes.findIndex((episode) => !episode.title || !episode.file);
+            if (missingEpisode !== -1) {
+                message.textContent = `Video ${missingEpisode + 1} needs both a title and a video file.`;
+                return;
+            }
+            if (!auth.currentUser) {
+                message.textContent = 'Please sign in again before publishing.';
+                return;
+            }
+
+            isPublishingDramaPlaylist = true;
+            publishButton.disabled = true;
+            const originalButtonText = publishButton.innerHTML;
+            publishButton.innerHTML = '<i data-lucide="loader-circle"></i> Preparing playlist...';
+            if (window.lucide) window.lucide.createIcons();
+
+            try {
+                const badWordsDoc = await getDoc(doc(db, 'settings', 'moderation'));
+                const badWords = badWordsDoc.exists() && Array.isArray(badWordsDoc.data().badWords)
+                    ? badWordsDoc.data().badWords
+                    : [];
+                const playlistText = [playlistTitle, playlistDescription, ...episodes.map((episode) => episode.title)].join(' ').toLowerCase();
+                if (badWords.some((word) => word && new RegExp(`\\b${String(word).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(playlistText))) {
+                    message.textContent = 'Explicit language detected. Please update the playlist or video titles.';
+                    return;
+                }
+
+                const validatedEpisodes = [];
+                for (let index = 0; index < episodes.length; index++) {
+                    const episode = episodes[index];
+                    if (episode.file.type && !episode.file.type.startsWith('video/')) {
+                        throw new Error(`Video ${index + 1} is not a valid video file.`);
+                    }
+                    const { duration, width, height } = await readDramaVideoMetadata(episode.file);
+                    if (!isDramaVerticalRatio(width, height)) {
+                        throw new Error(`Video ${index + 1} must use a 9:16 vertical ratio.`);
+                    }
+                    if (duration < 10 || duration > 180) {
+                        throw new Error(`Video ${index + 1} must be between 10 seconds and 3 minutes.`);
+                    }
+                    validatedEpisodes.push({ ...episode, duration });
+                }
+
+                const thumbnailDimensions = await readDramaImageDimensions(thumbnailFile);
+                if (!isDramaVerticalRatio(thumbnailDimensions.width, thumbnailDimensions.height)) {
+                    throw new Error('Playlist thumbnail must use a 9:16 vertical ratio.');
+                }
+
+                const authorName = document.getElementById('author').value.trim() || auth.currentUser.displayName || 'User';
+                const thumbnailPath = `user_thumbnails/${auth.currentUser.uid}/${Date.now()}_${thumbnailFile.name.replace(/[^a-zA-Z0-9.]/g, '') || 'drama-thumbnail'}`;
+                const thumbnailRef = ref(storage, thumbnailPath);
+                const thumbnailUpload = await uploadBytesResumable(thumbnailRef, thumbnailFile, { contentType: thumbnailFile.type || 'image/jpeg' });
+                const thumbnailUrl = await getDownloadURL(thumbnailUpload.ref);
+                const uploadedEpisodes = [];
+                for (let index = 0; index < validatedEpisodes.length; index++) {
+                    publishButton.innerHTML = `<i data-lucide="loader-circle"></i> Uploading video ${index + 1} of ${validatedEpisodes.length}...`;
+                    if (window.lucide) window.lucide.createIcons();
+                    const videoUrl = await uploadVideoToFirebase(validatedEpisodes[index].file, `Video ${index + 1} of ${validatedEpisodes.length} - `);
+                    uploadedEpisodes.push({ ...validatedEpisodes[index], videoUrl });
+                }
+
+                const playlistRef = doc(collection(db, 'playlists'));
+                const episodeRefs = uploadedEpisodes.map(() => doc(collection(db, 'playlists', playlistRef.id, 'episodes')));
+                const createdAt = new Date().toISOString();
+                for (let offset = 0; offset < uploadedEpisodes.length; offset += 450) {
+                    const batch = writeBatch(db);
+                    uploadedEpisodes.slice(offset, offset + 450).forEach((episode, batchIndex) => {
+                        const episodeNumber = offset + batchIndex + 1;
+                        batch.set(episodeRefs[episodeNumber - 1], {
+                            id: episodeRefs[episodeNumber - 1].id,
+                            playlistId: playlistRef.id,
+                            episodeNumber,
+                            title: episode.title,
+                            titleLower: episode.title.toLowerCase(),
+                            category: 'Flicks Drama',
+                            type: 'flicks-drama',
+                            isDramaEpisode: true,
+                            video: episode.videoUrl,
+                            duration: episode.duration,
+                            authorUid: auth.currentUser.uid,
+                            authorName,
+                            createdAt
+                        });
+                    });
+                    await batch.commit();
+                }
+                await setDoc(playlistRef, {
+                    authorUid: auth.currentUser.uid,
+                    authorName,
+                    name: playlistTitle,
+                    description: playlistDescription,
+                    firstEpisodeTitle: uploadedEpisodes[0].title,
+                    category: 'Flicks Drama',
+                    visibility: 'public',
+                    status: 'published',
+                    createdAt,
+                    items: [],
+                    coverImage: thumbnailUrl,
+                    type: 'flicks-drama',
+                    episodeCount: uploadedEpisodes.length,
+                    firstEpisodeId: episodeRefs[0].id
+                });
+
+                showToast('Flicks Drama playlist published successfully!', 'success');
+                document.getElementById('upload-progress-text').textContent = 'Playlist published! Redirecting...';
+                setTimeout(() => {
+                    document.getElementById('upload-progress-overlay').style.display = 'none';
+                    window.location.href = 'index.html';
+                }, 1500);
+            } catch (error) {
+                console.error('Error publishing Flicks Drama playlist:', error);
+                document.getElementById('upload-progress-overlay').style.display = 'none';
+                message.textContent = error.message || 'Unable to publish the playlist.';
+                showToast(message.textContent, 'error');
+            } finally {
+                isPublishingDramaPlaylist = false;
+                publishButton.disabled = false;
+                publishButton.innerHTML = originalButtonText;
+                if (window.lucide) window.lucide.createIcons();
+            }
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -939,7 +1371,7 @@
             });
         }
 
-    function uploadVideoToFirebase(file) {
+    function uploadVideoToFirebase(file, progressLabel = '') {
         return new Promise((resolve, reject) => {
             const overlay = document.getElementById('upload-progress-overlay');
             const bar = document.getElementById('upload-progress-bar');
@@ -964,11 +1396,11 @@
                     bar.style.width = progress + '%';
                     
                     if (progress >= 100) {
-                        text.innerText = "100%  •  Finalizing on server... Please wait.";
+                        text.innerText = `${progressLabel}100%  •  Finalizing on server... Please wait.`;
                     } else {
                         const mbTransferred = (snapshot.bytesTransferred / (1024 * 1024)).toFixed(1);
                         const mbTotal = (snapshot.totalBytes / (1024 * 1024)).toFixed(1);
-                        text.innerText = `${Math.round(progress)}%  •  ${mbTransferred}MB / ${mbTotal}MB`;
+                        text.innerText = `${progressLabel}${Math.round(progress)}%  •  ${mbTransferred}MB / ${mbTotal}MB`;
                     }
                     cancelBtn.style.display = 'block';
                 },

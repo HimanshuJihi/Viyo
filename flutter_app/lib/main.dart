@@ -9551,6 +9551,8 @@ class ViyouStudioDashboardPage extends StatefulWidget {
 
 class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
   int _section = 0;
+  String _contentFilter = 'all';
+  late Future<Map<String, dynamic>> _dashboardFuture;
   static const List<String> _promoCategories = [
     'Entertainment',
     'Music',
@@ -9570,49 +9572,90 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
     'Podcasts',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _dashboardFuture = _loadDashboard();
+  }
+
   Future<Map<String, dynamic>> _loadDashboard() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return {};
-    final posts = await FirebaseFirestore.instance
-        .collection('blogs')
-        .where('authorUid', isEqualTo: user.uid)
-        .get();
-    final profile = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
+    if (user == null) {
+      throw StateError('Sign in to open Creator Studio.');
+    }
+    final firestore = FirebaseFirestore.instance;
+    final results = await Future.wait([
+      firestore
+          .collection('blogs')
+          .where('authorUid', isEqualTo: user.uid)
+          .get(),
+      firestore.collection('users').doc(user.uid).get(),
+      firestore.collection('settings').doc('monetization').get(),
+      firestore.collection('settings').doc('promotions').get(),
+      firestore
+          .collection('promotions')
+          .where('uid', isEqualTo: user.uid)
+          .where('status', isEqualTo: 'approved')
+          .get(),
+    ]);
+    final posts = results[0] as QuerySnapshot<Map<String, dynamic>>;
+    final profile = results[1] as DocumentSnapshot<Map<String, dynamic>>;
+    final monetization = results[2] as DocumentSnapshot<Map<String, dynamic>>;
+    final promotionsSettings =
+        results[3] as DocumentSnapshot<Map<String, dynamic>>;
+    final activePromotionDocs =
+        results[4] as QuerySnapshot<Map<String, dynamic>>;
+    final profileData = profile.data() ?? const <String, dynamic>{};
+    final creatorPosts = posts.docs
+        .where((post) => post.data()['status'] != 'draft')
+        .toList();
     var views = 0;
     var longViews = 0;
     var flickViews = 0;
-    for (final post in posts.docs) {
+    var adViews = 0;
+    for (final post in creatorPosts) {
       final data = post.data();
       final count = (data['views'] as num?)?.toInt() ?? 0;
       views += count;
+      adViews += (data['adImpressions'] as num?)?.toInt() ?? 0;
       if (data['isFlicker'] == true) flickViews += count;
       if (data['video'] != null || data['youtubeUrl'] != null)
         longViews += count;
     }
-    final paymentHistory = profile.data()?['paymentHistory'];
-    final monetization = await FirebaseFirestore.instance
-        .collection('settings')
-        .doc('monetization')
-        .get();
-    final promotions = await FirebaseFirestore.instance
-        .collection('settings')
-        .doc('promotions')
-        .get();
+    final now = DateTime.now();
+    final activePromotions = activePromotionDocs.docs
+        .where((promotion) {
+          final data = promotion.data();
+          final expiry = data['promoExpiry'];
+          if (expiry == null) {
+            final type = data['type'];
+            final served = (data['impressions_served'] as num?)?.toInt() ?? 0;
+            final goal = (data['impressions_goal'] as num?)?.toInt() ?? 1;
+            return (type == 'preroll' || type == 'blog_ad') && served < goal;
+          }
+          final expiryDate = expiry is Timestamp
+              ? expiry.toDate()
+              : DateTime.tryParse('$expiry');
+          return expiryDate != null && expiryDate.isAfter(now);
+        })
+        .map((promotion) => promotion.data())
+        .toList();
     return {
-      'posts': posts.size,
+      'posts': creatorPosts.length,
       'views': views,
       'longViews': longViews,
       'flickViews': flickViews,
-      'followers': (profile.data()?['followers'] as List?)?.length ?? 0,
-      'wallet': profile.data()?['walletBalance'] ?? 0,
-      'postDocs': posts.docs,
-      'profile': profile.data() ?? const <String, dynamic>{},
-      'paymentHistory': paymentHistory is List ? paymentHistory : const [],
+      'adViews': adViews,
+      'followers': (profileData['followers'] as List?)?.length ?? 0,
+      'wallet': profileData['walletBalance'] ?? 0,
+      'postDocs': creatorPosts,
+      'profile': profileData,
+      'paymentHistory': profileData['paymentHistory'] is List
+          ? profileData['paymentHistory']
+          : const [],
       'monetization': monetization.data() ?? const <String, dynamic>{},
-      'promotions': promotions.data() ?? const <String, dynamic>{},
+      'promotions': promotionsSettings.data() ?? const <String, dynamic>{},
+      'activePromotions': activePromotions,
     };
   }
 
@@ -9716,6 +9759,22 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
     Future<void> pickVideoFor(String mode) async {
       final file = await ImagePicker().pickVideo(source: ImageSource.gallery);
       if (file == null) return;
+      final size = await file.length();
+      final maxSize = mode == 'preroll' ? 1 * 1024 * 1024 : 50 * 1024 * 1024;
+      if (size > maxSize) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                mode == 'preroll'
+                    ? 'Pre-roll videos must be 1 MB or smaller'
+                    : 'Blog ad videos must be 50 MB or smaller',
+              ),
+            ),
+          );
+        }
+        return;
+      }
       if (mode == 'preroll') {
         prerollVideo = file;
       } else {
@@ -9910,6 +9969,9 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
                       TextField(
                         controller: hoursCtrl,
                         keyboardType: TextInputType.number,
+                        onChanged: (_) => setState(() {
+                          totalPriceFromCurrentTab();
+                        }),
                         decoration: InputDecoration(
                           labelText: 'Duration (Hours) - Minimum $baseHours',
                         ),
@@ -9945,6 +10007,9 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
                       TextField(
                         controller: budgetCtrl,
                         keyboardType: TextInputType.number,
+                        onChanged: (_) => setState(() {
+                          totalPriceFromCurrentTab();
+                        }),
                         decoration: const InputDecoration(
                           labelText: 'Budget amount (₹)',
                         ),
@@ -10007,6 +10072,9 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
                       TextField(
                         controller: budgetCtrl,
                         keyboardType: TextInputType.number,
+                        onChanged: (_) => setState(() {
+                          totalPriceFromCurrentTab();
+                        }),
                         decoration: const InputDecoration(
                           labelText: 'Budget amount (₹)',
                         ),
@@ -10137,12 +10205,37 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
                   final title = titleCtrl.text.trim();
                   final url = urlCtrl.text.trim();
                   final utr = utrCtrl.text.trim();
-                  if (title.isEmpty || url.isEmpty || utr.isEmpty) {
+                  final parsedUrl = Uri.tryParse(url);
+                  if (title.isEmpty ||
+                      parsedUrl == null ||
+                      !parsedUrl.hasScheme ||
+                      !{'http', 'https'}.contains(parsedUrl.scheme) ||
+                      utr.length < 5) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          'Please add title, URL and transaction ID',
+                          'Enter a title, valid http(s) URL and valid transaction ID',
                         ),
+                      ),
+                    );
+                    return;
+                  }
+                  if (selectedTab == 'infeed' &&
+                      (int.tryParse(hoursCtrl.text) ?? 0) < baseHours) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Promotion duration must be at least $baseHours hours',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  if (selectedTab != 'infeed' &&
+                      (int.tryParse(budgetCtrl.text) ?? 0) < 10) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Minimum promotion budget is ₹10'),
                       ),
                     );
                     return;
@@ -10166,6 +10259,20 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
                     );
                     return;
                   }
+                  if (selectedTab == 'preroll' && prerollVideo == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Select a pre-roll ad video'),
+                      ),
+                    );
+                    return;
+                  }
+                  if (selectedTab == 'blogad' && blogVideo == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Select a blog ad video')),
+                    );
+                    return;
+                  }
                   Navigator.pop(dialogContext, true);
                 },
                 child: const Text('Submit request'),
@@ -10176,77 +10283,126 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
       ),
     );
 
-    if (result != true) return;
-
-    final campaignTitle = titleCtrl.text.trim();
-    final targetUrl = urlCtrl.text.trim();
-    final utr = utrCtrl.text.trim();
-    final campaignType = switch (selectedTab) {
-      'infeed' => 'external',
-      'preroll' => 'preroll',
-      'blogad' => 'blog_ad',
-      _ => 'external',
-    };
-
-    var requestPayload = <String, dynamic>{
-      'uid': user.uid,
-      'title': campaignTitle,
-      'type': campaignType,
-      'targetUrl': targetUrl,
-      'price': totalAmount,
-      'utr': utr,
-      'paymentScreenshot': paymentScreenshot == null
-          ? null
-          : await _compressSingleImage(paymentScreenshot!),
-      'status': 'pending',
-      'timestamp': FieldValue.serverTimestamp(),
-    };
-
-    if (selectedTab == 'infeed') {
-      final compressedGallery = await _compressGalleryImages(
-        inFeedImages
-            .map((image) => XFile.fromData(base64Decode(image.split(',').last)))
-            .toList(),
-      );
-      requestPayload.addAll({
-        'mediaType': 'image',
-        'mediaGallery': compressedGallery,
-        'mediaData': compressedGallery.first,
-        'frequency': selectedTier,
-        'hours': int.tryParse(hoursCtrl.text) ?? baseHours,
-      });
-    } else {
-      final budget =
-          int.tryParse(budgetCtrl.text) ??
-          (selectedTab == 'preroll' ? prerollRate : blogAdRate);
-      requestPayload.addAll({
-        'targetCategories': categories,
-        'impressions_goal':
-            ((budget / (selectedTab == 'preroll' ? prerollRate : blogAdRate)) *
-                    1000)
-                .round(),
-        'impressions_served': 0,
-        'budget': budget,
-      });
-      if (selectedTab == 'preroll' && prerollVideo != null) {
-        requestPayload['mediaType'] = 'video';
-        requestPayload['mediaData'] = await _compressSingleImage(prerollVideo!);
-      }
-      if (selectedTab == 'blogad' && blogVideo != null) {
-        requestPayload['mediaType'] = 'video';
-        requestPayload['mediaData'] = await _compressSingleImage(blogVideo!);
-      }
+    if (result != true) {
+      titleCtrl.dispose();
+      urlCtrl.dispose();
+      utrCtrl.dispose();
+      hoursCtrl.dispose();
+      budgetCtrl.dispose();
+      return;
     }
 
-    await FirebaseFirestore.instance
-        .collection('promotions')
-        .add(requestPayload);
-    if (mounted) _showStudioMessage('Promotion request sent for admin review');
-    titleCtrl.dispose();
-    urlCtrl.dispose();
-    utrCtrl.dispose();
-    hoursCtrl.dispose();
-    budgetCtrl.dispose();
+    try {
+      final campaignTitle = titleCtrl.text.trim();
+      final targetUrl = urlCtrl.text.trim();
+      final utr = utrCtrl.text.trim();
+      final campaignType = switch (selectedTab) {
+        'infeed' => 'external',
+        'preroll' => 'preroll',
+        'blogad' => 'blog_ad',
+        _ => 'external',
+      };
+
+      var requestPayload = <String, dynamic>{
+        'uid': user.uid,
+        'title': campaignTitle,
+        'type': campaignType,
+        'targetUrl': targetUrl,
+        'price': totalAmount,
+        'utr': utr,
+        'paymentScreenshot': paymentScreenshot == null
+            ? null
+            : await _compressSingleImage(paymentScreenshot!),
+        'status': 'pending',
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+
+      if (selectedTab == 'infeed') {
+        final compressedGallery = await _compressGalleryImages(
+          inFeedImages
+              .map(
+                (image) => XFile.fromData(base64Decode(image.split(',').last)),
+              )
+              .toList(),
+        );
+        requestPayload.addAll({
+          'mediaType': 'image',
+          'mediaGallery': compressedGallery,
+          'mediaData': compressedGallery.first,
+          'frequency': selectedTier,
+          'hours': int.tryParse(hoursCtrl.text) ?? baseHours,
+        });
+      } else {
+        final budget =
+            int.tryParse(budgetCtrl.text) ??
+            (selectedTab == 'preroll' ? prerollRate : blogAdRate);
+        requestPayload.addAll({
+          'targetCategories': categories,
+          'impressions_goal':
+              ((budget /
+                          (selectedTab == 'preroll'
+                              ? prerollRate
+                              : blogAdRate)) *
+                      1000)
+                  .floor(),
+          'impressions_served': 0,
+          'budget': budget,
+        });
+        if (selectedTab == 'preroll' && prerollVideo != null) {
+          requestPayload['mediaType'] = 'video';
+          requestPayload['mediaData'] = await _uploadPromotionVideo(
+            user.uid,
+            prerollVideo!,
+            'preroll',
+          );
+        }
+        if (selectedTab == 'blogad' && blogVideo != null) {
+          requestPayload['mediaType'] = 'video';
+          requestPayload['mediaData'] = await _uploadPromotionVideo(
+            user.uid,
+            blogVideo!,
+            'blog_ad',
+          );
+        }
+      }
+
+      await FirebaseFirestore.instance
+          .collection('promotions')
+          .add(requestPayload);
+      if (mounted) {
+        _showStudioMessage('Promotion request sent for admin review');
+      }
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        _showStudioMessage(
+          'Promotion request failed: ${error.message ?? error.code}',
+        );
+      }
+    } finally {
+      titleCtrl.dispose();
+      urlCtrl.dispose();
+      utrCtrl.dispose();
+      hoursCtrl.dispose();
+      budgetCtrl.dispose();
+    }
+  }
+
+  Future<String> _uploadPromotionVideo(
+    String uid,
+    XFile video,
+    String campaignType,
+  ) async {
+    final safeName = video.name.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final extension = safeName.split('.').last.toLowerCase();
+    final contentType = extension == 'webm' ? 'video/webm' : 'video/mp4';
+    final reference = FirebaseStorage.instance.ref().child(
+      'user_promotions/$uid/${DateTime.now().millisecondsSinceEpoch}_${campaignType}_$safeName',
+    );
+    final uploaded = await reference.putData(
+      await video.readAsBytes(),
+      SettableMetadata(contentType: contentType),
+    );
+    return uploaded.ref.getDownloadURL();
   }
 
   void _showStudioMessage(String message) {
@@ -10262,12 +10418,12 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
       backgroundColor: const Color(0xff050505),
       body: SafeArea(
         child: FutureBuilder<Map<String, dynamic>>(
-          future: _loadDashboard(),
+          future: _dashboardFuture,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final data = snapshot.data ?? {};
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting;
+            final hasError = snapshot.hasError;
+            final data = snapshot.data ?? const <String, dynamic>{};
             final posts =
                 (data['postDocs']
                     as List<QueryDocumentSnapshot<Map<String, dynamic>>>? ??
@@ -10421,58 +10577,39 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'A clear view of your audience, content and earnings.',
+                    'Overview, content performance, monetization, promotions and payments.',
                     style: TextStyle(color: Colors.white60),
                   ),
                   const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: [
-                            _studioStatCard(
-                              'Total views',
-                              '${data['views'] ?? 0}',
-                              Icons.visibility_outlined,
+                  if (isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (hasError)
+                    _studioSectionCard(
+                      title: 'Unable to load Studio data',
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${snapshot.error}',
+                            style: const TextStyle(color: Colors.white60),
+                          ),
+                          const SizedBox(height: 16),
+                          FilledButton(
+                            onPressed: () => setState(
+                              () => _dashboardFuture = _loadDashboard(),
                             ),
-                            _studioStatCard(
-                              'Long video views',
-                              '${data['longViews'] ?? 0}',
-                              Icons.play_circle_outline,
-                            ),
-                            _studioStatCard(
-                              'Flicks views',
-                              '${data['flickViews'] ?? 0}',
-                              Icons.bolt_rounded,
-                            ),
-                            _studioStatCard(
-                              'Followers',
-                              '${data['followers'] ?? 0}',
-                              Icons.people_outline,
-                            ),
-                            _studioStatCard(
-                              'Wallet balance',
-                              '₹${data['wallet'] ?? 0}',
-                              Icons.account_balance_wallet_outlined,
-                            ),
-                            _studioStatCard(
-                              'Revenue tier',
-                              data['profile']?['revenueTier'] ?? 'Not eligible',
-                              Icons.trending_up_rounded,
-                            ),
-                          ],
-                        ),
+                            child: const Text('Try again'),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  if (_section == 0) _overview(data),
-                  if (_section == 1) _content(data, posts),
-                  if (_section == 2) _monetization(data),
-                  if (_section == 3) _promotionsPanel(),
-                  if (_section == 4) _payments(data),
+                    )
+                  else ...[
+                    if (_section == 0) _overview(data, posts),
+                    if (_section == 1) _content(data, posts),
+                    if (_section == 2) _monetization(data),
+                    if (_section == 3) _promotionsPanel(data),
+                    if (_section == 4) _payments(data),
+                  ],
                 ],
               ),
             );
@@ -10548,11 +10685,51 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
         ),
       );
 
-  Widget _overview(Map<String, dynamic> data) => Column(
+  Widget _overview(
+    Map<String, dynamic> data,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> posts,
+  ) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          _studioStatCard(
+            'Total views',
+            '${data['views'] ?? 0}',
+            Icons.visibility_outlined,
+          ),
+          _studioStatCard(
+            'Ad views',
+            '${data['adViews'] ?? 0}',
+            Icons.play_circle_outline,
+          ),
+          _studioStatCard(
+            'Long video views',
+            '${data['longViews'] ?? 0}',
+            Icons.video_library_outlined,
+          ),
+          _studioStatCard(
+            'Flicks views',
+            '${data['flickViews'] ?? 0}',
+            Icons.bolt_rounded,
+          ),
+          _studioStatCard(
+            'Followers',
+            '${data['followers'] ?? 0}',
+            Icons.people_outline,
+          ),
+          _studioStatCard(
+            'Revenue tier',
+            '${data['profile']?['revenueTier'] ?? 'Not eligible'}',
+            Icons.trending_up_rounded,
+          ),
+        ],
+      ),
+      const SizedBox(height: 18),
       _studioSectionCard(
-        title: 'Monetization status',
+        title: 'Monetization Status',
         content: _metricRow(
           'Status',
           data['profile']?['isMonetized'] == true ? 'Active' : 'Not eligible',
@@ -10560,7 +10737,7 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
       ),
       const SizedBox(height: 18),
       _studioSectionCard(
-        title: 'Growth analytics',
+        title: 'Growth Analytics',
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -10573,19 +10750,141 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
           ],
         ),
       ),
+      _studioSectionCard(
+        title: 'Active Promotions',
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.icon(
+                onPressed: _requestPromotion,
+                icon: const Icon(Icons.rocket_launch_outlined),
+                label: const Text('Promote Product'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _activePromotionList(data['activePromotions'] as List? ?? const []),
+          ],
+        ),
+      ),
+      _contentPerformancePreview(posts),
     ],
+  );
+
+  Widget _activePromotionList(List promotions) {
+    if (promotions.isEmpty) {
+      return const Text(
+        'No active promotions.',
+        style: TextStyle(color: Colors.white60),
+      );
+    }
+    return Column(
+      children: promotions.map((promotion) {
+        final item = promotion as Map<String, dynamic>;
+        return ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(
+            Icons.campaign_outlined,
+            color: Color(0xffa855f7),
+          ),
+          title: Text('${item['title'] ?? 'Promotion'}'),
+          subtitle: Text('${item['type'] ?? 'Campaign'}'),
+          trailing: Text(
+            '${item['status'] ?? 'approved'}',
+            style: const TextStyle(color: Color(0xff10b981)),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _contentPerformancePreview(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> posts,
+  ) => _studioSectionCard(
+    title: 'Content Performance',
+    content: posts.isEmpty
+        ? const Text('No content found.')
+        : Column(
+            children: posts.take(5).map((post) {
+              final item = post.data();
+              final likes = item['likes'] is List
+                  ? (item['likes'] as List).length
+                  : (item['likes'] as num?)?.toInt() ?? 0;
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  item['isFlicker'] == true
+                      ? Icons.bolt_rounded
+                      : item['video'] != null || item['youtubeUrl'] != null
+                      ? Icons.play_circle_outline
+                      : Icons.article_outlined,
+                  color: const Color(0xfff59e0b),
+                ),
+                title: Text(
+                  '${item['title'] ?? 'Untitled'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  '${item['views'] ?? 0} views • $likes likes',
+                  style: const TextStyle(color: Colors.white60),
+                ),
+              );
+            }).toList(),
+          ),
   );
 
   Widget _content(
     Map<String, dynamic> data,
     List<QueryDocumentSnapshot<Map<String, dynamic>>> posts,
-  ) => _studioSectionCard(
-    title: 'Content performance',
-    content: posts.isEmpty
-        ? const Text('No posts yet')
-        : Column(
-            children: posts.map((post) {
+  ) {
+    final filteredPosts = posts.where((post) {
+      final item = post.data();
+      switch (_contentFilter) {
+        case 'video':
+          return item['isFlicker'] != true &&
+              (item['video'] != null || item['youtubeUrl'] != null);
+        case 'flick':
+          return item['isFlicker'] == true;
+        case 'blog':
+          return item['isFlicker'] != true &&
+              item['video'] == null &&
+              item['youtubeUrl'] == null;
+        default:
+          return true;
+      }
+    }).toList();
+    return _studioSectionCard(
+      title: 'Content Performance',
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: _contentFilter,
+            decoration: const InputDecoration(labelText: 'Filter content'),
+            items: const [
+              DropdownMenuItem(value: 'all', child: Text('All Content')),
+              DropdownMenuItem(value: 'video', child: Text('Long Videos')),
+              DropdownMenuItem(value: 'flick', child: Text('Flicks')),
+              DropdownMenuItem(value: 'blog', child: Text('Blogs')),
+            ],
+            onChanged: (value) {
+              if (value != null) setState(() => _contentFilter = value);
+            },
+          ),
+          const SizedBox(height: 12),
+          if (filteredPosts.isEmpty)
+            const Text('No content found for this filter.')
+          else
+            ...filteredPosts.map((post) {
               final item = post.data();
+              final likes = item['likes'] is List
+                  ? (item['likes'] as List).length
+                  : (item['likes'] as num?)?.toInt() ?? 0;
+              final comments = item['comments'] is List
+                  ? (item['comments'] as List).length
+                  : (item['comments'] as num?)?.toInt() ?? 0;
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
@@ -10622,7 +10921,7 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${item['views'] ?? 0} views • ${(item['likes'] as List?)?.length ?? 0} likes',
+                            '${item['date'] ?? ''} • ${item['views'] ?? 0} views • ${item['adImpressions'] ?? 0} ad views',
                             style: const TextStyle(
                               color: Colors.white60,
                               fontSize: 12,
@@ -10632,19 +10931,34 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Text(
-                      '${item['status'] ?? 'published'}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xff10b981),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '$likes likes',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xffff0050),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$comments comments',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white60,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               );
-            }).toList(),
-          ),
-  );
+            }),
+        ],
+      ),
+    );
+  }
 
   Widget _monetization(Map<String, dynamic> data) => _studioSectionCard(
     title: 'Monetization overview',
@@ -10665,15 +10979,17 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
     ),
   );
 
-  Widget _promotionsPanel() => _studioSectionCard(
-    title: 'Promotion types',
+  Widget _promotionsPanel(Map<String, dynamic> data) => _studioSectionCard(
+    title: 'Promotions',
     content: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Run campaigns across the same placements used by Viyou web.',
-          style: TextStyle(color: Colors.white60),
+          'Active promotions',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
         ),
+        const SizedBox(height: 8),
+        _activePromotionList(data['activePromotions'] as List? ?? const []),
         const SizedBox(height: 18),
         _promotionTypeRow(
           Icons.view_stream_outlined,
@@ -10682,12 +10998,12 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
         ),
         _promotionTypeRow(
           Icons.article_outlined,
-          'In-blog ads',
+          'Blog ads',
           'Appear inside blog reading flow.',
         ),
         _promotionTypeRow(
           Icons.play_circle_outline,
-          'Long video pre-roll',
+          'Pre-roll video ads',
           'Play before eligible long videos.',
         ),
         const SizedBox(height: 14),
@@ -10695,8 +11011,8 @@ class _ViyouStudioDashboardPageState extends State<ViyouStudioDashboardPage> {
           width: double.infinity,
           child: FilledButton.icon(
             onPressed: _requestPromotion,
-            icon: const Icon(Icons.campaign_outlined),
-            label: const Text('Request promotion'),
+            icon: const Icon(Icons.rocket_launch_outlined),
+            label: const Text('Promote Product'),
           ),
         ),
       ],

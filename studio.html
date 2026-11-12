@@ -102,10 +102,12 @@
             <div class="stat-card">
                 <h3>Total Views</h3>
                 <p id="total-views">...</p>
+                <small style="color: #aaa;">Long Videos, Flicks &amp; Blogs; excludes Flicks Drama</small>
             </div>
             <div class="stat-card">
                 <h3>Ad Views</h3>
                 <p id="total-ad-views" style="color: #10b981;">...</p>
+                <small style="color: #aaa;">Video &amp; blog ads; excludes Flicks Drama</small>
             </div>
             <div class="stat-card">
                 <h3>Long Video Views</h3>
@@ -114,6 +116,16 @@
             <div class="stat-card">
                 <h3>Flicks Views</h3>
                 <p id="flicks-views">...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Flicks Drama Views</h3>
+                <p id="flicks-drama-views">...</p>
+                <small style="color: #aaa;">Counted separately; excluded from Total Views</small>
+            </div>
+            <div class="stat-card">
+                <h3>Flicks Drama Ad Views</h3>
+                <p id="flicks-drama-ad-views" style="color: #10b981;">...</p>
+                <small style="color: #aaa;">Ad impressions across your playlists</small>
             </div>
             <div class="stat-card">
                 <h3>Followers</h3>
@@ -176,9 +188,11 @@
                     <option value="all">All Content</option>
                     <option value="video">Long Videos</option>
                     <option value="flick">Flicks</option>
+                    <option value="drama">Flicks Drama</option>
                     <option value="blog">Blogs</option>
                 </select>
             </div>
+            <p style="color: #aaa; font-size: 0.85rem; margin: -5px 0 12px;">The date filter selects content by publish date; displayed views are cumulative lifetime counts.</p>
             <div style="overflow-x: auto; max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);">
                 <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 600px;">
                     <thead style="position: sticky; top: 0; background: #1a1a1a; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
@@ -256,6 +270,7 @@
                 <button class="tab-btn active" onclick="window.switchPromoTab('infeed', this)"><i data-lucide="list"></i> In-Feed Ad</button>
                 <button class="tab-btn" onclick="window.switchPromoTab('preroll', this)"><i data-lucide="play-circle"></i> Pre-Roll Video Ad</button>
                 <button class="tab-btn" onclick="window.switchPromoTab('blogad', this)"><i data-lucide="monitor-play"></i> Blog Ad</button>
+                <button class="tab-btn" onclick="window.switchPromoTab('dramaad', this)"><i data-lucide="clapperboard"></i> Flicks Drama Ad</button>
             </div>
 
             <!-- In-Feed Ad Pane -->
@@ -357,6 +372,19 @@
                 </div>
             </div>
 
+            <div id="promo-tab-dramaad" class="tab-pane">
+                <p style="font-size: 0.85rem; color: #aaa; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">Shown only in Flicks Drama, between episodes after every 3 episodes. Video ads appear in a vertical player and can be skipped after the selected interval. Maximum video duration: 3 minutes.</p>
+                <div class="form-group"><label>Ad Title / Product Name</label><input type="text" id="drama-ad-title" placeholder="Enter your ad title"></div>
+                <div class="form-group"><label>Vertical Ad Video (Max 3 minutes)</label><input type="file" id="drama-ad-video" accept="video/mp4,video/webm" style="padding: 8px; background: #222;"></div>
+                <div class="form-group"><label>Skip Format</label><select id="drama-ad-skip-after" onchange="window.updateDramaAdSkipRate()"><option value="5">Skip after 5 seconds</option><option value="10">Skip after 10 seconds</option></select></div>
+                <div class="form-group"><label>Target URL (Optional)</label><input type="url" id="drama-ad-url" placeholder="https://yourwebsite.com/product"></div>
+                <div class="form-group">
+                    <label>Enter Budget Amount (₹)</label>
+                    <input type="number" id="drama-ad-budget" value="300" min="10" step="10" oninput="window.calculateExtPrice()">
+                    <small style="color: #aaa;">Rate: ₹<span id="drama-ad-rate-display">300</span> per 1,000 impressions. Estimated Impressions: <strong id="drama-ad-est-impressions" style="color: #87ceeb;">1,000</strong></small>
+                </div>
+            </div>
+
             <!-- Common Fields -->
             <div id="price-and-payment-section">
                 <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
@@ -438,7 +466,8 @@ window.showToast = function(message, type = 'info') {
             document.body.appendChild(screenLaser);
             setTimeout(() => screenLaser.remove(), 800);
         };
-        const MONETIZATION_VIEWS = 10000;
+        const MONETIZATION_LONG_VIDEO_VIEWS = 10000;
+        const MONETIZATION_FLICKS_DRAMA_VIEWS = 50000;
         const MONETIZATION_FOLLOWERS = 200;
         
         let monetizationSettings = { preRollRate: 200, preRollFreq: 3, currency: 'INR', minWithdrawal: 500, tierFollowers: [200, 1000, 50000, 100000, 1000000] }; // Default values
@@ -514,10 +543,12 @@ window.showToast = function(message, type = 'info') {
 
                 const pendingQuery = query(collection(db, "withdrawals"), where("uid", "==", uid), where("status", "==", "pending"));
                 const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid));
+                const dramaPlaylistsQuery = query(collection(db, "playlists"), where("authorUid", "==", uid));
                 const extPromoQuery = query(collection(db, "promotions"), where("uid", "==", uid), where("status", "==", "approved"));
-                const [pendingSnap, blogsSnapshot, extPromoSnap] = await Promise.all([
+                const [pendingSnap, blogsSnapshot, dramaPlaylistsSnapshot, extPromoSnap] = await Promise.all([
                     getDocs(pendingQuery),
                     getDocs(blogsQuery),
+                    getDocs(dramaPlaylistsQuery),
                     getDocs(extPromoQuery)
                 ]);
 
@@ -528,6 +559,9 @@ window.showToast = function(message, type = 'info') {
                 let totalViews = 0;
                 let totalLongVideoViews = 0;
                 let totalFlicksViews = 0;
+                let totalFlicksDramaViews = 0;
+                let totalFlicksDramaAdViews = 0;
+                let totalFlicksDramaAdRevenue = 0;
                 let totalVideoAdImpressions = 0;
                 let totalBlogAdImpressions = 0;
                 let activePromotions = [];
@@ -559,12 +593,52 @@ window.showToast = function(message, type = 'info') {
                     }
                 });
 
+                const dramaPlaylists = dramaPlaylistsSnapshot.docs
+                    .map(playlistDoc => ({ id: playlistDoc.id, ...playlistDoc.data() }))
+                    .filter(playlist =>
+                        (playlist.type === 'flicks-drama' || playlist.category === 'Flicks Drama') &&
+                        (!playlist.status || playlist.status === 'published')
+                    );
+                const dramaContent = await Promise.all(dramaPlaylists.map(async playlist => {
+                    const episodesSnapshot = await getDocs(collection(db, 'playlists', playlist.id, 'episodes'));
+                    const episodes = episodesSnapshot.docs.map(episodeDoc => episodeDoc.data());
+                    const views = episodes.reduce((sum, episode) => sum + (Number(episode.views) || 0), 0);
+                    const likes = episodes.reduce((sum, episode) => {
+                        const episodeLikes = episode.likes;
+                        return sum + (Array.isArray(episodeLikes) ? episodeLikes.length : (Number(episodeLikes) || 0));
+                    }, 0);
+                    const comments = episodes.reduce((sum, episode) =>
+                        sum + (Number(episode.commentsCount) || (Array.isArray(episode.comments) ? episode.comments.length : 0)), 0);
+                    const adViews = Number(playlist.flicksDramaAdViews) || 0;
+                    const adRevenue = Number(playlist.flicksDramaAdRevenue) || 0;
+                    const createdAt = playlist.createdAt && typeof playlist.createdAt.toDate === 'function'
+                        ? playlist.createdAt.toDate().toISOString()
+                        : playlist.createdAt;
+                    totalFlicksDramaViews += views;
+                    totalFlicksDramaAdViews += adViews;
+                    totalFlicksDramaAdRevenue += adRevenue;
+                    return {
+                        id: playlist.id,
+                        title: playlist.name || 'Untitled Flicks Drama',
+                        date: createdAt,
+                        thumbnail: playlist.coverImage || 'logo.png',
+                        views,
+                        likes,
+                        comments,
+                        flicksDramaAdViews: adViews,
+                        flicksDramaAdRevenue: adRevenue,
+                        episodeCount: episodes.length || Number(playlist.episodeCount) || 0,
+                        isFlicksDrama: true
+                    };
+                }));
+                allUserContent.push(...dramaContent);
+
                 // Get External Active Promotions
                 extPromoSnap.forEach(docSnap => {
                     const pData = docSnap.data();
                     if (pData.type === 'external' && pData.promoExpiry && new Date(pData.promoExpiry) > now) {
                         activePromotions.push({ id: docSnap.id, ...pData, promoFrequency: pData.frequency });
-                    } else if ((pData.type === 'preroll' || pData.type === 'blog_ad') && (pData.impressions_served || 0) < (pData.impressions_goal || 1)) {
+                    } else if ((pData.type === 'preroll' || pData.type === 'blog_ad' || pData.type === 'flicks_drama_ad') && (pData.impressions_served || 0) < (pData.impressions_goal || 1)) {
                         activePromotions.push({ id: docSnap.id, ...pData });
                     }
                 });
@@ -573,16 +647,20 @@ window.showToast = function(message, type = 'info') {
                 
                 // Tier Calculation Logic
                 let tier = 0, sharePercent = 0;
-                const totalPosts = allUserContent.length;
+                const totalPosts = allUserContent.filter(content => !content.isFlicksDrama).length;
                 const tierFollowers = monetizationSettings.tierFollowers || [200, 1000, 50000, 100000, 1000000]; // Default values
                 if (followersCount >= tierFollowers[4] && totalViews >= 10000000) { tier = 5; sharePercent = 0.70; }
                 else if (followersCount >= tierFollowers[3] && totalViews >= 5000000) { tier = 4; sharePercent = 0.65; }
                 else if (followersCount >= tierFollowers[2] && totalViews >= 1000000) { tier = 3; sharePercent = 0.60; }
                 else if (followersCount >= tierFollowers[1] && totalViews >= 100000) { tier = 2; sharePercent = 0.55; }
-                else if (followersCount >= tierFollowers[0] && totalViews >= MONETIZATION_VIEWS) { tier = 1; sharePercent = 0.50; } // Use MONETIZATION_VIEWS constant
+                else if (followersCount >= tierFollowers[0] &&
+                    (totalLongVideoViews >= MONETIZATION_LONG_VIDEO_VIEWS || totalFlicksDramaViews >= MONETIZATION_FLICKS_DRAMA_VIEWS)) {
+                    tier = 1;
+                    sharePercent = 0.50;
+                }
 
                 window.cachedLifetimeData = {
-                    totalViews, totalLongVideoViews, totalFlicksViews, totalVideoAdImpressions, totalBlogAdImpressions, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, paidAdImpressions: userData.paidAdImpressions, paidBlogAdImpressions: userData.paidBlogAdImpressions, walletBalance: userData.walletBalance || 0
+                    totalViews, totalLongVideoViews, totalFlicksViews, totalFlicksDramaViews, totalFlicksDramaAdViews, totalFlicksDramaAdRevenue, totalVideoAdImpressions, totalBlogAdImpressions, followersCount, tier, sharePercent, isMonetized, paidLongVideoViews, paidAdImpressions: userData.paidAdImpressions, paidBlogAdImpressions: userData.paidBlogAdImpressions, paidFlicksDramaAdViews: userData.paidFlicksDramaAdViews, paidFlicksDramaAdRevenue: userData.paidFlicksDramaAdRevenue, walletBalance: userData.walletBalance || 0
                 };
 
                 document.getElementById('current-tier').innerText = tier > 0 ? `Tier ${tier} (${Math.round(sharePercent * 100)}%)` : 'No Tier';
@@ -591,13 +669,15 @@ window.showToast = function(message, type = 'info') {
                 updateMonetizationUI(isMonetized, {
                     followers: followersCount,
                     totalViews: totalViews,
+                    longVideoViews: totalLongVideoViews,
+                    flicksDramaViews: totalFlicksDramaViews,
                     flicksViews: totalFlicksViews,
                     totalLikes: totalLikes,
                     totalPosts: totalPosts
                 });
 
                 // --- Tier Growth Line Chart Analytics ---
-                const tierViewsLevels = [10000, 100000, 1000000, 5000000, 10000000];
+                const tierViewsLevels = [MONETIZATION_LONG_VIDEO_VIEWS, 100000, 1000000, 5000000, 10000000];
                 const targetNextTier = Math.min(5, tier + 1);
                 const analyticsCard = document.getElementById('tier-analytics-card');
                 
@@ -606,13 +686,22 @@ window.showToast = function(message, type = 'info') {
                     document.getElementById('chart-wrapper').style.display = 'block';
                     const targetFollowers = tierFollowers[targetNextTier - 1];
                     const targetViews = tierViewsLevels[targetNextTier - 1];
+                    const isFirstTier = targetNextTier === 1;
                     
                     const followersNeeded = Math.max(0, targetFollowers - followersCount);
+                    const longViewsNeeded = Math.max(0, MONETIZATION_LONG_VIDEO_VIEWS - totalLongVideoViews);
+                    const dramaViewsNeeded = Math.max(0, MONETIZATION_FLICKS_DRAMA_VIEWS - totalFlicksDramaViews);
                     const viewsNeeded = Math.max(0, targetViews - totalViews);
                     
                     let neededTextParts = [];
                     if (followersNeeded > 0) neededTextParts.push(`<strong>${followersNeeded.toLocaleString()}</strong> more followers`);
-                    if (viewsNeeded > 0) neededTextParts.push(`<strong>${viewsNeeded.toLocaleString()}</strong> more views`);
+                    if (isFirstTier) {
+                        if (longViewsNeeded > 0 && dramaViewsNeeded > 0) {
+                            neededTextParts.push(`<strong>${longViewsNeeded.toLocaleString()}</strong> more long-video views <strong>OR</strong> <strong>${dramaViewsNeeded.toLocaleString()}</strong> more Flicks Drama views`);
+                        }
+                    } else if (viewsNeeded > 0) {
+                        neededTextParts.push(`<strong>${viewsNeeded.toLocaleString()}</strong> more total views`);
+                    }
                     
                     let neededText = neededTextParts.join(' <span style="color:#f59e0b; font-weight:bold;">AND</span> ');
                     if (neededTextParts.length === 0) neededText = 'to keep growing';
@@ -620,7 +709,13 @@ window.showToast = function(message, type = 'info') {
                     document.getElementById('next-tier-info').innerHTML = `To unlock <strong>Tier ${targetNextTier}</strong>, you need ${neededText}.`;
                     
                     const fProg = Math.min(100, (followersCount / targetFollowers) * 100);
-                    const vProg = Math.min(100, (totalViews / targetViews) * 100);
+                    const vProg = isFirstTier
+                        ? Math.min(100, Math.max(
+                            (totalLongVideoViews / MONETIZATION_LONG_VIDEO_VIEWS) * 100,
+                            (totalFlicksDramaViews / MONETIZATION_FLICKS_DRAMA_VIEWS) * 100
+                        ))
+                        : Math.min(100, (totalViews / targetViews) * 100);
+                    const viewsLabel = isFirstTier ? 'Views (Long Video or Flicks Drama)' : 'Total Views';
 
                     if (window.tierChart) window.tierChart.destroy();
                     const ctx = document.getElementById('tierGrowthChart').getContext('2d');
@@ -632,7 +727,7 @@ window.showToast = function(message, type = 'info') {
                     window.tierChart = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: [`Followers (Goal: ${targetFollowers.toLocaleString()})`, `Views (Goal: ${targetViews.toLocaleString()})`],
+                            labels: [`Followers (Goal: ${targetFollowers.toLocaleString()})`, isFirstTier ? viewsLabel : `${viewsLabel} (Goal: ${targetViews.toLocaleString()})`],
                             datasets: [{
                                 label: `Progress to Tier ${targetNextTier}`,
                                 data: [fProg, vProg],
@@ -658,8 +753,16 @@ window.showToast = function(message, type = 'info') {
                                     bodyFont: { family: "'Outfit', sans-serif", size: 13 },
                                     callbacks: { 
                                         label: function(context) { 
-                                            let currentVal = context.dataIndex === 0 ? followersCount.toLocaleString() : totalViews.toLocaleString();
-                                            let targetVal = context.dataIndex === 0 ? targetFollowers.toLocaleString() : targetViews.toLocaleString();
+                                            let currentVal = context.dataIndex === 0
+                                                ? followersCount.toLocaleString()
+                                                : (isFirstTier
+                                                    ? `${totalLongVideoViews.toLocaleString()} / ${MONETIZATION_LONG_VIDEO_VIEWS.toLocaleString()} long-video OR ${totalFlicksDramaViews.toLocaleString()} / ${MONETIZATION_FLICKS_DRAMA_VIEWS.toLocaleString()} Flicks Drama`
+                                                    : totalViews.toLocaleString());
+                                            let targetVal = context.dataIndex === 0
+                                                ? targetFollowers.toLocaleString()
+                                                : (isFirstTier
+                                                    ? `${MONETIZATION_LONG_VIDEO_VIEWS.toLocaleString()} long-video OR ${MONETIZATION_FLICKS_DRAMA_VIEWS.toLocaleString()} Flicks Drama`
+                                                    : targetViews.toLocaleString());
                                             return ` Completed: ${context.parsed.y.toFixed(1)}% (${currentVal} / ${targetVal})`; 
                                         } 
                                     } 
@@ -685,14 +788,15 @@ window.showToast = function(message, type = 'info') {
                         let freqText = '';
                         let typeLabel = '';
                         
-                        if (promo.type === 'preroll' || promo.type === 'blog_ad') {
+                        if (promo.type === 'preroll' || promo.type === 'blog_ad' || promo.type === 'flicks_drama_ad') {
                             const served = promo.impressions_served || 0;
                             const goal = promo.impressions_goal || 1;
                             const remaining = Math.max(0, goal - served);
                             timeStr = `${remaining.toLocaleString()} left`;
                             expiryLabel = 'Impressions:';
                             freqText = `Goal: <strong>${goal.toLocaleString()} Impressions</strong> | Served: <strong style="color: #10b981;">${served.toLocaleString()}</strong>`;
-                            typeLabel = promo.type === 'preroll' ? '(Pre-Roll Ad)' : '(Blog Ad)';
+                            typeLabel = promo.type === 'preroll' ? '(Pre-Roll Ad)' :
+                                promo.type === 'blog_ad' ? '(Blog Ad)' : `(Flicks Drama Ad · Skip after ${promo.skipAfter || 5}s)`;
                         } else {
                             const expiry = new Date(promo.promoExpiry);
                             const diffMs = expiry - now;
@@ -764,9 +868,10 @@ window.showToast = function(message, type = 'info') {
             let filteredContent = dataToRender;
             if (filterType !== 'all') {
                 filteredContent = dataToRender.filter(content => {
+                    if (filterType === 'drama') return content.isFlicksDrama;
                     if (filterType === 'flick') return content.isFlicker;
-                    if (filterType === 'video') return !content.isFlicker && (content.video || content.youtubeUrl);
-                    if (filterType === 'blog') return !content.isFlicker && !content.video && !content.youtubeUrl;
+                    if (filterType === 'video') return !content.isFlicksDrama && !content.isFlicker && (content.video || content.youtubeUrl);
+                    if (filterType === 'blog') return !content.isFlicksDrama && !content.isFlicker && !content.video && !content.youtubeUrl;
                     return true;
                 });
             }
@@ -781,16 +886,19 @@ window.showToast = function(message, type = 'info') {
                 let typeLabel = 'Blog Post';
                 let isDirectVideo = false;
                 let isTextBlog = false;
-                if (content.isFlicker) { typeLabel = 'Flick (Short)'; }
+                if (content.isFlicksDrama) { typeLabel = `Flicks Drama - ${content.episodeCount} Episodes`; }
+                else if (content.isFlicker) { typeLabel = 'Flick (Short)'; }
                 else if (content.video && !content.youtubeUrl) { typeLabel = 'Long Video'; isDirectVideo = true; }
                 else if (content.youtubeUrl) { typeLabel = 'YouTube Video'; }
                 else if (!content.video) { isTextBlog = true; }
 
                 let views = content.views || 0;
-                let likes = Array.isArray(content.likes) ? content.likes.length : (typeof content.likes === 'number' && !isNaN(content.likes) ? content.likes : 0);
-                let comments = content.comments ? content.comments.length : 0;
+                let likes = content.isFlicksDrama ? content.likes : (Array.isArray(content.likes) ? content.likes.length : (typeof content.likes === 'number' && !isNaN(content.likes) ? content.likes : 0));
+                let comments = content.isFlicksDrama ? content.comments : (content.comments ? content.comments.length : 0);
                 let dateStr = content.date ? new Date(content.date).toLocaleDateString() : 'N/A';
-                let adViews = content.adImpressions || 0;
+                let adViews = content.isFlicksDrama
+                    ? (Number(content.flicksDramaAdViews) || 0)
+                    : (content.adImpressions || 0);
                 
                 let itemRevenue = 0;
                 if (isMonetized && isDirectVideo) {
@@ -799,6 +907,8 @@ window.showToast = function(message, type = 'info') {
                 } else if (isMonetized && isTextBlog) {
                     const impressions = content.adImpressions || 0;
                     itemRevenue = (impressions / 1000) * blogAdRate * sharePercent;
+                } else if (isMonetized && content.isFlicksDrama) {
+                    itemRevenue = (Number(content.flicksDramaAdRevenue) || 0) * sharePercent;
                 }
 
                 let thumb = 'logo.png';
@@ -910,6 +1020,9 @@ window.showToast = function(message, type = 'info') {
             let periodTotalViews = 0;
             let periodLongViews = 0;
             let periodFlicksViews = 0;
+            let periodFlicksDramaViews = 0;
+            let periodFlicksDramaAdViews = 0;
+            let periodFlicksDramaAdRevenue = 0;
             let periodVideoAdViews = 0;
             let periodBlogAdViews = 0;
 
@@ -919,8 +1032,16 @@ window.showToast = function(message, type = 'info') {
             });
 
             window.filteredByDateContent.forEach(blog => {
-                periodTotalViews += Number(blog.views) || 0;
-                if (blog.isFlicker) {
+                if (blog.isFlicksDrama) {
+                    periodFlicksDramaViews += Number(blog.views) || 0;
+                    periodFlicksDramaAdViews += Number(blog.flicksDramaAdViews) || 0;
+                    periodFlicksDramaAdRevenue += Number(blog.flicksDramaAdRevenue) || 0;
+                } else {
+                    periodTotalViews += Number(blog.views) || 0;
+                }
+                if (blog.isFlicksDrama) {
+                    return;
+                } else if (blog.isFlicker) {
                     periodFlicksViews += Number(blog.views) || 0;
                 } else if (!blog.isFlicker) {
                     if (blog.video && !blog.youtubeUrl) {
@@ -937,6 +1058,8 @@ window.showToast = function(message, type = 'info') {
             document.getElementById('total-ad-views').innerText = (periodVideoAdViews + periodBlogAdViews).toLocaleString();
             document.getElementById('long-video-views').innerText = periodLongViews.toLocaleString();
             document.getElementById('flicks-views').innerText = periodFlicksViews.toLocaleString();
+            document.getElementById('flicks-drama-views').innerText = periodFlicksDramaViews.toLocaleString();
+            document.getElementById('flicks-drama-ad-views').innerText = periodFlicksDramaAdViews.toLocaleString();
             
             // Followers and Tiers always remain Lifetime metric (we don't track historical follow dates)
             // document.getElementById('total-followers').innerText = window.cachedLifetimeData.followersCount.toLocaleString();
@@ -956,12 +1079,15 @@ window.showToast = function(message, type = 'info') {
                     
                     const unpaidVideoImpressions = Math.max(0, window.cachedLifetimeData.totalVideoAdImpressions - paidVideoImpressions);
                     const unpaidBlogImpressions = Math.max(0, window.cachedLifetimeData.totalBlogAdImpressions - paidBlogImpressions);
-                    const generatedRevenue = ((unpaidVideoImpressions / 1000) * preRollRate) + ((unpaidBlogImpressions / 1000) * blogAdRate);
+                    const paidFlicksDramaAdRevenue = Number(window.cachedLifetimeData.paidFlicksDramaAdRevenue) || 0;
+                    const unpaidFlicksDramaAdRevenue = Math.max(0, window.cachedLifetimeData.totalFlicksDramaAdRevenue - paidFlicksDramaAdRevenue);
+                    const generatedRevenue = ((unpaidVideoImpressions / 1000) * preRollRate) +
+                        ((unpaidBlogImpressions / 1000) * blogAdRate) + unpaidFlicksDramaAdRevenue;
                     window.currentUserPendingEarnings = generatedRevenue * sharePercent;
                     currentEarnings = window.cachedLifetimeData.walletBalance + window.currentUserPendingEarnings;
                     
                     document.getElementById('estimated-earnings').innerText = `₹${currentEarnings.toFixed(2)}`;
-                    document.getElementById('earning-note').innerHTML = `<strong>Tier ${window.cachedLifetimeData.tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong><br>Unpaid Video Ad Views: ${unpaidVideoImpressions.toLocaleString()} | Unpaid Blog Ad Views: ${unpaidBlogImpressions.toLocaleString()}<br>Wallet Balance: ₹${window.cachedLifetimeData.walletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`;
+                    document.getElementById('earning-note').innerHTML = `<strong>Tier ${window.cachedLifetimeData.tier} (${Math.round(sharePercent * 100)}% Revenue Share)</strong><br>Unpaid Video Ad Views: ${unpaidVideoImpressions.toLocaleString()} | Unpaid Blog Ad Views: ${unpaidBlogImpressions.toLocaleString()} | Unpaid Flicks Drama Ad Views: ${Math.max(0, window.cachedLifetimeData.totalFlicksDramaAdViews - (Number(window.cachedLifetimeData.paidFlicksDramaAdViews) || 0)).toLocaleString()}<br>Wallet Balance: ₹${window.cachedLifetimeData.walletBalance.toFixed(2)} | Pending Ad Revenue: ₹${window.currentUserPendingEarnings.toFixed(2)}`;
                     
                     window.updateEarningsChart(window.cachedLifetimeData.walletBalance, window.currentUserPendingEarnings, false);
 
@@ -1000,11 +1126,12 @@ window.showToast = function(message, type = 'info') {
 
                 } else {
                     // Show estimated generated revenue for content in this period
-                    const generatedRevenue = ((periodVideoAdViews / 1000) * preRollRate) + ((periodBlogAdViews / 1000) * blogAdRate);
+                    const generatedRevenue = ((periodVideoAdViews / 1000) * preRollRate) +
+                        ((periodBlogAdViews / 1000) * blogAdRate) + periodFlicksDramaAdRevenue;
                     const periodEarnings = generatedRevenue * sharePercent;
                     
                     document.getElementById('estimated-earnings').innerText = `₹${periodEarnings.toFixed(2)}`;
-                    document.getElementById('earning-note').innerHTML = `Estimated earnings from content published in the last ${filterVal} days.<br>Video Ad Views: ${periodVideoAdViews.toLocaleString()} | Blog Ad Views: ${periodBlogAdViews.toLocaleString()}<br><em>Note: Wallet balance and withdrawals are based on Lifetime metrics.</em>`;
+                    document.getElementById('earning-note').innerHTML = `Estimated earnings from content published in the last ${filterVal} days.<br>Video Ad Views: ${periodVideoAdViews.toLocaleString()} | Blog Ad Views: ${periodBlogAdViews.toLocaleString()} | Flicks Drama Ad Views: ${periodFlicksDramaAdViews.toLocaleString()}<br><em>Note: Wallet balance and withdrawals are based on Lifetime metrics.</em>`;
                     
                     window.updateEarningsChart(0, periodEarnings, true);
                     withdrawBtn.style.display = 'none'; // Hide withdraw in period view to avoid confusion
@@ -1027,11 +1154,14 @@ window.showToast = function(message, type = 'info') {
                     container.innerHTML = '<p>Loading eligibility data...</p>';
                     return;
                 }
-                const views = Number(stats.totalViews) || 0;
+                const longVideoViews = Number(stats.longVideoViews) || 0;
+                const flicksDramaViews = Number(stats.flicksDramaViews) || 0;
                 const followers = Number(stats.followers) || 0;
-                const viewsProgress = Math.min(100, (views / MONETIZATION_VIEWS) * 100);
+                const longVideoViewsProgress = Math.min(100, (longVideoViews / MONETIZATION_LONG_VIDEO_VIEWS) * 100);
+                const flicksDramaViewsProgress = Math.min(100, (flicksDramaViews / MONETIZATION_FLICKS_DRAMA_VIEWS) * 100);
                 const followersProgress = Math.min(100, (followers / MONETIZATION_FOLLOWERS) * 100);
-                const canApply = viewsProgress >= 100 && followersProgress >= 100;
+                const canApply = followersProgress >= 100 &&
+                    (longVideoViewsProgress >= 100 || flicksDramaViewsProgress >= 100);
 
                 container.innerHTML = `
                     <p>You are not yet eligible for monetization. Reach the following goals to apply:</p>
@@ -1041,10 +1171,17 @@ window.showToast = function(message, type = 'info') {
                             <div class="progress-bar-inner" style="width: ${followersProgress}%;"></div>
                         </div>
                     </div>
-                    <div>
-                        <label>${views.toLocaleString()} / ${MONETIZATION_VIEWS.toLocaleString()} Total Views</label>
+                    <p style="margin: 0 0 10px;"><strong>And meet either one of these view goals:</strong></p>
+                    <div style="margin-bottom: 15px;">
+                        <label>${longVideoViews.toLocaleString()} / ${MONETIZATION_LONG_VIDEO_VIEWS.toLocaleString()} Long Video Views</label>
                         <div class="progress-bar">
-                            <div class="progress-bar-inner" style="width: ${viewsProgress}%;"></div>
+                            <div class="progress-bar-inner" style="width: ${longVideoViewsProgress}%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label>${flicksDramaViews.toLocaleString()} / ${MONETIZATION_FLICKS_DRAMA_VIEWS.toLocaleString()} Flicks Drama Views</label>
+                        <div class="progress-bar">
+                            <div class="progress-bar-inner" style="width: ${flicksDramaViewsProgress}%;"></div>
                         </div>
                     </div>
                     <button id="apply-btn" class="btn" style="margin-top: 20px; background: #10b981;">
@@ -1207,10 +1344,13 @@ window.showToast = function(message, type = 'info') {
         let extGalleryImages = [];
         let prerollVideoFile = null;
         let blogAdVideoFile = null;
+        let dramaAdVideoFile = null;
         let extCalculatedTotal = 50;
         let currentPromoTab = 'infeed';
         let currentPrerollRate = 100;
         let currentBlogAdRate = 150;
+        let currentDramaAdSkip5Rate = 300;
+        let currentDramaAdSkip10Rate = 400;
         let extPromoPricing = { baseHours: 50, tier4: 50, tier3: 70, tier2: 80, tier1: 100 };
         const MAX_INFEED_IMAGES = 5;
         const MAX_IMAGE_BYTES = 200 * 1024;
@@ -1291,6 +1431,18 @@ window.showToast = function(message, type = 'info') {
                         document.getElementById('blogad-budget').value = currentBlogAdRate;
                     }
                 }
+                    currentDramaAdSkip5Rate = Number(promoSettings.flicksDramaSkip5Rate) || 300;
+                    currentDramaAdSkip10Rate = Number(promoSettings.flicksDramaSkip10Rate) || 400;
+                    document.getElementById('drama-ad-rate-display').innerText =
+                        document.getElementById('drama-ad-skip-after').value === '10' ? currentDramaAdSkip10Rate : currentDramaAdSkip5Rate;
+                    document.getElementById('drama-ad-budget').dataset.defaultRate = String(
+                        document.getElementById('drama-ad-skip-after').value === '10' ? currentDramaAdSkip10Rate : currentDramaAdSkip5Rate
+                    );
+                    if (document.getElementById('drama-ad-budget').value === '300') {
+                        document.getElementById('drama-ad-budget').value = document.getElementById('drama-ad-skip-after').value === '10'
+                            ? currentDramaAdSkip10Rate
+                            : currentDramaAdSkip5Rate;
+                    }
                     if (promoSettings.pricing) {
                         extPromoPricing = promoSettings.pricing;
                         document.getElementById('ext-promo-hours').min = extPromoPricing.baseHours;
@@ -1316,6 +1468,17 @@ window.showToast = function(message, type = 'info') {
             document.getElementById('promote-product-modal').style.display = 'none';
         };
 
+        window.updateDramaAdSkipRate = function() {
+            const budgetInput = document.getElementById('drama-ad-budget');
+            const previousRate = Number(budgetInput.dataset.defaultRate) || currentDramaAdSkip5Rate;
+            const nextRate = document.getElementById('drama-ad-skip-after').value === '10'
+                ? currentDramaAdSkip10Rate
+                : currentDramaAdSkip5Rate;
+            if (Number(budgetInput.value) === previousRate) budgetInput.value = String(nextRate);
+            budgetInput.dataset.defaultRate = String(nextRate);
+            window.calculateExtPrice();
+        };
+
         window.calculateExtPrice = function() {
             if (currentPromoTab === 'infeed') {
                 const tierStr = document.getElementById('ext-promo-tier').value;
@@ -1337,6 +1500,13 @@ window.showToast = function(message, type = 'info') {
                 extCalculatedTotal = budget;
                 let estImp = Math.floor((budget / currentBlogAdRate) * 1000);
                 document.getElementById('blogad-est-impressions').innerText = estImp.toLocaleString();
+            } else if (currentPromoTab === 'dramaad') {
+                const skipAfter = document.getElementById('drama-ad-skip-after').value;
+                const rate = skipAfter === '10' ? currentDramaAdSkip10Rate : currentDramaAdSkip5Rate;
+                const budget = parseInt(document.getElementById('drama-ad-budget').value) || 0;
+                extCalculatedTotal = budget;
+                document.getElementById('drama-ad-rate-display').innerText = rate;
+                document.getElementById('drama-ad-est-impressions').innerText = Math.floor((budget / rate) * 1000).toLocaleString();
             }
             document.getElementById('ext-calculated-price').innerText = `₹${extCalculatedTotal}`;
         };
@@ -1394,7 +1564,7 @@ window.showToast = function(message, type = 'info') {
             }
         });
 
-        async function validateVideoAdFile(file, label) {
+        async function validateVideoAdFile(file, label, maxDuration = 60, requirePortrait = false) {
             if (!file) return null;
             return new Promise((resolve, reject) => {
                 const tempUrl = URL.createObjectURL(file);
@@ -1402,9 +1572,15 @@ window.showToast = function(message, type = 'info') {
                 tempVid.preload = 'metadata';
                 tempVid.onloadedmetadata = () => {
                     const duration = tempVid.duration || 0;
+                    const isPortrait = tempVid.videoHeight > tempVid.videoWidth;
                     URL.revokeObjectURL(tempUrl);
-                    if (duration > 60) {
-                        reject(new Error(`${label} must be 60 seconds or less.`));
+                    if (!Number.isFinite(duration) || duration <= 0 || duration > maxDuration) {
+                        const durationLimit = maxDuration === 180 ? '3 minutes' : `${maxDuration} seconds`;
+                        reject(new Error(`${label} must be ${durationLimit} or less.`));
+                        return;
+                    }
+                    if (requirePortrait && !isPortrait) {
+                        reject(new Error(`${label} must use a vertical (portrait) format.`));
                         return;
                     }
                     resolve({ duration });
@@ -1476,6 +1652,20 @@ window.showToast = function(message, type = 'info') {
                 blogAdVideoFile = null;
                 blogAdVideoBase64 = null;
                 document.getElementById('blogad-trim-group').style.display = 'none';
+            }
+        });
+
+        document.getElementById('drama-ad-video').addEventListener('change', async event => {
+            const file = event.target.files[0];
+            dramaAdVideoFile = null;
+            if (!file) return;
+            try {
+                await validateVideoAdFile(file, 'Flicks Drama ad video', 180, true);
+                dramaAdVideoFile = file;
+            } catch (error) {
+                console.error(error);
+                window.viyouAlert(error.message || 'Flicks Drama ad videos must not exceed 3 minutes.');
+                event.target.value = '';
             }
         });
 
@@ -1603,6 +1793,27 @@ window.showToast = function(message, type = 'info') {
                     adStartTime: adStartTime,
                     adEndTime: adEndTime
                 };
+            } else if (currentPromoTab === 'dramaad') {
+                const title = document.getElementById('drama-ad-title').value.trim();
+                const targetUrl = document.getElementById('drama-ad-url').value.trim();
+                const skipAfter = Number(document.getElementById('drama-ad-skip-after').value);
+                const rate = skipAfter === 10 ? currentDramaAdSkip10Rate : currentDramaAdSkip5Rate;
+                const budget = Number(document.getElementById('drama-ad-budget').value) || 0;
+                if (!title || !dramaAdVideoFile || (targetUrl && !/^https?:\/\//i.test(targetUrl))) {
+                    alert('Enter an ad title, choose a video of up to 3 minutes, and provide a valid optional URL.');
+                    return;
+                }
+                if (budget < 10) { alert('Please enter a valid budget amount (Min ₹10).'); return; }
+                payload = {
+                    type: 'flicks_drama_ad',
+                    mediaType: 'video',
+                    mediaData: 'upload_pending',
+                    targetUrl,
+                    skipAfter,
+                    ratePerThousand: rate,
+                    impressions_goal: Math.floor((budget / rate) * 1000),
+                    impressions_served: 0
+                };
             }
 
             const btn = document.getElementById('submit-ext-promo-btn');
@@ -1652,23 +1863,26 @@ window.showToast = function(message, type = 'info') {
                 payload.mediaData = await uploadToStorageWithProgress(prerollVideoFile, `user_promotions/${auth.currentUser.uid}/${Date.now()}_preroll`);
             } else if (currentPromoTab === 'blogad' && blogAdVideoFile) {
                 payload.mediaData = await uploadToStorageWithProgress(blogAdVideoFile, `user_promotions/${auth.currentUser.uid}/${Date.now()}_blogad`);
+            } else if (currentPromoTab === 'dramaad' && dramaAdVideoFile) {
+                payload.mediaData = await uploadToStorageWithProgress(dramaAdVideoFile, `user_promotions/${auth.currentUser.uid}/${Date.now()}_flicks_drama_ad`);
             }
 
             btn.innerText = "Submitting...";
-            const finalPayload = { ...payload, uid: auth.currentUser.uid, title: document.getElementById(currentPromoTab === 'infeed' ? 'ext-ad-title' : (currentPromoTab === 'preroll' ? 'preroll-ad-title' : 'blogad-ad-title')).value.trim(), price: extCalculatedTotal, utr: utr, paymentScreenshot: extPaymentScreenshotBase64 || null, status: "pending", timestamp: new Date().toISOString() };
+            const titleInputId = { infeed: 'ext-ad-title', preroll: 'preroll-ad-title', blogad: 'blogad-ad-title', dramaad: 'drama-ad-title' }[currentPromoTab];
+            const finalPayload = { ...payload, uid: auth.currentUser.uid, title: document.getElementById(titleInputId).value.trim(), price: extCalculatedTotal, utr: utr, paymentScreenshot: extPaymentScreenshotBase64 || null, status: "pending", timestamp: new Date().toISOString() };
             await addDoc(collection(db, "promotions"), finalPayload);
 
             alert("External Product Promotion requested successfully! Pending admin approval.");
             window.closePromoteProductModal();
             // Reset all form fields
-            document.getElementById('ext-ad-title').value = ''; document.getElementById('ext-ad-media').value = ''; document.getElementById('ext-ad-url').value = ''; document.getElementById('preroll-ad-title').value = ''; document.getElementById('preroll-ad-video').value = ''; document.getElementById('preroll-ad-url').value = ''; document.getElementById('blogad-ad-title').value = ''; document.getElementById('blogad-ad-video').value = ''; document.getElementById('blogad-ad-url').value = ''; document.getElementById('ext-payment-utr').value = ''; document.getElementById('ext-payment-screenshot').value = '';
+            document.getElementById('ext-ad-title').value = ''; document.getElementById('ext-ad-media').value = ''; document.getElementById('ext-ad-url').value = ''; document.getElementById('preroll-ad-title').value = ''; document.getElementById('preroll-ad-video').value = ''; document.getElementById('preroll-ad-url').value = ''; document.getElementById('blogad-ad-title').value = ''; document.getElementById('blogad-ad-video').value = ''; document.getElementById('blogad-ad-url').value = ''; document.getElementById('drama-ad-title').value = ''; document.getElementById('drama-ad-video').value = ''; document.getElementById('drama-ad-url').value = ''; document.getElementById('ext-payment-utr').value = ''; document.getElementById('ext-payment-screenshot').value = '';
             if(document.getElementById('preroll-budget')) document.getElementById('preroll-budget').value = currentPrerollRate;
             if(document.getElementById('blogad-budget')) document.getElementById('blogad-budget').value = currentBlogAdRate;
             document.getElementById('blogad-trim-group').style.display = 'none';
             const previewVid = document.getElementById('blogad-video-preview');
             if(previewVid) { previewVid.pause(); previewVid.removeAttribute('src'); previewVid.load(); }
             extMediaBase64 = null; extPaymentScreenshotBase64 = null; prerollVideoBase64 = null; blogAdVideoBase64 = null;
-            extMediaFile = null; extMediaFiles = []; extGalleryImages = []; prerollVideoFile = null; blogAdVideoFile = null;
+            extMediaFile = null; extMediaFiles = []; extGalleryImages = []; prerollVideoFile = null; blogAdVideoFile = null; dramaAdVideoFile = null;
             window.selectedPromoCats = [];
             document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('selected'));
         } catch (e) { console.error(e); alert("Error submitting request: " + e.message); } 

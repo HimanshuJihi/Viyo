@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
-    <link rel="stylesheet" href="assets/css/admin.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
     <!-- Modern Icons (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -53,7 +53,8 @@
     <div class="container">
         <div class="admin-header">
             <div><p class="admin-kicker">Viyou operations</p><h1><i data-lucide="shield-check"></i> Admin Panel</h1><p class="admin-subtitle">Review content, manage creators, configure monetization, and monitor platform activity.</p></div>
-            <div class="admin-header-actions"><a href="index.html" class="btn btn-secondary"><i data-lucide="arrow-left"></i> Back to Viyou</a>
+            <div class="admin-header-actions">
+        <button id="admin-header-sign-out" class="btn btn-secondary" type="button" style="display: none;"><i data-lucide="log-out"></i> Log out</button>
         <button id="migrate-btn" class="btn btn-secondary" onclick="window.migrateUsernames()" style="margin-bottom: 20px; display: none; background-color: #ffc107; color: #000;">⚙️ Migrate Usernames</button>
         <div class="admin-theme-picker">
             <button id="admin-theme-toggle" class="btn btn-secondary" type="button" aria-expanded="false">🎨 Theme</button>
@@ -337,6 +338,12 @@
                     <label style="display: block; margin-bottom: 5px;">Blog Ad Rate (₹ per 1000 impressions):</label>
                     <input type="number" id="promo-blogad-rate" value="100" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
 
+                    <h3 style="color: #87ceeb; margin-top: 15px; margin-bottom: 10px; font-size: 1.1rem;">Flicks Drama Ad Rates</h3>
+                    <label style="display: block; margin-bottom: 5px;">Skip after 5 seconds (₹ per 1,000 impressions):</label>
+                    <input type="number" id="promo-drama-skip5-rate" value="300" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+                    <label style="display: block; margin-bottom: 5px;">Skip after 10 seconds (₹ per 1,000 impressions):</label>
+                    <input type="number" id="promo-drama-skip10-rate" value="400" min="1" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: white; border: 1px solid #555; box-sizing: border-box;">
+
                     <button class="btn" style="background-color: #8e44ad; width: 100%;" onclick="window.savePromoSettings()">Save Pricing & Ad Settings</button>
                 </div>
             </div>
@@ -395,22 +402,46 @@
 
         </div>
 
-        <div id="auth-message">
-            <p>Authenticating...</p>
+        <div id="auth-message" class="auth-panel">
+            <h2>Admin Login</h2>
+            <p id="auth-status" role="status">Sign in with an authorized administrator account.</p>
+            <form id="admin-login-form" class="auth-form">
+                <label for="admin-login-email">Email</label>
+                <input id="admin-login-email" type="email" autocomplete="username" placeholder="admin@example.com" required>
+                <label for="admin-login-password">Password</label>
+                <input id="admin-login-password" type="password" autocomplete="current-password" placeholder="Password" required>
+                <button id="admin-email-login" class="btn" type="submit"><i data-lucide="mail"></i> Sign in with email</button>
+            </form>
+            <button id="admin-google-login" class="btn btn-secondary" type="button"><i data-lucide="log-in"></i> Sign in with Google</button>
+            <button id="admin-sign-out" class="btn btn-secondary" type="button" style="display: none;">Sign out</button>
+            <p id="auth-error" class="auth-error" role="alert" aria-live="polite"></p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
         import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, updateDoc, setDoc, query, where, addDoc, orderBy, limit, startAfter, writeBatch, increment, getCountFromServer, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-        import { firebaseConfig } from "./firebase-config.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCG0Cc7zoNj8yP_QEmU873KpAWtAPmiI5Y",
+            authDomain: "viyou-6265f.firebaseapp.com",
+            databaseURL: "https://viyou-6265f-default-rtdb.firebaseio.com",
+            projectId: "viyou-6265f",
+            storageBucket: "viyou-6265f.firebasestorage.app",
+            messagingSenderId: "97740586242",
+            appId: "1:97740586242:web:1bbc3f0c6bf4c85850561b",
+            measurementId: "G-H3TLWST161"
+        };
 
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const storage = getStorage(app);
+        const googleProvider = new GoogleAuthProvider();
 
         const adminThemeToggle = document.getElementById('admin-theme-toggle');
         const adminThemeMenu = document.getElementById('admin-theme-menu');
@@ -449,7 +480,48 @@
 
         const adminContent = document.getElementById('admin-content');
         const authMessage = document.getElementById('auth-message');
+        const authStatus = document.getElementById('auth-status');
+        const authError = document.getElementById('auth-error');
+        const loginForm = document.getElementById('admin-login-form');
+        const googleLoginButton = document.getElementById('admin-google-login');
+        const signOutButton = document.getElementById('admin-sign-out');
+        const adminHeaderSignOutButton = document.getElementById('admin-header-sign-out');
         const reportsList = document.getElementById('reports-list');
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            authError.textContent = '';
+            try {
+                await signInWithEmailAndPassword(
+                    auth,
+                    document.getElementById('admin-login-email').value.trim(),
+                    document.getElementById('admin-login-password').value
+                );
+            } catch (error) {
+                authError.textContent = error.message;
+            }
+        });
+
+        googleLoginButton.addEventListener('click', async () => {
+            authError.textContent = '';
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (error) {
+                authError.textContent = error.message;
+            }
+        });
+
+        signOutButton.addEventListener('click', () => signOut(auth));
+        adminHeaderSignOutButton.addEventListener('click', async () => {
+            adminHeaderSignOutButton.disabled = true;
+            try {
+                await signOut(auth);
+            } catch (error) {
+                authError.textContent = error.message;
+            } finally {
+                adminHeaderSignOutButton.disabled = false;
+            }
+        });
 
         const adminTabs = document.getElementById('admin-tabs');
         const tabReported = document.getElementById('tab-reported');
@@ -730,23 +802,9 @@
                 let isTeamMember = false;
                 let permissions = {};
                 
-                if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+                if (user.emailVerified && user.email && adminEmails.includes(user.email.toLowerCase())) {
                     isSuperAdmin = true;
                     isAbsoluteSuperAdmin = true;
-                } else {
-                    const userDocRef = doc(db, "users", user.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-                    if (userDocSnap.exists() && userDocSnap.data().adminPermissions) {
-                        permissions = userDocSnap.data().adminPermissions;
-                        if (permissions.isSuperAdmin) {
-                            isSuperAdmin = true;
-                        } else {
-                            isTeamMember = true;
-                        }
-                    } else if (userDocSnap.exists() && userDocSnap.data().isAdmin === true) {
-                        // Fallback for old admin logic
-                        isSuperAdmin = true;
-                    }
                 }
 
                 if (isSuperAdmin || isTeamMember) {
@@ -754,6 +812,7 @@
                     window.adminPermissions = permissions;
 
                     authMessage.style.display = 'none';
+                    adminHeaderSignOutButton.style.display = 'inline-block';
                     adminContent.style.display = 'block';
                     adminTabs.style.display = 'flex';
                     document.getElementById('migrate-btn').style.display = isSuperAdmin ? 'inline-block' : 'none';
@@ -835,12 +894,25 @@
                     if (isSuperAdmin) window.loadTeamMembers(); // Load team members only for super admin
                     window.loadUserStats();
                 } else {
-                    authMessage.innerHTML = '<p style="color: red;">Access Denied. You are not an admin.</p>';
-                    setTimeout(() => window.location.href = 'index.html', 2000);
+                    adminHeaderSignOutButton.style.display = 'none';
+                    authMessage.style.display = 'block';
+                    authStatus.textContent = 'This account does not have admin access.';
+                    loginForm.style.display = 'none';
+                    googleLoginButton.style.display = 'none';
+                    signOutButton.style.display = 'inline-block';
                 }
             } else {
-                authMessage.innerHTML = '<p>Please login to access the admin panel.</p>';
-                setTimeout(() => window.location.href = 'index.html', 2000);
+                adminHeaderSignOutButton.style.display = 'none';
+                adminContent.style.display = 'none';
+                adminTabs.style.display = 'none';
+                document.getElementById('admin-search-container').style.display = 'none';
+                document.getElementById('migrate-btn').style.display = 'none';
+                authMessage.style.display = 'block';
+                authStatus.textContent = 'Sign in with an authorized administrator account.';
+                loginForm.style.display = 'grid';
+                googleLoginButton.style.display = 'inline-block';
+                signOutButton.style.display = 'none';
+                authError.textContent = '';
             }
         });
 
@@ -1609,6 +1681,10 @@
                     const blogsQuery = query(collection(db, "blogs"), where("authorUid", "==", uid), where("status", "!=", "draft"));
                     const blogsSnap = await getDocs(blogsQuery);
                     let totalViews = 0; 
+                    let totalLongVideoViews = 0;
+                    let totalFlicksDramaViews = 0;
+                    let totalFlicksDramaAdViews = 0;
+                    let totalFlicksDramaAdRevenue = 0;
                     let totalVideoAdImpressions = 0;
                     let totalBlogAdImpressions = 0;
                     blogsSnap.forEach(blogDoc => {
@@ -1616,12 +1692,25 @@
                         totalViews += Number(bData.views) || 0;
                         if (!bData.isFlicker) {
                             if (bData.video && !bData.youtubeUrl) {
+                                totalLongVideoViews += bData.longVideoViews !== undefined ? Number(bData.longVideoViews) : (Number(bData.views) || 0);
                                 totalVideoAdImpressions += Number(bData.adImpressions) || 0;
                             } else if (!bData.video && !bData.youtubeUrl) {
                                 totalBlogAdImpressions += Number(bData.adImpressions) || 0;
                             }
                         }
                     });
+                    const dramaPlaylistsSnap = await getDocs(query(collection(db, "playlists"), where("authorUid", "==", uid)));
+                    for (const playlistDoc of dramaPlaylistsSnap.docs) {
+                        const playlistData = playlistDoc.data();
+                        if ((playlistData.type !== "flicks-drama" && playlistData.category !== "Flicks Drama") ||
+                            (playlistData.status && playlistData.status !== "published")) continue;
+                        totalFlicksDramaAdViews += Number(playlistData.flicksDramaAdViews) || 0;
+                        totalFlicksDramaAdRevenue += Number(playlistData.flicksDramaAdRevenue) || 0;
+                        const episodesSnap = await getDocs(collection(db, "playlists", playlistDoc.id, "episodes"));
+                        episodesSnap.forEach(episodeDoc => {
+                            totalFlicksDramaViews += Number(episodeDoc.data().views) || 0;
+                        });
+                    }
                     const actualFollowers = userData.followers ? userData.followers.length : 0;
                     const followersCount = userData.followerCountOverride !== undefined ? Number(userData.followerCountOverride) : actualFollowers;
                     let tier = 0, sharePercent = 0;
@@ -1630,19 +1719,29 @@
                     else if (followersCount >= oldTierFollowers[3] && totalViews >= 5000000) { tier = 4; sharePercent = 0.65; }
                     else if (followersCount >= oldTierFollowers[2] && totalViews >= 1000000) { tier = 3; sharePercent = 0.60; }
                     else if (followersCount >= oldTierFollowers[1] && totalViews >= 100000) { tier = 2; sharePercent = 0.55; }
-                    else if (followersCount >= oldTierFollowers[0] && totalViews >= 10000) { tier = 1; sharePercent = 0.50; }
+                    else if (followersCount >= oldTierFollowers[0] &&
+                        (totalLongVideoViews >= 10000 || totalFlicksDramaViews >= 50000)) { tier = 1; sharePercent = 0.50; }
                     
                     let paidVideoAdImpressions = userData.paidAdImpressions !== undefined ? 
                         Number(userData.paidAdImpressions) : 
                         ((Number(userData.paidLongVideoViews) || 0) / oldFreq);
                     let paidBlogAdImpressions = Number(userData.paidBlogAdImpressions) || 0;
+                    let paidFlicksDramaAdRevenue = Number(userData.paidFlicksDramaAdRevenue) || 0;
                         
                     const unpaidVideoImpressions = Math.max(0, totalVideoAdImpressions - paidVideoAdImpressions);
                     const unpaidBlogImpressions = Math.max(0, totalBlogAdImpressions - paidBlogAdImpressions);
-                    if (unpaidVideoImpressions > 0 || unpaidBlogImpressions > 0) {
-                        const generatedRevenue = ((unpaidVideoImpressions / 1000) * oldRate) + ((unpaidBlogImpressions / 1000) * oldBlogRate);
+                    const unpaidFlicksDramaAdRevenue = Math.max(0, totalFlicksDramaAdRevenue - paidFlicksDramaAdRevenue);
+                    if (unpaidVideoImpressions > 0 || unpaidBlogImpressions > 0 || unpaidFlicksDramaAdRevenue > 0) {
+                        const generatedRevenue = ((unpaidVideoImpressions / 1000) * oldRate) +
+                            ((unpaidBlogImpressions / 1000) * oldBlogRate) + unpaidFlicksDramaAdRevenue;
                         const newWalletBalance = (userData.walletBalance || 0) + (generatedRevenue * sharePercent);
-                        batch.update(userDoc.ref, { walletBalance: newWalletBalance, paidAdImpressions: totalVideoAdImpressions, paidBlogAdImpressions: totalBlogAdImpressions });
+                        batch.update(userDoc.ref, {
+                            walletBalance: newWalletBalance,
+                            paidAdImpressions: totalVideoAdImpressions,
+                            paidBlogAdImpressions: totalBlogAdImpressions,
+                            paidFlicksDramaAdViews: totalFlicksDramaAdViews,
+                            paidFlicksDramaAdRevenue: totalFlicksDramaAdRevenue
+                        });
                     }
                 }
                 await batch.commit();
@@ -1933,6 +2032,8 @@
                     document.getElementById('promo-preroll-frequency').value = data.prerollFrequency || 3;
                     document.getElementById('promo-preroll-rate').value = data.prerollRate || 100;
                     document.getElementById('promo-blogad-rate').value = data.blogAdRate || 100;
+                    document.getElementById('promo-drama-skip5-rate').value = data.flicksDramaSkip5Rate || 300;
+                    document.getElementById('promo-drama-skip10-rate').value = data.flicksDramaSkip10Rate || 400;
                     if (data.pricing) {
                         document.getElementById('promo-base-hours').value = data.pricing.baseHours || 50;
                         document.getElementById('promo-price-tier4').value = data.pricing.tier4 || 50;
@@ -1946,6 +2047,8 @@
                     document.getElementById('promo-preroll-frequency').value = 3;
                     document.getElementById('promo-preroll-rate').value = 100;
                     document.getElementById('promo-blogad-rate').value = 100;
+                    document.getElementById('promo-drama-skip5-rate').value = 300;
+                    document.getElementById('promo-drama-skip10-rate').value = 400;
                     document.getElementById('promo-base-hours').value = 50;
                     document.getElementById('promo-price-tier4').value = 50;
                     document.getElementById('promo-price-tier3').value = 70;
@@ -1969,6 +2072,13 @@
             const prerollFrequency = parseInt(document.getElementById('promo-preroll-frequency').value) || 3;
             const prerollRate = parseInt(document.getElementById('promo-preroll-rate').value) || 100;
             const blogAdRate = parseInt(document.getElementById('promo-blogad-rate').value) || 100;
+            const flicksDramaSkip5Rate = parseInt(document.getElementById('promo-drama-skip5-rate').value);
+            const flicksDramaSkip10Rate = parseInt(document.getElementById('promo-drama-skip10-rate').value);
+            if (!Number.isFinite(flicksDramaSkip5Rate) || flicksDramaSkip5Rate < 1 ||
+                !Number.isFinite(flicksDramaSkip10Rate) || flicksDramaSkip10Rate < 1) {
+                showToast("Enter valid positive Flicks Drama ad rates.", "error");
+                return;
+            }
             
             const pricing = {
                 baseHours: parseInt(document.getElementById('promo-base-hours').value) || 50,
@@ -1978,7 +2088,7 @@
                 tier1: parseInt(document.getElementById('promo-price-tier1').value) || 100
             };
             try {
-                await setDoc(doc(db, "settings", "promotions"), { dailyLimit, prerollFrequency, prerollRate, blogAdRate, pricing }, { merge: true });
+                await setDoc(doc(db, "settings", "promotions"), { dailyLimit, prerollFrequency, prerollRate, blogAdRate, flicksDramaSkip5Rate, flicksDramaSkip10Rate, pricing }, { merge: true });
                 
                 // Sync to Monetization so Creator Earnings match Advertiser Pricing
                 await setDoc(doc(db, "settings", "monetization"), { preRollRate: prerollRate, blogAdRate: blogAdRate }, { merge: true });
@@ -2089,7 +2199,7 @@
                         } else {
                             adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Media Preview:</strong><br><img src="${req.mediaData}" style="max-height: 150px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 5px; max-width: 100%;" onclick="window.open('${req.mediaData}', '_blank')"></div>`;
                         }
-            } else if ((req.type === 'preroll' || req.type === 'blog_ad') && req.mediaData) {
+            } else if ((req.type === 'preroll' || req.type === 'blog_ad' || req.type === 'flicks_drama_ad') && req.mediaData) {
                 let trimText = '';
                     if (req.adStartTime !== undefined && req.adEndTime !== undefined) {
                     trimText = ` <span style="color:#ffc107;">(Trimmed: ${req.adStartTime}s - ${req.adEndTime}s)</span>`;
@@ -2106,13 +2216,14 @@
                         <div>
                             <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
+                            req.type === 'flicks_drama_ad' ? `<strong>Flicks Drama Ad (Skip after ${req.skipAfter || 5}s):</strong> ${req.title}` :
                             req.type === 'preroll' ? `<strong>Pre-Roll Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
                         req.type === 'blog_ad' ? `<strong>Blog Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
                             req.type === 'external' ? `<strong>In-Feed Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a>` : 
                             `Content ID: <a href="index.html?blogId=${req.blogId}" target="_blank" style="color: gold;">${req.blogId}</a>`
                         }</div>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
-                        req.type === 'preroll' || req.type === 'blog_ad' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
+                        req.type === 'preroll' || req.type === 'blog_ad' || req.type === 'flicks_drama_ad' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
                             `Requested: <strong style="color: #198754;">${req.hours} Hours</strong> | Show every <strong style="color: #ff9900;">${req.frequency} posts</strong>`
                         }</div>
                             <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount paid: <strong style="color: #198754;">₹${req.price}</strong></div>
@@ -2152,7 +2263,7 @@
                     } else {
                         adMediaHtml = `<div style="margin-top: 10px;"><strong style="color: #aaa; font-size: 0.85rem;">Ad Media Preview:</strong><br><img src="${req.mediaData}" style="max-height: 150px; border-radius: 4px; border: 1px solid #555; cursor: pointer; margin-top: 5px; max-width: 100%;" onclick="window.open('${req.mediaData}', '_blank')"></div>`;
                     }
-                } else if ((req.type === 'preroll' || req.type === 'blog_ad') && req.mediaData) {
+                } else if ((req.type === 'preroll' || req.type === 'blog_ad' || req.type === 'flicks_drama_ad') && req.mediaData) {
                 let trimText = '';
                 if (req.adStartTime !== undefined && req.adEndTime !== undefined) {
                     trimText = ` <span style="color:#ffc107;">(Trimmed: ${req.adStartTime}s - ${req.adEndTime}s)</span>`;
@@ -2173,13 +2284,14 @@
                     <div>
                         <strong style="color: #87ceeb; font-size: 1.1rem;">${userData.name || 'User'} (@${userData.username || 'unknown'})</strong>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
+                        req.type === 'flicks_drama_ad' ? `<strong>Flicks Drama Ad (Skip after ${req.skipAfter || 5}s):</strong> ${req.title}` :
                         req.type === 'preroll' ? `<strong>Pre-Roll Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
                         req.type === 'blog_ad' ? `<strong>Blog Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a> <span style="font-size: 0.8rem; color: #ffc107; margin-left: 10px;">[${req.targetCategories ? req.targetCategories.join(', ') : 'All'}]</span>` :
                             req.type === 'external' ? `<strong>In-Feed Ad:</strong> <a href="${req.targetUrl}" target="_blank" style="color: #87ceeb;">${req.title}</a>` : 
                             `Content ID: <a href="index.html?blogId=${req.blogId}" target="_blank" style="color: gold;">${req.blogId}</a>`
                         }</div>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">${
-                        req.type === 'preroll' || req.type === 'blog_ad' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
+                        req.type === 'preroll' || req.type === 'blog_ad' || req.type === 'flicks_drama_ad' ? `Goal: <strong style="color: #198754;">${(req.impressions_goal || 0).toLocaleString()} Impressions</strong>` :
                             `Requested: <strong style="color: #198754;">${req.hours} Hours</strong> | Show every <strong style="color: #ff9900;">${req.frequency} posts</strong>`
                         }</div>
                         <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Amount paid: <strong style="color: #198754;">₹${req.price}</strong></div>
@@ -2208,7 +2320,7 @@
                     await updateDoc(promoDocRef, { status: 'approved', approvedAt: new Date().toISOString() });
                     await updateDoc(doc(db, "blogs", blogId), { isPromoted: true, promoFrequency: freq, promoExpiry: expiryTime });
                 } else {
-                    const expiryTime = (promoData.type === 'preroll' || promoData.type === 'blog_ad') ? null : new Date(Date.now() + (hours * 60 * 60 * 1000)).toISOString();
+                    const expiryTime = (promoData.type === 'preroll' || promoData.type === 'blog_ad' || promoData.type === 'flicks_drama_ad') ? null : new Date(Date.now() + (hours * 60 * 60 * 1000)).toISOString();
                     await updateDoc(promoDocRef, { 
                         status: 'approved', 
                         approvedAt: new Date().toISOString(), 
@@ -2304,21 +2416,21 @@
                                 <strong style="color: #87ceeb; font-size: 1.1rem;">${ext.title} <span style="color: #ff0050;">(In-Feed Ad)</span></strong>
                                 <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Link: <a href="${ext.targetUrl}" target="_blank" style="color: gold;">${ext.targetUrl}</a> | <strong style="color: #198754;">Clicks: ${ext.adClicks || 0}</strong></div>
                                 <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Shows every <strong style="color: #ff9900;">${ext.frequency} posts</strong></div>
-                                <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Expires at:</strong> ${new Date(ext.promoExpiry).toLocaleString()}</div>
+                                ${ext.promoExpiry ? `<div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Expires at:</strong> ${new Date(ext.promoExpiry).toLocaleString()}</div>` : ''}
                             </div>
                             <div><button class="btn" style="background-color: #dc3545; padding: 8px 12px; display: flex; align-items: center; gap: 5px;" onclick="window.removeLivePromotion('${docSnap.id}', true)"><i data-lucide="trash-2"></i> Remove</button></div>
                         `;
                         listDiv.appendChild(div);
-                } else if ((ext.type === 'preroll' || ext.type === 'blog_ad') && (ext.impressions_served || 0) < (ext.impressions_goal || 1)) {
+                } else if ((ext.type === 'preroll' || ext.type === 'blog_ad' || ext.type === 'flicks_drama_ad') && (ext.impressions_served || 0) < (ext.impressions_goal || 1)) {
                         liveCount++;
-                    const labelText = ext.type === 'preroll' ? 'Pre-Roll Ad' : 'Blog Ad';
+                    const labelText = ext.type === 'preroll' ? 'Pre-Roll Ad' : ext.type === 'blog_ad' ? 'Blog Ad' : `Flicks Drama Ad (Skip after ${ext.skipAfter || 5}s)`;
                         const div = document.createElement('div'); div.style.cssText = "background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;";
                         div.innerHTML = `
                             <div>
                             <strong style="color: #87ceeb; font-size: 1.1rem;">${ext.title} <span style="color: #ff0050;">(${labelText})</span></strong>
-                                <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Link: <a href="${ext.targetUrl}" target="_blank" style="color: gold;">${ext.targetUrl}</a> | <strong style="color: #198754;">Clicks: ${ext.adClicks || 0}</strong></div>
-                                <div style="font-size: 0.95rem; color: #ffc107; margin-top: 5px;">Target: <strong>${ext.targetCategories ? ext.targetCategories.join(', ') : 'All'}</strong></div>
-                                <div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Shows every <strong style="color: #ff9900;">${ext.frequency} posts</strong></div>
+                                ${ext.targetUrl ? `<div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Link: <a href="${ext.targetUrl}" target="_blank" style="color: gold;">${ext.targetUrl}</a> | <strong style="color: #198754;">Clicks: ${ext.adClicks || 0}</strong></div>` : ''}
+                                ${ext.type === 'flicks_drama_ad' ? '' : `<div style="font-size: 0.95rem; color: #ffc107; margin-top: 5px;">Target: <strong>${ext.targetCategories ? ext.targetCategories.join(', ') : 'All'}</strong></div>`}
+                                ${ext.type === 'flicks_drama_ad' ? `<div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Impressions: <strong>${(ext.impressions_served || 0).toLocaleString()} / ${(ext.impressions_goal || 0).toLocaleString()}</strong></div>` : `<div style="font-size: 0.95rem; color: #ccc; margin-top: 5px;">Shows every <strong style="color: #ff9900;">${ext.frequency} posts</strong></div>`}
                                 <div style="font-size: 0.9rem; color: #ffc107; margin-top: 5px;"><strong>Expires at:</strong> ${new Date(ext.promoExpiry).toLocaleString()}</div>
                             </div>
                             <div>
@@ -2407,7 +2519,7 @@
                 let totalRevenue = 0;
                 let activeCount = 0;
                 const now = new Date().toISOString();
-                approvedSnap.forEach(doc => { const promo = doc.data(); totalRevenue += Number(promo.price) || 0; if ((promo.type === 'external' && promo.promoExpiry && promo.promoExpiry > now) || ((promo.type === 'preroll' || promo.type === 'blog_ad') && (promo.impressions_served || 0) < (promo.impressions_goal || 1))) { activeCount++; } });
+                approvedSnap.forEach(doc => { const promo = doc.data(); totalRevenue += Number(promo.price) || 0; if ((promo.type === 'external' && promo.promoExpiry && promo.promoExpiry > now) || ((promo.type === 'preroll' || promo.type === 'blog_ad' || promo.type === 'flicks_drama_ad') && (promo.impressions_served || 0) < (promo.impressions_goal || 1))) { activeCount++; } });
                 liveContentSnap.forEach(doc => { const blog = doc.data(); if (blog.promoExpiry && blog.promoExpiry > now) { activeCount++; } });
 
                 revenueEl.innerText = `₹${totalRevenue.toFixed(2)}`;

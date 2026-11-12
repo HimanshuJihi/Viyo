@@ -87,6 +87,239 @@
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
         .navbar .theme-dropdown-container { margin-left: auto; }
+        .flicks-mode-tabs {
+            position: fixed;
+            top: 90px;
+            left: 0;
+            right: 0;
+            z-index: 9998;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 7px 12px;
+            background: rgba(5, 5, 5, 0.88);
+            backdrop-filter: blur(12px);
+        }
+        .flicks-mode-tab {
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            background: transparent;
+            color: #bbb;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .flicks-mode-tab.active {
+            border-color: #ff0050;
+            background: rgba(255,0,80,0.18);
+            color: #fff;
+        }
+        #view-flicks-drama {
+            position: fixed;
+            inset: 134px 0 0;
+            z-index: 5;
+            display: none;
+            box-sizing: border-box;
+            background: #050505;
+            color: #ccc;
+            overflow: hidden;
+        }
+        #drama-playlist-feed {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overscroll-behavior-y: contain;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        #drama-playlist-feed::-webkit-scrollbar { display: none; }
+        #drama-playlist-status {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            right: 12px;
+            z-index: 3;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(32, 32, 32, .9);
+            color: #ffd166;
+            font-size: .82rem;
+            text-align: center;
+        }
+        .drama-playlist-slide {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            overflow: hidden;
+            background: #050505;
+        }
+        .drama-slide-video {
+            display: block;
+            height: 100%;
+            max-height: 100%;
+            max-width: 100%;
+            aspect-ratio: 9 / 16;
+            object-fit: contain;
+            background: #000;
+            touch-action: pan-y;
+            will-change: transform, opacity;
+        }
+        .drama-slide-overlay {
+            position: absolute;
+            left: max(16px, calc(50% - 310px));
+            right: max(16px, calc(50% - 310px));
+            bottom: 18px;
+            z-index: 2;
+            text-shadow: 0 2px 6px #000;
+        }
+        .drama-slide-author {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #fff;
+            text-decoration: none;
+            width: fit-content;
+            text-shadow: 0 2px 6px #000;
+        }
+        .drama-slide-author img { width: 38px; height: 38px; border: 2px solid #fff; border-radius: 50%; object-fit: cover; }
+        .drama-slide-author-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .drama-follow-button {
+            padding: 5px 12px;
+            border: 1px solid #fff;
+            border-radius: 20px;
+            background: #ff0050;
+            color: #fff;
+            font-size: .75rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,.5);
+        }
+        .drama-slide-playlist-title {
+            display: block;
+            width: fit-content;
+            max-width: 100%;
+            margin: 0 0 5px;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: #fff;
+            font: inherit;
+            font-size: .95rem;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+            text-shadow: 0 2px 6px #000;
+        }
+        .drama-slide-playlist-title:hover { text-decoration: underline; }
+        .drama-slide-episode-title { margin: 0; color: #fff; font-size: 1.05rem; }
+        .drama-slide-counter { margin-top: 5px; color: #ddd; font-size: .8rem; }
+        .drama-ad-overlay {
+            position: absolute;
+            left: max(16px, calc(50% - 310px));
+            right: max(16px, calc(50% - 310px));
+            bottom: 18px;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            color: #fff;
+            text-shadow: 0 2px 6px #000;
+        }
+        .drama-ad-overlay[hidden], .drama-ad-skip[hidden], .drama-ad-link[hidden], .drama-login-gate[hidden] { display: none; }
+        .drama-ad-label { font-size: .8rem; color: #ddd; }
+        .drama-ad-title { font-size: 1.15rem; font-weight: 700; }
+        .drama-ad-actions { display: flex; justify-content: flex-end; gap: 10px; width: 100%; }
+        .drama-ad-link, .drama-ad-skip {
+            border: 1px solid rgba(255,255,255,.55);
+            border-radius: 8px;
+            padding: 9px 14px;
+            background: rgba(0,0,0,.7);
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .drama-ad-link { background: #ff0050; border-color: #ff0050; }
+        .drama-login-gate {
+            position: absolute;
+            inset: 0;
+            z-index: 6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px;
+            background: rgba(0, 0, 0, .88);
+            color: #fff;
+            text-align: center;
+        }
+        .drama-login-gate p { max-width: 360px; margin: 0; line-height: 1.5; }
+        .drama-login-gate button {
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 16px;
+            background: #ff0050;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .drama-slide-actions {
+            position: absolute;
+            top: 18%;
+            right: max(16px, calc(50% - 310px));
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .drama-slide-action { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #fff; font-size: .76rem; text-shadow: 0 2px 5px #000; }
+        .drama-slide-action button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 50%;
+            background: rgba(0,0,0,.52);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+        .drama-slide-action button:hover { background: rgba(0,0,0,.78); }
+        .drama-feed-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 24px;
+            box-sizing: border-box;
+            text-align: center;
+            color: #aaa;
+        }
+        @media screen and (min-width: 769px) {
+            #drama-playlist-feed { scroll-snap-type: y mandatory; }
+            .drama-playlist-slide { height: 100%; }
+            .drama-slide-video { border-radius: 14px; }
+            .drama-slide-actions { top: 16%; }
+        }
+        @media screen and (min-width: 769px) {
+            .flicks-mode-tabs { top: 58px; }
+            #view-flicks-drama { inset: 102px 0 0; }
+        }
 
         /* Desktop/PC Flicks Layout Fix (Instagram Reels Style) */
         @media screen and (min-width: 769px) {
@@ -190,11 +423,16 @@
                 <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
                 <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
                 <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
+                <a href="flicks-drama-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="clapperboard" style="width: 16px;"></i> Flicks Drama Policy</a>
                 <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
                 <a href="advertise.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="megaphone" style="width: 16px;"></i> Advertise with Us</a>
                 <div style="padding: 10px; text-align: center; font-size: 0.75rem; color: #888; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">&copy; Viyou. All Rights Reserved.</div>
             </div>
         </div>
+    </div>
+    <div class="flicks-mode-tabs" role="tablist" aria-label="Flicks categories">
+        <button type="button" id="flicks-tab-short" class="flicks-mode-tab active" role="tab" aria-selected="true" onclick="window.switchFlicksMode('flicks')">Flicks</button>
+        <button type="button" id="flicks-tab-drama" class="flicks-mode-tab" role="tab" aria-selected="false" onclick="window.switchFlicksMode('drama')">Flicks Drama</button>
     </div>
     <div id="flicks-comments-panel" style="display:none; position: fixed; bottom: 0; left: 0; width: 100%; height: 60%; background: #1e1e1e; border-top-left-radius: 15px; border-top-right-radius: 15px; z-index: 101; flex-direction: column; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); transform: translateY(100%); transition: transform 0.3s ease-out;">
         <!-- Comment Panel Content will be injected by JS -->
@@ -209,8 +447,14 @@
     </div>
 
     <!-- Flicks Feed SPA View -->
-    <div class="flicks-container" id="flicks-container">
+    <div class="flicks-container" id="flicks-container" role="tabpanel" aria-labelledby="flicks-tab-short">
         <div style="height: 100vh; display: flex; align-items: center; justify-content: center; color: #aaa;">Loading Flicks...</div>
+    </div>
+    <div id="view-flicks-drama" role="tabpanel" aria-labelledby="flicks-tab-drama">
+        <div id="drama-playlist-status" role="status" aria-live="polite" hidden></div>
+        <div id="drama-playlist-feed" aria-label="Flicks-Drama playlists">
+            <div class="drama-feed-message">Loading Flicks-Drama...</div>
+        </div>
     </div>
 
     <!-- Flicks History SPA View -->
@@ -272,14 +516,956 @@
 
     <script type="module" src="playlist-actions.js"></script>
     <script type="module">
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, setDoc, orderBy, limit, writeBatch, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, setDoc, orderBy, limit, writeBatch, deleteDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { db, auth } from "./firebase-config.js";
 
         // Start fetching data immediately to speed up load time
         const globalFlicksPromise = getDocs(query(collection(db, "blogs"), where("isFlicker", "==", true)));
         let flicksGlobalMuted = true; // Track mute state across scroll
         let followingUnsubscribe = null;
+        let currentFlicksMode = 'flicks';
+
+        window.switchFlicksMode = function(mode, loadDrama = true) {
+            const dramaMode = mode === 'drama';
+            currentFlicksMode = dramaMode ? 'drama' : 'flicks';
+            document.getElementById('flicks-container').style.display = dramaMode ? 'none' : '';
+            document.getElementById('view-flicks-drama').style.display = dramaMode ? 'flex' : 'none';
+            document.getElementById('flicks-tab-short').classList.toggle('active', !dramaMode);
+            document.getElementById('flicks-tab-short').setAttribute('aria-selected', String(!dramaMode));
+            document.getElementById('flicks-tab-drama').classList.toggle('active', dramaMode);
+            document.getElementById('flicks-tab-drama').setAttribute('aria-selected', String(dramaMode));
+            document.querySelectorAll('.flick-item video').forEach(video => {
+                if (dramaMode) video.pause();
+                else if (video.dataset.id === currentFlickId) video.play().catch(() => {});
+            });
+            if (dramaMode) {
+                if (loadDrama && !dramaPlaylistsLoadPromise) loadDramaPlaylists();
+                if (activeDramaSlide) activeDramaSlide.querySelector('.drama-slide-video').play().catch(() => {});
+            } else if (activeDramaSlide) {
+                activeDramaSlide.querySelector('.drama-slide-video').pause();
+            }
+        };
+        const dramaPlaylistFeed = document.getElementById('drama-playlist-feed');
+        const dramaPlaylistStatus = document.getElementById('drama-playlist-status');
+        let resolveDramaAuthState;
+        const dramaAuthStateReady = new Promise(resolve => { resolveDramaAuthState = resolve; });
+        let dramaPlaylistsLoadPromise = null;
+        let dramaPlaylistObserver = null;
+        let activeDramaSlide = null;
+        let pendingDramaReport = null;
+        let activeDramaAds = [];
+        const dramaAuthorCache = new Map();
+        const demoDramaClips = [
+            { file: 'videoplayback.mp4', duration: 49.86 },
+            { file: 'videoplayback (1).mp4', duration: 50.86 },
+            { file: 'videoplayback (2).mp4', duration: 19.71 },
+            { file: 'videoplayback (3).mp4', duration: 24.54 },
+            { file: 'videoplayback (4).mp4', duration: 48.55 },
+            { file: 'videoplayback (5).mp4', duration: 26.09 }
+        ];
+        const demoDramaPlaylists = [
+            {
+                id: 'demo-flicks-drama-hidden-letter',
+                name: 'The Hidden Letter (Demo)',
+                description: 'A six-episode sample playlist. Swipe left to watch the next episode, or swipe up to move to the next playlist.',
+                episodeTitles: ['The Missing Letter', 'A Door Left Open', "The Stranger's Call", 'The Hidden Photograph', 'One Last Clue', 'The Truth at Dawn']
+            },
+            {
+                id: 'demo-flicks-drama-midnight-promise',
+                name: 'Midnight Promise (Demo)',
+                description: 'A second sample playlist using the same six videos. Swipe up to switch playlists, then swipe left to continue its episodes.',
+                episodeTitles: ['The Last Train', 'A Familiar Face', 'The Unexpected Message', 'Two Promises', 'Before Midnight', 'A New Beginning']
+            }
+        ].map((playlist, playlistIndex) => ({
+            ...playlist,
+            isDemo: true,
+            createdAt: new Date(Date.now() - playlistIndex).toISOString(),
+            episodes: demoDramaClips.map((clip, index) => ({
+                id: `demo-episode-${index + 1}`,
+                episodeNumber: index + 1,
+                title: playlist.episodeTitles[index],
+                video: new URL(clip.file, document.baseURI).href,
+                duration: clip.duration
+            }))
+        }));
+
+        function currentDramaItem(slide) {
+            return slide.dramaItems?.[Number(slide.dataset.episodeIndex) || 0] || null;
+        }
+
+        function currentDramaEpisode(slide) {
+            const item = currentDramaItem(slide);
+            return item?.kind === 'episode' ? item.episode : null;
+        }
+
+        async function loadActiveDramaAds() {
+            if (!auth.currentUser) return [];
+            const promotionsSnapshot = await getDocs(query(
+                collection(db, 'promotions'),
+                where('type', '==', 'flicks_drama_ad'),
+                where('status', '==', 'approved')
+            ));
+            return promotionsSnapshot.docs
+                .map(promotionDoc => ({ id: promotionDoc.id, ...promotionDoc.data() }))
+                .filter(promotion =>
+                    promotion.mediaData &&
+                    (Number(promotion.impressions_served) || 0) < (Number(promotion.impressions_goal) || 0)
+                );
+        }
+
+        function rebuildDramaItems(slide, preserveItem = null) {
+            slide.dramaItems = [];
+            slide.dramaEpisodes.forEach((episode, index) => {
+                slide.dramaItems.push({ kind: 'episode', episode });
+                if (!slide.dramaPlaylist.isDemo && (index + 1) % 3 === 0 &&
+                    index < slide.dramaEpisodes.length - 1 && activeDramaAds.length) {
+                    slide.dramaItems.push({ kind: 'ad', ad: activeDramaAds[Math.floor(index / 3) % activeDramaAds.length] });
+                }
+            });
+            if (!preserveItem) return 0;
+            return slide.dramaItems.findIndex(item =>
+                item.kind === preserveItem.kind &&
+                (item.kind === 'episode' ? item.episode.id === preserveItem.episode.id : item.ad.id === preserveItem.ad.id)
+            );
+        }
+
+        function setDramaEpisode(slide, itemIndex, direction = 0) {
+            const items = slide.dramaItems;
+            if (!items || itemIndex < 0 || itemIndex >= items.length) return;
+            const video = slide.querySelector('.drama-slide-video');
+            const title = slide.querySelector('.drama-slide-episode-title');
+            const counter = slide.querySelector('.drama-slide-counter');
+            const regularOverlay = slide.querySelector('.drama-slide-overlay');
+            const adOverlay = slide.querySelector('.drama-ad-overlay');
+            const actions = slide.querySelector('.drama-slide-actions');
+            const item = items[itemIndex];
+            slide.dataset.episodeIndex = String(itemIndex);
+            const isAd = item.kind === 'ad';
+            const episode = isAd ? null : item.episode;
+            regularOverlay.hidden = isAd;
+            adOverlay.hidden = !isAd;
+            actions.hidden = isAd;
+            if (isAd) {
+                title.textContent = `Sponsored · ${item.ad.title || 'Advertisement'}`;
+                counter.textContent = `Advertisement · Skip after ${item.ad.skipAfter || 5} seconds`;
+                adOverlay.querySelector('.drama-ad-title').textContent = item.ad.title || 'Sponsored video';
+                const skipButton = adOverlay.querySelector('.drama-ad-skip');
+                skipButton.hidden = true;
+                skipButton.textContent = `Skip in ${item.ad.skipAfter || 5}s`;
+                adOverlay.querySelector('.drama-ad-label').textContent = `Sponsored · Skippable after ${item.ad.skipAfter || 5}s`;
+                const visitLink = adOverlay.querySelector('.drama-ad-link');
+                if (item.ad.targetUrl && /^https?:\/\//i.test(item.ad.targetUrl)) {
+                    visitLink.href = item.ad.targetUrl;
+                    visitLink.hidden = false;
+                } else {
+                    visitLink.hidden = true;
+                    visitLink.removeAttribute('href');
+                }
+                video.controls = false;
+                video.dataset.adImpressionCounted = '';
+                video.dataset.adImpressionPending = '';
+            } else {
+                title.textContent = episode.title || `F-D EP.${episode.episodeNumber || 1}`;
+                counter.textContent = `${episode.episodeNumber || 1} / ${slide.dramaEpisodes.length}  ·  Swipe up: next playlist  ·  Swipe left: next episode`;
+                video.controls = true;
+            }
+            updateDramaEpisodeActions(slide);
+            const updateVideo = () => {
+                video.pause();
+                video.src = isAd ? item.ad.mediaData : episode.video;
+                video.poster = slide.dataset.thumbnail || '';
+                video.load();
+                video.dataset.episodeIndex = String(itemIndex);
+            };
+            const shouldAnimate = direction !== 0 && slide === activeDramaSlide && video.dataset.episodeIndex !== undefined && !video.dataset.transitioning;
+            if (!shouldAnimate) {
+                updateVideo();
+                if (slide === activeDramaSlide) video.play().catch(() => {});
+                return;
+            }
+
+            video.dataset.transitioning = 'true';
+            video.style.transition = 'transform 150ms ease, opacity 150ms ease';
+            video.style.transform = `translateX(${direction > 0 ? '-24px' : '24px'})`;
+            video.style.opacity = '0';
+            window.setTimeout(() => {
+                if (Number(slide.dataset.episodeIndex) !== itemIndex) {
+                    delete video.dataset.transitioning;
+                    return;
+                }
+                updateVideo();
+                video.style.transition = 'none';
+                video.style.transform = `translateX(${direction > 0 ? '24px' : '-24px'})`;
+                video.style.opacity = '0';
+                void video.offsetWidth;
+                requestAnimationFrame(() => {
+                    video.style.transition = 'transform 220ms ease, opacity 220ms ease';
+                    video.style.transform = 'translateX(0)';
+                    video.style.opacity = '1';
+                });
+                if (slide === activeDramaSlide) video.play().catch(() => {});
+                window.setTimeout(() => {
+                    video.style.removeProperty('transition');
+                    video.style.removeProperty('transform');
+                    video.style.removeProperty('opacity');
+                    delete video.dataset.transitioning;
+                }, 240);
+            }, 150);
+        }
+
+        function changeDramaEpisode(slide, direction, force = false) {
+            if (slide.querySelector('.drama-slide-video').dataset.transitioning) return;
+            if (!slide.querySelector('.drama-login-gate').hidden) return;
+            const currentItem = currentDramaItem(slide);
+            if (currentItem?.kind === 'ad' && direction > 0 && !force) {
+                const skipAfter = Number(currentItem.ad.skipAfter) === 10 ? 10 : 5;
+                if (slide.querySelector('.drama-slide-video').currentTime < skipAfter) return;
+            }
+            const currentIndex = Number(slide.dataset.episodeIndex) || 0;
+            const nextIndex = currentIndex + direction;
+            if (nextIndex < 0 || nextIndex >= slide.dramaItems.length) return;
+            const nextItem = slide.dramaItems[nextIndex];
+            const watchedEpisodeCount = slide.dramaItems
+                .slice(0, nextIndex + 1)
+                .filter(item => item.kind === 'episode').length;
+            if (nextItem.kind === 'episode' && !auth.currentUser && watchedEpisodeCount > 10) {
+                showDramaLoginGate(slide, nextIndex);
+                return;
+            }
+            setDramaEpisode(slide, nextIndex, direction);
+        }
+
+        function showDramaLoginGate(slide, targetIndex) {
+            slide.dataset.loginTargetIndex = String(targetIndex);
+            slide.querySelector('.drama-login-gate').hidden = false;
+            slide.querySelector('.drama-slide-video').pause();
+        }
+
+        function changeDramaPlaylist(slide, direction) {
+            const target = direction > 0 ? slide.nextElementSibling : slide.previousElementSibling;
+            if (target && target.classList.contains('drama-playlist-slide')) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setActiveDramaSlide(target);
+            }
+        }
+
+        function dramaEpisodeKey(slide, episode = currentDramaEpisode(slide)) {
+            return `${slide.dataset.playlistId}_${episode?.id || episode?.episodeNumber || 0}`;
+        }
+
+        function updateDramaEpisodeActions(slide) {
+            const episode = currentDramaEpisode(slide);
+            if (!episode) return;
+            const likes = Array.isArray(episode.likes) ? episode.likes : [];
+            const userLiked = !!auth.currentUser && likes.includes(auth.currentUser.uid);
+            const likeButton = slide.querySelector('.drama-like-button');
+            const likeCount = slide.querySelector('.drama-like-count');
+            if (likeButton) {
+                likeButton.setAttribute('aria-label', userLiked ? 'Unlike episode' : 'Like episode');
+                likeButton.title = userLiked ? 'Unlike episode' : 'Like episode';
+                likeButton.style.color = userLiked ? '#ff0050' : '#fff';
+                const icon = likeButton.querySelector('svg, i');
+                if (icon) icon.classList.toggle('lucide-fill', userLiked);
+            }
+            if (likeCount) likeCount.textContent = String(likes.length);
+            const commentCount = slide.querySelector('.drama-comment-count');
+            if (commentCount) commentCount.textContent = String(episode.commentsCount || 0);
+        }
+
+        window.toggleDramaEpisodeLike = async function(slide) {
+            const user = auth.currentUser;
+            if (!user) {
+                await window.viyouAlert('Log in to like this episode.');
+                return;
+            }
+            const episode = currentDramaEpisode(slide);
+            if (!episode) return;
+            const likes = Array.isArray(episode.likes) ? episode.likes : [];
+            const wasLiked = likes.includes(user.uid);
+            episode.likes = wasLiked ? likes.filter(uid => uid !== user.uid) : [...likes, user.uid];
+            updateDramaEpisodeActions(slide);
+            try {
+                if (!slide.dramaPlaylist.isDemo) {
+                    const episodeRef = doc(db, 'playlists', slide.dataset.playlistId, 'episodes', episode.id);
+                    await updateDoc(episodeRef, { likes: wasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid) });
+                }
+            } catch (error) {
+                episode.likes = likes;
+                updateDramaEpisodeActions(slide);
+                console.error('Error updating Flicks Drama episode like:', error);
+                await window.viyouAlert('Unable to update your like. Please try again.');
+            }
+        };
+
+        window.toggleDramaPlaylistSave = async function(slide) {
+            const user = auth.currentUser;
+            if (!user) {
+                await window.viyouAlert('Log in to save this playlist.');
+                return;
+            }
+            const saveRef = doc(db, 'users', user.uid, 'savedDramaPlaylists', slide.dataset.playlistId);
+            const saveButton = slide.querySelector('.drama-save-button');
+            const wasSaved = slide.dataset.saved === 'true';
+            try {
+                if (slide.dramaPlaylist.isDemo) {
+                    slide.dataset.saved = String(!wasSaved);
+                } else if (wasSaved) {
+                    await deleteDoc(saveRef);
+                    slide.dataset.saved = 'false';
+                } else {
+                    await setDoc(saveRef, {
+                        playlistId: slide.dataset.playlistId,
+                        title: slide.dramaPlaylist.name || 'Flicks Drama',
+                        coverImage: slide.dramaPlaylist.coverImage || '',
+                        authorUid: slide.dramaPlaylist.authorUid || '',
+                        savedAt: serverTimestamp()
+                    });
+                    slide.dataset.saved = 'true';
+                }
+                const icon = saveButton?.querySelector('svg, i');
+                if (icon) icon.classList.toggle('lucide-fill', !wasSaved);
+                if (saveButton) saveButton.setAttribute('aria-label', wasSaved ? 'Save playlist' : 'Remove saved playlist');
+            } catch (error) {
+                console.error('Error saving Flicks Drama playlist:', error);
+                await window.viyouAlert('Unable to save this playlist. Please try again.');
+            }
+        };
+
+        window.openDramaComments = async function(slide) {
+            const user = auth.currentUser;
+            if (!user) {
+                await window.viyouAlert('Log in to view and add comments.');
+                return;
+            }
+            const episode = currentDramaEpisode(slide);
+            if (!episode) return;
+            const panel = document.getElementById('flicks-comments-panel');
+            if (!episode || !panel) return;
+            slide.querySelector('.drama-slide-video').pause();
+            panel.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #333;color:#fff;">
+                    <div><h3 style="margin:0;">Episode comments</h3><span class="drama-comments-total" style="color:#aaa;font-size:.85rem;">Loading...</span></div>
+                    <button type="button" aria-label="Close comments" style="background:none;border:0;color:white;font-size:1.8rem;cursor:pointer;" onclick="window.closeDramaComments()">×</button>
+                </div>
+                <div class="drama-comments-list" style="flex:1;overflow-y:auto;padding:16px;color:white;"></div>
+                <form class="drama-comment-form" style="display:flex;gap:8px;padding:12px;border-top:1px solid #333;">
+                    <input name="comment" maxlength="1000" required placeholder="Add a comment..." style="flex:1;min-width:0;padding:11px;border:1px solid #444;border-radius:20px;background:#111;color:#fff;">
+                    <button type="submit" style="border:0;border-radius:20px;padding:0 16px;background:#ff0050;color:white;font-weight:bold;">Post</button>
+                </form>`;
+            panel.style.display = 'flex';
+            panel.style.transform = 'translateY(0)';
+            const list = panel.querySelector('.drama-comments-list');
+            const renderComments = comments => {
+                list.replaceChildren();
+                panel.querySelector('.drama-comments-total').textContent = `${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}`;
+                if (!comments.length) {
+                    const empty = document.createElement('p');
+                    empty.textContent = 'No comments yet.';
+                    empty.style.color = '#aaa';
+                    list.appendChild(empty);
+                }
+                comments.forEach(comment => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex;gap:10px;margin-bottom:16px;align-items:flex-start;';
+                    const avatar = document.createElement('img');
+                    avatar.src = comment.photo || 'logo.png';
+                    avatar.alt = '';
+                    avatar.style.cssText = 'width:34px;height:34px;border-radius:50%;object-fit:cover;';
+                    const content = document.createElement('div');
+                    const author = document.createElement('strong');
+                    author.textContent = comment.author || 'User';
+                    const text = document.createElement('p');
+                    text.textContent = comment.text || '';
+                    text.style.cssText = 'margin:4px 0 0;color:#ddd;white-space:pre-wrap;overflow-wrap:anywhere;';
+                    content.append(author, text);
+                    row.append(avatar, content);
+                    list.appendChild(row);
+                });
+            };
+            const commentsRef = slide.dramaPlaylist.isDemo
+                ? null
+                : collection(db, 'playlists', slide.dataset.playlistId, 'episodes', episode.id, 'comments');
+            try {
+                const snapshot = commentsRef ? await getDocs(query(commentsRef, orderBy('createdAt', 'desc'))) : null;
+                const comments = snapshot
+                    ? snapshot.docs.map(commentDoc => ({ id: commentDoc.id, ...commentDoc.data() }))
+                    : [...(episode.comments || [])];
+                episode.commentsCount = comments.length;
+                updateDramaEpisodeActions(slide);
+                renderComments(comments);
+                panel.querySelector('.drama-comment-form').addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const input = event.currentTarget.elements.comment;
+                    const text = input.value.trim();
+                    if (!text) return;
+                    const currentUser = auth.currentUser;
+                    if (!currentUser) return;
+                    const profile = window.currentUserData || {};
+                    try {
+                        const comment = {
+                            userUid: currentUser.uid,
+                            author: profile.name || currentUser.displayName || 'User',
+                            photo: profile.photoURL || currentUser.photoURL || 'logo.png',
+                            text,
+                            createdAt: new Date().toISOString()
+                        };
+                        if (commentsRef) {
+                            const newComment = await addDoc(commentsRef, comment);
+                            comments.unshift({ id: newComment.id, ...comment });
+                            updateDoc(doc(db, 'playlists', slide.dataset.playlistId, 'episodes', episode.id), { commentsCount: increment(1) })
+                                .catch(error => console.warn('Unable to update episode comment count:', error.message));
+                        } else {
+                            comments.unshift(comment);
+                            episode.comments = comments;
+                        }
+                        episode.commentsCount = comments.length;
+                        updateDramaEpisodeActions(slide);
+                        renderComments(comments);
+                        input.value = '';
+                    } catch (error) {
+                        console.error('Error posting Flicks Drama episode comment:', error);
+                        await window.viyouAlert('Unable to post your comment. Please try again.');
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading Flicks Drama episode comments:', error);
+                list.textContent = 'Unable to load comments.';
+                panel.querySelector('.drama-comments-total').textContent = '';
+            }
+        };
+
+        window.closeDramaComments = function() {
+            closeFlickComments();
+            if (currentFlicksMode === 'drama' && activeDramaSlide) {
+                activeDramaSlide.querySelector('.drama-slide-video').play().catch(() => {});
+            }
+        };
+
+        window.openDramaPlaylistDetails = function(slide, event) {
+            if (event) event.stopPropagation();
+            const playlist = slide.dramaPlaylist;
+            const episodes = slide.dramaEpisodes;
+            const totalLikes = episodes.reduce((sum, episode) => sum + (Array.isArray(episode.likes) ? episode.likes.length : 0), 0);
+            const episodeViews = episodes.reduce((sum, episode) => sum + (Number(episode.views) || 0), 0);
+            const totalViews = episodeViews || Number(playlist.views) || 0;
+            const content = document.getElementById('flicks-description-content');
+            content.replaceChildren();
+            const author = document.createElement('a');
+            author.href = `profile.html?uid=${encodeURIComponent(playlist.authorUid || '')}`;
+            author.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:16px;color:#fff;text-decoration:none;';
+            const avatar = document.createElement('img');
+            avatar.src = playlist.authorPhoto || 'logo.png';
+            avatar.alt = '';
+            avatar.style.cssText = 'width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #fff;';
+            const authorName = document.createElement('strong');
+            authorName.textContent = `@${playlist.authorName || playlist.author || 'User'}`;
+            author.append(avatar, authorName);
+            const title = document.createElement('h2');
+            title.textContent = playlist.name || 'Flicks Drama';
+            title.style.cssText = 'margin:0 0 12px;color:#fff;font-size:1.2rem;';
+            const stats = document.createElement('div');
+            stats.textContent = `${totalViews.toLocaleString()} views  ·  ${totalLikes.toLocaleString()} likes  ·  ${episodes.length} episodes`;
+            stats.style.cssText = 'margin-bottom:16px;color:#ccc;';
+            const description = document.createElement('p');
+            description.textContent = playlist.description || 'No description.';
+            description.style.cssText = 'margin:0;color:#ddd;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;';
+            content.append(author, title, stats, description);
+            const panel = document.getElementById('flicks-description-panel');
+            panel.style.display = 'flex';
+            setTimeout(() => { panel.style.transform = 'translateY(0)'; }, 10);
+        };
+
+        window.openDramaReport = function(slide) {
+            if (!auth.currentUser) {
+                window.viyouAlert('Please login to report!');
+                return;
+            }
+            if (slide.dramaPlaylist.isDemo) {
+                window.viyouAlert('Demo episodes cannot be reported.');
+                return;
+            }
+            const episode = currentDramaEpisode(slide);
+            if (!episode) return;
+            pendingDramaReport = { playlistId: slide.dataset.playlistId, episodeId: episode.id };
+            document.getElementById('report-blog-id').value = `${slide.dataset.playlistId}:${episode.id}`;
+            document.getElementById('report-form').reset();
+            document.getElementById('report-custom-text').style.display = 'none';
+            document.getElementById('report-modal').style.display = 'flex';
+        };
+
+        function recordDramaEpisodeView(slide, video) {
+            const episode = currentDramaEpisode(slide);
+            if (!episode) return;
+            if (!episode || video.currentTime < 5) return;
+            const key = dramaEpisodeKey(slide, episode);
+            if (slide.dramaPlaylist.isDemo) {
+                if (video.dataset.viewCountedEpisode === key) return;
+                video.dataset.viewCountedEpisode = key;
+                episode.views = (Number(episode.views) || 0) + 1;
+                return;
+            }
+            const user = auth.currentUser;
+            if (!user) return;
+            const attemptKey = `${key}_${user.uid}`;
+            if (video.dataset.viewCountedEpisode === attemptKey) return;
+            video.dataset.viewCountedEpisode = attemptKey;
+            const viewedEpisodeRef = doc(db, 'users', user.uid, 'viewedDramaEpisodes', key);
+            const episodeRef = doc(db, 'playlists', slide.dataset.playlistId, 'episodes', episode.id);
+            runTransaction(db, async transaction => {
+                const viewedEpisode = await transaction.get(viewedEpisodeRef);
+                if (viewedEpisode.exists()) return false;
+                transaction.set(viewedEpisodeRef, {
+                    playlistId: slide.dataset.playlistId,
+                    episodeId: episode.id,
+                    viewedAt: serverTimestamp()
+                });
+                transaction.update(episodeRef, { views: increment(1) });
+                return true;
+            }).then(counted => {
+                if (counted) episode.views = (Number(episode.views) || 0) + 1;
+            }).catch(error => {
+                console.error('Error recording Flicks Drama episode view:', error);
+            });
+        }
+
+        function recordDramaAdImpression(slide, video) {
+            const item = currentDramaItem(slide);
+            if (item?.kind !== 'ad' || video.currentTime < 2 || !auth.currentUser) return;
+            const adKey = `${item.ad.id}_${slide.dataset.episodeIndex}`;
+            if (video.dataset.adImpressionCounted === adKey || video.dataset.adImpressionPending === adKey) return;
+            video.dataset.adImpressionPending = adKey;
+            const promotionRef = doc(db, 'promotions', item.ad.id);
+            const playlistRef = doc(db, 'playlists', slide.dataset.playlistId);
+            runTransaction(db, async transaction => {
+                const promotion = await transaction.get(promotionRef);
+                if (!promotion.exists()) return false;
+                const data = promotion.data();
+                if (data.status !== 'approved' || data.type !== 'flicks_drama_ad' ||
+                    (Number(data.impressions_served) || 0) >= (Number(data.impressions_goal) || 0)) return false;
+                const playlist = await transaction.get(playlistRef);
+                if (!playlist.exists() || playlist.data().authorUid !== slide.dramaPlaylist.authorUid) return false;
+                const ratePerThousand = Number(data.ratePerThousand) || (Number(data.skipAfter) === 10 ? 400 : 300);
+                transaction.update(promotionRef, { impressions_served: (Number(data.impressions_served) || 0) + 1 });
+                transaction.update(playlistRef, {
+                    flicksDramaAdViews: increment(1),
+                    flicksDramaAdRevenue: increment(ratePerThousand / 1000)
+                });
+                return true;
+            }).then(counted => {
+                video.dataset.adImpressionPending = '';
+                if (!counted) {
+                    changeDramaEpisode(slide, 1, true);
+                    return;
+                }
+                video.dataset.adImpressionCounted = adKey;
+            }).catch(error => {
+                video.dataset.adImpressionPending = '';
+                console.error('Error recording Flicks Drama ad impression:', error);
+            });
+        }
+
+        function updateDramaAdPlayback(slide, video) {
+            const item = currentDramaItem(slide);
+            if (item?.kind !== 'ad') return;
+            const skipAfter = Number(item.ad.skipAfter) === 10 ? 10 : 5;
+            const skipButton = slide.querySelector('.drama-ad-skip');
+            if (video.currentTime >= skipAfter) {
+                skipButton.hidden = false;
+                skipButton.textContent = 'Skip Ad';
+            } else {
+                skipButton.hidden = true;
+                skipButton.textContent = `Skip in ${Math.ceil(skipAfter - video.currentTime)}s`;
+            }
+            recordDramaAdImpression(slide, video);
+        }
+
+        function setupDramaSlideGestures(slide) {
+            let startX = 0;
+            let startY = 0;
+            slide.addEventListener('touchstart', event => {
+                if (event.touches.length !== 1) return;
+                startX = event.touches[0].clientX;
+                startY = event.touches[0].clientY;
+            }, { passive: true });
+            slide.addEventListener('touchend', event => {
+                if (!event.changedTouches.length) return;
+                const deltaX = event.changedTouches[0].clientX - startX;
+                const deltaY = event.changedTouches[0].clientY - startY;
+                if (Math.abs(deltaX) < 55 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+                changeDramaEpisode(slide, deltaX < 0 ? 1 : -1);
+            }, { passive: true });
+        }
+
+        function setActiveDramaSlide(slide) {
+            if (!slide) return;
+            const playlistId = slide.dataset.playlistId;
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('dramaPlaylistId') !== playlistId) {
+                url.searchParams.set('dramaPlaylistId', playlistId);
+                window.history.replaceState(window.history.state, '', url);
+            }
+            if (slide === activeDramaSlide) return;
+            if (activeDramaSlide) activeDramaSlide.querySelector('.drama-slide-video').pause();
+            activeDramaSlide = slide;
+            const video = slide.querySelector('.drama-slide-video');
+            if (video.dataset.episodeIndex !== slide.dataset.episodeIndex) {
+                setDramaEpisode(slide, Number(slide.dataset.episodeIndex) || 0);
+            } else {
+                video.play().catch(() => {});
+            }
+        }
+
+        function observeDramaSlides() {
+            if (dramaPlaylistObserver) dramaPlaylistObserver.disconnect();
+            dramaPlaylistObserver = new IntersectionObserver(entries => {
+                const visibleSlide = entries
+                    .filter(entry => entry.isIntersecting)
+                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+                if (visibleSlide && visibleSlide.intersectionRatio >= 0.6) {
+                    setActiveDramaSlide(visibleSlide.target);
+                }
+            }, { root: dramaPlaylistFeed, threshold: [0.6, 0.8, 1] });
+            dramaPlaylistFeed.querySelectorAll('.drama-playlist-slide').forEach(slide => dramaPlaylistObserver.observe(slide));
+        }
+
+        function createDramaSlide(playlist, episodes) {
+            const slide = document.createElement('section');
+            slide.className = 'drama-playlist-slide';
+            slide.dataset.playlistId = playlist.id;
+            slide.dataset.episodeIndex = '0';
+            slide.dataset.thumbnail = playlist.coverImage || '';
+            slide.dataset.saved = 'false';
+            slide.tabIndex = 0;
+            slide.dramaEpisodes = episodes;
+            slide.dramaPlaylist = playlist;
+            rebuildDramaItems(slide);
+
+            const video = document.createElement('video');
+            video.className = 'drama-slide-video';
+            video.playsInline = true;
+            video.controls = true;
+            video.preload = 'none';
+            video.muted = true;
+            video.setAttribute('aria-label', `${playlist.name || 'Flicks Drama'} video player`);
+            slide.appendChild(video);
+
+            const overlay = document.createElement('div');
+            overlay.className = 'drama-slide-overlay';
+            const authorLink = document.createElement('a');
+            authorLink.className = 'drama-slide-author';
+            authorLink.href = `profile.html?uid=${encodeURIComponent(playlist.authorUid || '')}`;
+            const authorPhoto = document.createElement('img');
+            authorPhoto.src = playlist.authorPhoto || 'logo.png';
+            authorPhoto.alt = '';
+            const authorName = document.createElement('strong');
+            authorName.textContent = `@${playlist.authorName || playlist.author || 'User'}`;
+            authorLink.append(authorPhoto, authorName);
+            const authorRow = document.createElement('div');
+            authorRow.className = 'drama-slide-author-row';
+            authorRow.appendChild(authorLink);
+            if (playlist.authorUid) {
+                const followButton = document.createElement('button');
+                followButton.type = 'button';
+                followButton.className = 'drama-follow-button';
+                followButton.dataset.followUid = playlist.authorUid;
+                followButton.onclick = event => {
+                    event.stopPropagation();
+                    window.toggleFollow(playlist.authorUid);
+                };
+                authorRow.appendChild(followButton);
+                followButton.hidden = auth.currentUser?.uid === playlist.authorUid;
+            }
+            const playlistTitle = document.createElement('button');
+            playlistTitle.type = 'button';
+            playlistTitle.className = 'drama-slide-playlist-title';
+            playlistTitle.textContent = playlist.name || 'Flicks Drama';
+            playlistTitle.setAttribute('aria-label', `View details for ${playlist.name || 'Flicks Drama'}`);
+            playlistTitle.addEventListener('click', event => window.openDramaPlaylistDetails(slide, event));
+            const episodeTitle = document.createElement('h2');
+            episodeTitle.className = 'drama-slide-episode-title';
+            episodeTitle.textContent = episodes[0].title || `F-D EP.${episodes[0].episodeNumber || 1}`;
+            const episodeCounter = document.createElement('div');
+            episodeCounter.className = 'drama-slide-counter';
+            episodeCounter.textContent = `${episodes[0].episodeNumber || 1} / ${episodes.length}  ·  Swipe up: next playlist  ·  Swipe left: next episode`;
+            overlay.append(authorRow, playlistTitle, episodeTitle, episodeCounter);
+            slide.appendChild(overlay);
+            if (playlist.authorUid) {
+                window.syncFollowButtons(playlist.authorUid, currentUserFollowing.includes(playlist.authorUid));
+            }
+
+            const adOverlay = document.createElement('div');
+            adOverlay.className = 'drama-ad-overlay';
+            adOverlay.hidden = true;
+            const adLabel = document.createElement('strong');
+            adLabel.className = 'drama-ad-label';
+            adLabel.textContent = 'Sponsored video';
+            const adTitle = document.createElement('span');
+            adTitle.className = 'drama-ad-title';
+            const adActions = document.createElement('div');
+            adActions.className = 'drama-ad-actions';
+            const adLink = document.createElement('a');
+            adLink.className = 'drama-ad-link';
+            adLink.target = '_blank';
+            adLink.rel = 'noopener noreferrer';
+            adLink.textContent = 'Visit advertiser';
+            adLink.hidden = true;
+            adLink.addEventListener('click', event => {
+                event.stopPropagation();
+                if (!playlist.isDemo && !adLink.hidden) {
+                    updateDoc(doc(db, 'promotions', slide.dramaItems[Number(slide.dataset.episodeIndex)].ad.id), {
+                        adClicks: increment(1)
+                    }).catch(error => console.warn('Unable to count Flicks Drama ad click:', error.message));
+                }
+            });
+            const skipButton = document.createElement('button');
+            skipButton.type = 'button';
+            skipButton.className = 'drama-ad-skip';
+            skipButton.textContent = 'Skip Ad';
+            skipButton.hidden = true;
+            skipButton.addEventListener('click', event => {
+                event.stopPropagation();
+                changeDramaEpisode(slide, 1);
+            });
+            adActions.append(adLink, skipButton);
+            adOverlay.append(adLabel, adTitle, adActions);
+            slide.appendChild(adOverlay);
+
+            const loginGate = document.createElement('div');
+            loginGate.className = 'drama-login-gate';
+            loginGate.hidden = true;
+            const loginMessage = document.createElement('p');
+            loginMessage.textContent = 'You can watch the first 10 episodes without signing in. Sign in to continue watching this playlist.';
+            const loginButton = document.createElement('button');
+            loginButton.type = 'button';
+            loginButton.textContent = 'Sign in with Google';
+            loginButton.addEventListener('click', async event => {
+                event.stopPropagation();
+                loginButton.disabled = true;
+                try {
+                    await signInWithPopup(auth, new GoogleAuthProvider());
+                    const targetEpisode = slide.dramaItems[Number(slide.dataset.loginTargetIndex)]?.episode;
+                    try {
+                        activeDramaAds = await loadActiveDramaAds();
+                    } catch (error) {
+                        activeDramaAds = [];
+                        console.error('Unable to load Flicks Drama ads after sign-in:', error);
+                    }
+                    document.querySelectorAll('.drama-playlist-slide').forEach(playlistSlide => {
+                        const currentIndex = rebuildDramaItems(playlistSlide, currentDramaItem(playlistSlide));
+                        if (currentIndex >= 0) {
+                            playlistSlide.dataset.episodeIndex = String(currentIndex);
+                            playlistSlide.querySelector('.drama-slide-video').dataset.episodeIndex = String(currentIndex);
+                        }
+                    });
+                    const targetIndex = slide.dramaItems.findIndex(item =>
+                        item.kind === 'episode' && item.episode.id === targetEpisode?.id
+                    );
+                    if (targetIndex < 0) throw new Error('The requested episode is no longer available.');
+                    loginGate.hidden = true;
+                    delete slide.dataset.loginTargetIndex;
+                    setDramaEpisode(slide, targetIndex, 1);
+                } catch (error) {
+                    console.error('Unable to sign in to continue Flicks Drama:', error);
+                    await window.viyouAlert('Sign in was not completed. Please try again to watch more episodes.');
+                } finally {
+                    loginButton.disabled = false;
+                }
+            });
+            const cancelLoginButton = document.createElement('button');
+            cancelLoginButton.type = 'button';
+            cancelLoginButton.textContent = 'Not now';
+            cancelLoginButton.style.background = '#444';
+            cancelLoginButton.addEventListener('click', event => {
+                event.stopPropagation();
+                loginGate.hidden = true;
+                delete slide.dataset.loginTargetIndex;
+                if (slide === activeDramaSlide) video.play().catch(() => {});
+            });
+            loginGate.append(loginMessage, loginButton, cancelLoginButton);
+            slide.appendChild(loginGate);
+
+            const actions = document.createElement('div');
+            actions.className = 'drama-slide-actions';
+            const actionButtons = [
+                { className: 'drama-like-button', icon: 'heart', label: 'Like episode', countClass: 'drama-like-count', count: Array.isArray(episodes[0].likes) ? episodes[0].likes.length : 0, onClick: () => window.toggleDramaEpisodeLike(slide) },
+                { className: 'drama-comment-button', icon: 'message-circle', label: 'Episode comments', countClass: 'drama-comment-count', count: episodes[0].commentsCount || 0, onClick: () => window.openDramaComments(slide) },
+                { className: 'drama-save-button', icon: 'bookmark', label: 'Save playlist', count: null, onClick: () => window.toggleDramaPlaylistSave(slide) },
+                { className: 'drama-report-button', icon: 'flag', label: 'Report episode', count: null, onClick: () => window.openDramaReport(slide) }
+            ];
+            actionButtons.forEach(({ className, icon, label, countClass, count, onClick }) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'drama-slide-action';
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = className;
+                button.setAttribute('aria-label', label);
+                button.title = label;
+                const iconElement = document.createElement('i');
+                iconElement.setAttribute('data-lucide', icon);
+                button.appendChild(iconElement);
+                button.addEventListener('click', event => {
+                    event.stopPropagation();
+                    onClick();
+                });
+                wrapper.appendChild(button);
+                if (countClass) {
+                    const countElement = document.createElement('span');
+                    countElement.className = countClass;
+                    countElement.textContent = String(count);
+                    wrapper.appendChild(countElement);
+                }
+                actions.appendChild(wrapper);
+            });
+            slide.appendChild(actions);
+
+            video.addEventListener('timeupdate', () => {
+                if (video.dataset.transitioning || video.dataset.episodeIndex !== slide.dataset.episodeIndex) return;
+                recordDramaEpisodeView(slide, video);
+                updateDramaAdPlayback(slide, video);
+            });
+            video.addEventListener('ended', () => {
+                if (video.dataset.transitioning || video.dataset.episodeIndex !== slide.dataset.episodeIndex) return;
+                if (currentDramaItem(slide)?.kind === 'ad') changeDramaEpisode(slide, 1, true);
+            });
+            updateDramaEpisodeActions(slide);
+            if (window.lucide) window.lucide.createIcons({ root: actions });
+            if (playlist.authorUid && !playlist.authorPhoto) {
+                if (!dramaAuthorCache.has(playlist.authorUid)) {
+                    dramaAuthorCache.set(playlist.authorUid, getDoc(doc(db, 'users', playlist.authorUid)).then(snapshot => snapshot.exists() ? snapshot.data() : null));
+                }
+                dramaAuthorCache.get(playlist.authorUid).then(profile => {
+                    if (!profile || !slide.isConnected) return;
+                    authorPhoto.src = profile.photoURL || 'logo.png';
+                    authorName.textContent = `@${profile.username || profile.name || playlist.authorName || 'User'}`;
+                    playlist.authorPhoto = profile.photoURL || '';
+                    playlist.authorName = profile.username || profile.name || playlist.authorName || 'User';
+                }).catch(error => console.warn('Unable to load Flicks Drama creator profile:', error.message));
+            }
+            if (auth.currentUser) {
+                getDoc(doc(db, 'users', auth.currentUser.uid, 'savedDramaPlaylists', playlist.id)).then(snapshot => {
+                    if (!snapshot.exists() || !slide.isConnected) return;
+                    slide.dataset.saved = 'true';
+                    const saveIcon = slide.querySelector('.drama-save-button svg, .drama-save-button i');
+                    if (saveIcon) saveIcon.classList.add('lucide-fill');
+                    const saveButton = slide.querySelector('.drama-save-button');
+                    if (saveButton) saveButton.setAttribute('aria-label', 'Remove saved playlist');
+                }).catch(error => console.warn('Unable to load saved Flicks Drama playlists:', error.message));
+            }
+            setupDramaSlideGestures(slide);
+            return slide;
+        }
+
+        async function loadDramaPlaylists(preferredPlaylistId = null) {
+            if (dramaPlaylistsLoadPromise) return dramaPlaylistsLoadPromise;
+            dramaPlaylistsLoadPromise = (async () => {
+                await dramaAuthStateReady;
+                dramaPlaylistFeed.innerHTML = '<div class="drama-feed-message">Loading Flicks-Drama...</div>';
+                dramaPlaylistStatus.hidden = true;
+                let communityLoadError = null;
+                let dramaAdLoadError = null;
+                const playlistMap = new Map();
+                activeDramaAds = [];
+                try {
+                    activeDramaAds = await loadActiveDramaAds();
+                } catch (error) {
+                    dramaAdLoadError = error;
+                    console.error('Error loading Flicks Drama advertisements:', error);
+                }
+                try {
+                    const [typedPlaylists, categorizedPlaylists] = await Promise.all([
+                        getDocs(auth.currentUser
+                            ? query(collection(db, 'playlists'), where('type', '==', 'flicks-drama'))
+                            : query(collection(db, 'playlists'), where('type', '==', 'flicks-drama'), where('visibility', '==', 'public'), where('status', '==', 'published'))),
+                        getDocs(auth.currentUser
+                            ? query(collection(db, 'playlists'), where('category', '==', 'Flicks Drama'))
+                            : query(collection(db, 'playlists'), where('category', '==', 'Flicks Drama'), where('visibility', '==', 'public'), where('status', '==', 'published')))
+                    ]);
+                    [typedPlaylists, categorizedPlaylists].forEach(snapshot => {
+                        snapshot.forEach(playlistDoc => playlistMap.set(playlistDoc.id, { id: playlistDoc.id, ...playlistDoc.data() }));
+                    });
+                } catch (error) {
+                    communityLoadError = error;
+                    console.error('Error loading published Flicks-Drama playlists:', error);
+                }
+                let playlists = [...demoDramaPlaylists, ...Array.from(playlistMap.values()).filter(playlist => {
+                    const isPublished = !playlist.status || playlist.status === 'published';
+                    const isPublic = playlist.visibility !== 'private' && playlist.visibility !== 'unlisted';
+                    const isOwnPlaylist = auth.currentUser && auth.currentUser.uid === playlist.authorUid;
+                    return isPublished && (isPublic || (isOwnPlaylist && playlist.id === preferredPlaylistId));
+                }).filter(playlist => !demoDramaPlaylists.some(demo => demo.id === playlist.id))];
+                if (preferredPlaylistId) {
+                    playlists.sort((a, b) => Number(b.id === preferredPlaylistId) - Number(a.id === preferredPlaylistId));
+                }
+
+                const playlistSlides = [];
+                const episodesByPlaylist = await Promise.all(playlists.map(async playlist => {
+                    if (playlist.episodes) return { playlist, episodes: playlist.episodes };
+                    try {
+                        const episodesSnapshot = await getDocs(collection(db, 'playlists', playlist.id, 'episodes'));
+                        const episodes = episodesSnapshot.docs
+                            .map(episodeDoc => ({ id: episodeDoc.id, ...episodeDoc.data() }))
+                            .sort((a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0));
+                        return { playlist, episodes };
+                    } catch (error) {
+                        communityLoadError = communityLoadError || error;
+                        console.error(`Error loading episodes for Flicks-Drama playlist ${playlist.id}:`, error);
+                        return { playlist, episodes: [] };
+                    }
+                }));
+                episodesByPlaylist.forEach(({ playlist, episodes }) => {
+                    if (episodes.length) playlistSlides.push(createDramaSlide(playlist, episodes));
+                });
+
+                dramaPlaylistFeed.replaceChildren();
+                if (!playlistSlides.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'drama-feed-message';
+                    empty.textContent = 'No Flicks-Drama playlists are available yet.';
+                    dramaPlaylistFeed.appendChild(empty);
+                    return;
+                }
+                if (communityLoadError) {
+                    dramaPlaylistStatus.textContent = 'Showing demo playlists; community playlists could not be loaded.';
+                    dramaPlaylistStatus.hidden = false;
+                }
+                if (dramaAdLoadError) {
+                    dramaPlaylistStatus.textContent = dramaPlaylistStatus.hidden
+                        ? 'Flicks Drama ads could not be loaded.'
+                        : `${dramaPlaylistStatus.textContent} Flicks Drama ads could not be loaded.`;
+                    dramaPlaylistStatus.hidden = false;
+                }
+                playlistSlides.forEach(slide => dramaPlaylistFeed.appendChild(slide));
+                observeDramaSlides();
+                if (preferredPlaylistId) {
+                    const preferredSlide = playlistSlides.find(slide => slide.dataset.playlistId === preferredPlaylistId);
+                    if (preferredSlide) {
+                        preferredSlide.scrollIntoView({ block: 'start' });
+                        setActiveDramaSlide(preferredSlide);
+                    }
+                } else {
+                    setActiveDramaSlide(playlistSlides[0]);
+                }
+            })();
+            return dramaPlaylistsLoadPromise;
+        }
+
+        window.openDramaPlaylist = function(playlistId) {
+            window.switchFlicksMode('drama', false);
+            dramaPlaylistsLoadPromise = null;
+            return loadDramaPlaylists(playlistId);
+        };
+
+        document.addEventListener('keydown', event => {
+            if (currentFlicksMode !== 'drama' || !activeDramaSlide || event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.key === 'ArrowLeft') changeDramaEpisode(activeDramaSlide, -1);
+            if (event.key === 'ArrowRight') changeDramaEpisode(activeDramaSlide, 1);
+            if (event.key === 'ArrowDown') changeDramaPlaylist(activeDramaSlide, 1);
+            if (event.key === 'ArrowUp') changeDramaPlaylist(activeDramaSlide, -1);
+        }, true);
 
         // Helper function to escape HTML for XSS prevention
         function escapeHTML(str) {
@@ -612,10 +1798,13 @@
         };
 
         window.syncFollowButtons = function(targetUid, isFollowing) {
-            document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
+            document.querySelectorAll('button').forEach(btn => {
+                const inlineHandler = btn.getAttribute('onclick') || '';
+                if (btn.dataset.followUid !== targetUid && !inlineHandler.includes(`window.toggleFollow('${targetUid}')`)) return;
                 btn.classList.toggle('following', isFollowing);
                 btn.innerText = isFollowing ? 'Following' : 'Follow';
                 btn.style.background = isFollowing ? 'rgba(255,255,255,0.2)' : '#ff0050';
+                btn.setAttribute('aria-pressed', String(isFollowing));
             });
         };
         window.addEventListener('storage', (event) => {
@@ -643,18 +1832,7 @@
             }
             localStorage.setItem('viyou-follow-sync', JSON.stringify({ targetUid, isFollowing: !isUnfollowing, at: Date.now() }));
 
-            // 2. स्क्रीन पर मौजूद उस क्रिएटर के सभी Follow बटन्स को अपडेट करें
-            document.querySelectorAll(`button[onclick*="window.toggleFollow('${targetUid}')"]`).forEach(btn => {
-                if (isUnfollowing) {
-                    btn.classList.remove('following');
-                    btn.innerText = 'Follow';
-                    btn.style.background = '#ff0050';
-                } else {
-                    btn.classList.add('following');
-                    btn.innerText = 'Following';
-                    btn.style.background = 'rgba(255,255,255,0.2)';
-                }
-            });
+            window.syncFollowButtons(targetUid, !isUnfollowing);
 
             // 3. बैकग्राउंड में डेटाबेस (Firestore) अपडेट करें
             try {
@@ -822,6 +2000,8 @@
             if (event) event.preventDefault();
             const feedView = document.getElementById('flicks-container');
             const historyView = document.getElementById('view-flicks-history');
+            const dramaView = document.getElementById('view-flicks-drama');
+            const modeTabs = document.querySelector('.flicks-mode-tabs');
             
             // Pause all running videos when navigating away from feed
             document.querySelectorAll('.flick-item video').forEach(v => v.pause());
@@ -834,16 +2014,20 @@
                 }
                 
                 historyView.style.display = 'none';
-                feedView.style.display = ''; 
+                modeTabs.style.display = 'flex';
+                feedView.style.display = currentFlicksMode === 'flicks' ? '' : 'none';
+                dramaView.style.display = currentFlicksMode === 'drama' ? 'flex' : 'none';
                 if (!isPopState) {
                     window.history.pushState({page: 'feed'}, '', window.location.pathname);
                 }
                 
                 // Resume video if we go back to feed
                 const activeVid = document.querySelector('.flick-item video[data-id="'+currentFlickId+'"]');
-                if(activeVid) activeVid.play().catch(e=>{});
+                if (currentFlicksMode === 'flicks' && activeVid) activeVid.play().catch(e=>{});
             } else if (page === 'history') {
                 feedView.style.display = 'none';
+                dramaView.style.display = 'none';
+                modeTabs.style.display = 'none';
                 historyView.style.display = 'block';
                 if (!isPopState) {
                     window.history.pushState({page: 'history'}, '', '?view=history');
@@ -859,6 +2043,7 @@
         });
 
         onAuthStateChanged(auth, async (user) => {
+            resolveDramaAuthState();
             if (user) {
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -872,9 +2057,13 @@
                             const photoChanged = profileData.photoURL !== window.currentUserData?.photoURL;
                             currentUserFollowing = snapshot.data().following || [];
                             window.currentUserData = { ...window.currentUserData, ...profileData };
-                            document.querySelectorAll('button[onclick*="window.toggleFollow("]').forEach(button => {
-                                const match = button.getAttribute('onclick').match(/toggleFollow\('([^']+)'\)/);
-                                if (match) window.syncFollowButtons(match[1], currentUserFollowing.includes(match[1]));
+                            document.querySelectorAll('button[onclick*="window.toggleFollow("], button[data-follow-uid]').forEach(button => {
+                                const match = (button.getAttribute('onclick') || '').match(/toggleFollow\('([^']+)'\)/);
+                                const targetUid = button.dataset.followUid || match?.[1];
+                                if (targetUid) window.syncFollowButtons(targetUid, currentUserFollowing.includes(targetUid));
+                            });
+                            document.querySelectorAll('.drama-follow-button').forEach(button => {
+                                button.hidden = button.dataset.followUid === user.uid;
                             });
                             if (photoChanged) renderFlickComments();
                         }, (error) => console.warn("Following realtime sync unavailable:", error.message));
@@ -886,13 +2075,34 @@
                 currentUserFollowing = [];
                 window.currentUserData = null; // Clear data on logout
             }
-            
+
+            document.querySelectorAll('.drama-follow-button').forEach(button => {
+                const targetUid = button.dataset.followUid;
+                button.hidden = !!user && targetUid === user.uid;
+                window.syncFollowButtons(targetUid, currentUserFollowing.includes(targetUid));
+            });
+
+            document.querySelectorAll('.drama-playlist-slide').forEach(slide => {
+                updateDramaEpisodeActions(slide);
+                slide.dataset.saved = 'false';
+                if (!user || slide.dramaPlaylist.isDemo) return;
+                getDoc(doc(db, 'users', user.uid, 'savedDramaPlaylists', slide.dataset.playlistId)).then(snapshot => {
+                    if (!snapshot.exists() || !slide.isConnected) return;
+                    slide.dataset.saved = 'true';
+                    const saveIcon = slide.querySelector('.drama-save-button svg, .drama-save-button i');
+                    if (saveIcon) saveIcon.classList.add('lucide-fill');
+                    slide.querySelector('.drama-save-button')?.setAttribute('aria-label', 'Remove saved playlist');
+                }).catch(error => console.warn('Unable to load saved Flicks Drama playlists:', error.message));
+            });
+
             const urlParams = new URLSearchParams(window.location.search);
+            const dramaPlaylistId = urlParams.get('dramaPlaylistId');
             if (urlParams.get('view') === 'history') {
                 window.navigateTo('history');
                 loadFlicks(); 
             } else {
                 loadFlicks();
+                if (dramaPlaylistId) window.openDramaPlaylist(dramaPlaylistId);
             }
         });
 
@@ -1344,6 +2554,7 @@
     });
 
     window.openReportModal = function(id) {
+                pendingDramaReport = null;
                 if (!auth.currentUser) { window.viyouAlert("Please login to report!"); return; }
                 document.getElementById('report-blog-id').value = id;
         document.getElementById('report-modal').style.display = 'flex';
@@ -1366,7 +2577,18 @@
                     if (!reason) { window.viyouAlert("Please specify your reason."); btn.disabled = false; btn.innerText = 'Report'; return; }
                 }
         try {
-            await addDoc(collection(db, "reports"), { blogId: id, reporterUid: auth.currentUser.uid, reason: reason, date: new Date().toISOString() });
+            const report = pendingDramaReport
+                ? {
+                    contentType: 'flicks-drama-episode',
+                    playlistId: pendingDramaReport.playlistId,
+                    episodeId: pendingDramaReport.episodeId,
+                    reporterUid: auth.currentUser.uid,
+                    reason,
+                    date: new Date().toISOString()
+                }
+                : { blogId: id, reporterUid: auth.currentUser.uid, reason, date: new Date().toISOString() };
+            await addDoc(collection(db, "reports"), report);
+                    pendingDramaReport = null;
                     window.viyouAlert("Report submitted successfully. We will review it.");
                     document.getElementById('report-modal').style.display = 'none';
                 } catch(err) { console.error(err); window.viyouAlert("Error submitting report."); }

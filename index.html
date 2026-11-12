@@ -75,6 +75,14 @@
         .creator-studio-title { color: #fff; font-size: 1.02rem; font-weight: 800; }
         .creator-studio-description { color: #c4bdd2; font-size: 0.78rem; line-height: 1.35; }
         .creator-studio-arrow { width: 20px; height: 20px; flex: 0 0 20px; color: #d8b4fe; }
+        .search-filter-btn, .search-sort-btn { padding: 6px 11px; color: #bbb; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; cursor: pointer; font: inherit; font-size: 0.82rem; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+        .search-filter-btn.active, .search-sort-btn.active { color: #111; background: #f59e0b; border-color: #f59e0b; font-weight: 700; }
+        .search-page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-page-form { position: relative; display: flex; flex: 1 1 280px; min-width: 180px; max-width: 520px; height: 42px; border: 1px solid #444; border-radius: 22px; background: rgba(255,255,255,0.07); }
+        .search-page-form input { flex: 1; min-width: 0; padding: 0 15px; color: inherit; background: transparent; border: 0; outline: 0; font: inherit; }
+        .search-page-form button { display: flex; align-items: center; justify-content: center; width: 48px; color: #111; background: #f59e0b; border: 0; cursor: pointer; }
+        .search-page-form .search-results { top: calc(100% + 5px); left: 0; right: 0; width: auto; }
+        @media (max-width: 520px) { .search-page-header { gap: 8px; } .search-page-title { display: none; } .search-page-form { flex-basis: 200px; } }
     </style>
     <script>
         window.saveStoryMediaToIndexedDB = function(file) {
@@ -293,6 +301,7 @@
                         <a href="contact-us.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="mail" style="width: 16px;"></i> Contact Us</a>
                         <a href="privacy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="shield" style="width: 16px;"></i> Privacy Policy</a>
                         <a href="terms.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="file-text" style="width: 16px;"></i> Terms of Service</a>
+                        <a href="flicks-drama-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="clapperboard" style="width: 16px;"></i> Flicks Drama Policy</a>
                         <a href="monetization-policy.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="indian-rupee" style="width: 16px;"></i> Monetization Policy</a>
                         <a href="advertise.html" class="theme-option" style="text-decoration: none; color: inherit;"><i data-lucide="megaphone" style="width: 16px;"></i> Advertise with Us</a>
                         <a href="#" class="theme-option" onclick="window.submitFeedback(event)" style="text-decoration: none; color: inherit;"><i data-lucide="message-square" style="width: 16px;"></i> Feedback</a>
@@ -474,14 +483,35 @@
     <!-- SPA Router View: Search -->
     <div id="view-search" class="page-view">
         <div class="container" style="padding-top: 20px; max-width: 800px; margin: 0 auto; text-align: left;">
-            <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                <button class="btn-transparent" style="padding: 6px 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; margin-right: 15px;" onclick="window.navigateTo('home', event)"><i data-lucide="arrow-left"></i> Back</button>
-                <h2 style="margin: 0; color: #f59e0b;">Search Results</h2>
+            <div class="search-page-header">
+                <button class="btn-transparent" style="padding: 6px 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem;" onclick="window.navigateTo('home', event)"><i data-lucide="arrow-left"></i> Back</button>
+                <h2 class="search-page-title" style="margin: 0; color: #f59e0b; white-space: nowrap;">Search Results</h2>
+                <form id="search-page-form" class="search-page-form" role="search">
+                    <input type="search" id="search-page-input" placeholder="Search blogs, videos, flicks..." autocomplete="off" aria-label="Search">
+                    <button type="submit" aria-label="Search"><i data-lucide="search"></i></button>
+                    <div id="search-page-suggestions" class="search-results"></div>
+                </form>
             </div>
             <div class="search-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
                 <button class="search-tab-btn active" data-tab="all" style="background:none; border:none; color:#fff; padding: 5px 10px; cursor: pointer; border-bottom: 2px solid #f59e0b; font-weight: bold; font-size: 1rem; transition: 0.2s;">All</button>
                 <button class="search-tab-btn" data-tab="accounts" style="background:none; border:none; color:#aaa; padding: 5px 10px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s;">Accounts</button>
                 <button class="search-tab-btn" data-tab="content" style="background:none; border:none; color:#aaa; padding: 5px 10px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s;">Content</button>
+            </div>
+            <div id="search-content-filters" style="margin-bottom: 18px;">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <span style="color: #aaa; font-size: 0.85rem; margin-right: 3px;">Type</span>
+                    <button class="search-filter-btn active" data-content-filter="all">All</button>
+                    <button class="search-filter-btn" data-content-filter="blogs">Blogs</button>
+                    <button class="search-filter-btn" data-content-filter="videos">Video</button>
+                    <button class="search-filter-btn" data-content-filter="flicks">Flicks</button>
+                    <button class="search-filter-btn" data-content-filter="flicks-drama">Flicks Drama</button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+                    <span style="color: #aaa; font-size: 0.85rem; margin-right: 3px;">Sort</span>
+                    <button class="search-sort-btn active" data-search-sort="relevance">Relevance</button>
+                    <button class="search-sort-btn" data-search-sort="popular">Most Popular</button>
+                    <button class="search-sort-btn" data-search-sort="recent">Recently Uploaded</button>
+                </div>
             </div>
             <div id="search-full-results-container" style="padding-bottom: 30px;">
                 <div id="search-loading" style="text-align: center; color: #aaa; padding: 20px; display: none;"><i data-lucide="loader" class="fa-spin" style="width: 32px; height: 32px; color: #f59e0b;"></i><p>Searching...</p></div>
@@ -650,9 +680,11 @@
                 </button>
             </div>
 
-            <div class="profile-tabs" style="margin-top: 20px;">                <button id="btn-tab-blogs" class="profile-tab-btn active" onclick="window.switchProfileTab('blogs')">Blogs</button>
+            <div class="profile-tabs" style="margin-top: 20px;">
+                <button id="btn-tab-blogs" class="profile-tab-btn active" onclick="window.switchProfileTab('blogs')">Blogs</button>
                 <button id="btn-tab-videos" class="profile-tab-btn" onclick="window.switchProfileTab('videos')">Videos</button>
                 <button id="btn-tab-flicks" class="profile-tab-btn" onclick="window.switchProfileTab('flicks')">Flicks</button>
+                <button id="btn-tab-flicks-drama" class="profile-tab-btn" onclick="window.switchProfileTab('flicks-drama')">Flicks Drama</button>
                 <button id="btn-tab-drafts" class="profile-tab-btn" onclick="window.switchProfileTab('drafts')" style="display: none;">Drafts</button>
                 <button id="btn-tab-liked" class="profile-tab-btn" onclick="window.switchProfileTab('liked')" style="display: none;"><i data-lucide="heart" class="lucide-fill"></i> Liked</button>
             </div>
@@ -666,6 +698,7 @@
             </div>
             <div id="tab-videos" class="profile-tab-content"><div id="my-videos-list"></div></div>
             <div id="tab-flicks" class="profile-tab-content"><div id="my-flicks-list"></div></div>
+            <div id="tab-flicks-drama" class="profile-tab-content"><div id="my-flicks-drama-list" class="drama-playlists-grid"></div></div>
             <div id="tab-drafts" class="profile-tab-content"><div id="my-drafts-list" class="videos-grid"></div></div>
             <div id="tab-liked" class="profile-tab-content">
                 <div id="my-liked-list" class="videos-grid"></div>
@@ -937,16 +970,20 @@
             </div>
 
             <div id="content-email" class="auth-content" style="display: none;">
-                <input type="email" id="email-input" placeholder="Email" style="width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                <h3 id="email-auth-mode-title" style="margin: 0 0 8px; text-align: center;">Create your account</h3>
+                <p id="email-auth-mode-help" style="margin: 0 0 14px; text-align: center; color: #aaa; font-size: 0.9rem;">Enter your email and create a password to sign up.</p>
+                <input type="email" id="email-input" placeholder="Email address" autocomplete="email" style="width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
                 <div style="position: relative; width: 100%; margin-bottom: 10px;">
-                    <input type="password" id="password-input" placeholder="Password" style="width: 100%; box-sizing: border-box; padding: 10px; padding-right: 40px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                    <input type="password" id="password-input" placeholder="Create password" autocomplete="new-password" style="width: 100%; box-sizing: border-box; padding: 10px; padding-right: 40px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
                     <button type="button" onclick="const pwd = document.getElementById('password-input'); if(pwd.type === 'password') { pwd.type = 'text'; this.innerHTML = '<i data-lucide=\'eye-off\' style=\'width: 18px; height: 18px;\'></i>'; } else { pwd.type = 'password'; this.innerHTML = '<i data-lucide=\'eye\' style=\'width: 18px; height: 18px;\'></i>'; } if(window.lucide) window.lucide.createIcons({root: this});" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #aaa; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; outline: none;">
                         <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
                     </button>
                 </div>
-            <div style="text-align: right; margin-bottom: 10px;"><a href="#" id="forgot-pwd-link" style="color: #f59e0b; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a></div>
-                <button id="email-login-btn" class="btn" style="width: 100%; margin-bottom: 10px;">Login</button>
-            <button id="email-signup-btn" class="btn" style="width: 100%; background-color: #10b981;">Sign Up</button>
+                <div id="forgot-pwd-container" style="display: none; text-align: right; margin-bottom: 10px;"><a href="#" id="forgot-pwd-link" style="color: #f59e0b; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a></div>
+                <button id="email-login-btn" class="btn" style="display: none; width: 100%; margin-bottom: 10px;">Login</button>
+                <button id="email-signup-btn" class="btn" style="width: 100%; background-color: #10b981;">Create Account</button>
+                <button id="already-account-btn" type="button" style="width: 100%; margin-top: 12px; padding: 9px; color: #f59e0b; background: transparent; border: 1px solid #555; border-radius: 6px; cursor: pointer;">Already have an account? Log in</button>
+                <button id="new-account-btn" type="button" style="display: none; width: 100%; margin-top: 12px; padding: 9px; color: #f59e0b; background: transparent; border: 1px solid #555; border-radius: 6px; cursor: pointer;">New here? Create an account</button>
             </div>
         </div>
     </div>
@@ -1068,6 +1105,7 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile, deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { db, auth, storage } from "./firebase-config.js";
+        import { syncProfilePhotoReferences } from "./assets/js/profile-photo-sync.js";
         const getConversationId = (uid1, uid2) => uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
         const provider = new GoogleAuthProvider();
         let currentUserFollowing = [];
@@ -2272,6 +2310,7 @@
             if (event) event.preventDefault();
             
             if ((page === 'profile' || page === 'messages') && !auth.currentUser && !uid) {
+                setEmailAuthMode('signup');
                 document.getElementById('login-modal').style.display = 'flex';
                 return;
             }
@@ -2527,47 +2566,14 @@
                         if (profileIconDiv) {
                             profileIconDiv.innerHTML = `<img src="${dataURL}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #555;">`;
                         }
-                        const allBlogsSnapshot = await getDocs(collection(db, "blogs"));
-                        const updatePromises = [];
-                        allBlogsSnapshot.forEach((blogDoc) => {
-                            const blogData = blogDoc.data();
-                            const updates = {}; let needsUpdate = false;
-                            if (blogData.authorUid === auth.currentUser.uid) {
-                                updates.authorPhoto = dataURL; needsUpdate = true;
-                            }
-                            if (blogData.comments && Array.isArray(blogData.comments)) {
-                                let commentsChanged = false;
-                                const updatedComments = blogData.comments.map(comment => {
-                                    let c = { ...comment }; let cChanged = false;
-                                    if (c.userUid === auth.currentUser.uid) { c.photo = dataURL; cChanged = true; }
-                                    if (c.replies && Array.isArray(c.replies)) {
-                                        const newReplies = c.replies.map(reply => {
-                                            if (reply.userUid === auth.currentUser.uid) { cChanged = true; return { ...reply, photo: dataURL }; }
-                                            return reply;
-                                        });
-                                        if (cChanged) c.replies = newReplies;
-                                    }
-                                    if (cChanged) commentsChanged = true;
-                                    return c;
-                                });
-                                if (commentsChanged) { updates.comments = updatedComments; needsUpdate = true; }
-                            }
-                            if (needsUpdate) updatePromises.push(updateDoc(doc(db, "blogs", blogDoc.id), updates));
-                        });
-                        const allStoriesSnapshot = await getDocs(collection(db, "stories"));
-                        allStoriesSnapshot.forEach((storyDoc) => {
-                            if (storyDoc.data().authorUid === auth.currentUser.uid) {
-                                updatePromises.push(updateDoc(doc(db, "stories", storyDoc.id), { authorPhoto: dataURL }));
-                            }
-                        });
-                        await Promise.all(updatePromises);
+                        await syncProfilePhotoReferences(db, auth.currentUser.uid, dataURL);
                         if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
                         if (window.showToast) window.showToast("Profile photo updated successfully!", "success");
                     } catch(e) {
                         console.error("Error syncing profile photo across content:", e);
                         if (window.showToast) {
                             const message = profilePhotoSaved
-                                ? "Photo saved, but some older posts may still show the previous image. Please retry later."
+                                ? "Photo saved, but some posts, comments, or chat profiles may still show the previous image. Please retry later."
                                 : "Could not save your profile photo. Please try again.";
                             window.showToast(message, "error");
                         }
@@ -2615,6 +2621,7 @@
                 window.renderUserBlogs(viewUid, false);
                 window.renderScheduledPosts(viewUid, false);
                 window.renderPlaylists(viewUid, false);
+                window.renderFlicksDramaPlaylists(viewUid, false);
 
                 if (user) {
                     const followBtn = document.getElementById('follow-btn');
@@ -2658,6 +2665,7 @@
                 window.renderUserBlogs(user.uid, true);
                 window.renderScheduledPosts(user.uid, true);
                 window.renderPlaylists(user.uid, true);
+                window.renderFlicksDramaPlaylists(user.uid, true);
                 window.renderLikedContent(user.uid);
             }
         };
@@ -2722,6 +2730,8 @@
                 if (!snapshot.exists() || window.currentProfileUid !== uid) return;
                 const profileData = snapshot.data();
                 window.currentProfileData = profileData;
+                const profilePhoto = document.getElementById('preview');
+                if (profilePhoto) profilePhoto.src = profileData.photoURL || 'logo.png';
                 const followers = profileData.followers || [];
                 const displayFollowers = profileData.followerCountOverride !== undefined ? Number(profileData.followerCountOverride) : followers.length;
                 const followersCount = document.getElementById('followers-count');
@@ -3193,6 +3203,93 @@
             }
         };
 
+        window.renderFlicksDramaPlaylists = async function(uid, isOwner) {
+            const container = document.getElementById('my-flicks-drama-list');
+            if (!container) return;
+            container.className = 'drama-playlists-grid';
+            container.innerHTML = '<p class="profile-strip-empty">Loading Flicks Drama playlists...</p>';
+
+            try {
+                const constraints = [where('authorUid', '==', uid)];
+                if (!isOwner) {
+                    constraints.push(where('visibility', '==', 'public'), where('status', '==', 'published'));
+                }
+                const snapshot = await getDocs(query(collection(db, 'playlists'), ...constraints));
+                if (window.currentProfileUid !== uid) return;
+
+                const playlists = [];
+                snapshot.forEach(playlistDoc => {
+                    const playlist = { id: playlistDoc.id, ...playlistDoc.data() };
+                    const isDrama = playlist.type === 'flicks-drama' || playlist.category === 'Flicks Drama';
+                    if (!isDrama || (playlist.status && playlist.status !== 'published')) return;
+                    if (!isOwner && (playlist.visibility !== 'public' || playlist.status !== 'published')) return;
+                    playlists.push(playlist);
+                });
+                playlists.sort((a, b) => {
+                    const aDate = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
+                    const bDate = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
+                    return bDate - aDate;
+                });
+
+                if (!playlists.length) {
+                    container.innerHTML = '<p class="profile-strip-empty">No Flicks Drama playlists yet.</p>';
+                    return;
+                }
+
+                const firstEpisodeTitles = await Promise.all(playlists.map(async playlist => {
+                    if (playlist.firstEpisodeTitle) return playlist.firstEpisodeTitle;
+                    if (!playlist.firstEpisodeId) return 'F-D EP.1';
+                    const episodeSnap = await getDoc(doc(db, 'playlists', playlist.id, 'episodes', playlist.firstEpisodeId));
+                    return episodeSnap.exists() ? (episodeSnap.data().title || 'F-D EP.1') : 'F-D EP.1';
+                }));
+                if (window.currentProfileUid !== uid) return;
+
+                playlists.forEach((playlist, index) => {
+                    const card = document.createElement('a');
+                    card.className = 'drama-playlist-card';
+                    card.href = `flicks.html?dramaPlaylistId=${encodeURIComponent(playlist.id)}`;
+                    card.setAttribute('aria-label', `${playlist.name || 'Flicks Drama playlist'}: ${firstEpisodeTitles[index]}`);
+
+                    const thumbnail = document.createElement('div');
+                    thumbnail.className = 'drama-playlist-thumb';
+                    if (playlist.coverImage) {
+                        const image = document.createElement('img');
+                        image.src = playlist.coverImage;
+                        image.alt = playlist.name || 'Flicks Drama playlist';
+                        image.loading = 'lazy';
+                        image.onerror = () => {
+                            image.remove();
+                            thumbnail.insertAdjacentHTML('afterbegin', '<div class="profile-strip-placeholder"><i data-lucide="clapperboard"></i></div>');
+                            if (window.lucide) window.lucide.createIcons();
+                        };
+                        thumbnail.appendChild(image);
+                    } else {
+                        thumbnail.innerHTML = '<div class="profile-strip-placeholder"><i data-lucide="clapperboard"></i></div>';
+                    }
+
+                    const episodeCount = Number(playlist.episodeCount) || 0;
+                    if (episodeCount) {
+                        const count = document.createElement('span');
+                        count.className = 'drama-playlist-count';
+                        count.textContent = `${episodeCount} episodes`;
+                        thumbnail.appendChild(count);
+                    }
+
+                    const title = document.createElement('p');
+                    title.className = 'drama-playlist-first-title';
+                    title.textContent = firstEpisodeTitles[index];
+                    card.append(thumbnail, title);
+                    container.appendChild(card);
+                });
+                if (window.lucide) window.lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading Flicks Drama playlists:', error);
+                if (window.currentProfileUid === uid) {
+                    container.innerHTML = '<p class="profile-strip-empty">Unable to load Flicks Drama playlists.</p>';
+                }
+            }
+        };
+
         window.pendingPlaylistMedia = null;
 
         window.getPlaylistMediaPayload = function(type, mediaData) {
@@ -3506,139 +3603,318 @@
             }
         };
 
+        let currentSearchFilter = 'all';
+        let currentSearchSort = 'relevance';
+        let currentSearchTab = 'all';
+        let fullSearchRequestId = 0;
+        window.fullSearchResults = { users: [], content: [], term: '' };
+
+        function getSearchItemTimestamp(item) {
+            const value = item.data.date || item.data.createdAt || 0;
+            if (value && typeof value.toMillis === 'function') return value.toMillis();
+            if (value && typeof value.toDate === 'function') return value.toDate().getTime();
+            const timestamp = new Date(value).getTime();
+            return Number.isFinite(timestamp) ? timestamp : 0;
+        }
+
+        function classifySearchContent(data) {
+            if (data.type === 'flicks-drama' || data.category === 'Flicks Drama') return 'flicks-drama';
+            if (data.isFlicker) return 'flicks';
+            if (data.video || data.youtubeUrl) return 'videos';
+            return 'blogs';
+        }
+
+        function getSearchPopularity(item) {
+            if (Number.isFinite(item.popularity)) return item.popularity;
+            const data = item.data;
+            return Number(data.views || data.totalViews) || 0;
+        }
+
+        function getSearchLikes(item) {
+            if (Number.isFinite(item.popularLikes)) return item.popularLikes;
+            const likes = item.data.likes;
+            return Array.isArray(likes) ? likes.length : Number(likes) || 0;
+        }
+
+        async function loadDramaSearchPopularity() {
+            const dramaItems = window.fullSearchResults.content.filter(item => item.kind === 'flicks-drama' && !Number.isFinite(item.popularity));
+            await Promise.all(dramaItems.map(async item => {
+                const episodesSnapshot = await getDocs(collection(db, 'playlists', item.id, 'episodes'));
+                let views = 0;
+                let likes = 0;
+                episodesSnapshot.forEach(episodeDoc => {
+                    const episode = episodeDoc.data();
+                    views += Number(episode.views) || 0;
+                    likes += Array.isArray(episode.likes) ? episode.likes.length : 0;
+                });
+                item.popularity = views;
+                item.popularLikes = likes;
+            }));
+        }
+
+        function highlightSearchText(element, value, term) {
+            const text = String(value || '');
+            const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            if (!escapedTerm) {
+                element.textContent = text;
+                return;
+            }
+            const matcher = new RegExp(`(${escapedTerm})`, 'ig');
+            let lastIndex = 0;
+            let match;
+            while ((match = matcher.exec(text)) !== null) {
+                element.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                const highlighted = document.createElement('span');
+                highlighted.style.color = '#f59e0b';
+                highlighted.textContent = match[0];
+                element.appendChild(highlighted);
+                lastIndex = matcher.lastIndex;
+            }
+            element.appendChild(document.createTextNode(text.slice(lastIndex)));
+        }
+
+        function renderFullSearchResults() {
+            const resultsContainer = document.getElementById('search-full-results-container');
+            if (!resultsContainer) return;
+            const { users, content, term } = window.fullSearchResults;
+            const now = Date.now();
+            const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+            let visibleContent = content.filter(item => currentSearchFilter === 'all' || classifySearchContent(item.data) === currentSearchFilter);
+
+            if (currentSearchSort === 'popular') {
+                visibleContent.sort((a, b) => getSearchPopularity(b) - getSearchPopularity(a) || getSearchLikes(b) - getSearchLikes(a) || getSearchItemTimestamp(b) - getSearchItemTimestamp(a));
+            } else if (currentSearchSort === 'recent') {
+                visibleContent.sort((a, b) => {
+                    const aTime = getSearchItemTimestamp(a);
+                    const bTime = getSearchItemTimestamp(b);
+                    const aRecent = aTime >= sevenDaysAgo && aTime <= now;
+                    const bRecent = bTime >= sevenDaysAgo && bTime <= now;
+                    return Number(bRecent) - Number(aRecent) || bTime - aTime;
+                });
+            }
+
+            resultsContainer.replaceChildren();
+            const usersSection = document.createElement('div');
+            usersSection.className = 'results-section-users';
+            if (users.length) {
+                const heading = document.createElement('h3');
+                heading.textContent = 'Accounts';
+                heading.style.cssText = 'color:#87ceeb; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;';
+                usersSection.appendChild(heading);
+                users.forEach(user => {
+                    const row = document.createElement('div');
+                    row.className = 'search-full-item';
+                    row.onclick = event => window.navigateTo('profile', event, user.id);
+                    const avatar = document.createElement('img');
+                    avatar.src = user.data.photoURL || 'logo.png';
+                    const info = document.createElement('div');
+                    info.className = 'search-full-item-info';
+                    const name = document.createElement('h4');
+                    highlightSearchText(name, user.data.name || 'User', term);
+                    const username = document.createElement('p');
+                    username.textContent = `@${user.data.username || ''}`;
+                    info.append(name, username);
+                    row.append(avatar, info);
+                    usersSection.appendChild(row);
+                });
+            } else {
+                usersSection.style.display = 'none';
+            }
+            resultsContainer.appendChild(usersSection);
+
+            const contentSection = document.createElement('div');
+            contentSection.className = 'results-section-content';
+            if (visibleContent.length) {
+                const heading = document.createElement('h3');
+                heading.textContent = 'Content';
+                heading.style.cssText = 'color:#87ceeb; margin-top:20px; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;';
+                contentSection.appendChild(heading);
+                visibleContent.forEach(item => {
+                    const data = item.data;
+                    const row = document.createElement('div');
+                    row.className = 'search-full-item';
+                    row.onclick = event => {
+                        if (item.kind === 'flicks-drama') {
+                            window.location.href = `flicks.html?dramaPlaylistId=${encodeURIComponent(item.id)}`;
+                        } else if (data.isFlicker) {
+                            window.location.href = `flicks.html?id=${encodeURIComponent(item.id)}`;
+                        } else if (data.video || data.youtubeUrl) {
+                            window.navigateTo('watch', event, item.id);
+                        } else {
+                            window.location.href = `index.html?blogId=${encodeURIComponent(item.id)}`;
+                        }
+                    };
+                    const image = document.createElement('img');
+                    image.className = 'content-thumb';
+                    let thumbnail = data.coverImage || data.thumbnail || data.image || 'logo.png';
+                    if (data.youtubeUrl) {
+                        const match = data.youtubeUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                        if (match) thumbnail = `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg`;
+                    }
+                    image.src = thumbnail;
+                    const info = document.createElement('div');
+                    info.className = 'search-full-item-info';
+                    const title = document.createElement('h4');
+                    highlightSearchText(title, data.title || data.name || 'Untitled', term);
+                    const typeLabel = document.createElement('span');
+                    typeLabel.textContent = item.kind === 'flicks-drama' ? 'Flicks Drama' : item.kind === 'flicks' ? 'Flicks' : item.kind === 'videos' ? 'Video' : 'Blog';
+                    typeLabel.style.cssText = 'font-size:.68rem; background:#353535; padding:2px 6px; border-radius:10px; vertical-align:middle; margin-left:6px; color:#ddd;';
+                    title.appendChild(typeLabel);
+                    if (item.keywordMatch) {
+                        const keywordBadge = document.createElement('span');
+                        keywordBadge.textContent = 'Tag Match';
+                        keywordBadge.style.cssText = 'font-size:.68rem; background:#6366f1; padding:2px 6px; border-radius:10px; vertical-align:middle; margin-left:5px; color:#fff;';
+                        title.appendChild(keywordBadge);
+                    }
+                    const meta = document.createElement('p');
+                    const timestamp = getSearchItemTimestamp(item);
+                    const dateText = timestamp ? new Date(timestamp).toLocaleDateString() : '';
+                    const author = data.author || data.authorName || '';
+                    const displayedViews = Number.isFinite(item.popularity) ? item.popularity : Number(data.views || data.totalViews) || 0;
+                    meta.textContent = `${author ? `by @${author} • ` : ''}${dateText}${currentSearchSort === 'popular' ? ` • ${displayedViews.toLocaleString()} views` : ''}`;
+                    info.append(title, meta);
+                    row.append(image, info);
+                    contentSection.appendChild(row);
+                });
+            } else {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'text-align:center; padding:30px; color:#aaa;';
+                empty.textContent = content.length ? 'No content matches this filter.' : `No results found for "${term}".`;
+                contentSection.appendChild(empty);
+            }
+            resultsContainer.appendChild(contentSection);
+
+            usersSection.style.display = currentSearchTab === 'all' || currentSearchTab === 'accounts' ? '' : 'none';
+            contentSection.style.display = currentSearchTab === 'all' || currentSearchTab === 'content' ? '' : 'none';
+            document.getElementById('search-content-filters').style.display = currentSearchTab === 'accounts' ? 'none' : '';
+            if (window.lucide) window.lucide.createIcons();
+        }
+
         window.performFullSearch = async function(searchTerm) {
             const resultsContainer = document.getElementById('search-full-results-container');
             const loadingEl = document.getElementById('search-loading');
-
-            if (!searchTerm) {
+            const term = String(searchTerm || '').trim().toLowerCase();
+            if (!term) {
                 resultsContainer.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Please enter a search term.</div>';
                 return;
             }
 
+            const requestId = ++fullSearchRequestId;
             document.getElementById('user-search').value = searchTerm;
-            
-            resultsContainer.innerHTML = '';
+            document.getElementById('search-page-input').value = searchTerm;
+            currentSearchFilter = 'all';
+            currentSearchSort = 'relevance';
+            currentSearchTab = 'all';
+            document.querySelectorAll('.search-tab-btn').forEach(btn => {
+                const active = btn.dataset.tab === 'all';
+                btn.style.color = active ? '#fff' : '#aaa';
+                btn.style.borderBottom = active ? '2px solid #f59e0b' : 'none';
+            });
+            document.querySelectorAll('.search-filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.contentFilter === 'all'));
+            document.querySelectorAll('.search-sort-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.searchSort === 'relevance'));
+            resultsContainer.replaceChildren();
             loadingEl.style.display = 'block';
             resultsContainer.appendChild(loadingEl);
 
-            const term = searchTerm.toLowerCase();
-            let resultsFound = false;
-
-            const userQuery = query(collection(db, "users"), 
-                where("usernameLower", ">=", term), 
-                where("usernameLower", "<=", term + "\uf8ff"),
+            const userQuery = query(collection(db, 'users'),
+                where('usernameLower', '>=', term),
+                where('usernameLower', '<=', term + '\uf8ff'),
                 limit(10));
-
-            const contentQuery = query(collection(db, "blogs"), 
-                where("titleLower", ">=", term), 
-                where("titleLower", "<=", term + "\uf8ff"),
-                where("status", "==", "published"),
-                limit(20));
-
-            let keywordQuery = null;
-            if (!term.includes(' ')) {
-                keywordQuery = query(collection(db, "blogs"), 
-                    where("keywords", "array-contains", term),
-                    where("status", "==", "published"),
-                    limit(20));
-            }
+            const contentQuery = query(collection(db, 'blogs'),
+                where('titleLower', '>=', term),
+                where('titleLower', '<=', term + '\uf8ff'),
+                where('status', '==', 'published'),
+                limit(40));
+            const keywordQuery = !term.includes(' ')
+                ? query(collection(db, 'blogs'), where('keywords', 'array-contains', term), where('status', '==', 'published'), limit(40))
+                : null;
+            const dramaTypeQuery = query(collection(db, 'playlists'),
+                where('type', '==', 'flicks-drama'),
+                where('visibility', '==', 'public'),
+                where('status', '==', 'published'),
+                limit(60));
+            const dramaCategoryQuery = query(collection(db, 'playlists'),
+                where('category', '==', 'Flicks Drama'),
+                where('visibility', '==', 'public'),
+                where('status', '==', 'published'),
+                limit(60));
 
             try {
-                const [userSnap, contentSnap, keywordSnap] = await Promise.all([
+                const [userSnap, contentSnap, keywordSnap, dramaTypeSnap, dramaCategorySnap] = await Promise.all([
                     getDocs(userQuery),
                     getDocs(contentQuery),
-                    keywordQuery ? getDocs(keywordQuery) : Promise.resolve({ empty: true, forEach: () => {} })
+                    keywordQuery ? getDocs(keywordQuery) : Promise.resolve(null),
+                    getDocs(dramaTypeQuery),
+                    getDocs(dramaCategoryQuery)
                 ]);
+                if (requestId !== fullSearchRequestId) return;
 
-                loadingEl.style.display = 'none';
-                const highlight = (str) => str.replace(new RegExp(`(${term})`, 'gi'), '<span style="color: #f59e0b;">$1</span>');
-
-                if (!userSnap.empty) {
-                    resultsFound = true;
-                    const usersSection = document.createElement('div');
-                    usersSection.className = 'results-section-users';
-                    usersSection.innerHTML = '<h3 style="color: #87ceeb; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Accounts</h3>';
-                    userSnap.forEach(docSnap => {
-                        const u = docSnap.data();
-                        const div = document.createElement('div');
-                        div.className = 'search-full-item';
-                        div.onclick = (e) => window.navigateTo('profile', e, docSnap.id);
-                        div.innerHTML = `
-                            <img src="${u.photoURL || 'logo.png'}">
-                            <div class="search-full-item-info">
-                                <h4>${highlight(u.name || 'User')}</h4>
-                                <p>@${highlight(u.username || '')}</p>
-                            </div>
-                        `;
-                        usersSection.appendChild(div);
+                const users = userSnap.docs.map(docSnap => ({ id: docSnap.id, data: docSnap.data() }));
+                const contentMap = new Map();
+                const addBlog = (docSnap, keywordMatch = false) => {
+                    const data = docSnap.data();
+                    const current = contentMap.get(docSnap.id);
+                    contentMap.set(docSnap.id, {
+                        id: docSnap.id,
+                        data,
+                        kind: classifySearchContent(data),
+                        keywordMatch: keywordMatch || Boolean(current && current.keywordMatch)
                     });
-                    resultsContainer.appendChild(usersSection);
-                }
-
-                if (!contentSnap.empty || (keywordSnap && !keywordSnap.empty)) {
-                    resultsFound = true;
-                    const contentSection = document.createElement('div');
-                    contentSection.className = 'results-section-content';
-                    contentSection.innerHTML = '<h3 style="color: #87ceeb; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Content</h3>';
-                    
-                    const renderedDocs = new Set();
-                    const renderContent = (docSnap, isKeywordMatch) => {
-                        if (renderedDocs.has(docSnap.id)) return;
-                        renderedDocs.add(docSnap.id);
-                        
-                        const blog = docSnap.data();
-                        const div = document.createElement('div');
-                        div.className = 'search-full-item';
-                        
-                        div.onclick = (e) => {
-                            if (blog.isFlicker) { window.location.href = 'flicks.html?id=' + docSnap.id; }
-                            else if (blog.video || blog.youtubeUrl) { window.navigateTo('watch', e, docSnap.id); }
-                            else { window.location.href = 'index.html?blogId=' + docSnap.id; }
-                        };
-
-                        let thumb = blog.thumbnail || blog.image || 'logo.png';
-                        if (blog.youtubeUrl) {
-                            const match = blog.youtubeUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-                            if(match) thumb = `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg`;
-                        }
-
-                        div.innerHTML = `
-                            <img src="${thumb}" class="content-thumb">
-                            <div class="search-full-item-info">
-                                <h4>${highlight(blog.title)} ${isKeywordMatch ? '<span style="font-size:0.7rem; background:#6366f1; padding:2px 6px; border-radius:10px; vertical-align:middle; margin-left:5px;">Tag Match</span>' : ''}</h4>
-                                <p>by @${highlight(blog.author || '')} • ${new Date(blog.date).toLocaleDateString()}</p>
-                            </div>
-                        `;
-                        contentSection.appendChild(div);
-                    };
-
-                    contentSnap.forEach(doc => renderContent(doc, false));
-                    if (keywordSnap) keywordSnap.forEach(doc => renderContent(doc, true));
-
-                    resultsContainer.appendChild(contentSection);
-                }
-
-                if (!resultsFound) {
-                    resultsContainer.innerHTML = `<div style="text-align: center; padding: 40px; color: #aaa;">No results found for "${searchTerm}".</div>`;
-                }
-
-                document.querySelectorAll('.search-tab-btn').forEach(btn => {
-                    btn.style.color = '#aaa';
-                    btn.style.borderBottom = 'none';
+                };
+                contentSnap.forEach(docSnap => addBlog(docSnap));
+                if (keywordSnap) keywordSnap.forEach(docSnap => addBlog(docSnap, true));
+                const dramaMap = new Map();
+                [dramaTypeSnap, dramaCategorySnap].forEach(snapshot => {
+                    snapshot.forEach(docSnap => dramaMap.set(docSnap.id, { id: docSnap.id, data: docSnap.data(), kind: 'flicks-drama' }));
                 });
-                const allBtn = document.querySelector('.search-tab-btn[data-tab="all"]');
-                if(allBtn) {
-                    allBtn.style.color = '#fff';
-                    allBtn.style.borderBottom = '2px solid #f59e0b';
-                }
+                dramaMap.forEach(item => {
+                    const data = item.data;
+                    const searchable = [data.name, data.firstEpisodeTitle, data.description].filter(Boolean).join(' ').toLowerCase();
+                    if (searchable.includes(term)) contentMap.set(item.id, item);
+                });
 
-                if(window.lucide) window.lucide.createIcons();
+                window.fullSearchResults = { users, content: [...contentMap.values()], term };
+                loadingEl.style.display = 'none';
+                renderFullSearchResults();
             } catch (err) {
-                console.error("Error fetching full search:", err);
+                if (requestId !== fullSearchRequestId) return;
+                console.error('Error fetching full search:', err);
                 loadingEl.style.display = 'none';
                 resultsContainer.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px;">Error loading search results.</div>';
             }
         };
+
+        document.querySelectorAll('.search-filter-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                currentSearchFilter = button.dataset.contentFilter;
+                document.querySelectorAll('.search-filter-btn').forEach(btn => btn.classList.toggle('active', btn === button));
+                renderFullSearchResults();
+            });
+        });
+
+        document.querySelectorAll('.search-sort-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const sort = button.dataset.searchSort;
+                if (sort === 'popular') {
+                    const originalText = button.textContent;
+                    button.disabled = true;
+                    button.textContent = 'Loading...';
+                    try {
+                        await loadDramaSearchPopularity();
+                    } catch (error) {
+                        console.error('Error loading Flicks Drama popularity:', error);
+                        showToast('Could not load Flicks Drama popularity. Please try again.', 'error');
+                        return;
+                    } finally {
+                        button.disabled = false;
+                        button.textContent = originalText;
+                    }
+                }
+                currentSearchSort = sort;
+                document.querySelectorAll('.search-sort-btn').forEach(btn => btn.classList.toggle('active', btn === button));
+                renderFullSearchResults();
+            });
+        });
 
         document.querySelectorAll('.search-tab-btn').forEach(button => {
             button.addEventListener('click', () => {
@@ -3649,17 +3925,22 @@
                 button.style.color = '#fff';
                 button.style.borderBottom = '2px solid #f59e0b';
 
-                const tab = button.getAttribute('data-tab');
-                const usersSection = document.querySelector('.results-section-users');
-                const contentSection = document.querySelector('.results-section-content');
-
-                if (usersSection) {
-                    usersSection.style.display = (tab === 'all' || tab === 'accounts') ? 'block' : 'none';
-                }
-                if (contentSection) {
-                    contentSection.style.display = (tab === 'all' || tab === 'content') ? 'block' : 'none';
-                }
+                currentSearchTab = button.getAttribute('data-tab');
+                renderFullSearchResults();
             });
+        });
+
+        document.getElementById('search-page-form').addEventListener('submit', event => {
+            event.preventDefault();
+            const searchTerm = document.getElementById('search-page-input').value.trim();
+            if (!searchTerm) {
+                document.getElementById('search-page-input').focus();
+                return;
+            }
+            document.getElementById('search-results').style.display = 'none';
+            const pageSuggestions = document.getElementById('search-page-suggestions');
+            if (pageSuggestions) pageSuggestions.style.display = 'none';
+            window.navigateTo('search', null, searchTerm);
         });
 
         window.switchProfileTab = function(tabName) {
@@ -5545,10 +5826,35 @@
         // Open Login Modal
             if (loginBtn) {
                 loginBtn.addEventListener('click', () => {
+                    setEmailAuthMode('signup');
                     document.getElementById('login-modal').style.display = 'flex';
                     if(mainMenuDropdown) mainMenuDropdown.classList.remove('show');
                 });
             }
+
+        function setEmailAuthMode(mode) {
+            const isLogin = mode === 'login';
+            const identifierInput = document.getElementById('email-input');
+            const passwordInput = document.getElementById('password-input');
+            document.getElementById('email-auth-mode-title').innerText = isLogin ? 'Log in to your account' : 'Create your account';
+            document.getElementById('email-auth-mode-help').innerText = isLogin
+                ? 'Use your email address or Viyou unique ID and password.'
+                : 'Enter your email and create a password to sign up.';
+            identifierInput.type = isLogin ? 'text' : 'email';
+            identifierInput.placeholder = isLogin ? 'Email address or Viyou unique ID' : 'Email address';
+            identifierInput.autocomplete = isLogin ? 'username' : 'email';
+            passwordInput.placeholder = isLogin ? 'Password' : 'Create password';
+            passwordInput.autocomplete = isLogin ? 'current-password' : 'new-password';
+            document.getElementById('email-login-btn').style.display = isLogin ? 'block' : 'none';
+            document.getElementById('email-signup-btn').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('forgot-pwd-container').style.display = isLogin ? 'block' : 'none';
+            document.getElementById('already-account-btn').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('new-account-btn').style.display = isLogin ? 'block' : 'none';
+            passwordInput.value = '';
+        }
+
+        document.getElementById('already-account-btn').addEventListener('click', () => setEmailAuthMode('login'));
+        document.getElementById('new-account-btn').addEventListener('click', () => setEmailAuthMode('signup'));
 
         // Tab Switching Logic
         const tabs = ['google', 'email'];
@@ -5574,12 +5880,16 @@
                     console.log("User logged in:", result.user);
                     document.getElementById('login-modal').style.display = 'none';
                     
-                    // Automatically save the Google profile data (including picture) to Firestore
-                    await setDoc(doc(db, "users", result.user.uid), {
+                    const userProfileRef = doc(db, "users", result.user.uid);
+                    const existingProfile = await getDoc(userProfileRef);
+                    const profileUpdate = {
                         name: result.user.displayName,
-                        email: result.user.email,
-                        photoURL: result.user.photoURL
-                    }, { merge: true });
+                        email: result.user.email
+                    };
+                    if (!existingProfile.exists() || !existingProfile.data().photoURL) {
+                        profileUpdate.photoURL = result.user.photoURL;
+                    }
+                    await setDoc(userProfileRef, profileUpdate, { merge: true });
                 })
                 .catch(async (error) => {
                     console.error("Login Error:", error);
@@ -5588,31 +5898,49 @@
                 });
         });
 
-        // 2. Email/Password Login & Signup
+        async function resolveEmailLoginIdentifier(identifier) {
+            const value = identifier.trim();
+            if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return value;
+            const normalized = value.toLowerCase();
+            const usernameVariants = [...new Set([
+                normalized,
+                normalized.startsWith('@') ? normalized.slice(1) : `@${normalized}`
+            ])];
+            for (const username of usernameVariants) {
+                const userSnapshot = await getDocs(query(
+                    collection(db, 'users'),
+                    where('usernameLower', '==', username),
+                    limit(1)
+                ));
+                if (!userSnapshot.empty) return userSnapshot.docs[0].data().email || null;
+            }
+            return null;
+        }
+
+        // Email signup is the default; existing accounts switch to the separate login form.
         document.getElementById('email-login-btn').addEventListener('click', async () => {
-            const email = document.getElementById('email-input').value.trim();
+            const identifier = document.getElementById('email-input').value.trim();
             const pass = document.getElementById('password-input').value;
 
-            if (!email || !pass) {
-                await window.viyouAlert("Please enter both email and password.");
-                showToast("Please enter both email and password.", 'error');
-                return;
-            }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                await window.viyouAlert("Please enter a valid email address.");
-                showToast("Please enter a valid email address.", 'error');
+            if (!identifier || !pass) {
+                await window.viyouAlert("Please enter your email or Viyou unique ID and password.");
+                showToast("Please enter your login details.", 'error');
                 return;
             }
 
             try {
+                const email = await resolveEmailLoginIdentifier(identifier);
+                if (!email) {
+                    await window.viyouAlert("Invalid email/unique ID or password. Please try again.");
+                    showToast("Invalid login details. Please try again.", 'error');
+                    return;
+                }
                 await signInWithEmailAndPassword(auth, email, pass);
                 document.getElementById('login-modal').style.display = 'none';
             } catch(e) {
-                if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
-                    await window.viyouAlert("Invalid email or password. Please try again.");
-                    showToast("Invalid email or password. Please try again.", 'error');
+                if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential' || e.code === 'auth/invalid-email') {
+                    await window.viyouAlert("Invalid email/unique ID or password. Please try again.");
+                    showToast("Invalid login details. Please try again.", 'error');
                 } else {
                     await window.viyouAlert("Login Error: " + e.message);
                     showToast("Login Error: " + e.message, 'error');
@@ -5646,8 +5974,8 @@
                 document.getElementById('login-modal').style.display = 'none';
             } catch(e) {
                 if (e.code === 'auth/email-already-in-use') {
-                    await window.viyouAlert("This email address is already in use. Please login or use a different email.");
-                    showToast("This email is already in use. Please login or use a different email.", 'error');
+                    await window.viyouAlert("An account already exists for this email. Please click 'Already have an account? Log in' and sign in.");
+                    showToast("Email already registered. Use the existing-account login option.", 'error');
                 } else {
                     await window.viyouAlert("Signup Error: " + e.message);
                     showToast("Signup Error: " + e.message, 'error');
@@ -5659,12 +5987,17 @@
         // Forgot Password
         document.getElementById('forgot-pwd-link').addEventListener('click', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email-input').value;
-            if (!email) {
+            const identifier = document.getElementById('email-input').value.trim();
+            if (!identifier) {
                 await window.viyouAlert("Please enter your email address in the field above to reset your password.");
                 return;
             }
             try {
+                const email = await resolveEmailLoginIdentifier(identifier);
+                if (!email) {
+                    await window.viyouAlert("Please enter a valid account email or Viyou unique ID.");
+                    return;
+                }
                 await sendPasswordResetEmail(auth, email);
                 showToast("Password reset email sent to " + email, 'success');
             } catch(e) {
@@ -7712,7 +8045,10 @@
             if(e) e.preventDefault();
             if (!auth.currentUser) {
                 await window.viyouAlert("Please login to submit feedback!");
-                if(document.getElementById('login-modal')) document.getElementById('login-modal').style.display = 'flex';
+                if(document.getElementById('login-modal')) {
+                    setEmailAuthMode('signup');
+                    document.getElementById('login-modal').style.display = 'flex';
+                }
                 const dropdown = document.getElementById('main-menu-dropdown');
                 if(dropdown) dropdown.classList.remove('show');
                 return;
@@ -8735,6 +9071,8 @@
         const searchForm = document.getElementById('search-form');
         const searchInput = document.getElementById('user-search');
         const searchResults = document.getElementById('search-results');
+        const searchPageInput = document.getElementById('search-page-input');
+        const searchPageSuggestions = document.getElementById('search-page-suggestions');
 
         searchForm.addEventListener('submit', (e) => {
             e.preventDefault(); // Prevent page refresh
@@ -8888,11 +9226,195 @@
             }
         }
 
+        let searchPageSuggestionTimeout = null;
+        const searchPageSuggestionCache = new Map();
+        let searchPageSuggestionRequestId = 0;
+
+        function appendSearchPageSuggestionText(element, value, term) {
+            const text = String(value || '');
+            const index = text.toLowerCase().indexOf(term.toLowerCase());
+            if (index < 0 || !term) {
+                element.textContent = text;
+                return;
+            }
+            element.appendChild(document.createTextNode(text.slice(0, index)));
+            const match = document.createElement('span');
+            match.style.color = 'gold';
+            match.textContent = text.slice(index, index + term.length);
+            element.appendChild(match);
+            element.appendChild(document.createTextNode(text.slice(index + term.length)));
+        }
+
+        function renderSearchPageSuggestions(results, term) {
+            searchPageSuggestions.replaceChildren();
+            if (!results.users.length && !results.content.length) {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'padding:10px; color:#aaa; text-align:center;';
+                empty.textContent = `No suggestions for "${term}"`;
+                searchPageSuggestions.appendChild(empty);
+                searchPageSuggestions.style.display = 'block';
+                return;
+            }
+
+            results.users.forEach(user => {
+                const row = document.createElement('div');
+                row.className = 'search-result-item';
+                row.onclick = () => {
+                    searchPageSuggestions.style.display = 'none';
+                    window.navigateTo('profile', null, user.id);
+                };
+                const avatar = document.createElement('img');
+                avatar.src = user.data.photoURL && user.data.photoURL !== 'null' ? user.data.photoURL : 'logo.png';
+                avatar.alt = '';
+                avatar.style.cssText = 'width:30px; height:30px; border-radius:50%; object-fit:cover;';
+                const details = document.createElement('div');
+                const name = document.createElement('div');
+                name.style.cssText = 'font-weight:bold; color:white;';
+                appendSearchPageSuggestionText(name, user.data.name || 'User', term);
+                const username = document.createElement('div');
+                username.style.cssText = 'font-size:.8rem; color:#aaa;';
+                username.textContent = `@${user.data.username || ''}`;
+                details.append(name, username);
+                row.append(avatar, details);
+                searchPageSuggestions.appendChild(row);
+            });
+
+            if (results.users.length && results.content.length) {
+                const divider = document.createElement('hr');
+                divider.style.cssText = 'border-color:#444; margin:5px 0;';
+                searchPageSuggestions.appendChild(divider);
+            }
+            results.content.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'search-result-item';
+                row.onclick = event => {
+                    searchPageSuggestions.style.display = 'none';
+                    if (item.kind === 'flicks-drama') {
+                        window.location.href = `flicks.html?dramaPlaylistId=${encodeURIComponent(item.id)}`;
+                    } else if (item.kind === 'flicks') {
+                        window.location.href = `flicks.html?id=${encodeURIComponent(item.id)}`;
+                    } else if (item.kind === 'video') {
+                        window.navigateTo('watch', event, item.id);
+                    } else {
+                        window.navigateTo('search', null, item.data.title || term);
+                    }
+                };
+                const icon = document.createElement('i');
+                icon.setAttribute('data-lucide', item.kind === 'flicks-drama' ? 'clapperboard' : item.kind === 'flicks' ? 'zap' : item.kind === 'video' ? 'video' : 'newspaper');
+                icon.style.cssText = 'color:#ccc; width:24px; height:24px; margin-right:5px;';
+                const details = document.createElement('div');
+                const title = document.createElement('div');
+                title.style.cssText = 'font-weight:bold; color:white;';
+                appendSearchPageSuggestionText(title, item.data.title || item.data.firstEpisodeTitle || item.data.name || 'Untitled', term);
+                const subtitle = document.createElement('div');
+                subtitle.style.cssText = 'font-size:.8rem; color:#aaa;';
+                subtitle.textContent = item.kind === 'flicks-drama' ? 'Flicks Drama playlist' : `by @${item.data.author || item.data.authorName || 'creator'}`;
+                details.append(title, subtitle);
+                row.append(icon, details);
+                searchPageSuggestions.appendChild(row);
+            });
+            if (window.lucide) window.lucide.createIcons({ root: searchPageSuggestions });
+            searchPageSuggestions.style.display = 'block';
+        }
+
+        if (searchPageInput && searchPageSuggestions) {
+            searchPageInput.addEventListener('input', () => {
+                const term = searchPageInput.value.trim().toLowerCase();
+                clearTimeout(searchPageSuggestionTimeout);
+                const requestId = ++searchPageSuggestionRequestId;
+                if (term.length < 2) {
+                    searchPageSuggestions.style.display = 'none';
+                    return;
+                }
+
+                searchPageSuggestionTimeout = setTimeout(async () => {
+                    if (searchPageSuggestionCache.has(term)) {
+                        renderSearchPageSuggestions(searchPageSuggestionCache.get(term), term);
+                        return;
+                    }
+                    searchPageSuggestions.replaceChildren();
+                    const loading = document.createElement('div');
+                    loading.style.cssText = 'padding:10px; color:#aaa; text-align:center;';
+                    loading.textContent = 'Searching...';
+                    searchPageSuggestions.appendChild(loading);
+                    searchPageSuggestions.style.display = 'block';
+
+                    try {
+                        const userQuery = query(collection(db, 'users'),
+                            where('usernameLower', '>=', term),
+                            where('usernameLower', '<=', term + '\uf8ff'),
+                            limit(3));
+                        const titleQuery = query(collection(db, 'blogs'),
+                            where('titleLower', '>=', term),
+                            where('titleLower', '<=', term + '\uf8ff'),
+                            where('status', '==', 'published'),
+                            limit(5));
+                        const keywordQuery = !term.includes(' ')
+                            ? query(collection(db, 'blogs'), where('keywords', 'array-contains', term), where('status', '==', 'published'), limit(5))
+                            : null;
+                        const dramaTypeQuery = query(collection(db, 'playlists'),
+                            where('type', '==', 'flicks-drama'),
+                            where('visibility', '==', 'public'),
+                            where('status', '==', 'published'),
+                            limit(5));
+                        const dramaCategoryQuery = query(collection(db, 'playlists'),
+                            where('category', '==', 'Flicks Drama'),
+                            where('visibility', '==', 'public'),
+                            where('status', '==', 'published'),
+                            limit(5));
+                        const [userSnap, titleSnap, keywordSnap, dramaTypeSnap, dramaCategorySnap] = await Promise.all([
+                            getDocs(userQuery),
+                            getDocs(titleQuery),
+                            keywordQuery ? getDocs(keywordQuery) : Promise.resolve(null),
+                            getDocs(dramaTypeQuery),
+                            getDocs(dramaCategoryQuery)
+                        ]);
+                        if (requestId !== searchPageSuggestionRequestId || searchPageInput.value.trim().toLowerCase() !== term) return;
+
+                        const users = userSnap.docs.map(userDoc => ({ id: userDoc.id, data: userDoc.data() }));
+                        const content = new Map();
+                        const addBlog = blogDoc => {
+                            const data = blogDoc.data();
+                            const kind = data.isFlicker ? 'flicks' : (data.video || data.youtubeUrl) ? 'video' : 'blog';
+                            content.set(`blog:${blogDoc.id}`, { id: blogDoc.id, data, kind });
+                        };
+                        titleSnap.forEach(addBlog);
+                        if (keywordSnap) keywordSnap.forEach(addBlog);
+                        [dramaTypeSnap, dramaCategorySnap].forEach(snapshot => {
+                            snapshot.forEach(playlistDoc => {
+                                const data = playlistDoc.data();
+                                const searchableText = [data.name, data.firstEpisodeTitle, data.description].filter(Boolean).join(' ').toLowerCase();
+                                if (searchableText.includes(term)) {
+                                    content.set(`drama:${playlistDoc.id}`, { id: playlistDoc.id, data, kind: 'flicks-drama' });
+                                }
+                            });
+                        });
+                        const results = { users, content: [...content.values()].slice(0, 7) };
+                        searchPageSuggestionCache.set(term, results);
+                        renderSearchPageSuggestions(results, term);
+                    } catch (error) {
+                        console.error('Search page suggestions failed:', error);
+                        if (requestId === searchPageSuggestionRequestId) {
+                            searchPageSuggestions.replaceChildren();
+                            const errorMessage = document.createElement('div');
+                            errorMessage.style.cssText = 'padding:10px; color:#ff6b6b; text-align:center;';
+                            errorMessage.textContent = 'Error performing search';
+                            searchPageSuggestions.appendChild(errorMessage);
+                            searchPageSuggestions.style.display = 'block';
+                        }
+                    }
+                }, 350);
+            });
+        }
+
         // Hide search results when clicking outside
         document.addEventListener('click', function(event) {
             const isClickInside = searchResults.contains(event.target) || searchInput.contains(event.target);
             if (!isClickInside) {
                 searchResults.style.display = 'none';
+            }
+            if (searchPageSuggestions && !searchPageSuggestions.contains(event.target) && !searchPageInput.contains(event.target)) {
+                searchPageSuggestions.style.display = 'none';
             }
         });
 
@@ -9045,6 +9567,7 @@
             if (!auth.currentUser) {
                 e.preventDefault();
                 showToast("Please login to access this feature.", "info");
+                setEmailAuthMode('signup');
                 document.getElementById('login-modal').style.display = 'flex';
             }
         };
