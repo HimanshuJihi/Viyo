@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advertise with Us - Viyou</title>
+    <title>Advertise with Us - Viyou.in</title>
     <link rel="icon" href="logo.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -57,6 +57,23 @@
                 <div class="price">₹<span class="dyn-blogad">...</span></div>
                 <p>High-impact, unskippable format</p>
             </div>
+
+            <h3>Flicks Drama Video Ads</h3>
+            <p>Run vertical video ads inside Flicks Drama playlists, after every 3 episodes. Choose when viewers can skip your ad. Maximum video duration: 3 minutes.</p>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Skip after 5 seconds</h3>
+                    <div class="price">₹<span class="dyn-drama-skip5">300</span></div>
+                    <p>Per 1,000 impressions</p>
+                </div>
+                <div class="pricing-card">
+                    <h3>Skip after 10 seconds</h3>
+                    <div class="price">₹<span class="dyn-drama-skip10">400</span></div>
+                    <p>Per 1,000 impressions</p>
+                </div>
+            </div>
+            <p>To create a campaign, sign in and open <a href="studio.html" style="color: #a5b4fc;">Creator Studio</a> &gt; Promote Product &gt; Flicks Drama Ad.</p>
+
             <h3>In-Feed Product Ads</h3>
             <p>Showcase your product banners and links directly in the user's home feed and Flicks feed. These ads blend seamlessly with organic content.</p>
 
@@ -111,6 +128,21 @@
                 <div class="price">₹<span class="dyn-blogad">...</span></div>
                 <p>उच्च-प्रभाव, जिसे स्किप नहीं किया जा सकता</p>
             </div>
+            <h3>Flicks Drama वीडियो विज्ञापन</h3>
+            <p>Flicks Drama playlist में हर 3 episodes के बाद vertical video विज्ञापन दिखाया जाता है। आप चुन सकते हैं कि दर्शक विज्ञापन को कब skip कर सकें। वीडियो की अधिकतम अवधि 3 मिनट है।</p>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>5 सेकंड बाद skip</h3>
+                    <div class="price">₹<span class="dyn-drama-skip5">300</span></div>
+                    <p>प्रति 1,000 इंप्रेशन</p>
+                </div>
+                <div class="pricing-card">
+                    <h3>10 सेकंड बाद skip</h3>
+                    <div class="price">₹<span class="dyn-drama-skip10">400</span></div>
+                    <p>प्रति 1,000 इंप्रेशन</p>
+                </div>
+            </div>
+            <p>विज्ञापन campaign बनाने के लिए sign in करें और <a href="studio.html" style="color: #a5b4fc;">Creator Studio</a> &gt; Promote Product &gt; Flicks Drama Ad खोलें।</p>
             <h3>इन-फ़ीड उत्पाद विज्ञापन (In-Feed Ads)</h3>
             <p>अपने उत्पाद बैनर और लिंक को सीधे उपयोगकर्ता के होम फ़ीड और फ्लिक्स फ़ीड में प्रदर्शित करें। ये विज्ञापन ऑर्गेनिक कंटेंट के साथ सहजता से मिल जाते हैं।</p>
 
@@ -166,12 +198,16 @@
         };
 
         async function loadPricing() {
+            document.querySelectorAll('.dyn-drama-skip5').forEach(el => el.innerText = '300');
+            document.querySelectorAll('.dyn-drama-skip10').forEach(el => el.innerText = '400');
             try {
                 const promoSnap = await getDoc(doc(db, "settings", "promotions"));
                 if (promoSnap.exists()) {
                     const data = promoSnap.data();
                     document.querySelectorAll('.dyn-preroll').forEach(el => el.innerText = data.prerollRate || 100);
                     document.querySelectorAll('.dyn-blogad').forEach(el => el.innerText = data.blogAdRate || 100);
+                    document.querySelectorAll('.dyn-drama-skip5').forEach(el => el.innerText = data.flicksDramaSkip5Rate || 300);
+                    document.querySelectorAll('.dyn-drama-skip10').forEach(el => el.innerText = data.flicksDramaSkip10Rate || 400);
                     if (data.pricing) {
                         document.querySelectorAll('.dyn-base-hours').forEach(el => el.innerText = data.pricing.baseHours || 50);
                         document.querySelectorAll('.dyn-t1').forEach(el => el.innerText = data.pricing.tier1 || 100);

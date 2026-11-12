@@ -2320,6 +2320,16 @@
                 document.body.classList.remove('chat-desktop-mode');
                 if (window.chatUnsubscribeMsg) { window.chatUnsubscribeMsg(); window.chatUnsubscribeMsg = null; }
                 if (window.chatUnsubscribeConv) { window.chatUnsubscribeConv(); window.chatUnsubscribeConv = null; }
+                if (window.chatOlderPageUnsubscribes) {
+                    window.chatOlderPageUnsubscribes.forEach(unsubscribe => unsubscribe());
+                    window.chatOlderPageUnsubscribes = [];
+                }
+            }
+            const keepMessagesList = page === 'messages' || (page === 'chat' && window.matchMedia('(min-width: 769px)').matches);
+            if (!keepMessagesList && window.messagesUnsubscribe) {
+                window.messagesUnsubscribe();
+                window.messagesUnsubscribe = null;
+                window.messagesListenerUid = null;
             }
 
             // Miniplayer / Watch SPA Transition Logic
@@ -3984,9 +3994,9 @@
                         if (blog.thumbnail) { thumbHtml = `<img src="${blog.thumbnail}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`; }
                         else { thumbHtml = `<video src="${blog.video}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="none"></video>`; }
                 } else if (blog.images && blog.images.length > 0) {
-                    thumbHtml = `<img src="${blog.images[0]}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                    thumbHtml = `                    <img src="${blog.images[0]}" loading="lazy" decoding="async" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else if (blog.image && blog.image !== 'logo.png') {
-                        thumbHtml = `<img src="${blog.image}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                        thumbHtml = `<img src="${blog.image}" loading="lazy" decoding="async" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                     } else {
                         thumbHtml = `<div class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" style="display:flex; align-items:center; justify-content:center; background:#222; border: 1px solid #444;"><i data-lucide="newspaper" style="font-size:2rem; color:#555;"></i></div>`;
                     }
@@ -4502,6 +4512,11 @@
             const loadingIndicator = document.getElementById('loading-indicator-msgs');
             const noConversationsMessage = document.getElementById('no-conversations');
             const conversationSearch = document.getElementById('conversation-search-input');
+            const userId = auth.currentUser?.uid;
+            if (!userId) return;
+
+            if (window.messagesUnsubscribe && window.messagesListenerUid === userId) return;
+            if (window.messagesUnsubscribe) window.messagesUnsubscribe();
 
             if (conversationSearch && !conversationSearch.dataset.bound) {
                 conversationSearch.dataset.bound = 'true';
@@ -4521,48 +4536,81 @@
 
             const q = query(
                 collection(db, "conversations"),
-                where("participants", "array-contains", auth.currentUser.uid),
+                where("participants", "array-contains", userId),
                 orderBy("lastMessage.timestamp", "desc")
             );
 
-            onSnapshot(q, (snapshot) => {
+            window.messagesListenerUid = userId;
+            window.messagesUnsubscribe = onSnapshot(q, (snapshot) => {
                 loadingIndicator.style.display = 'none';
                 if (snapshot.empty) { noConversationsMessage.style.display = 'block'; conversationList.innerHTML = ''; return; }
                 noConversationsMessage.style.display = 'none';
-                conversationList.innerHTML = '';
-                
+                const existingItems = new Map(
+                    Array.from(conversationList.children).map(item => [item.dataset.conversationId, item])
+                );
+                const orderedItems = [];
+                const visibleConversationIds = new Set();
+                const searchTerm = conversationSearch?.value.trim().toLowerCase() || '';
+
                 snapshot.forEach((docSnap) => {
                     const conversation = docSnap.data();
                     const conversationId = docSnap.id;
-                    const otherUid = conversation.participants.find(uid => uid !== auth.currentUser.uid);
+                    const otherUid = conversation.participants.find(uid => uid !== userId);
                     if (!otherUid || blockedUsers.includes(otherUid) || !conversation.participantDetails || !conversation.participantDetails[otherUid]) return;
+                    visibleConversationIds.add(conversationId);
 
                     const otherUser = conversation.participantDetails[otherUid];
                     const lastMessage = conversation.lastMessage;
-                    const isUnread = lastMessage && lastMessage.isRead === false && lastMessage.senderUid !== auth.currentUser.uid;
+                    const isUnread = lastMessage && lastMessage.isRead === false && lastMessage.senderUid !== userId;
 
                     let lastMessageText = "No messages yet.";
                     if (lastMessage) {
-                        const senderName = lastMessage.senderUid === auth.currentUser.uid ? "You" : (otherUser.name || 'User').split(' ')[0];
+                        const senderName = lastMessage.senderUid === userId ? "You" : (otherUser.name || 'User').split(' ')[0];
                         lastMessageText = `${senderName}: ${lastMessage.text}`;
                     }
 
-                    const li = document.createElement('li');
-                    li.className = 'conversation-item';
-                    li.style.fontWeight = isUnread ? 'bold' : 'normal';
-                    if (isUnread) li.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
-                    li.onclick = (e) => window.navigateTo('chat', e, otherUid);
+                    let li = existingItems.get(conversationId);
+                    if (!li) {
+                        li = document.createElement('li');
+                        li.className = 'conversation-item';
+                        li.dataset.conversationId = conversationId;
+                        li.onclick = (e) => window.navigateTo('chat', e, otherUid);
+                    }
 
-                    li.innerHTML = `
-                        <img src="${otherUser.photoURL || 'https://via.placeholder.com/50'}" class="profile-pic">
-                        <div class="conversation-info">
-                            <h3>${otherUser.name || 'Unknown User'}</h3>
-                            <p style="color: ${isUnread ? '#fff' : '#ccc'};">${lastMessageText}</p>
-                        </div>
-                        <span class="last-message-time">${lastMessage ? formatChatMessageTime(lastMessage.timestamp) : ''}</span>
-                    `;
-                    conversationList.appendChild(li);
+                    const lastMessageTime = lastMessage ? formatChatMessageTime(lastMessage.timestamp) : '';
+                    const renderKey = JSON.stringify([
+                        otherUser.photoURL,
+                        otherUser.name,
+                        lastMessageText,
+                        lastMessageTime,
+                        isUnread
+                    ]);
+                    if (li.dataset.renderKey !== renderKey) {
+                        li.style.fontWeight = isUnread ? 'bold' : 'normal';
+                        li.style.backgroundColor = isUnread ? 'rgba(99, 102, 241, 0.1)' : '';
+                        li.innerHTML = `
+                            <img src="${otherUser.photoURL || 'https://via.placeholder.com/50'}" class="profile-pic" loading="lazy" decoding="async">
+                            <div class="conversation-info">
+                                <h3>${otherUser.name || 'Unknown User'}</h3>
+                                <p style="color: ${isUnread ? '#fff' : '#ccc'};">${lastMessageText}</p>
+                            </div>
+                            <span class="last-message-time">${lastMessageTime}</span>
+                        `;
+                        li.dataset.renderKey = renderKey;
+                    }
+                    li.style.display = li.textContent.toLowerCase().includes(searchTerm) ? 'flex' : 'none';
+                    orderedItems.push(li);
                 });
+
+                existingItems.forEach((item, conversationId) => {
+                    if (!visibleConversationIds.has(conversationId)) item.remove();
+                });
+                orderedItems.forEach((item, index) => {
+                    if (conversationList.children[index] !== item) {
+                        conversationList.insertBefore(item, conversationList.children[index] || null);
+                    }
+                });
+                noConversationsMessage.style.display = orderedItems.length ? 'none' : 'block';
             }, (error) => {
                 loadingIndicator.style.display = 'none'; conversationList.innerHTML = '';
                 console.error("Error fetching conversations:", error);
@@ -4600,6 +4648,18 @@
         // --- CHAT VIEW LOGIC ---
         window.initChatView = async function(uid) {
             if (!auth.currentUser || !uid) return;
+            ['chatUnsubscribeMsg', 'chatUnsubscribeConv'].forEach(key => {
+                if (window[key]) window[key]();
+                window[key] = null;
+            });
+            if (window.chatOlderPageUnsubscribes) {
+                window.chatOlderPageUnsubscribes.forEach(unsubscribe => unsubscribe());
+                window.chatOlderPageUnsubscribes = [];
+            }
+            if (window.chatTypingTimeout) {
+                clearTimeout(window.chatTypingTimeout);
+                window.chatTypingTimeout = null;
+            }
             window.currentChatPartnerUid = uid;
             window.chatMessagesCache = new Map();
             window.lastMessageDate = null;
@@ -4629,12 +4689,14 @@
                 }
                 document.getElementById('message-input-area').style.display = 'flex';
             } catch(e) { console.error(e); }
+            if (!auth.currentUser || window.currentChatPartnerUid !== uid) return;
 
             window.chatConversationId = getChatConversationId(auth.currentUser.uid, uid);
             
             // Setup Listeners
             const convRef = doc(db, "conversations", window.chatConversationId);
             window.chatUnsubscribeConv = onSnapshot(convRef, (docSnap) => {
+                if (!auth.currentUser || window.currentChatPartnerUid !== uid) return;
                 if (docSnap.exists()) {
                     const convData = docSnap.data();
                     const partnerTypingTimestamp = convData.typingStatus ? convData.typingStatus[uid] : null;
@@ -4653,12 +4715,187 @@
             });
 
             const messagesRef = collection(db, "conversations", window.chatConversationId, "messages");
-            const q = query(messagesRef, orderBy("timestamp", "asc"));
-            
-            window.chatUnsubscribeMsg = onSnapshot(q, (snapshot) => {
+            let latestMessageDoc = null;
+            let oldestMessageDoc = null;
+            let loadingOlderMessages = false;
+            let initialMessages;
+            try {
+                initialMessages = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(50)));
+            } catch (error) {
+                console.error("Error loading recent messages:", error);
+                document.getElementById('chat-messages-container').innerHTML = '<div style="text-align:center; color:#ff6b6b; padding: 40px 20px;">Could not load messages. Please try again.</div>';
+                return;
+            }
+            if (!auth.currentUser || window.currentChatPartnerUid !== uid) return;
+
+            const chatContainer = document.getElementById('chat-messages-container');
+            const initialDocs = [...initialMessages.docs].reverse();
+            latestMessageDoc = initialMessages.docs[0] || null;
+            oldestMessageDoc = initialMessages.docs[initialMessages.docs.length - 1] || null;
+            const initialReadBatch = writeBatch(db);
+            let hasInitialUnread = false;
+            initialDocs.forEach(messageDoc => {
+                const messageData = messageDoc.data();
+                window.chatMessagesCache.set(messageDoc.id, messageData);
+                if (messageData.deletedBy && messageData.deletedBy.includes(auth.currentUser.uid)) return;
+                window.renderChatMessage(messageDoc.id, messageData);
+                if (messageData.senderUid === uid && !messageData.isRead) {
+                    initialReadBatch.update(messageDoc.ref, { isRead: true });
+                    hasInitialUnread = true;
+                }
+            });
+            if (hasInitialUnread) {
+                initialReadBatch.commit().catch(error => console.warn("Failed to mark recent messages as read:", error.message));
+            }
+            if (window.lucide) window.lucide.createIcons({ root: chatContainer });
+
+            const loadingIndicator = document.getElementById('loading-messages');
+            if (loadingIndicator) loadingIndicator.remove();
+            if (initialMessages.size === 50) {
+                const loadOlderButton = document.createElement('button');
+                loadOlderButton.type = 'button';
+                loadOlderButton.textContent = 'Load older messages';
+                loadOlderButton.style.cssText = 'display:block; margin:0 auto 12px; padding:8px 14px; border:1px solid rgba(255,255,255,0.2); border-radius:18px; background:rgba(255,255,255,0.08); color:#ccc; cursor:pointer;';
+                loadOlderButton.onclick = async () => {
+                    if (loadingOlderMessages || !oldestMessageDoc) return;
+                    loadingOlderMessages = true;
+                    loadOlderButton.disabled = true;
+                    loadOlderButton.textContent = 'Loading older messages...';
+                    const previousHeight = chatContainer.scrollHeight;
+                    const previousScrollTop = chatContainer.scrollTop;
+                    try {
+                        const olderMessagesQuery = query(
+                            messagesRef,
+                            orderBy("timestamp", "desc"),
+                            startAfter(oldestMessageDoc),
+                            limit(50)
+                        );
+                        const olderSnapshot = await new Promise((resolve, reject) => {
+                            let receivedInitialSnapshot = false;
+                            const unsubscribe = onSnapshot(olderMessagesQuery, snapshot => {
+                                if (!receivedInitialSnapshot) {
+                                    receivedInitialSnapshot = true;
+                                    if (!auth.currentUser || window.currentChatPartnerUid !== uid) {
+                                        unsubscribe();
+                                        resolve(null);
+                                        return;
+                                    }
+                                    if (snapshot.empty) {
+                                        unsubscribe();
+                                        resolve(snapshot);
+                                        return;
+                                    }
+                                    window.chatOlderPageUnsubscribes = window.chatOlderPageUnsubscribes || [];
+                                    window.chatOlderPageUnsubscribes.push(unsubscribe);
+                                    resolve(snapshot);
+                                    return;
+                                }
+                                if (!auth.currentUser || window.currentChatPartnerUid !== uid) return;
+
+                                snapshot.docChanges().forEach(change => {
+                                    if (change.type === 'added') return;
+                                    const messageData = change.doc.data();
+                                    if (change.type === 'removed' || (messageData.deletedBy && messageData.deletedBy.includes(auth.currentUser.uid))) {
+                                        const messageElement = document.getElementById(`msg-${change.doc.id}`);
+                                        if (messageElement) messageElement.remove();
+                                        window.chatMessagesCache.delete(change.doc.id);
+                                        return;
+                                    }
+
+                                    window.chatMessagesCache.set(change.doc.id, messageData);
+                                    const existingElement = document.getElementById(`msg-${change.doc.id}`);
+                                    if (!existingElement) return;
+                                    const previousLastMessageDate = window.lastMessageDate;
+                                    if (messageData.timestamp) {
+                                        window.lastMessageDate = new Date(messageData.timestamp.toMillis()).toLocaleDateString();
+                                    }
+                                    try {
+                                        existingElement.replaceWith(window.renderChatMessage(change.doc.id, messageData, true));
+                                    } finally {
+                                        window.lastMessageDate = previousLastMessageDate;
+                                    }
+                                });
+                            }, error => {
+                                if (!receivedInitialSnapshot) {
+                                    unsubscribe();
+                                    reject(error);
+                                } else {
+                                    console.error("Older message updates are unavailable:", error);
+                                }
+                            });
+                        });
+                        if (!auth.currentUser || window.currentChatPartnerUid !== uid) return;
+                        if (!olderSnapshot) return;
+                        if (olderSnapshot.empty) {
+                            loadOlderButton.remove();
+                            return;
+                        }
+
+                        oldestMessageDoc = olderSnapshot.docs[olderSnapshot.docs.length - 1];
+                        const olderMessagesContainer = document.createElement('div');
+                        const previousRenderTarget = window.chatMessageRenderTarget;
+                        const previousLastMessageDate = window.lastMessageDate;
+                        window.chatMessageRenderTarget = olderMessagesContainer;
+                        window.lastMessageDate = null;
+                        const olderReadBatch = writeBatch(db);
+                        let hasOlderUnread = false;
+                        try {
+                            [...olderSnapshot.docs].reverse().forEach(messageDoc => {
+                                const messageData = messageDoc.data();
+                                window.chatMessagesCache.set(messageDoc.id, messageData);
+                                if (messageData.deletedBy && messageData.deletedBy.includes(auth.currentUser.uid)) return;
+                                window.renderChatMessage(messageDoc.id, messageData);
+                                if (messageData.senderUid === uid && !messageData.isRead) {
+                                    olderReadBatch.update(messageDoc.ref, { isRead: true });
+                                    hasOlderUnread = true;
+                                }
+                            });
+                        } finally {
+                            window.chatMessageRenderTarget = previousRenderTarget;
+                            window.lastMessageDate = previousLastMessageDate;
+                        }
+
+                        const firstCurrentMessage = chatContainer.querySelector('.message-item');
+                        const firstOlderMessage = olderMessagesContainer.querySelector('.message-item');
+                        if (firstCurrentMessage && firstOlderMessage && firstCurrentMessage.dataset.date === firstOlderMessage.dataset.date) {
+                            const duplicateDateSeparator = [...olderMessagesContainer.querySelectorAll('.message-date-separator')]
+                                .find(separator => separator.dataset.date === firstCurrentMessage.dataset.date);
+                            if (duplicateDateSeparator) duplicateDateSeparator.remove();
+                        }
+
+                        const insertionPoint = loadOlderButton.nextSibling;
+                        while (olderMessagesContainer.firstChild) {
+                            chatContainer.insertBefore(olderMessagesContainer.firstChild, insertionPoint);
+                        }
+                        chatContainer.scrollTop = previousScrollTop + (chatContainer.scrollHeight - previousHeight);
+                        if (hasOlderUnread) {
+                            olderReadBatch.commit().catch(error => console.warn("Failed to mark older messages as read:", error.message));
+                        }
+                        if (olderSnapshot.size < 50) loadOlderButton.remove();
+                        else {
+                            loadOlderButton.disabled = false;
+                            loadOlderButton.textContent = 'Load older messages';
+                        }
+                        if (window.lucide) window.lucide.createIcons({ root: chatContainer });
+                    } catch (error) {
+                        console.error("Error loading older messages:", error);
+                        loadOlderButton.disabled = false;
+                        loadOlderButton.textContent = 'Retry loading older messages';
+                    } finally {
+                        loadingOlderMessages = false;
+                    }
+                };
+                chatContainer.prepend(loadOlderButton);
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const liveMessagesQuery = latestMessageDoc
+                ? query(messagesRef, orderBy("timestamp", "asc"), startAfter(latestMessageDoc))
+                : query(messagesRef, orderBy("timestamp", "asc"));
+            window.chatUnsubscribeMsg = onSnapshot(liveMessagesQuery, (snapshot) => {
+                if (!auth.currentUser || window.currentChatPartnerUid !== uid) return;
                 const loadingIndicator = document.getElementById('loading-messages');
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
-                const chatContainer = document.getElementById('chat-messages-container');
                 const batch = writeBatch(db);
                 let hasUnread = false;
 
@@ -4690,18 +4927,18 @@
                 });
                 if (hasUnread) batch.commit().catch(e=>{ console.warn("Failed to commit batch update for messages:", e.message); });
                 if (snapshot.docChanges().some(c => c.type === 'added')) chatContainer.scrollTop = chatContainer.scrollHeight;
-                if (window.lucide) window.lucide.createIcons();
+                if (window.lucide) window.lucide.createIcons({ root: chatContainer });
             });
 
             // Setup Typing Input Listener
-            document.getElementById('chat-message-input').addEventListener('input', () => {
+            document.getElementById('chat-message-input').oninput = () => {
                 if (window.chatTypingTimeout) clearTimeout(window.chatTypingTimeout);
                 else setDoc(convRef, { typingStatus: { [auth.currentUser.uid]: serverTimestamp() } }, { merge: true }).catch(e=>{});
                 window.chatTypingTimeout = setTimeout(() => {
                     setDoc(convRef, { typingStatus: { [auth.currentUser.uid]: null } }, { merge: true });
                     window.chatTypingTimeout = null;
                 }, 2000);
-            });
+            };
         };
 
         window.renderChatMessage = function(messageId, data, returnElement = false) {
@@ -4718,8 +4955,9 @@
                 if (window.lastMessageDate !== dateString) {
                     const separatorDiv = document.createElement('div');
                     separatorDiv.className = 'message-date-separator';
+                    separatorDiv.dataset.date = dateString;
                     separatorDiv.innerHTML = `<span>${dateString === new Date().toLocaleDateString() ? 'Today' : dateObj.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</span>`;
-                    document.getElementById('chat-messages-container').appendChild(separatorDiv);
+                    (window.chatMessageRenderTarget || document.getElementById('chat-messages-container')).appendChild(separatorDiv);
                     window.lastMessageDate = dateString;
                 }
                 const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -4818,6 +5056,7 @@
             const div = document.createElement('div');
             div.className = `message-item ${messageClass}`;
             div.id = `msg-${messageId}`;
+            if (msgTime) div.dataset.date = new Date(msgTime).toLocaleDateString();
             
             let editBtn = canEdit ? `<button class="edit-msg-btn" onclick="window.showEditChatUI('${messageId}')" title="Edit"><i data-lucide="pen" style="width: 16px; height: 16px;"></i></button>` : '';
             let delBtn = `<button class="delete-msg-btn" onclick="window.confirmDeleteChatMsg('${messageId}')" title="Delete"><i data-lucide="trash-2" style="color: #ef4444; width: 16px; height: 16px;"></i></button>`;
@@ -4826,7 +5065,7 @@
             div.innerHTML = isSent ? `${pickerHTML}<div class="message-text">${content}${reactionsHTML}${timeHtml}</div>${editBtn}${delBtn}${fwdBtn}` : `${fwdBtn}${delBtn}${pickerHTML}<div class="message-text">${content}${reactionsHTML}${timeHtml}</div>`;
 
             if (returnElement) return div;
-            document.getElementById('chat-messages-container').appendChild(div);
+            (window.chatMessageRenderTarget || document.getElementById('chat-messages-container')).appendChild(div);
         };
 
         window.sendChatMessage = async function() {
@@ -5184,8 +5423,7 @@
             categories: new Set(Object.keys(userInterests)),
             watchedBlogIds: new Set()
         };
-        let homeFeedPreferencesPromise = Promise.resolve(homeFeedPreferences);
-
+        let homeFeedPreferencesLoadId = 0;
         function updateUserInterest(category, weight) {
             if (!category) return;
             userInterests[category] = (userInterests[category] || 0) + weight;
@@ -5195,6 +5433,7 @@
         }
 
         async function loadHomeFeedPreferences(userId, userData) {
+            const loadId = ++homeFeedPreferencesLoadId;
             const categories = new Set(Object.keys(userInterests));
             const watchedBlogIds = new Set();
             const addCategories = value => {
@@ -5210,8 +5449,9 @@
             addCategories(userData?.interests);
             addCategories(userData?.preferredCategories);
             if (!userId) {
-                homeFeedPreferences = { categories, watchedBlogIds };
-                return homeFeedPreferences;
+                const preferences = { categories, watchedBlogIds };
+                if (loadId === homeFeedPreferencesLoadId) homeFeedPreferences = preferences;
+                return preferences;
             }
 
             const preferenceQueries = await Promise.allSettled([
@@ -5237,8 +5477,9 @@
                 console.error("Error loading watch-history feed preferences:", watchHistory.reason);
             }
 
-            homeFeedPreferences = { categories, watchedBlogIds };
-            return homeFeedPreferences;
+            const preferences = { categories, watchedBlogIds };
+            if (loadId === homeFeedPreferencesLoadId) homeFeedPreferences = preferences;
+            return preferences;
         }
 
         function arrangeHomeFeed(posts, preferences) {
@@ -5377,33 +5618,50 @@
     }
 
         window.preRollAdConfig = { frequency: 3, activeAds: [] };
+        let approvedPromotionsPromise;
+        function getApprovedPromotionsSnapshot() {
+            if (!approvedPromotionsPromise) {
+                approvedPromotionsPromise = getDocs(query(collection(db, "promotions"), where("status", "==", "approved")));
+            }
+            return approvedPromotionsPromise;
+        }
+
         // Fetch Ad Settings from Firestore
         async function loadAdSettings() {
-            try {
-                const adDoc = await getDoc(doc(db, "settings", "ads"));
-                if (adDoc.exists()) {
-                    globalAdConfig = adDoc.data();
-                }
-                globalAdConfig.enableInFeedAds = globalAdConfig.enableInFeedAds !== false; // Default to true if not set
-                globalAdConfig.enablePreRollAds = globalAdConfig.enablePreRollAds !== false; // Default to true if not set
-            } catch(e) { console.error("Error loading ad settings:", e); }
+            const results = await Promise.allSettled([
+                getDoc(doc(db, "settings", "ads")),
+                getDoc(doc(db, "settings", "vastAds")),
+                getDoc(doc(db, "settings", "promotions")),
+                getApprovedPromotionsSnapshot()
+            ]);
 
-            try {
-                const vastDoc = await getDoc(doc(db, "settings", "vastAds"));
-                if (vastDoc.exists()) { vastAdConfig = vastDoc.data(); }
-            } catch(e) { console.error("Error loading vast ad settings:", e); }
-            
-            // PRE-ROLL AD FETCHING
-            try {
-                const promoSettingsSnap = await getDoc(doc(db, "settings", "promotions"));
-                if (promoSettingsSnap.exists()) {
-                    window.preRollAdConfig.frequency = promoSettingsSnap.data().prerollFrequency || 3;
+            const [adsResult, vastResult, promoSettingsResult, promotionsResult] = results;
+            if (adsResult.status === 'fulfilled') {
+                if (adsResult.value.exists()) globalAdConfig = adsResult.value.data();
+                globalAdConfig.enableInFeedAds = globalAdConfig.enableInFeedAds !== false;
+                globalAdConfig.enablePreRollAds = globalAdConfig.enablePreRollAds !== false;
+            } else {
+                console.error("Error loading ad settings:", adsResult.reason);
+            }
+
+            if (vastResult.status === 'fulfilled') {
+                if (vastResult.value.exists()) vastAdConfig = vastResult.value.data();
+            } else {
+                console.error("Error loading vast ad settings:", vastResult.reason);
+            }
+
+            if (promoSettingsResult.status === 'fulfilled') {
+                if (promoSettingsResult.value.exists()) {
+                    window.preRollAdConfig.frequency = promoSettingsResult.value.data().prerollFrequency || 3;
                 }
-                const q = query(collection(db, "promotions"), where("status", "==", "approved"));
-                const adSnap = await getDocs(q);
-                window.preRollAdConfig.activeAds = [];
-                window.blogAdConfig = { activeAds: [] };
-                adSnap.forEach(adDoc => {
+            } else {
+                console.error("Error loading promotion settings:", promoSettingsResult.reason);
+            }
+
+            window.preRollAdConfig.activeAds = [];
+            window.blogAdConfig = { activeAds: [] };
+            if (promotionsResult.status === 'fulfilled') {
+                promotionsResult.value.forEach(adDoc => {
                     const adData = adDoc.data();
                     if (adData.type === 'preroll' && (adData.impressions_served || 0) < (adData.impressions_goal || 1)) {
                         window.preRollAdConfig.activeAds.push({ id: adDoc.id, ...adData });
@@ -5411,7 +5669,9 @@
                         window.blogAdConfig.activeAds.push({ id: adDoc.id, ...adData });
                     }
                 });
-            } catch(e) { console.error("Error loading pre-roll config:", e); }
+            } else {
+                console.error("Error loading pre-roll config:", promotionsResult.reason);
+            }
         }
 
         // Fetch Active Promotions
@@ -5420,32 +5680,37 @@
             try {
                 const now = new Date().toISOString();
                 window.activePromotions = [];
-                
-                try {
-                    const q = query(collection(db, "blogs"), where("isPromoted", "==", true));
-                    const snap = await getDocs(q);
-                    snap.forEach(doc => {
-                        const data = doc.data();
-                        if (data.promoExpiry && data.promoExpiry > now) {
-                            window.activePromotions.push({ id: doc.id, ...data, promoType: 'content' });
-                        } else if (data.promoExpiry && data.promoExpiry <= now) {
-                            updateDoc(doc.ref, { isPromoted: false }).catch(e => console.error(e));
-                        }
-                    });
-                } catch(e) {}
+                const results = await Promise.allSettled([
+                    getDocs(query(collection(db, "blogs"), where("isPromoted", "==", true))),
+                    getApprovedPromotionsSnapshot()
+                ]);
 
-                try {
-                    const q2 = query(collection(db, "promotions"), where("status", "==", "approved"));
-                    const snap2 = await getDocs(q2);
-                    snap2.forEach(doc => {
-                        const data = doc.data();
-                        if (data.type === 'external' && data.promoExpiry && data.promoExpiry > now) {
-                            window.activePromotions.push({ id: doc.id, ...data, promoType: 'external' });
-                        } else if (data.type === 'external' && data.promoExpiry && data.promoExpiry <= now) {
-                            updateDoc(doc.ref, { status: 'expired' }).catch(e => console.error(e));
+                const [contentPromotions, externalPromotions] = results;
+                if (contentPromotions.status === 'fulfilled') {
+                    contentPromotions.value.forEach(blogDoc => {
+                        const data = blogDoc.data();
+                        if (data.promoExpiry && data.promoExpiry > now) {
+                            window.activePromotions.push({ id: blogDoc.id, ...data, promoType: 'content' });
+                        } else if (data.promoExpiry && data.promoExpiry <= now) {
+                            updateDoc(blogDoc.ref, { isPromoted: false }).catch(e => console.error(e));
                         }
                     });
-                } catch(e) {}
+                } else {
+                    console.error("Error loading promoted content:", contentPromotions.reason);
+                }
+
+                if (externalPromotions.status === 'fulfilled') {
+                    externalPromotions.value.forEach(promotionDoc => {
+                        const data = promotionDoc.data();
+                        if (data.type === 'external' && data.promoExpiry && data.promoExpiry > now) {
+                            window.activePromotions.push({ id: promotionDoc.id, ...data, promoType: 'external' });
+                        } else if (data.type === 'external' && data.promoExpiry && data.promoExpiry <= now) {
+                            updateDoc(promotionDoc.ref, { status: 'expired' }).catch(e => console.error(e));
+                        }
+                    });
+                } else {
+                    console.error("Error loading external promotions:", externalPromotions.reason);
+                }
             } catch(e) { console.error("Error loading active promotions:", e); }
         }
 
@@ -6019,7 +6284,7 @@
         window.globalPromosPromise = loadActivePromotions();
         
         window.enableYoutubeLinks = true;
-        const globalSettingsPromise = getDoc(doc(db, "settings", "general")).then(snap => {
+        window.globalSettingsPromise = getDoc(doc(db, "settings", "general")).then(snap => {
             if(snap.exists() && snap.data().enableYoutubeLinks !== undefined) {
                 window.enableYoutubeLinks = snap.data().enableYoutubeLinks;
             }
@@ -6030,114 +6295,106 @@
                 if(loginBtn) loginBtn.style.display = 'none';
                 if(logoutBtn) logoutBtn.style.display = 'flex';
                 if(document.getElementById('feed-toggle-wrapper')) document.getElementById('feed-toggle-wrapper').style.display = 'block';
-                document.getElementById('feed-toggle').style.display = 'flex'; // Show feed toggle
+                document.getElementById('feed-toggle').style.display = 'flex';
 
+                let userData = {};
                 try {
                     const userDocSnap = await getDoc(doc(db, "users", user.uid));
-                    if (userDocSnap.exists()) {
-                        window.isHistoryPaused = userDocSnap.data().historyPaused || false;
-                        if (typeof window.updatePauseHistoryBtnUI === 'function') window.updatePauseHistoryBtnUI();
-                    }
-                } catch(e) { console.error("Error loading user preferences:", e); }
-
-                // --- NEW: Trigger story cleanup on user login ---
-                cleanupExpiredStories();
-                
-                listenForNotifications(user.uid);
-                listenForUnreadMessages(user.uid);
-
-                // Load theme preference
-                loadStories(user);
-                try {
-                    const userDocRef = doc(db, "users", user.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-                    let themeToApply = 'dark'; // default
-                    if (userDocSnap.exists() && userDocSnap.data().theme) {
-                        themeToApply = userDocSnap.data().theme;
-                    } else {
-                        const localTheme = localStorage.getItem('theme');
-                        if (localTheme) {
-                            themeToApply = localTheme;
-                            // Sync local theme to firestore for the first time
-                            await setDoc(userDocRef, { theme: themeToApply }, { merge: true });
-                        }
-                    }
-                    applyTheme(themeToApply);
+                    if (userDocSnap.exists()) userData = userDocSnap.data();
                 } catch(e) {
-                    console.error("Error loading theme preference:", e);
-                    applyTheme(localStorage.getItem('theme') || 'dark');
+                    console.error("Error loading user profile:", e);
                 }
 
-                // Load following list
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        // --- ENFORCE BAN LOGIC ---
-                        if (userDoc.data().isBanned) {
-                            await window.viyouAlert("⛔ Your account has been permanently banned for violating community guidelines (Abusive/Sexual Content).");
-                            signOut(auth);
-                            return;
-                        }
-                        // -------------------------
-                        window.currentUserData = userDoc.data();
-                        homeFeedPreferencesPromise = loadHomeFeedPreferences(user.uid, window.currentUserData);
-                        currentUserFollowing = userDoc.data().following || [];
-                        currentUserBlocked = userDoc.data().blockedUsers || [];
-                        if (window.followStateUnsubscribe) window.followStateUnsubscribe();
-                        window.followStateUnsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
-                            if (!snapshot.exists()) return;
-                            const profileData = snapshot.data();
-                            const photoChanged = profileData.photoURL !== window.currentUserData?.photoURL;
-                            const following = snapshot.data().following || [];
-                            const previousFollowing = currentUserFollowing;
-                            currentUserFollowing = following;
-                            window.currentUserData = { ...window.currentUserData, ...profileData, following };
-                            if (photoChanged && profileData.photoURL) {
-                                syncCachedProfilePhoto(user.uid, profileData.photoURL);
-                                if (typeof window.renderBlogs === 'function') window.renderBlogs(auth.currentUser);
-                                if (typeof window.renderFlickComments === 'function') window.renderFlickComments();
-                            }
-                            if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
-                            const changedUid = [...new Set([...previousFollowing, ...following])].find(id => previousFollowing.includes(id) !== following.includes(id));
-                            if (changedUid) window.syncFollowButtons(changedUid, following.includes(changedUid));
-                        }, (error) => console.warn("Following sync unavailable:", error.message));
-                    const profileIconDiv = document.getElementById('bottom-nav-profile-icon');
-                    // Update profile pic if custom is set
-                    if (userDoc.data().photoURL && profileIconDiv) {
-                        profileIconDiv.innerHTML = `<img src="${userDoc.data().photoURL}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #555;">`;
-                    }
-                    }
-                } catch(e) { console.error("Error loading following:", e); }
+                if (userData.isBanned) {
+                    await window.viyouAlert("⛔ Your account has been permanently banned for violating community guidelines (Abusive/Sexual Content).");
+                    await signOut(auth);
+                    return;
+                }
 
+                window.currentUserData = userData;
+                window.isHistoryPaused = userData.historyPaused || false;
+                if (typeof window.updatePauseHistoryBtnUI === 'function') window.updatePauseHistoryBtnUI();
+                currentUserFollowing = userData.following || [];
+                currentUserBlocked = userData.blockedUsers || [];
+                loadHomeFeedPreferences(user.uid, userData).catch(e => console.error("Error loading feed preferences:", e));
+
+                const userDocRef = doc(db, "users", user.uid);
+                const savedTheme = userData.theme || localStorage.getItem('theme');
+                applyTheme(savedTheme || 'dark');
+                if (!userData.theme && savedTheme) {
+                    setDoc(userDocRef, { theme: savedTheme }, { merge: true }).catch(e => console.error("Error saving theme preference:", e));
+                }
+
+                cleanupExpiredStories();
+                listenForNotifications(user.uid);
+                listenForUnreadMessages(user.uid);
                 loadStories(user);
+
+                if (window.followStateUnsubscribe) window.followStateUnsubscribe();
+                window.followStateUnsubscribe = onSnapshot(userDocRef, (snapshot) => {
+                    if (!snapshot.exists()) return;
+                    const profileData = snapshot.data();
+                    const photoChanged = profileData.photoURL !== window.currentUserData?.photoURL;
+                    const following = profileData.following || [];
+                    const previousFollowing = currentUserFollowing;
+                    currentUserFollowing = following;
+                    currentUserBlocked = profileData.blockedUsers || [];
+                    window.currentUserData = { ...window.currentUserData, ...profileData, following };
+                    if (photoChanged && profileData.photoURL) {
+                        syncCachedProfilePhoto(user.uid, profileData.photoURL);
+                        if (typeof window.renderBlogs === 'function') window.renderBlogs(auth.currentUser);
+                        if (typeof window.renderFlickComments === 'function') window.renderFlickComments();
+                    }
+                    if (typeof window.renderWatchComments === 'function') window.renderWatchComments();
+                    const changedUid = [...new Set([...previousFollowing, ...following])].find(id => previousFollowing.includes(id) !== following.includes(id));
+                    if (changedUid) window.syncFollowButtons(changedUid, following.includes(changedUid));
+                }, (error) => console.warn("Following sync unavailable:", error.message));
+
+                const profileIconDiv = document.getElementById('bottom-nav-profile-icon');
+                if (userData.photoURL && profileIconDiv) {
+                    profileIconDiv.innerHTML = `<img src="${userData.photoURL}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #555;">`;
+                }
 
                 if (await routeInitialSpaView()) return;
 
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (!userDoc.exists() || !userDoc.data().username) {
-                    // Redirect to profile to create unique ID
+                if (!userData.username) {
                     window.navigateTo('profile', null, user.uid);
                     return;
                 }
 
-                resetAndLoadBlogs(); // Call this instead of renderBlogs directly
+                resetAndLoadBlogs();
             } else {
-                // User is logged out, just use local storage
                 window.currentUserData = null;
-                homeFeedPreferencesPromise = loadHomeFeedPreferences(null, null);
+                [
+                    'messagesUnsubscribe',
+                    'chatUnsubscribeMsg',
+                    'chatUnsubscribeConv',
+                    'notificationsUnsubscribe',
+                    'unreadMessagesUnsubscribe',
+                    'followStateUnsubscribe'
+                ].forEach(key => {
+                    if (window[key]) window[key]();
+                    window[key] = null;
+                });
+                if (window.chatOlderPageUnsubscribes) {
+                    window.chatOlderPageUnsubscribes.forEach(unsubscribe => unsubscribe());
+                    window.chatOlderPageUnsubscribes = [];
+                }
+                window.messagesListenerUid = null;
+                loadHomeFeedPreferences(null, null);
                 document.getElementById('stories-reel-container').style.display = 'none';
                 applyTheme(localStorage.getItem('theme') || 'dark');
                 if(loginBtn) loginBtn.style.display = 'flex';
                 if(logoutBtn) logoutBtn.style.display = 'none';
-            const profileIconDiv = document.getElementById('bottom-nav-profile-icon');
-            if (profileIconDiv) {
-                profileIconDiv.innerHTML = `<i data-lucide="user"></i>`;
-                if(window.lucide) window.lucide.createIcons({ root: profileIconDiv });
-            }
-                document.getElementById('feed-toggle').style.display = 'none'; // Hide feed toggle
-                currentFeedMode = 'all'; // Reset to all posts on logout
-                currentUserBlocked = []; // Clear blocked list on logout
-                if (!(await routeInitialSpaView())) resetAndLoadBlogs(); // Load requested SPA content or the home feed
+                const profileIconDiv = document.getElementById('bottom-nav-profile-icon');
+                if (profileIconDiv) {
+                    profileIconDiv.innerHTML = `<i data-lucide="user"></i>`;
+                    if(window.lucide) window.lucide.createIcons({ root: profileIconDiv });
+                }
+                document.getElementById('feed-toggle').style.display = 'none';
+                currentFeedMode = 'all';
+                currentUserBlocked = [];
+                if (!(await routeInitialSpaView())) resetAndLoadBlogs();
             }
         });
 
@@ -6146,6 +6403,7 @@
         
         let fetchedBlogs = [];
         let isFetchingBlogs = false;
+        let homeFeedAuxiliaryRefreshScheduled = false;
 
         function syncCachedProfilePhoto(userId, photoURL) {
             const cachedBlogs = new Set([
@@ -6210,12 +6468,10 @@
             fetchedBlogs = [];
             lastVisibleBlog = null;
             updateFeedToggleUI();
-        
-        // Wait for the initially fired promises to resolve instantly
-        await Promise.all([window.globalAdPromise, window.globalPromosPromise, window.globalSettingsPromise]); 
-        
-            loadMainHeadline(); // Load main headline
-            await loadBlogs(false); // Start loading from the beginning
+
+            refreshHomeFeedAfterAuxiliaryLoads();
+            loadMainHeadline();
+            await loadBlogs(false);
             setupInfiniteScroll(); // Setup scroll observer after auth resolves
 
             // Defer loading of non-critical sections to improve initial load time
@@ -6223,6 +6479,29 @@
                 loadTrending();
                 loadFlicks();
             }, 1500); // Delay by 1.5 seconds
+        }
+
+        function refreshHomeFeedAfterAuxiliaryLoads() {
+            if (homeFeedAuxiliaryRefreshScheduled) return;
+            homeFeedAuxiliaryRefreshScheduled = true;
+            Promise.allSettled([
+                window.globalAdPromise,
+                window.globalPromosPromise,
+                window.globalSettingsPromise
+            ]).then(() => {
+                if (!fetchedBlogs.length || !document.getElementById('view-home').classList.contains('active')) return;
+                if (!window.enableYoutubeLinks) {
+                    fetchedBlogs = fetchedBlogs.filter(blog => !blog.youtubeUrl);
+                }
+                if (!fetchedBlogs.length) {
+                    const grid = document.getElementById('user-blogs-grid');
+                    if (grid) grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #aaa; padding: 20px;">No posts to show in this feed yet.</p>';
+                    return;
+                }
+                const scrollPosition = window.scrollY;
+                window.renderBlogs(auth.currentUser);
+                window.scrollTo(0, scrollPosition);
+            });
         }
 
         // Add event listeners for feed toggle
@@ -6242,18 +6521,6 @@
         document.getElementById('feed-verified-btn').addEventListener('click', () => {
             if (currentFeedMode === 'verified') return;
             currentFeedMode = 'verified';
-            resetAndLoadBlogs();
-        });
-
-        document.getElementById('feed-blogs-btn').addEventListener('click', () => {
-            if (currentFeedMode === 'blogsOnly') return;
-            currentFeedMode = 'blogsOnly';
-            resetAndLoadBlogs();
-        });
-
-        document.getElementById('feed-videos-btn').addEventListener('click', () => {
-            if (currentFeedMode === 'videosOnly') return;
-            currentFeedMode = 'videosOnly';
             resetAndLoadBlogs();
         });
 
@@ -6498,7 +6765,7 @@
 
                 // --- Smart Feed: Algorithm Logic ---
                 if (currentFeedMode === 'all' && currentCategoryFilter === 'All' && newBlogs.length > 0) {
-                    newBlogs = arrangeHomeFeed(newBlogs, await homeFeedPreferencesPromise);
+                    newBlogs = arrangeHomeFeed(newBlogs, homeFeedPreferences);
                 }
 
                 if (hasMoreDocs) {
@@ -6721,7 +6988,7 @@
                 if (videoId) {
                     mediaHtml += `
                         <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; width: 100%; background: #000; border-radius: 12px; margin-bottom: 0; cursor: pointer;" onclick="window.navigateTo('watch', event, '${blog.id}')">
-                            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" loading="lazy" decoding="async" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.9); pointer-events: none;"><i data-lucide="youtube" style="width: 48px; height: 48px; color: #ff0000;"></i></div>
                         </div>`;
                 }
@@ -6733,13 +7000,13 @@
                 if (blog.thumbnail) {
                 mediaHtml += `
                     <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; margin-bottom: 0; background: #222; display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: pointer;" onclick="window.navigateTo('watch', event, '${blog.id}')">
-                            <img src="${blog.thumbnail}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+                            <img src="${blog.thumbnail}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
                         <div style="position: absolute; color: rgba(255,255,255,0.9); text-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: none;"><i data-lucide="play-circle" class="lucide-fill" style="width: 48px; height: 48px;"></i></div>
                     </div>`;
                 } else {
                     mediaHtml += `
                         <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; margin-bottom: 0; background: #222; display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: pointer;" onclick="window.navigateTo('watch', event, '${blog.id}')">
-                            <video src="${vidSrc}#t=0.1" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" muted playsinline preload="metadata"></video>
+                            <video src="${vidSrc}#t=0.1" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" muted playsinline preload="none"></video>
                             <div style="position: absolute; color: rgba(255,255,255,0.9); text-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: none;"><i data-lucide="play-circle" class="lucide-fill" style="width: 48px; height: 48px;"></i></div>
                         </div>`;
                 }
@@ -6832,7 +7099,7 @@
             const audioThumb = blog.thumbnail || blog.authorPhoto || 'logo.png';
             audioBoxHtml = `
             <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); cursor: default;" onclick="event.stopPropagation()">
-                <img src="${audioThumb}" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
+                <img src="${audioThumb}" loading="lazy" decoding="async" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
                 <div style="flex: 1; overflow: hidden; text-align: left;">
                     <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">${audioTitle}</div>
                     <div style="font-size: 0.75rem; color: #aaa;">Viyou Audio</div>
@@ -6877,7 +7144,7 @@
                     
                     return `
                     <div style="margin-top: 10px; display: flex; gap: 10px; align-items: flex-start;">
-                        <img src="${r.photo || 'https://via.placeholder.com/30'}" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;">
+                        <img src="${r.photo || 'https://via.placeholder.com/30'}" loading="lazy" decoding="async" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;">
                         <div style="flex: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <strong style="color: #87ceeb; font-size: 0.8rem;">${r.author} ${rVerified}</strong>
@@ -6906,7 +7173,7 @@
                 return `
                 <div id="comment-${c.id}" style="background: ${authorLiked ? 'linear-gradient(to right, rgba(255,0,80,0.15), rgba(255,255,255,0.05))' : 'rgba(255, 255, 255, 0.05)'}; border-radius: 12px; padding: 10px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.1); ${pinnedStyle} ${authorLiked ? 'border-left: 3px solid #ff0050;' : ''}">
                     <div style="display: flex; gap: 10px; align-items: flex-start;">
-                        <img src="${c.photo || 'https://via.placeholder.com/40'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #555; cursor: pointer;" onclick="window.navigateTo('profile', event, '${c.userUid}')">
+                        <img src="${c.photo || 'https://via.placeholder.com/40'}" loading="lazy" decoding="async" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #555; cursor: pointer;" onclick="window.navigateTo('profile', event, '${c.userUid}')">
                         <div style="flex: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                                 <div>
@@ -6948,7 +7215,7 @@
                     ${mediaHtml}
                 </div>
                 <div class="news-card-info" style="display: flex; gap: 12px; padding: 12px 15px 0 15px; flex: 1; box-sizing: border-box;">
-                    <img src="${blog.authorPhoto || 'https://via.placeholder.com/40'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid #555; flex-shrink: 0;" onclick="window.navigateTo('profile', event, '${blog.authorUid}')">
+                    <img src="${blog.authorPhoto || 'https://via.placeholder.com/40'}" loading="lazy" decoding="async" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid #555; flex-shrink: 0;" onclick="window.navigateTo('profile', event, '${blog.authorUid}')">
                     <div style="flex: 1; min-width: 0;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                             <h3 class="card-title-text" onclick="${targetAction}" style="margin-top: 0;">${renderTextWithMentions(blog.title)}</h3>
@@ -7430,11 +7697,11 @@
                     let thumbHtml = '';
                     if (blog.youtubeUrl) {
                         const videoId = getYoutubeVideoId(blog.youtubeUrl);
-                    thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" alt="Thumbnail">`;
+                    thumbHtml = `<img src="${videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'logo.png'}" loading="lazy" decoding="async" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" alt="Thumbnail">`;
                     } else if (blog.video) {
                     let vidSrc = blog.video;
                         if (blog.thumbnail) {
-                            thumbHtml = `<img src="${blog.thumbnail}" loading="lazy" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
+                            thumbHtml = `<img src="${blog.thumbnail}" loading="lazy" decoding="async" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}">`;
                         } else {
                         thumbHtml = `<video src="${vidSrc}#t=0.1" class="${category === 'flicks' ? 'flick-thumbnail' : 'video-thumbnail'}" muted playsinline preload="none"></video>`;
                         }
@@ -7465,7 +7732,7 @@
                             <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.8rem;">${icon}</div>
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <img src="${authorPhoto}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; flex-shrink: 0; border: 1px solid #444;" onclick="event.stopPropagation(); window.navigateTo('profile', event, '${blog.authorUid}')" alt="DP">
+                            <img src="${authorPhoto}" loading="lazy" decoding="async" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; flex-shrink: 0; border: 1px solid #444;" onclick="event.stopPropagation(); window.navigateTo('profile', event, '${blog.authorUid}')" alt="DP">
                             <div style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
                                 <h4 class="grid-title-text" onclick="${targetAction}" style="margin: 0 0 4px 0; cursor: pointer;">${blog.title || 'Untitled'}</h4>
                                 <p style="margin: 0; font-size: 0.85rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" onclick="event.stopPropagation(); window.navigateTo('profile', event, '${blog.authorUid}')">@${blog.author || 'User'}</p>
@@ -9445,7 +9712,8 @@
 
         function listenForNotifications(uid) {
             const q = query(collection(db, "notifications"), where("recipientUid", "==", uid));
-            onSnapshot(q, (snap) => {
+            if (window.notificationsUnsubscribe) window.notificationsUnsubscribe();
+            window.notificationsUnsubscribe = onSnapshot(q, (snap) => {
                 const notifs = [];
                 snap.forEach(doc => notifs.push({ id: doc.id, ...doc.data() }));
                 
@@ -9538,7 +9806,8 @@
                 where("lastMessage.isRead", "==", false)
             );
  
-            onSnapshot(q, (snapshot) => {
+            if (window.unreadMessagesUnsubscribe) window.unreadMessagesUnsubscribe();
+            window.unreadMessagesUnsubscribe = onSnapshot(q, (snapshot) => {
                 let unreadCount = 0;
                 snapshot.forEach(doc => {
                     const conv = doc.data();
